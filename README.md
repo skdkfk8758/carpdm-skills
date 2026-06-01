@@ -96,7 +96,9 @@ rm -rf ~/.claude/skills/<name>   # 개별 제거
 
 ```bash
 bash sync.sh           # ~/.claude/skills/ → repo skills/ 미러링 후 변경 표시
-bash sync.sh --push    # 미러링 + 커밋 + push 까지 한 번에
+bash sync.sh --push    # 미러링 + 브랜치·PR·머지 자동 (master 직접 push 안 함)
 ```
 
 `sync.sh` 는 **레포 `skills/` 가 추적 중인 스킬만** 갱신한다 (true mirror, 삭제 파일 반영). 새 스킬 배포 시작은 `skills/<name>/` 디렉토리를 먼저 만든 뒤 sync.
+
+`--push` 는 `chore/sync-<timestamp>` 브랜치를 만들어 PR 생성·머지까지 한다 (`gh` CLI 필요). master 직접 push 를 막는 브랜치 보호 환경에서도 동작.
