@@ -47,14 +47,25 @@ git status --short skills
 echo
 
 if [ "${1:-}" = "--push" ]; then
-  TS="$(date +%Y-%m-%d)"
-  git commit -q -m "chore: 스킬 동기화 ($TS)"
-  git push origin "$(git branch --show-current)"
-  echo "committed & pushed."
+  command -v gh >/dev/null 2>&1 || { echo "gh CLI 필요 (PR 자동화) — 설치 후 재시도"; exit 1; }
+  BASE="$(git branch --show-current)"
+  DATE="$(date +%Y-%m-%d)"
+  BR="chore/sync-$(date +%Y%m%d-%H%M%S)"
+  # 새 브랜치로 분기 (master 직접 push 우회). staged 변경은 그대로 따라옴.
+  git checkout -q -b "$BR"
+  git commit -q -m "chore: 스킬 동기화 ($DATE)"
+  git push -q -u origin "$BR"
+  gh pr create --base "$BASE" --head "$BR" \
+    --title "chore: 스킬 동기화 ($DATE)" \
+    --body "\`sync.sh --push\` 자동 생성 — \`~/.claude/skills/\` → repo \`skills/\` 미러링." >/dev/null
+  gh pr merge "$BR" --merge --delete-branch
+  git checkout -q "$BASE"
+  git pull -q --ff-only origin "$BASE"
+  git branch -d "$BR" >/dev/null 2>&1 || true
+  echo "동기화 PR 생성·머지 완료. $BASE 최신."
 else
-  echo "Next: review, then commit & push —"
-  echo "  git commit -m \"chore: 스킬 동기화\"  &&  git push"
-  echo "Or re-run:  bash sync.sh --push"
+  echo "Next: review, then publish —"
+  echo "  bash sync.sh --push        # 브랜치+PR+머지 자동"
 fi
 
 [ "$missing" = 1 ] && echo "(일부 스킬이 $SRC_DIR 에 없어 건너뜀 — 위 ! 표시 확인)"
