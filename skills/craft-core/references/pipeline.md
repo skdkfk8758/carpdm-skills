@@ -56,6 +56,14 @@ Write the plan to `docs/plans/YYYY-MM-DD-<topic>.md` (or the project's
 ## Acceptance (the checks that mean "done")
 ```
 
+Alongside the `.md`, write a review-friendly HTML companion at the same path with
+a `.html` extension (`docs/plans/YYYY-MM-DD-<topic>.html`). It is a rendering of
+the same plan — no new content, just the Markdown made visual for review. Make it
+self-contained (inline `<style>`, no external assets) so it opens straight in a
+browser: render each section as a heading + block, show Scope IN/OUT and the
+Steps→verify pairs as tables, and code-style the file paths. When codex verdicts
+land in the `.md` in Phase 2, re-render the `.html` so the two stay in sync.
+
 Ask the user to confirm the plan before Phase 2. A plan the user hasn't seen is
 not a plan.
 
