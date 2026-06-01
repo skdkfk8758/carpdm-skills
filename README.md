@@ -83,9 +83,20 @@ ls ~/.claude/skills/   # forge hunt renew reshape handoff craft-core
 - **스킬 안 보임** → Claude Code 재시작 (세션 시작 시 로드).
 - **handoff 저장 위치** → git repo 의 `docs/handoff/`. repo 밖/non-git 이면 `~/.claude/projects/<slug>/handoff/`.
 
-## 업데이트 / 제거
+## 업데이트 / 제거 (사용자)
 
 ```bash
 git pull && bash install.sh      # 업데이트 (기존본 .bak 백업)
 rm -rf ~/.claude/skills/<name>   # 개별 제거
 ```
+
+## 배포 (유지보수자)
+
+작업본(`~/.claude/skills/`)에서 스킬을 고친 뒤 레포로 반영:
+
+```bash
+bash sync.sh           # ~/.claude/skills/ → repo skills/ 미러링 후 변경 표시
+bash sync.sh --push    # 미러링 + 커밋 + push 까지 한 번에
+```
+
+`sync.sh` 는 **레포 `skills/` 가 추적 중인 스킬만** 갱신한다 (true mirror, 삭제 파일 반영). 새 스킬 배포 시작은 `skills/<name>/` 디렉토리를 먼저 만든 뒤 sync.
