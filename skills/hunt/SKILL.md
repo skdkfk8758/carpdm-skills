@@ -33,6 +33,21 @@ Run the shared engine in `~/.claude/skills/craft-core/references/pipeline.md`
   the edge inputs the fix must not break (no new regressions). Run the completeness
   sweep before finalizing, so the fix doesn't trade one bug for another.
 
+### Parallel hypothesis diagnosis (optional — multi-candidate bugs only)
+
+When the cause has **two or more plausible candidates** and tracing each is
+expensive (e.g. a 500 that could be a migration, an ORM mapping, an env var, or a
+race), don't anchor on the first guess. Use the `Workflow` tool to fan out one
+agent per hypothesis, each tracing its candidate **independently** — they do not
+talk to each other, because cross-talk re-introduces the anchoring this is meant
+to break. Each returns its evidence: the exact code path, the reproduction it
+explains, and what it cannot explain. You then weigh the evidence and pick the
+cause the reproduction actually supports — confirm it before planning the fix.
+
+Skip this when the bug traces to one obvious cause — most do, and a single
+high-confidence trace needs no panel. This is hub-and-spoke fan-out for
+independent evidence, not a peer team; the independence is the whole value.
+
 ## Phase 3 — TDD entry point (see craft-core/references/dynamic-tdd.md)
 
 Task 1 is a **failing regression test that reproduces the bug** — it fails for
