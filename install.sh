@@ -28,7 +28,7 @@ for skill in "$SRC_DIR"/*/; do
 done
 
 echo
-echo "Done. Installed: forge, hunt, renew, reshape, handoff, craft-core."
+echo "Done. Installed: forge, hunt, renew, reshape, handoff, craft-core, sweep."
 echo "Restart Claude Code (or start a new session) to load them."
 echo
 echo "Note: the forge/hunt/renew/reshape pipeline uses the 'codex:rescue'"

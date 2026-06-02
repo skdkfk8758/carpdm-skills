@@ -7,7 +7,7 @@
 
 Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스킬은 마크다운(`SKILL.md` + `references/*.md`)이고, `~/.claude/skills/` 로 복사돼야 동작한다. 코드 컴파일·테스트·린트 단계 없음.
 
-스킬 6종: 작업유형 파이프라인 4 (`forge`/`hunt`/`renew`/`reshape`) + 세션인계 1 (`handoff`) + 공유엔진 1 (`craft-core`).
+스킬 7종: 작업유형 파이프라인 4 (`forge`/`hunt`/`renew`/`reshape`) + 세션인계 1 (`handoff`) + 정리유틸 1 (`sweep`) + 공유엔진 1 (`craft-core`).
 
 ## Commands
 
@@ -16,7 +16,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 | `bash install.sh` | repo `skills/` → `~/.claude/skills/` 복사. 멱등 — 기존 동명 스킬은 `.bak-<ts>` 백업 후 덮어씀. 설치 후 Claude Code 재시작 필요 |
 | `bash sync.sh` | 반대 방향. live `~/.claude/skills/` → repo `skills/` 미러(rsync `--delete`). repo 가 **이미 추적 중인** 스킬만 갱신. staged 변경 표시 |
 | `bash sync.sh --push` | 미러 + `chore/sync-<ts>` 브랜치·PR·머지 자동 (`gh` CLI 필요). master 직접 push 금지 환경 대응 |
-| `ls ~/.claude/skills/` | 설치 검증 — `forge hunt renew reshape handoff craft-core` 보여야 함 |
+| `ls ~/.claude/skills/` | 설치 검증 — `forge hunt renew reshape handoff sweep craft-core` 보여야 함 |
 
 검증 스위트는 없다. "테스트"는 `install.sh`/`sync.sh` 실행 + `ls` 확인이 전부.
 
@@ -26,7 +26,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 파이프라인 4종은 craft-core 엔진을 **하드코딩 절대경로**로 읽는다:
 `~/.claude/skills/craft-core/references/pipeline.md`. 따라서:
 - 설치 경로는 `~/.claude/skills/` **고정**. 다른 위치면 4종 전부 깨짐.
-- forge/hunt/renew/reshape 는 craft-core 와 **항상 함께** 설치돼야 함. handoff 만 단독 가능.
+- forge/hunt/renew/reshape 는 craft-core 와 **항상 함께** 설치돼야 함. handoff·sweep 는 단독 가능 (craft-core 의존 없음).
 - craft-core 는 `user-invocable: false` — 직접 트리거 금지, 컨테이너일 뿐.
 
 ### 2. 공유 4-phase 파이프라인 (craft-core/references/pipeline.md)
