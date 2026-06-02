@@ -159,6 +159,46 @@ for a strictly sequential set. Any task returning `testsGreen:false` or
 
 ---
 
+## §3.5 — Convention reshape pass (forge / renew only)
+
+After §3's build is green, before §4 verify — **for `forge` and `renew` only**
+(`hunt` and `reshape` skip it, same reasoning as the linear engine). Read
+`~/.claude/skills/craft-core/references/reshape-pass.md`.
+
+The main session **offers it once** (default off) via `AskUserQuestion`. If
+declined or there's nothing to align, go straight to §4. If accepted, run the
+alignment as a **single `sonnet` Workflow agent** (no fan-out — it's one
+sequential pass over the build diff, matching the §3 build tier):
+
+```javascript
+export const meta = {
+  name: 'craft-reshape-pass',
+  description: 'Align the build diff to project convention, behavior-preserving, on sonnet',
+  phases: [{ title: 'Reshape', model: 'sonnet' }],
+}
+const RESULT = { type: 'object', required: ['testsGreen','summary'], properties: {
+  testsGreen: { type: 'boolean' },
+  filesChanged: { type: 'array', items: { type: 'string' } },
+  summary: { type: 'string' },
+} }
+return await agent(
+  `Convention reshape pass per reshape-pass.md and convention-guide.md ` +
+  `(merge with the project's lint/rules and docs/guides/, most specific wins).\n` +
+  `Scope: the §3 build diff and its immediate neighborhood only — Read the diff.\n` +
+  `The build's test suite is the behavior pin. Align in small steps (naming, ` +
+  `guard-clauses, import groups, error handling); run the suite after each step. ` +
+  `A test goes red → that step changed behavior → revert it and stop on that axis. ` +
+  `Never edit a test to make it pass. Report testsGreen + files changed.`,
+  { label: 'reshape:convention', phase: 'Reshape', model: 'sonnet', schema: RESULT })
+```
+
+The **designer stays idle-alive** through this phase (§4 still needs it). The
+§4 panel then verifies the **combined (build + reshape) diff** — there is no
+separate verify gate for this pass. If the pass returns `testsGreen:false`, treat
+it like a red build task: fix or revert before advancing to §4.
+
+---
+
 ## §4 — Verification panel (hybrid: workflow fan-out + designer judgment)
 
 Two stages. The fan-out is deterministic Workflow; the judgment is the persistent

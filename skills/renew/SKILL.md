@@ -43,4 +43,12 @@ your safety net so the revamp can't silently break what should stay. Then drive
 the *changed* behavior red → green → refactor on opus, with the characterization
 tests staying green throughout.
 
+## Phase 3.5 — Convention reshape pass (see craft-core/references/reshape-pass.md)
+
+Once the changed behavior is green, **offer once** (default off) a
+behavior-preserving pass that aligns the touched code to project convention
+before Phase 4 — with the characterization tests (preserved behavior) staying
+green throughout, exactly as they do in Phase 3. Skip on a trivial diff or if the
+user declines.
+
 Phases 0, 2, 4, 5 run exactly as in the shared pipeline.

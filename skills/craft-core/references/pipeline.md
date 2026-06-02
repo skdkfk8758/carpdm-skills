@@ -136,6 +136,18 @@ contract: each implementation agent re-reads the approved plan (`.md`) and the
 relevant project guides (`docs/guides/`) before writing code, and implements
 nothing not in the plan without going back to Phase 1.
 
+## Phase 3.5 — Convention reshape pass (forge / renew only)
+
+Read `reshape-pass.md`. For `forge` and `renew` only, after Phase 3 is green:
+**offer once** (via `AskUserQuestion`, default off) a behavior-preserving cleanup
+that aligns the just-written diff to the project's conventions — naming,
+function/file structure, import/dependency organization, error handling
+(`convention-guide.md`, merged with the project's lint/rules and `docs/guides/`).
+The Phase 3 tests are the behavior pin; every step keeps them green, and a test
+going red means the step changed behavior — revert it. `hunt` and `reshape` skip
+this phase (a fix stays surgical; a reshape already is this pass). If declined or
+nothing to align, skip straight to Phase 4.
+
 ## Phase 4 — Secure verify
 
 Read `security.md`. Run the project verify gate (tests / typecheck / lint /
