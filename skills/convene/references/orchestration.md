@@ -1,0 +1,214 @@
+# Convene — Orchestration (team mode + dynamic workflow)
+
+The slim hybrid topology. The **main session is the hub**: it relays the user ↔
+the council agents, launches the Workflow runs, and routes verification findings.
+Team-mode agents cannot talk to the user directly — every user turn passes through
+the main session via `SendMessage` in and plain relay out.
+
+Persistence rule (the whole reason team mode is here): an agent is kept alive
+**only if it must remember across rounds**. The **designer** qualifies (it carries
+the design intent from Phase 1 all the way into Phase 4 judgment). The adversary
+qualifies for the duration of the council loop. QA / tester / security do **not** —
+they run once as a stateless Workflow fan-out.
+
+Models: designer + adversary + verification judges = **opus** (`claude-opus-4-8`);
+Phase 3 build = **sonnet** (`claude-sonnet-4-6`). See SKILL.md for the contract.
+
+---
+
+## §0 — Frame & convene the team
+
+1. Restate the task type and a one-line goal to the user. Confirm convene is wanted
+   (it is expensive) — if the user just wants a normal build, redirect to `forge`
+   et al. and stop.
+2. Isolation (project rule): 6+ files, an architecture change, or a 3+ file
+   refactor → branch into a worktree before any edit. Say why if you skip it.
+3. `TeamCreate({ team_name: 'convene-<topic>', description: '<one-line goal>' })`.
+4. Spawn the two council agents with the Agent tool, `team_name` set, `model: 'opus'`:
+   - **designer** (`subagent_type: general-purpose`) — owns the spec and the plan.
+     Brief: "You are the designer on a craft council. Run the Socratic interview
+     (the main session relays the user's answers to you), ground every question in
+     the actual code (Read/Grep) and existing docs, and produce a testable plan at
+     `docs/plans/<date>-<topic>.md` plus its `.html` companion, following
+     `~/.claude/skills/craft-core/references/socratic.md` and `context-adr.md`.
+     You will defend and revise this plan against an adversary, and later judge the
+     built result against your own intent. Keep your design rationale in context —
+     you persist across the whole job."
+   - **adversary** (`subagent_type: general-purpose`) — hostile plan reviewer.
+     Brief: "You are the adversarial reviewer. Attack the designer's plan per
+     `~/.claude/skills/craft-core/references/codex-review.md` — hidden assumptions,
+     missing edges, security holes, a simpler path, scope creep, ADR conflicts. If
+     the `codex:rescue` plugin is available, invoke it and fold its findings in.
+     Label each finding blocking / non-blocking. You exist to make the plan wrong
+     before code does."
+
+Do not spawn QA / tester / security here — they belong to Phase 4 and are not
+team agents.
+
+---
+
+## §1 — Council loop (Phase 1 interview + Phase 2 attack, fused)
+
+The interview and the adversarial review run as one **convergence loop**, because
+in team mode the reviewer is a standing agent — its objections from round N inform
+the designer's round N+1, which a single linear session cannot do.
+
+Loop:
+
+1. **Interview round.** designer asks a focused cluster (2–4 questions). The main
+   session surfaces them to the user, collects answers, and relays them back to
+   designer via `SendMessage`. Use `AskUserQuestion` when the choice is between
+   concrete options. designer reads code/docs to answer what it can itself.
+2. **Draft / revise.** designer writes (or updates) the plan `.md` + `.html`
+   companion. The plan sections are the craft-engine standard (Goal / Scope /
+   Files / Steps→verify / Risks / Security surface / YAGNI / Acceptance).
+3. **Attack round.** main hands the plan path to **adversary**; adversary returns
+   blocking + non-blocking findings (and codex's, if present). main relays the
+   blocking findings to designer.
+4. **Converge check** — repeat 1–3 until **BOTH** gates hold:
+   - **User-approval gate** — the user has seen the current plan and approved it.
+     A plan the user has not seen is not a plan.
+   - **Adversary gate** — adversary (and codex) raise **no blocking** objection,
+     **or** 2 review rounds have completed. Record each round's verdict in the plan.
+
+When both gates pass, the plan is frozen as the Phase 3 contract. Refresh the
+`.html` so it matches the final `.md` (and carries the codex verdicts).
+
+> Termination is these two gates — nothing loops "until optimal" by feel. If the
+> user keeps changing the goal, that is a new interview round, not an open loop.
+
+---
+
+## §3 — Dynamic-workflow TDD build (sonnet)
+
+Read `~/.claude/skills/craft-core/references/dynamic-tdd.md` for the red→green→
+refactor discipline and the "atomic task" definition — but **override its model
+pin: convene builds on `sonnet`, not opus** (SKILL.md contract). The build is
+test-pinned and independently verified, which is what licenses the cheaper tier.
+
+The **designer stays idle-alive** through this phase (do not shut it down) so its
+design intent is still in context for Phase 4. The main session drives the
+Workflow; the build agents are stateless Workflow agents, not team members.
+
+Pass the approved plan's Steps in as `args.tasks`. Each entry: `{ id, title, spec,
+files }`.
+
+```javascript
+export const meta = {
+  name: 'convene-build',
+  description: 'Split the approved convene plan into atomic tasks and build each test-first on sonnet',
+  phases: [{ title: 'Build', model: 'sonnet' }, { title: 'Verify', model: 'sonnet' }],
+}
+
+const TASKS = args.tasks
+const RESULT = { type: 'object', required: ['task','testsGreen','summary'], properties: {
+  task: { type: 'string' }, testsGreen: { type: 'boolean' },
+  filesChanged: { type: 'array', items: { type: 'string' } },
+  summary: { type: 'string' },
+} }
+
+const results = await pipeline(
+  TASKS,
+  (t) => agent(
+    `TDD task: ${t.title}\n\nSpec: ${t.spec}\nFiles in scope: ${t.files}\n\n` +
+    `Re-read the approved plan and the relevant docs/guides/ before coding.\n` +
+    `1) Write the failing test first; confirm it fails for the right reason.\n` +
+    `2) Minimal implementation to green — no speculative extras (YAGNI).\n` +
+    `3) Refactor with tests green.\n` +
+    `Run only this task's tests. Report testsGreen + files changed. ` +
+    `If a target already matches the spec, report testsGreen:true and skip.`,
+    { label: `build:${t.id}`, phase: 'Build', model: 'sonnet',
+      isolation: 'worktree', schema: RESULT }
+  ),
+  (impl, t) => agent(
+    `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
+    `Report testsGreen honestly — do not trust the implementer's claim.`,
+    { label: `verify:${t.id}`, phase: 'Verify', model: 'sonnet', schema: RESULT }
+  ).then(v => ({ ...impl, verified: v.testsGreen }))
+)
+
+return results.filter(Boolean)
+```
+
+`isolation: 'worktree'` only if tasks write in parallel and would collide; drop it
+for a strictly sequential set. Any task returning `testsGreen:false` or
+`verified:false` is fixed before Phase 4 — do not advance with red tasks.
+
+---
+
+## §4 — Verification panel (hybrid: workflow fan-out + designer judgment)
+
+Two stages. The fan-out is deterministic Workflow; the judgment is the persistent
+designer.
+
+**Stage A — parallel verification (Workflow `parallel()`, opus).** Read
+`~/.claude/skills/craft-core/references/security.md`. Run three independent
+verifiers over the diff, each on **opus**, including the adversarial
+refute-each-finding step for the security lane:
+
+```javascript
+export const meta = {
+  name: 'convene-verify',
+  description: 'QA + tester + security verification of the convene build, on opus',
+  phases: [{ title: 'Panel', model: 'opus' }],
+}
+
+const FINDING = { type: 'object', required: ['lane','findings'], properties: {
+  lane: { type: 'string' },
+  findings: { type: 'array', items: { type: 'object', required: ['title','severity','evidence'],
+    properties: { title: {type:'string'}, severity: {type:'string'}, evidence: {type:'string'} } } },
+} }
+
+const LANES = [
+  { lane: 'qa',       prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
+  { lane: 'tester',   prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
+  { lane: 'security', prompt: 'Security pass over the diff per security.md. For each candidate finding, adversarially try to REFUTE it; report only those that survive, with evidence.' },
+]
+
+return (await parallel(LANES.map(L => () =>
+  agent(`${L.prompt}\n\nThe approved plan and the diff are on disk — Read them.`,
+    { label: `verify:${L.lane}`, phase: 'Panel', model: 'opus', schema: FINDING })
+))).filter(Boolean)
+```
+
+**Stage B — intent judgment (the persistent designer, opus).** The main session
+hands the panel's surviving findings to the **still-alive designer** via
+`SendMessage`. The designer — which holds the original intent — classifies each:
+
+- **Confirmed gap** — a real deviation from the plan's Goal/Acceptance → goes back
+  to Phase 3 as a new atomic task (re-run `convene-build` with just those tasks).
+- **Out of scope** — correct behavior the plan deliberately excluded (Scope OUT) →
+  recorded and dismissed, with the reason.
+- **Plan defect** — the build is right but the *plan* missed something → a short
+  Phase 1 micro-round to amend the plan, then Phase 3 for the delta.
+
+Loop Stage A → B → (Phase 3 if needed) → A until the designer accepts: gate is
+**verify gate green AND designer raises no confirmed gap**. Nothing ships red.
+
+---
+
+## §5 — Wrap & shut down
+
+1. Summarize: what changed, tests added, security verdict, residual risks, and the
+   designer's final intent-match verdict.
+2. Durable knowledge (`context-adr.md`): ADR for an ADR-worthy decision; a
+   `docs/concepts/` page for reusable context. Only when genuinely warranted.
+3. **Shut the team down** — send `{ type: 'shutdown_request' }` to **designer** and
+   **adversary** (and any teammate still alive). convene's agents are persistent
+   and will linger as idle otherwise. The verification lanes were Workflow agents
+   and have already terminated.
+4. Do not commit or push unless the user asks.
+
+---
+
+## Cost & failure notes
+
+- This topology is the expensive path on purpose: 2 persistent opus agents + a
+  sonnet build fan-out + an opus verify fan-out + loop-backs. Only justified when
+  design risk is real. If it is not, `forge`/`renew`/`hunt`/`reshape` run the same
+  engine far cheaper.
+- `codex:rescue` absent → the adversary does the Phase 2 attack on its own (manual
+  fallback), same as the linear pipeline.
+- If a Workflow run fails mid-build, the designer/adversary are still alive — fix
+  and re-launch the Workflow; do not re-spawn the council.
+- Forgetting §5 shutdown leaves idle agents holding context. Always close the team.
