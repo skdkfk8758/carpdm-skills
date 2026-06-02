@@ -22,8 +22,10 @@ otherwise the value of the skill is lost.
 
 Read `socratic.md`. **Ground first, then ask:** scope-read the code the task
 touches (project code-graph/LSP if available, else Read/Grep) and the relevant
-existing ADRs/concepts (`context-adr.md`) — so questions are code-anchored and the
-plan respects standing decisions instead of re-litigating them. Then use Socratic
+existing project docs — ADRs/concepts **and the guides/reference tree**
+(`docs/guides/`, `docs/reference/`) (`context-adr.md`) — so questions are
+code-anchored and the plan respects standing decisions and documented procedures
+instead of re-litigating them. Then use Socratic
 questioning to convert the ask into a spec you could hand to a stranger. **Do not
 write implementation code in this phase.**
 
@@ -91,13 +93,15 @@ decision that warrants an ADR or conflicts with a standing one**. Fold every
 *blocking* finding back into the plan. Re-review until codex raises no blocking
 objection or you have done 2 rounds. Record each round's verdict in the plan.
 
-## Phase 3 — Dynamic workflow: task split + TDD (sonnet)
+## Phase 3 — Dynamic workflow: task split + TDD (opus)
 
 Read `dynamic-tdd.md`. Use the `Workflow` tool to break the approved plan into
 atomic tasks and drive each through a strict TDD cycle — **red → green →
-refactor** — with implementation agents pinned to `model: 'sonnet'`. Pipeline
+refactor** — with implementation agents pinned to `model: 'opus'`. Pipeline
 over the tasks; a task is done only when its own tests are green. The plan is the
-contract; do not implement anything not in it without going back to Phase 1.
+contract: each implementation agent re-reads the approved plan (`.md`) and the
+relevant project guides (`docs/guides/`) before writing code, and implements
+nothing not in the plan without going back to Phase 1.
 
 ## Phase 4 — Secure verify
 
@@ -120,5 +124,5 @@ finding (try to refute it) before reporting it as real. Nothing ships red.
 - Treating the user's first phrasing as the full spec.
 - Skipping codex review because "the plan looks fine" — the plan looking fine is
   exactly when an adversary is most useful.
-- Implementing on opus/this-model instead of sonnet in Phase 3.
+- Letting Phase 3 agents fall back to a cheaper tier instead of `model: 'opus'`.
 - Reporting tests green without running the security pass.

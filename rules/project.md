@@ -1,0 +1,48 @@
+# carpdm-skills — Project Rules (SSOT)
+
+> 이 파일이 프로젝트 지침 SSOT. AGENTS.md 는 빌드 산출물(글로벌 `~/.claude/rules/` + 본 파일 concat).
+> `build-agents-md.sh` 미설치 동안 AGENTS.md 는 본 파일을 수동 미러링한다 — 본 파일만 편집하고 AGENTS.md 는 재생성.
+
+## What this repo is
+
+Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스킬은 마크다운(`SKILL.md` + `references/*.md`)이고, `~/.claude/skills/` 로 복사돼야 동작한다. 코드 컴파일·테스트·린트 단계 없음.
+
+스킬 6종: 작업유형 파이프라인 4 (`forge`/`hunt`/`renew`/`reshape`) + 세션인계 1 (`handoff`) + 공유엔진 1 (`craft-core`).
+
+## Commands
+
+| 명령 | 용도 |
+|---|---|
+| `bash install.sh` | repo `skills/` → `~/.claude/skills/` 복사. 멱등 — 기존 동명 스킬은 `.bak-<ts>` 백업 후 덮어씀. 설치 후 Claude Code 재시작 필요 |
+| `bash sync.sh` | 반대 방향. live `~/.claude/skills/` → repo `skills/` 미러(rsync `--delete`). repo 가 **이미 추적 중인** 스킬만 갱신. staged 변경 표시 |
+| `bash sync.sh --push` | 미러 + `chore/sync-<ts>` 브랜치·PR·머지 자동 (`gh` CLI 필요). master 직접 push 금지 환경 대응 |
+| `ls ~/.claude/skills/` | 설치 검증 — `forge hunt renew reshape handoff craft-core` 보여야 함 |
+
+검증 스위트는 없다. "테스트"는 `install.sh`/`sync.sh` 실행 + `ls` 확인이 전부.
+
+## Architecture — 반드시 알 것
+
+### 1. craft-core 절대경로 결합 (깨지기 쉬움)
+파이프라인 4종은 craft-core 엔진을 **하드코딩 절대경로**로 읽는다:
+`~/.claude/skills/craft-core/references/pipeline.md`. 따라서:
+- 설치 경로는 `~/.claude/skills/` **고정**. 다른 위치면 4종 전부 깨짐.
+- forge/hunt/renew/reshape 는 craft-core 와 **항상 함께** 설치돼야 함. handoff 만 단독 가능.
+- craft-core 는 `user-invocable: false` — 직접 트리거 금지, 컨테이너일 뿐.
+
+### 2. 공유 4-phase 파이프라인 (craft-core/references/pipeline.md)
+Socratic 인터뷰 → codex 적대적 플랜 리뷰(`codex:rescue` 플러그인) → 동적 워크플로 TDD(sonnet) → 보안 검증.
+각 작업유형 스킬은 이 엔진 위에 **자기 Phase 1 Socratic 초점 + Phase 3 TDD 진입점**만 얹는다 (SKILL.md 본문은 짧음 — 차이만 기술). 공통 Phase 0/2/4/5 는 엔진 그대로.
+- `codex:rescue` 미설치 시 Phase 2 는 수동 리뷰로 폴백.
+- 참조 분리: `socratic.md`/`codex-review.md`/`dynamic-tdd.md`/`security.md`/`context-adr.md` — phase 필요 시 lazy load.
+
+### 3. SKILL.md frontmatter = 트리거
+`name` + `description` 만. `description` 이 자연어 트리거 매칭을 좌우 — 파이프라인 4종은 **언더트리거 설계**(과발화 방지, 슬래시 명시 권장), handoff 는 **양방향 자동 감지**(작업종료=저장 / 세션시작=복원).
+
+### 4. sync = true mirror
+`sync.sh` 의 SSOT 는 repo `skills/` 의 디렉토리 목록. 새 스킬 배포 시작은 `skills/<name>/` 를 **먼저 만든 뒤** sync. live 에서 지운 파일도 `--delete` 로 repo 에 반영됨.
+
+## Editing workflow
+정식 개발 루프: live `~/.claude/skills/<name>/` 편집 → `bash sync.sh` 로 repo 반영 → 리뷰 → `--push`. repo 에서 직접 편집했다면 `install.sh` 로 live 반영. 두 방향 혼용 시 마지막 동기화 방향 주의 (`--delete` 미러라 한쪽이 SSOT).
+
+## Work-end check (Stop hook)
+작업 종료 시 글로벌 스킬이 repo 에 미반영이거나 push 안 됐으면 `.claude/hooks/check-skill-sync.sh` (Stop hook, `.claude/settings.json` 등록)가 **비차단 경고**. 감지 3종: (a) live↔repo drift → `bash sync.sh`, (b) repo 미커밋, (c) 미push 커밋 → `bash sync.sh --push`. 감지·알림만 — auto-push 안 함(외부발신·비가역). 경고 뜨면 직접 sync/push 로 마무리.

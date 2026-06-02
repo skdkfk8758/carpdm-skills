@@ -3,8 +3,9 @@
 Two jobs, both shared by forge/renew/reshape/hunt:
 
 - **Read (Phase 1 grounding)** — before asking the user anything, read the
-  project's existing decisions and domain context so questions don't re-litigate
-  what's settled and the plan doesn't contradict a standing decision.
+  project's existing decisions, domain context, and documented procedures
+  (guides/reference) so questions don't re-litigate what's settled and the plan
+  doesn't contradict a standing decision or a documented how-to.
 - **Write (Phase 5 wrap)** — when the work made a decision worth remembering or
   established reusable knowledge, record it so the *next* session doesn't redo the
   reasoning.
@@ -21,7 +22,11 @@ gracefully when it isn't there.
   files, don't invent a new shape.
 - Concepts/context: is there a `docs/concepts/` (or the project's equivalent
   knowledge tree)? Note its page format.
-- If neither exists: don't manufacture a docs tree for a one-off. Offer to start
+- Guides & reference: is there a `docs/guides/` (how-to / runbook / tutorial) or
+  `docs/reference/` (API surface, external-resource pointers)? These hold the
+  *documented procedure and contract* the task should follow — check them, not
+  just ADRs/concepts.
+- If none exist: don't manufacture a docs tree for a one-off. Offer to start
   `docs/adr/` only when a genuinely ADR-worthy decision actually arises;
   otherwise skip and just summarize the decision in your wrap-up.
 
@@ -35,8 +40,13 @@ Before the Socratic clusters:
   decision.
 - Read the relevant `docs/concepts/` pages for domain vocabulary and constraints,
   so your questions use the project's terms and don't ask what's already written.
+- Check `docs/guides/` and `docs/reference/` for an existing how-to, runbook, or
+  documented contract covering this area. If a guide already prescribes the
+  procedure, the plan must follow it (or call out explicitly why it deviates) —
+  don't reinvent a flow the docs already settle.
 - Pair this with the code read (see `socratic.md` → "Read before you ask"): code
-  tells you *what is*, ADRs/concepts tell you *why it's that way*.
+  tells you *what is*, ADRs/concepts tell you *why it's that way*, guides/reference
+  tell you *how it's meant to be done*.
 
 ## Write an ADR (Phase 5) — only when it's ADR-worthy
 

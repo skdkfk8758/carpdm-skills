@@ -1,10 +1,11 @@
-# Dynamic Workflow — Task Split + TDD on Sonnet
+# Dynamic Workflow — Task Split + TDD on Opus
 
 Phase 3 turns the approved, codex-reviewed plan into working code. Use the
 `Workflow` tool to (a) split the plan into atomic tasks and (b) drive each task
-through a strict TDD cycle. Implementation runs on **sonnet** — cheaper and fast
-enough for well-specified, test-pinned tasks; the expensive reasoning already
-happened in planning and review.
+through a strict TDD cycle. Implementation runs on **opus** (4.8) — the highest
+implementation quality for the test-pinned tasks; the per-task red/green
+discipline and the independent verify stage, not a cheaper tier, are what keep
+the workflow honest.
 
 Invoking `Workflow` is authorized here because this skill's instructions tell you
 to — that is the skill-invoked opt-in path.
@@ -30,7 +31,7 @@ A task is done only when its own tests are green AND it didn't break a sibling's
 ```javascript
 export const meta = {
   name: 'tdd-implement',
-  description: 'Split approved plan into tasks and implement each test-first on sonnet',
+  description: 'Split approved plan into tasks and implement each test-first on opus',
   phases: [{ title: 'Implement' }, { title: 'Verify' }],
 }
 
@@ -45,7 +46,7 @@ const RESULT = { type: 'object', required: ['task','testsGreen','summary'], prop
 
 const results = await pipeline(
   TASKS,
-  // Stage 1: TDD implement on sonnet
+  // Stage 1: TDD implement on opus
   (t) => agent(
     `TDD task: ${t.title}\n\nSpec: ${t.spec}\nFiles in scope: ${t.files}\n\n` +
     `1) Write the failing test first; confirm it fails for the right reason.\n` +
@@ -53,14 +54,14 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `tdd:${t.id}`, phase: 'Implement', model: 'sonnet',
+    { label: `tdd:${t.id}`, phase: 'Implement', model: 'opus',
       isolation: 'worktree', schema: RESULT }
   ),
   // Stage 2: independent verify that the task's tests actually pass
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
     `Report testsGreen honestly — do not trust the implementer's claim.`,
-    { label: `verify:${t.id}`, phase: 'Verify', model: 'sonnet', schema: RESULT }
+    { label: `verify:${t.id}`, phase: 'Verify', model: 'opus', schema: RESULT }
   ).then(v => ({ ...impl, verified: v.testsGreen }))
 )
 
@@ -69,7 +70,7 @@ return results.filter(Boolean)
 
 Notes on the skeleton:
 
-- `model: 'sonnet'` on every implementation/verify agent — this is the required
+- `model: 'opus'` on every implementation/verify agent — this is the required
   model for Phase 3 per the skill contract.
 - `isolation: 'worktree'` only when tasks write files in parallel and would
   collide. For a strictly sequential set of tasks you can drop it (it costs disk
@@ -91,7 +92,8 @@ Notes on the skeleton:
 
 - Writing implementation before the test (no red step) → you can't prove the test
   tests anything.
-- Implementing on this model instead of sonnet → ignores the skill contract.
+- Dropping the `model: 'opus'` override so agents fall back to a cheaper tier →
+  ignores the skill contract.
 - One giant agent call for the whole plan → loses the per-task red/green
   discipline and truncates.
 - Trusting the implementer's "green" without the independent verify stage.

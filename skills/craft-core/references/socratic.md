@@ -33,10 +33,11 @@ the area the task touches:
   or LSP, which give you callers and blast radius cheaply. Fall back to Read/Grep
   when there's none. Scope it to what the task touches via the impact radius —
   don't read the whole repo.
-- **Decisions & context** — read the relevant existing ADRs and concept pages so
-  you don't re-litigate what's settled, and so the plan respects standing
-  decisions (see `context-adr.md`). Code tells you *what is*; ADRs/concepts tell
-  you *why*.
+- **Decisions, context & guides** — read the relevant existing ADRs and concept
+  pages so you don't re-litigate what's settled, and check `docs/guides/` /
+  `docs/reference/` for a documented procedure or contract this task should follow
+  (see `context-adr.md`). Code tells you *what is*; ADRs/concepts tell you *why*;
+  guides/reference tell you *how it's meant to be done*.
 
 Then anchor each question to what you found. This is the single biggest lever for
 finishing in one pass: most rework comes from a wrong assumption about existing

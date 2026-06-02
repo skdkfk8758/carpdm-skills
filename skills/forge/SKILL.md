@@ -1,6 +1,6 @@
 ---
 name: forge
-description: Build a NEW feature end-to-end through a rigorous pipeline — Socratic requirements interview → adversarial plan review by codex → dynamic-workflow TDD implementation on sonnet → security-verified. Use this whenever the user wants to ADD, BUILD, IMPLEMENT, or CREATE a new feature, endpoint, component, page, command, or capability that does not exist yet — even when they phrase it casually like "add X", "build me Y", "I need a Z", or "can you make it do W", and even if they never mention a process or tests. Prefer forge over ad-hoc coding for any non-trivial new feature. Do NOT use it for fixing broken behavior (use hunt), changing an existing feature (use renew), or restructuring code without behavior change (use reshape).
+description: Build a NEW feature end-to-end through a rigorous pipeline — Socratic requirements interview → adversarial plan review by codex → dynamic-workflow TDD implementation on opus → security-verified. Use this whenever the user wants to ADD, BUILD, IMPLEMENT, or CREATE a new feature, endpoint, component, page, command, or capability that does not exist yet — even when they phrase it casually like "add X", "build me Y", "I need a Z", or "can you make it do W", and even if they never mention a process or tests. Prefer forge over ad-hoc coding for any non-trivial new feature. Do NOT use it for fixing broken behavior (use hunt), changing an existing feature (use renew), or restructuring code without behavior change (use reshape).
 ---
 
 # Forge — build a new feature
@@ -8,7 +8,7 @@ description: Build a NEW feature end-to-end through a rigorous pipeline — Socr
 You are building something that does not exist yet. The risk is building the
 wrong thing, or the right thing without proof it works. The pipeline kills both:
 the spec is pinned by Socratic interview, attacked by codex, then implemented
-outside-in test-first on sonnet, then verified and security-checked.
+outside-in test-first on opus, then verified and security-checked.
 
 Run the shared engine in `~/.claude/skills/craft-core/references/pipeline.md`
 (read it first). Apply these forge-specific emphases inside it:
@@ -33,7 +33,7 @@ A new feature's spec lives in the user's head — extract it. Lead with:
 
 Build **outside-in**: task 1 is the acceptance test derived straight from the IO
 contract (it fails — the feature is absent). Then each subsequent task is a unit
-slice driven red → green → refactor on sonnet until the acceptance test passes.
+slice driven red → green → refactor on opus until the acceptance test passes.
 Don't build infrastructure the acceptance scenarios don't demand.
 
 Phases 0, 2, 4, 5 run exactly as in the shared pipeline.
