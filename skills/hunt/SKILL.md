@@ -1,6 +1,6 @@
 ---
 name: hunt
-description: Fix a BUG with a reproduction-first, regression-locked pipeline — Socratic interview to pin the exact reproduction and root cause → adversarial plan review by codex → dynamic-workflow TDD on sonnet (failing regression test first) → security-verified. Use this whenever the user reports something BROKEN, failing, erroring, crashing, throwing, returning the wrong result, hanging, or behaving unexpectedly and wants it fixed — phrasings like "X is broken", "Y throws on Z", "why does this return null", "the page crashes when…", "this used to work and now…", "getting a 500 from…". Do NOT use it to build a new feature (use forge), to intentionally change a working feature (use renew), or to restructure code with no behavior change (use reshape).
+description: Fix a BUG with a reproduction-first, regression-locked pipeline — Socratic interview to pin the exact reproduction and root cause → adversarial plan review by codex → dynamic-workflow TDD on opus (failing regression test first) → security-verified. Use this whenever the user reports something BROKEN, failing, erroring, crashing, throwing, returning the wrong result, hanging, or behaving unexpectedly and wants it fixed — phrasings like "X is broken", "Y throws on Z", "why does this return null", "the page crashes when…", "this used to work and now…", "getting a 500 from…". Do NOT use it to build a new feature (use forge), to intentionally change a working feature (use renew), or to restructure code with no behavior change (use reshape).
 ---
 
 # Hunt — fix a bug
@@ -37,7 +37,7 @@ Run the shared engine in `~/.claude/skills/craft-core/references/pipeline.md`
 
 Task 1 is a **failing regression test that reproduces the bug** — it fails for
 exactly the reported reason against current code. Only then implement the fix on
-sonnet until that test goes green, and confirm no other test regressed. The
+opus until that test goes green, and confirm no other test regressed. The
 regression test staying in the suite is what stops the bug from returning.
 
 Keep the fix minimal and targeted at the root cause — a bug fix is not a license

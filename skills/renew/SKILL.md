@@ -1,6 +1,6 @@
 ---
 name: renew
-description: Renew or revamp an EXISTING feature through a rigorous pipeline — Socratic interview to separate what must change from what must be preserved → adversarial plan review by codex → dynamic-workflow TDD on sonnet → security-verified. Use this whenever the user wants to CHANGE, REDESIGN, REVAMP, MODERNIZE, OVERHAUL, EXTEND, or REWORK an existing feature, flow, screen, or API — phrasings like "redo the X", "rework how Y works", "modernize the Z flow", "change the behavior of W", "the old A should now also do B". Especially when backward compatibility, migration, or not breaking existing callers matters. Do NOT use it to build something brand new (use forge), to fix a bug (use hunt), or to restructure code with no behavior change (use reshape).
+description: Renew or revamp an EXISTING feature through a rigorous pipeline — Socratic interview to separate what must change from what must be preserved → adversarial plan review by codex → dynamic-workflow TDD on opus → security-verified. Use this whenever the user wants to CHANGE, REDESIGN, REVAMP, MODERNIZE, OVERHAUL, EXTEND, or REWORK an existing feature, flow, screen, or API — phrasings like "redo the X", "rework how Y works", "modernize the Z flow", "change the behavior of W", "the old A should now also do B". Especially when backward compatibility, migration, or not breaking existing callers matters. Do NOT use it to build something brand new (use forge), to fix a bug (use hunt), or to restructure code with no behavior change (use reshape).
 ---
 
 # Renew — revamp an existing feature
@@ -40,7 +40,7 @@ The spec here is a *delta* against current reality, so map current reality first
 First write **characterization tests pinning the preserved behavior** — the
 "MUST survive" list from Phase 1. They should pass against today's code; they are
 your safety net so the revamp can't silently break what should stay. Then drive
-the *changed* behavior red → green → refactor on sonnet, with the characterization
+the *changed* behavior red → green → refactor on opus, with the characterization
 tests staying green throughout.
 
 Phases 0, 2, 4, 5 run exactly as in the shared pipeline.
