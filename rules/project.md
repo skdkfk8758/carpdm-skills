@@ -7,7 +7,7 @@
 
 Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스킬은 마크다운(`SKILL.md` + `references/*.md`)이고, `~/.claude/skills/` 로 복사돼야 동작한다. 코드 컴파일·테스트·린트 단계 없음.
 
-스킬 9종: 작업유형 파이프라인 4 (`forge`/`hunt`/`renew`/`reshape`) + 오케스트레이션 변종 1 (`convene`) + 세션인계 1 (`handoff`) + 정리유틸 1 (`sweep`) + PR 랜딩 1 (`land`) + 공유엔진 1 (`craft-core`).
+스킬 8종: 작업유형 파이프라인 4 (`forge`/`hunt`/`renew`/`reshape`) + 세션인계 1 (`handoff`) + 정리유틸 1 (`sweep`) + PR 랜딩 1 (`land`) + 공유엔진 1 (`craft-core`). 공유엔진은 두 실행 모드를 가진다 — linear(기본) / orchestrated(멀티에이전트 council, §5).
 
 ## Commands
 
@@ -16,17 +16,17 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 | `bash install.sh` | repo `skills/` → `~/.claude/skills/` 복사. 멱등 — 기존 동명 스킬은 `.bak-<ts>` 백업 후 덮어씀. 설치 후 Claude Code 재시작 필요 |
 | `bash sync.sh` | 반대 방향. live `~/.claude/skills/` → repo `skills/` 미러(rsync `--delete`). repo 가 **이미 추적 중인** 스킬만 갱신. staged 변경 표시 |
 | `bash sync.sh --push` | 미러 + `chore/sync-<ts>` 브랜치·PR·머지 자동 (`gh` CLI 필요). master 직접 push 금지 환경 대응 |
-| `ls ~/.claude/skills/` | 설치 검증 — `forge hunt renew reshape convene handoff sweep land craft-core` 보여야 함 |
+| `ls ~/.claude/skills/` | 설치 검증 — `forge hunt renew reshape handoff sweep land craft-core` 보여야 함 |
 
 검증 스위트는 없다. "테스트"는 `install.sh`/`sync.sh` 실행 + `ls` 확인이 전부.
 
 ## Architecture — 반드시 알 것
 
 ### 1. craft-core 절대경로 결합 (깨지기 쉬움)
-파이프라인 4종 + `convene` 은 craft-core 엔진을 **하드코딩 절대경로**로 읽는다:
-`~/.claude/skills/craft-core/references/pipeline.md` (convene 은 phase별 reference 직접 — `socratic.md`/`codex-review.md`/`dynamic-tdd.md`/`security.md`/`context-adr.md`). 따라서:
-- 설치 경로는 `~/.claude/skills/` **고정**. 다른 위치면 5종 전부 깨짐.
-- forge/hunt/renew/reshape/convene 는 craft-core 와 **항상 함께** 설치돼야 함. handoff·sweep·land 는 단독 가능 (craft-core 의존 없음).
+파이프라인 4종은 craft-core 엔진을 **하드코딩 절대경로**로 읽는다:
+`~/.claude/skills/craft-core/references/pipeline.md`. 따라서:
+- 설치 경로는 `~/.claude/skills/` **고정**. 다른 위치면 4종 전부 깨짐.
+- forge/hunt/renew/reshape 는 craft-core 와 **항상 함께** 설치돼야 함. handoff·sweep·land 는 단독 가능 (craft-core 의존 없음).
 - craft-core 는 `user-invocable: false` — 직접 트리거 금지, 컨테이너일 뿐.
 
 ### 2. 공유 4-phase 파이프라인 (craft-core/references/pipeline.md)
@@ -41,8 +41,10 @@ Socratic 인터뷰 → codex 적대적 플랜 리뷰(`codex:rescue` 플러그인
 ### 4. sync = true mirror
 `sync.sh` 의 SSOT 는 repo `skills/` 의 디렉토리 목록. 새 스킬 배포 시작은 `skills/<name>/` 를 **먼저 만든 뒤** sync. live 에서 지운 파일도 `--delete` 로 repo 에 반영됨.
 
-### 5. convene = team+workflow 오케스트레이션 변종
-`convene` 은 craft 엔진을 단일세션 linear 가 아니라 **멀티에이전트 토폴로지**로 돌린다. Phase 1+2 = 팀모드(designer+adversary 영속 opus agent, 수렴 루프), Phase 3 = Workflow TDD(**sonnet** — dynamic-tdd 의 opus pin 을 의도적으로 override), Phase 4 = Workflow 검증 fan-out(QA/tester/security, opus) + 살아있는 designer 의 intent 판정. **무겁고 비싼 opt-in 경로** — 일반 작업은 forge/renew/hunt/reshape. 토폴로지·역할·게이트·shutdown 은 `convene/references/orchestration.md`. Phase 종료 시 `shutdown_request` 로 팀 정리 필수(영속 agent 잔존 방지).
+### 5. craft-core 실행 모드 — linear / orchestrated
+craft 엔진은 **두 토폴로지**를 가진다. **linear**(기본, `pipeline.md`) = 단일세션이 전 페이즈 수행. **orchestrated**(`references/orchestrated.md`) = 멀티에이전트 — Phase 1+2 팀모드 council(designer+adversary 영속 opus, 수렴 루프), Phase 3 Workflow TDD(**sonnet** — dynamic-tdd 의 opus pin 의도적 override), Phase 4 Workflow 검증 fan-out(QA/tester/security opus) + 살아있는 designer 의 intent 판정, Phase 5 팀 shutdown.
+
+핵심: orchestrated 는 **별도 스킬이 아니라 강도(intensity) 선택**으로, 작업타입과 직교한다. forge/renew/hunt/reshape 어느 것이든 유저가 명시적으로 council/팀+워크플로/maximum rigor 요청 시 엔진이 orchestrated 로 에스컬레이트(`pipeline.md` → Execution mode). 호출 스킬의 Phase 1 focus + Phase 3 TDD 진입점을 그대로 쓴다. **트리거는 task-type 스킬이 이미 이긴 뒤 엔진 내부 분기**라 형제 스킬 트리거 경쟁이 없다(과거 별도 `convene` 스킬이 가졌던 문제를 모드화로 제거). 무겁고 비싼 경로 — 설계 리스크 클 때만. `shutdown_request` 로 팀 정리 필수.
 
 ## Editing workflow
 정식 개발 루프: live `~/.claude/skills/<name>/` 편집 → `bash sync.sh` 로 repo 반영 → 리뷰 → `--push`. repo 에서 직접 편집했다면 `install.sh` 로 live 반영. 두 방향 혼용 시 마지막 동기화 방향 주의 (`--delete` 미러라 한쪽이 SSOT).
