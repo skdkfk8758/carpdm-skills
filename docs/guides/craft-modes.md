@@ -14,9 +14,12 @@ orchestrated) 사용법. 영속 가이드 — 동작이 바뀌면 본 파일 갱
 | **hunt** | **버그 고침** | "X 깨졌어", "500 떠", "왜 null 나와" |
 | **reshape** | **행동변경 없이 리팩터** | "이 파일 정리", "helper로 추출", "DRY하게" |
 
-넷 다 같은 5단계 엔진 위에서 돈다: Socratic 인터뷰 → codex 적대리뷰 →
-동적 워크플로 TDD → 보안검증 → wrap. 차이는 Phase 1에서 뭘 묻나 + Phase 3
-TDD가 어디서 시작하나뿐. 엔진 SSOT: `craft-core/references/pipeline.md`.
+넷 다 같은 엔진 위에서 돈다: Socratic 인터뷰 → codex 적대리뷰 →
+동적 워크플로 TDD → 보안검증 → wrap. **forge·renew 만** TDD와 보안검증 사이에
+**Phase 3.5 컨벤션 정렬 리팩터**(옵션·동작불변 — build diff를 프로젝트 컨벤션에
+맞춤, 테스트 green 유지)가 더 붙는다. hunt(surgical 유지)·reshape(자체가 그 패스)
+는 건너뛴다. 차이는 Phase 1에서 뭘 묻나 + Phase 3 TDD 시작점 + (forge·renew)
+Phase 3.5뿐. 엔진 SSOT: `craft-core/references/pipeline.md`.
 
 ## 2. 두 실행 모드 — 강도 선택
 
@@ -60,10 +63,11 @@ TDD가 어디서 시작하나뿐. 엔진 SSOT: `craft-core/references/pipeline.m
 | 0 | 팀 생성(TeamCreate) + designer·adversary spawn | opus |
 | 1+2 | **council 루프** — designer 인터뷰(메인 경유)→plan, adversary 공격, 수렴까지. 종료: 유저 승인 AND adversary blocking 없음(≤2R) | opus |
 | 3 | **Workflow TDD** — plan을 atomic task 분할, red→green→refactor | **sonnet** |
+| 3.5 | **컨벤션 정렬 리팩터**(forge·renew만, 옵션) — build diff를 컨벤션에 맞춤, 테스트 green 유지. designer는 idle-alive 유지 | **sonnet** |
 | 4 | **검증패널** — QA/tester/security 병렬 fan-out + 살아있는 designer가 원의도 대조 판정 → accept or Phase 3 재진입 | opus |
 | 5 | 요약 + **팀 shutdown**(영속 agent 정리) | — |
 
-핵심: Phase 3만 sonnet(test-pinned + 독립검증이라 충분), 판단 페이즈는 opus.
+핵심: Phase 3·3.5만 sonnet(test-pinned + 독립검증이라 충분), 판단 페이즈는 opus.
 
 ## 4. 언제 orchestrated 쓰나
 

@@ -13,7 +13,7 @@ Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프�
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
 | [`craft-core`](skills/craft-core) | ⚙️ 공유 엔진 (직접 호출 X) | forge/hunt/renew/reshape 가 내부에서 읽음 | — |
 
-**파이프라인 4종 공통 흐름**: 소크라테스 인터뷰 → codex 적대적 플랜 리뷰 → 동적 워크플로 TDD(sonnet) → 보안 검증.
+**파이프라인 4종 공통 흐름**: 소크라테스 인터뷰 → codex 적대적 플랜 리뷰 → 동적 워크플로 TDD(sonnet) → 컨벤션 정렬 리팩터(forge·renew 한정, 옵션·동작불변) → 보안 검증.
 
 엔진은 두 실행 모드를 가진다 — **linear**(기본, 단일세션) / **orchestrated**(멀티에이전트 council, 명시 요청 시). 사용법은 [`docs/guides/craft-modes.md`](docs/guides/craft-modes.md).
 
