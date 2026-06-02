@@ -28,19 +28,30 @@ TDD가 어디서 시작하나뿐. 엔진 SSOT: `craft-core/references/pipeline.m
 
 ### orchestrated (council) — 무거운 opt-in
 멀티에이전트: 영속 designer + adversary가 설계를 토론 → Workflow TDD →
-검증패널 → 팀 정리. **명시적으로 요청해야만** 발동.
-SSOT: `craft-core/references/orchestrated.md`.
+검증패널 → 팀 정리. SSOT: `craft-core/references/orchestrated.md`.
 
-발동 문구 (작업동사 + 강도를 같이):
+발동 방법 3가지:
 
+**1) 키워드 (가장 간단)** — 요청 아무 데나 `[council]` 또는 `--council`:
+```
+"결제모듈 재설계해줘 [council]"
+"refactor this UserService --council"
+```
+
+**2) 자연어 문구** (작업동사 + 강도 같이):
 ```
 "결제모듈 재설계해줘 — 팀으로 설계하고 워크플로로 구현하는 방식으로"
 "build the rate-limiter with the full council treatment"
-"이 리팩터 council 소집해서 / maximum rigor, spare no agents"
+"maximum rigor, spare no agents"
 ```
 
-⚠️ 작업동사 없이 강도만("council 소집해줘") 말하면 어느 스킬도 안 깰 수 있다 —
-항상 "재설계/build/fix + council" 형태로.
+**3) 엔진이 알아서 제안 (auto-offer)** — 네가 council을 몰라도 됨. 리스크 신호를
+흘리거나("이거 중요한데", "리스크 커서", "제대로 하고싶어", "불안해") 작업이
+객관적으로 고위험(auth/결제/외부계약 변경/6+ 파일)이면, 엔진이 Phase 1 전에
+**한 번** 묻는다 — "council로 갈까?". 무시/무응답이면 기본 linear.
+
+⚠️ 키워드·문구 없이 강도만("council 소집해줘", 작업동사 X)이면 어느 스킬도 안 깰
+수 있다 — `[council]`을 작업 요청에 붙이는 게 제일 확실하다.
 
 ## 3. orchestrated 페이즈별 동작
 
