@@ -22,8 +22,9 @@ if [ -d "$DST_DIR" ] && [ -d "$SRC_DIR" ]; then
     name="$(basename "$dst")"
     src="$SRC_DIR/$name"
     [ -d "$src" ] || continue
-    # itemize meaningful changes only: file sends (>f / <f) and deletions
-    if rsync -ain --delete "$src/" "$dst" 2>/dev/null | grep -qE '^(\*deleting|[<>]f)'; then
+    # -c: compare by checksum, not mtime — git checkout bumps mtimes and would
+    # otherwise flag content-identical files as drift. Itemize real changes only.
+    if rsync -ainc --delete "$src/" "$dst" 2>/dev/null | grep -qE '^(\*deleting|[<>]f)'; then
       msgs+=("live ~/.claude/skills/$name 가 repo 에 미반영 — 'bash sync.sh' 필요")
     fi
   done
