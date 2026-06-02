@@ -18,13 +18,25 @@ phase. That is the right mode for almost all work, and the rest of this file
 describes it.
 
 Escalate to the **orchestrated** mode — a persistent multi-agent design council +
-dynamic-workflow build + verification panel — ONLY when the user explicitly asks
-for the heavyweight / council / panel / team treatment: phrasings like "convene a
-design council", "full panel treatment", "팀으로 설계하고 워크플로로 구현해줘",
-"maximum rigor, spare no agents", "council 소집". A casual "build X" / "fix Y" /
-"refactor Z" is NOT an escalation — stay linear. This is an intensity choice
-orthogonal to the task type: any of forge / renew / hunt / reshape can run either
-mode.
+dynamic-workflow build + verification panel. It gets requested two ways:
+
+- **Explicit cue** — phrasings like "convene a design council", "full panel
+  treatment", "팀으로 설계하고 워크플로로 구현해줘", "maximum rigor, spare no
+  agents", "council 소집", or the short canonical keyword **`[council]`** /
+  **`--council`** anywhere in the request. Honor it directly — no need to ask.
+- **Offer on a stakes signal** — if the user did NOT ask for council but signals
+  the work is high-stakes or they're nervous ("이거 중요한데", "리스크 커서",
+  "제대로 하고 싶어", "불안해", "this is critical", "don't get this wrong"), OR the
+  task is objectively high-risk (auth / payments / a contract change with external
+  callers / 6+ files), **offer it once** before Phase 1 via `AskUserQuestion`:
+  roughly "고위험이라 멀티에이전트 council 모드로 갈 수도 있어요 (느리지만 적대적
+  설계검토 + 구현 후 의도검증). 기본 linear로 갈까요, council로 갈까요?". Default to
+  **linear** if dismissed or unanswered, and ask at most once — don't re-offer
+  every phase.
+
+A casual "build X" / "fix Y" / "refactor Z" with no stakes signal is NOT an
+escalation — stay linear silently. This is an intensity choice orthogonal to the
+task type: any of forge / renew / hunt / reshape can run either mode.
 
 When escalated, read `orchestrated.md` and drive the five phases through its
 team-mode + Workflow topology instead of the linear instructions below. The phase
