@@ -36,4 +36,11 @@ contract (it fails — the feature is absent). Then each subsequent task is a un
 slice driven red → green → refactor on opus until the acceptance test passes.
 Don't build infrastructure the acceptance scenarios don't demand.
 
+## Phase 3.5 — Convention reshape pass (see craft-core/references/reshape-pass.md)
+
+Once the acceptance test passes, **offer once** (default off) a
+behavior-preserving pass that aligns the new code to project convention before
+Phase 4. New features are where fresh, unaligned code lands, so this is where the
+pass earns its keep. Skip on a trivial diff or if the user declines.
+
 Phases 0, 2, 4, 5 run exactly as in the shared pipeline.
