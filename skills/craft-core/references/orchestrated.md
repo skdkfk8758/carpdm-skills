@@ -1,39 +1,57 @@
-# Convene — Orchestration (team mode + dynamic workflow)
+# Orchestrated Execution — team-mode council + dynamic workflow
 
-The slim hybrid topology. The **main session is the hub**: it relays the user ↔
-the council agents, launches the Workflow runs, and routes verification findings.
-Team-mode agents cannot talk to the user directly — every user turn passes through
-the main session via `SendMessage` in and plain relay out.
+The **orchestrated driver** for the craft engine. Same five phases and the same
+content refs as the linear path (`pipeline.md`), but the *topology* is
+multi-agent instead of a single linear session: a persistent design council
+argues the plan, a Workflow builds it test-first, and a verification panel checks
+the result against the original intent.
 
-Persistence rule (the whole reason team mode is here): an agent is kept alive
+This driver is **task-type-agnostic**. The calling skill (`forge` / `renew` /
+`hunt` / `reshape`) supplies the same two things it gives the linear engine — its
+**Phase 1 Socratic focus** and its **Phase 3 TDD entry point** — and this file
+supplies the execution structure around them. So the council interviews with
+forge's IO-contract focus or renew's preserve/change focus; the build starts from
+forge's acceptance test or hunt's regression test; nothing about the task framing
+changes, only how it is executed.
+
+Use it only when the user explicitly asked for the heavyweight treatment (see
+`pipeline.md` → *Execution mode*). It is expensive — persistent agents + workflow
+fan-out + manual shutdown — and only pays off when design risk is real. The
+linear path runs the same engine far cheaper.
+
+The **main session is the hub**: it relays the user ↔ the council agents, launches
+the Workflow runs, and routes verification findings. Team-mode agents cannot talk
+to the user directly — every user turn passes through the main session.
+
+Persistence rule (the reason team mode is here at all): an agent stays alive
 **only if it must remember across rounds**. The **designer** qualifies (it carries
-the design intent from Phase 1 all the way into Phase 4 judgment). The adversary
-qualifies for the duration of the council loop. QA / tester / security do **not** —
-they run once as a stateless Workflow fan-out.
+the design intent from Phase 1 into Phase 4 judgment); the **adversary** qualifies
+for the council loop. QA / tester / security do **not** — they run once as a
+stateless Workflow fan-out.
 
 Models: designer + adversary + verification judges = **opus** (`claude-opus-4-8`);
-Phase 3 build = **sonnet** (`claude-sonnet-4-6`). See SKILL.md for the contract.
+the Phase 3 build = **sonnet** (`claude-sonnet-4-6`) — see §3.
 
 ---
 
 ## §0 — Frame & convene the team
 
-1. Restate the task type and a one-line goal to the user. Confirm convene is wanted
-   (it is expensive) — if the user just wants a normal build, redirect to `forge`
-   et al. and stop.
+1. Restate the task type and one-line goal. Confirm the heavyweight path is
+   wanted — if the user just wants the work done, fall back to the linear engine.
 2. Isolation (project rule): 6+ files, an architecture change, or a 3+ file
    refactor → branch into a worktree before any edit. Say why if you skip it.
-3. `TeamCreate({ team_name: 'convene-<topic>', description: '<one-line goal>' })`.
+3. `TeamCreate({ team_name: 'craft-<topic>', description: '<one-line goal>' })`.
 4. Spawn the two council agents with the Agent tool, `team_name` set, `model: 'opus'`:
    - **designer** (`subagent_type: general-purpose`) — owns the spec and the plan.
      Brief: "You are the designer on a craft council. Run the Socratic interview
-     (the main session relays the user's answers to you), ground every question in
-     the actual code (Read/Grep) and existing docs, and produce a testable plan at
-     `docs/plans/<date>-<topic>.md` plus its `.html` companion, following
+     (the main session relays the user's answers to you) **applying the calling
+     skill's Phase 1 focus** — read that skill's SKILL.md Phase 1 section and
      `~/.claude/skills/craft-core/references/socratic.md` and `context-adr.md`.
-     You will defend and revise this plan against an adversary, and later judge the
-     built result against your own intent. Keep your design rationale in context —
-     you persist across the whole job."
+     Ground every question in the actual code (Read/Grep) and existing docs, and
+     produce a testable plan at `docs/plans/<date>-<topic>.md` plus its `.html`
+     companion. You will defend and revise this plan against an adversary, and
+     later judge the built result against your own intent. Keep your design
+     rationale in context — you persist across the whole job."
    - **adversary** (`subagent_type: general-purpose`) — hostile plan reviewer.
      Brief: "You are the adversarial reviewer. Attack the designer's plan per
      `~/.claude/skills/craft-core/references/codex-review.md` — hidden assumptions,
@@ -55,27 +73,26 @@ the designer's round N+1, which a single linear session cannot do.
 
 Loop:
 
-1. **Interview round.** designer asks a focused cluster (2–4 questions). The main
-   session surfaces them to the user, collects answers, and relays them back to
-   designer via `SendMessage`. Use `AskUserQuestion` when the choice is between
-   concrete options. designer reads code/docs to answer what it can itself.
+1. **Interview round.** designer asks a focused cluster (2–4 questions), using the
+   calling skill's Phase 1 focus. The main session surfaces them to the user,
+   collects answers, and relays them back via `SendMessage`. Use `AskUserQuestion`
+   when the choice is between concrete options. designer reads code/docs to answer
+   what it can itself.
 2. **Draft / revise.** designer writes (or updates) the plan `.md` + `.html`
-   companion. The plan sections are the craft-engine standard (Goal / Scope /
-   Files / Steps→verify / Risks / Security surface / YAGNI / Acceptance).
+   companion. Sections are the craft-engine standard (Goal / Scope / Files /
+   Steps→verify / Risks / Security surface / YAGNI / Acceptance).
 3. **Attack round.** main hands the plan path to **adversary**; adversary returns
    blocking + non-blocking findings (and codex's, if present). main relays the
    blocking findings to designer.
 4. **Converge check** — repeat 1–3 until **BOTH** gates hold:
    - **User-approval gate** — the user has seen the current plan and approved it.
-     A plan the user has not seen is not a plan.
    - **Adversary gate** — adversary (and codex) raise **no blocking** objection,
      **or** 2 review rounds have completed. Record each round's verdict in the plan.
 
 When both gates pass, the plan is frozen as the Phase 3 contract. Refresh the
-`.html` so it matches the final `.md` (and carries the codex verdicts).
+`.html` so it matches the final `.md`.
 
-> Termination is these two gates — nothing loops "until optimal" by feel. If the
-> user keeps changing the goal, that is a new interview round, not an open loop.
+> Termination is these two gates — nothing loops "until optimal" by feel.
 
 ---
 
@@ -83,20 +100,26 @@ When both gates pass, the plan is frozen as the Phase 3 contract. Refresh the
 
 Read `~/.claude/skills/craft-core/references/dynamic-tdd.md` for the red→green→
 refactor discipline and the "atomic task" definition — but **override its model
-pin: convene builds on `sonnet`, not opus** (SKILL.md contract). The build is
-test-pinned and independently verified, which is what licenses the cheaper tier.
+pin: the orchestrated build runs on `sonnet`, not opus**. The build is test-pinned
+and independently verified, which is what licenses the cheaper tier; opus is
+reserved for the judgment-heavy phases (design, adversarial review, verification).
+
+The **calling skill defines where the TDD cycle starts** — exactly as in the linear
+engine: `forge` writes the acceptance test as task 1; `hunt` writes the failing
+regression test first; `renew` / `reshape` write characterization tests pinning
+preserved behavior before any task touches code. The orchestrated driver does not
+change the entry point, only the executor.
 
 The **designer stays idle-alive** through this phase (do not shut it down) so its
 design intent is still in context for Phase 4. The main session drives the
 Workflow; the build agents are stateless Workflow agents, not team members.
 
-Pass the approved plan's Steps in as `args.tasks`. Each entry: `{ id, title, spec,
-files }`.
+Pass the approved plan's Steps in as `args.tasks` (`{ id, title, spec, files }`).
 
 ```javascript
 export const meta = {
-  name: 'convene-build',
-  description: 'Split the approved convene plan into atomic tasks and build each test-first on sonnet',
+  name: 'craft-build',
+  description: 'Split the approved plan into atomic tasks and build each test-first on sonnet',
   phases: [{ title: 'Build', model: 'sonnet' }, { title: 'Verify', model: 'sonnet' }],
 }
 
@@ -148,8 +171,8 @@ refute-each-finding step for the security lane:
 
 ```javascript
 export const meta = {
-  name: 'convene-verify',
-  description: 'QA + tester + security verification of the convene build, on opus',
+  name: 'craft-verify',
+  description: 'QA + tester + security verification of the orchestrated build, on opus',
   phases: [{ title: 'Panel', model: 'opus' }],
 }
 
@@ -176,9 +199,9 @@ hands the panel's surviving findings to the **still-alive designer** via
 `SendMessage`. The designer — which holds the original intent — classifies each:
 
 - **Confirmed gap** — a real deviation from the plan's Goal/Acceptance → goes back
-  to Phase 3 as a new atomic task (re-run `convene-build` with just those tasks).
-- **Out of scope** — correct behavior the plan deliberately excluded (Scope OUT) →
-  recorded and dismissed, with the reason.
+  to Phase 3 as a new atomic task (re-run the build workflow with just those tasks).
+- **Out of scope** — correct behavior the plan deliberately excluded → recorded
+  and dismissed, with the reason.
 - **Plan defect** — the build is right but the *plan* missed something → a short
   Phase 1 micro-round to amend the plan, then Phase 3 for the delta.
 
@@ -194,9 +217,9 @@ Loop Stage A → B → (Phase 3 if needed) → A until the designer accepts: gat
 2. Durable knowledge (`context-adr.md`): ADR for an ADR-worthy decision; a
    `docs/concepts/` page for reusable context. Only when genuinely warranted.
 3. **Shut the team down** — send `{ type: 'shutdown_request' }` to **designer** and
-   **adversary** (and any teammate still alive). convene's agents are persistent
-   and will linger as idle otherwise. The verification lanes were Workflow agents
-   and have already terminated.
+   **adversary** (and any teammate still alive). These agents are persistent and
+   will linger as idle otherwise. The verification lanes were Workflow agents and
+   have already terminated.
 4. Do not commit or push unless the user asks.
 
 ---
@@ -205,8 +228,7 @@ Loop Stage A → B → (Phase 3 if needed) → A until the designer accepts: gat
 
 - This topology is the expensive path on purpose: 2 persistent opus agents + a
   sonnet build fan-out + an opus verify fan-out + loop-backs. Only justified when
-  design risk is real. If it is not, `forge`/`renew`/`hunt`/`reshape` run the same
-  engine far cheaper.
+  design risk is real.
 - `codex:rescue` absent → the adversary does the Phase 2 attack on its own (manual
   fallback), same as the linear pipeline.
 - If a Workflow run fails mid-build, the designer/adversary are still alive — fix

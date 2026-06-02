@@ -11,6 +11,27 @@ implementation happens *test-first*, and nothing ships until it is *verified and
 secure*. Skipping a phase is allowed only when the user explicitly says so —
 otherwise the value of the skill is lost.
 
+## Execution mode — linear (default) vs orchestrated
+
+By default this engine runs **linear**: you, in this single session, run every
+phase. That is the right mode for almost all work, and the rest of this file
+describes it.
+
+Escalate to the **orchestrated** mode — a persistent multi-agent design council +
+dynamic-workflow build + verification panel — ONLY when the user explicitly asks
+for the heavyweight / council / panel / team treatment: phrasings like "convene a
+design council", "full panel treatment", "팀으로 설계하고 워크플로로 구현해줘",
+"maximum rigor, spare no agents", "council 소집". A casual "build X" / "fix Y" /
+"refactor Z" is NOT an escalation — stay linear. This is an intensity choice
+orthogonal to the task type: any of forge / renew / hunt / reshape can run either
+mode.
+
+When escalated, read `orchestrated.md` and drive the five phases through its
+team-mode + Workflow topology instead of the linear instructions below. The phase
+*content* and your task-type Phase 1 focus / Phase 3 TDD entry point are
+unchanged — only the execution structure differs. One model change: the
+orchestrated build runs on **sonnet** (the linear Phase 3 below runs on opus).
+
 ## Phase 0 — Frame & isolate
 
 - Restate the task type and a one-line goal back to the user.
