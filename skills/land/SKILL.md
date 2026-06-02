@@ -87,7 +87,9 @@ Wait for approval. This is the one gate — after it, execute without further pr
 ### 4. Merge — squash, wait for CI
 
 For each PR in order: `gh pr merge <n> --squash --auto --delete-branch`.
-`--auto` lets GitHub merge once required checks pass; poll `gh pr view <n> --json state,mergeStateStatus` until `MERGED` or a check fails. `--delete-branch` removes the *remote* branch on merge (local cleanup is step 5).
+`--auto` lets GitHub merge once required checks pass; poll `gh pr view <n> --json state,mergeStateStatus` until `MERGED` or a check fails. (If the repo has no required checks, `mergeStateStatus` is `CLEAN` and it merges immediately — no waiting.)
+
+`--delete-branch` removes the remote branch on merge. One nicety: if the PR's head branch is the one **currently checked out in this main worktree**, `gh` also deletes the *local* branch and switches you to the default branch — so the common "merge the branch I'm on" case is fully cleaned up here, and step 5's branch deletion only has to handle branches living in *other* worktrees. Branches checked out elsewhere are untouched by `gh` and still need step 5.
 
 For a **stack**, after the base PR merges, re-point the next PR's base to the
 default branch (`gh pr edit <next> --base <default>`) before merging it — otherwise
@@ -101,7 +103,7 @@ since it can't merge yet), report, continue with independent PRs that are still 
 Once merges are done:
 
 1. **Pull default**: `git checkout <default> && git pull --ff-only`. (Never commit here — the branch-protection guard blocks direct work, and `--ff-only` keeps it clean.)
-2. **Remove merged worktrees first, then delete their branches** — order matters: a branch checked out in a worktree can't be deleted. `git worktree remove <path>` for each worktree whose branch landed, then `git branch -d <branch>` (lowercase `-d` so git refuses if it's *not* actually merged — a built-in safety net; if it refuses, that branch didn't land, so investigate, don't `-D`).
+2. **Remove merged worktrees first, then delete their branches** — order matters: a branch checked out in a worktree can't be deleted. `git worktree remove <path>` for each worktree whose branch landed, then delete the branch. Prefer `git branch -d <branch>` (lowercase) as a safety net — git refuses if the branch isn't an ancestor of the default branch. **But squash merges break this check**: a squash collapses the branch into one new commit on default, so the original branch commits are *not* ancestors and `-d` will refuse even though the PR truly merged. So: if `-d` refuses, don't assume the work is unlanded — confirm against the PR (`gh pr view <n> --json state` shows `MERGED`). If it merged, `git branch -D <branch>` is safe; the deletion is backed by the merge, not the local ancestry. Only investigate (and never `-D`) when the PR is *not* merged and `-d` still refuses — that's a real "this didn't land" signal.
 3. **Prune remote-tracking**: already handled by `git fetch --prune` / `--delete-branch`; a final `git remote prune origin` cleans stragglers.
 4. **Rebase survivors**: for each local branch that did NOT land, `git rebase <default>`. On conflict, stop and report that branch (leave the rebase in progress so the user can resolve or you can on request) — see `references/stacking.md` for the recovery shape.
 
