@@ -1,101 +1,100 @@
-# Context & ADR — read for grounding, write for durable decisions
+# Context & ADR — grounding 을 위해 읽고, 영속적 결정을 위해 쓴다
 
-Two jobs, both shared by forge/renew/reshape/hunt:
+두 가지 일, 둘 다 forge/renew/reshape/hunt 가 공유한다:
 
-- **Read (Phase 1 grounding)** — before asking the user anything, read the
-  project's existing decisions, domain context, and documented procedures
-  (guides/reference) so questions don't re-litigate what's settled and the plan
-  doesn't contradict a standing decision or a documented how-to.
-- **Write (Phase 5 wrap)** — when the work made a decision worth remembering or
-  established reusable knowledge, record it so the *next* session doesn't redo the
-  reasoning.
+- **Read (Phase 1 grounding)** — 사용자에게 무엇이든 묻기 전에, 프로젝트의
+  기존 결정, 도메인 context, 문서화된 절차 (guide/reference) 를 읽어
+  질문이 정해진 것을 재론하지 않고 플랜이 standing 결정이나 문서화된
+  how-to 와 모순되지 않게 한다.
+- **Write (Phase 5 wrap)** — 작업이 기억할 가치 있는 결정을 했거나 재사용
+  가능한 지식을 확립했을 때, *다음* 세션이 추론을 다시 하지 않도록
+  기록한다.
 
-These skills are global (used across projects), so everything here is
-**convention-detecting**, not hard-coded. Detect what the project uses; fall back
-gracefully when it isn't there.
+이 스킬들은 글로벌하므로 (프로젝트 간 사용), 여기 모든 것은
+하드코드가 아니라 **convention-detecting** 이다. 프로젝트가 쓰는 것을 감지하고;
+없을 때 우아하게 폴백한다.
 
-## Detect the convention first
+## 먼저 컨벤션을 감지하라
 
-- ADRs: is there a `docs/adr/` directory (and usually a registry like
-  `docs/adr/INDEX.md`)? If yes, follow its numbering, filename pattern
-  (`NNN-slug.md`), frontmatter, and status field exactly — match the existing
-  files, don't invent a new shape.
-- Concepts/context: is there a `docs/concepts/` (or the project's equivalent
-  knowledge tree)? Note its page format.
-- Guides & reference: is there a `docs/guides/` (how-to / runbook / tutorial) or
-  `docs/reference/` (API surface, external-resource pointers)? These hold the
-  *documented procedure and contract* the task should follow — check them, not
-  just ADRs/concepts.
-- If none exist: don't manufacture a docs tree for a one-off. Offer to start
-  `docs/adr/` only when a genuinely ADR-worthy decision actually arises;
-  otherwise skip and just summarize the decision in your wrap-up.
+- ADR: `docs/adr/` 디렉토리 (그리고 보통 `docs/adr/INDEX.md` 같은 registry)
+  가 있나? 있으면, 그 번호 매기기, 파일명 패턴
+  (`NNN-slug.md`), frontmatter, status 필드를 정확히 따른다 — 기존 파일에
+  맞추고, 새 형태를 발명하지 말 것.
+- Concept/context: `docs/concepts/` (또는 프로젝트의 등가 지식
+  트리) 가 있나? 그 페이지 포맷을 메모한다.
+- Guide & reference: `docs/guides/` (how-to / runbook / tutorial) 나
+  `docs/reference/` (API surface, 외부 자료 포인터) 가 있나? 이것들은 작업이
+  따라야 할 *문서화된 절차와 계약* 을 담는다 — ADR/concept 뿐 아니라 이것들도
+  확인하라.
+- 아무것도 없으면: 일회성을 위해 docs 트리를 제조하지 말 것. 진짜 ADR 감
+  결정이 실제로 생길 때만 `docs/adr/` 시작을 제안하라;
+  아니면 스킵하고 wrap-up 에서 결정을 요약만 하라.
 
-## Read for grounding (Phase 1)
+## grounding 을 위해 읽기 (Phase 1)
 
-Before the Socratic clusters:
+Socratic 클러스터 전에:
 
-- Skim the ADR registry (`ls docs/adr/`, read the ones touching this task's area).
-  The plan must **respect standing ADRs**; if the task would contradict one, say
-  so out loud and resolve it with the user — don't silently override a recorded
-  decision.
-- Read the relevant `docs/concepts/` pages for domain vocabulary and constraints,
-  so your questions use the project's terms and don't ask what's already written.
-- Check `docs/guides/` and `docs/reference/` for an existing how-to, runbook, or
-  documented contract covering this area. If a guide already prescribes the
-  procedure, the plan must follow it (or call out explicitly why it deviates) —
-  don't reinvent a flow the docs already settle.
-- Pair this with the code read (see `socratic.md` → "Read before you ask"): code
-  tells you *what is*, ADRs/concepts tell you *why it's that way*, guides/reference
-  tell you *how it's meant to be done*.
+- ADR registry 를 훑는다 (`ls docs/adr/`, 이 작업 영역을 건드리는 것을 읽는다).
+  플랜은 **standing ADR 을 존중**해야 한다; 작업이 하나와 모순된다면, 소리 내어
+  말하고 사용자와 해결하라 — 기록된 결정을 조용히 override 하지 말 것.
+- 관련 `docs/concepts/` 페이지를 읽어 도메인 어휘와 제약을 파악하고,
+  질문이 프로젝트 용어를 쓰고 이미 적힌 것을 묻지 않게 한다.
+- `docs/guides/` 와 `docs/reference/` 에서 이 영역을 다루는 기존 how-to, runbook,
+  문서화된 계약을 확인한다. guide 가 이미 절차를 규정하면, 플랜은 그걸
+  따라야 한다 (또는 왜 벗어나는지 명시적으로 밝혀라) —
+  문서가 이미 정한 플로우를 재발명하지 말 것.
+- 이것을 코드 읽기와 짝지어라 (`socratic.md` → "묻기 전에 읽어라"): 코드는
+  *무엇인지*, ADR/concept 는 *왜 그런지*, guide/reference 는
+  *어떻게 하기로 돼 있는지* 를 말해준다.
 
-## Write an ADR (Phase 5) — only when it's ADR-worthy
+## ADR 작성 (Phase 5) — ADR 감일 때만
 
-An ADR records a decision that is **architectural and hard to reverse** — a
-contract, a boundary, a technology/pattern choice, a policy that future code must
-follow. Most tasks do **not** warrant one; a wall of ADRs for routine work
-poisons the registry. Write one when:
+ADR 은 **아키텍처적이고 되돌리기 어려운** 결정을 기록한다 — 계약,
+경계, 기술/패턴 선택, 미래 코드가 따라야 할 정책. 대부분의 작업은 하나를
+요하지 **않는다**; 일상적 작업을 위한 ADR 의 벽은 registry 를 오염시킨다.
+다음일 때 쓴다:
 
-- the work chose between real architectural alternatives (and someone later will
-  ask "why this way?"), or
-- Phase 2 codex flagged the plan as making an architecture decision, or
-- the user explicitly framed it as a decision to record.
+- 작업이 진짜 아키텍처 대안 사이에서 골랐을 때 (그리고 나중에 누군가
+  "왜 이렇게?" 라고 물을 때), 또는
+- Phase 2 codex 가 플랜이 아키텍처 결정을 한다고 플래그했을 때, 또는
+- 사용자가 명시적으로 기록할 결정으로 framing 했을 때.
 
-How (follow the detected convention; the shape below is the common one):
+어떻게 (감지된 컨벤션을 따른다; 아래 형태는 흔한 것):
 
-1. Number it: next = `ls docs/adr/[0-9]*.md | tail -1` + 1.
-2. `docs/adr/NNN-slug.md` with the project's frontmatter (title, type, created,
-   related, tags) and a status (default **Proposed**). Body: Context → Decision →
-   Consequences (or whatever the existing ADRs use — match them).
-3. **Manage the registry**: add the row to `docs/adr/INDEX.md` in the same commit
-   — an ADR not in the index is invisible. If this decision supersedes or amends
-   an older ADR, link both ways and update the old one's status.
+1. 번호를 매긴다: next = `ls docs/adr/[0-9]*.md | tail -1` + 1.
+2. `docs/adr/NNN-slug.md` 를 프로젝트의 frontmatter (title, type, created,
+   related, tags) 와 status (기본 **Proposed**) 와 함께. 본문: Context → Decision →
+   Consequences (또는 기존 ADR 이 쓰는 무엇이든 — 맞춰라).
+3. **registry 관리**: 같은 commit 에서 `docs/adr/INDEX.md` 에 행을 추가한다 —
+   index 에 없는 ADR 은 보이지 않는다. 이 결정이 더 오래된 ADR 을 supersede 하거나
+   amend 하면, 양방향으로 링크하고 옛것의 status 를 갱신한다.
 
-## Write a concept (Phase 5) — for reusable knowledge
+## concept 작성 (Phase 5) — 재사용 가능한 지식을 위해
 
-When the work established domain knowledge or context that **2+ future pages would
-reference** (a data model, an invariant, a glossary term, a layer boundary),
-record it as `docs/concepts/<slug>.md` in the project's page format. Prefer
-**updating an existing concept** over creating a near-duplicate. One-off,
-single-use context stays inline in the plan — don't promote it.
+작업이 **2+ 미래 페이지가 참조할** 도메인 지식이나 context (데이터 모델,
+invariant, glossary 용어, layer 경계) 를 확립했을 때,
+`docs/concepts/<slug>.md` 로 프로젝트 페이지 포맷에 기록한다. 거의 중복을
+만드는 것보다 **기존 concept 갱신**을 선호하라. 일회성,
+단일 사용 context 는 플랜에 inline 으로 남긴다 — 승격하지 말 것.
 
-## Per-task ADR-worthiness (the calling skill sharpens this)
+## 태스크별 ADR 감 (호출 스킬이 이걸 날카롭게 한다)
 
-- **forge** — a new architectural pattern, dependency, or external contract →
-  ADR. A plain feature on existing rails → no ADR.
-- **renew** — a contract/behavior change that's a real decision (auth model
-  swap, API envelope change, migration strategy) → ADR.
-- **reshape** — usually **no ADR** (behavior unchanged). Exception: the refactor
-  *adopts a structural pattern* (e.g. "modular monolith", "writer SSOT") that
-  future code must follow → ADR.
-- **hunt** — usually **no ADR**. Exception: the fix establishes a standing
-  invariant or policy ("all sum-zero inputs normalize to uniform") future code
-  must honor → ADR.
+- **forge** — 새 아키텍처 패턴, 의존성, 외부 계약 →
+  ADR. 기존 레일 위의 평범한 기능 → ADR 없음.
+- **renew** — 진짜 결정인 계약/behavior 변경 (auth 모델
+  교체, API envelope 변경, 마이그레이션 전략) → ADR.
+- **reshape** — 보통 **ADR 없음** (behavior 불변). 예외: 리팩터가
+  미래 코드가 따라야 할 *구조적 패턴을 채택* (예: "modular monolith", "writer SSOT") →
+  ADR.
+- **hunt** — 보통 **ADR 없음**. 예외: 수정이 미래 코드가 존중해야 할
+  standing invariant 나 정책 ("all sum-zero inputs normalize to uniform") 을
+  확립 → ADR.
 
 ## Anti-patterns
 
-- Writing an ADR for routine work → registry noise; readers stop trusting it.
-- A new ADR file without the INDEX.md row → the decision is unfindable.
-- Asking the user something an existing ADR or concept already answers → looks
-  like you didn't read.
-- Silently planning against a standing ADR → surface the conflict instead.
-- Duplicating a concept page instead of updating the existing one.
+- 일상적 작업에 ADR 작성 → registry 노이즈; 독자가 신뢰를 멈춘다.
+- INDEX.md 행 없는 새 ADR 파일 → 결정이 찾을 수 없다.
+- 기존 ADR 나 concept 가 이미 답하는 것을 사용자에게 묻기 → 보지
+  않은 것처럼 보인다.
+- standing ADR 에 반해 조용히 계획하기 → 대신 충돌을 surface 하라.
+- 기존 concept 페이지를 갱신하는 대신 중복하기.

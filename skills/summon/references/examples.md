@@ -1,17 +1,17 @@
-# Worked examples
+# 작업 예시
 
-Two complete subagents in **standard Claude Code format** (markdown body, no XML wrapper, no
-`level` field) — one read-only advisor, one writing implementer. Copy the shape, swap the domain.
-Both are adaptations of battle-tested agents from the source fleet (architect / executor),
-rewritten to the standard convention this skill emits.
+**표준 Claude Code 형식**(마크다운 본문, XML 래퍼 없음, `level` 필드 없음)의 완성된 서브에이전트
+두 개 — read-only advisor 하나, writing implementer 하나. 형태를 복사하고 도메인을 교체하라.
+둘 다 소스 함대의 검증된 에이전트(architect / executor)를 이 스킬이 내보내는 표준 컨벤션으로 다시
+쓴 것이다.
 
 ---
 
-## Example A — read-only advisor
+## 예시 A — read-only advisor
 
-A judgment agent that inspects and recommends but never mutates. Note: `opus` (judgment under
-ambiguity), `disallowedTools: Write, Edit` (read-only lock), evidence spine (every claim cites
-file:line), a literal Output Format with a trade-off table, and a delegation map in the Role.
+검사하고 권고하되 절대 변경하지 않는 판단 에이전트. 주목: `opus`(모호성 하의 판단),
+`disallowedTools: Write, Edit`(read-only 잠금), 증거 척추(모든 주장이 file:line 인용), 트레이드오프
+표가 있는 문자 그대로의 Output Format, 그리고 Role 안의 위임 맵.
 
 ```markdown
 ---
@@ -99,11 +99,11 @@ no fix — an opinion, not a finding.
 
 ---
 
-## Example B — writing implementer
+## 예시 B — writing implementer
 
-An execution agent that mutates code. Note: `sonnet` (bounded execution), **no** tool restriction
-(it needs Edit/Write/Bash — scope is constrained in the body instead), smallest-viable-diff
-discipline, verification with fresh output, and a circuit breaker.
+코드를 변경하는 실행 에이전트. 주목: `sonnet`(한정된 실행), 도구 제한 **없음**(Edit/Write/Bash 가
+필요하다 — 대신 본문에서 범위를 제약한다), smallest-viable-diff 규율, fresh output 으로 하는 검증,
+그리고 서킷 브레이커.
 
 ```markdown
 ---
@@ -181,15 +181,15 @@ fetch call, update the one test that exercises it. 3 lines changed, tests shown 
 
 ---
 
-## What changed from the source-fleet (oh-my-claudecode) format
+## 소스 함대(oh-my-claudecode) 형식에서 바뀐 것
 
-If you're comparing against the original 19 agents, the standard-format adaptations are:
+원본 19개 에이전트와 비교한다면, 표준 형식 적응은 다음과 같다:
 
-- **Dropped** the `level:` frontmatter field — non-standard, ignored by Claude Code.
-- **Dropped** the `<Agent_Prompt>…</Agent_Prompt>` XML wrapper and converted `<Section>` tags to
-  markdown `##` headings — cleaner as a native system prompt.
-- **Kept** `disallowedTools: Write, Edit` — this one IS a standard Claude Code field.
-- **Removed** references to framework-specific paths/namespaces (`.omc/plans/`,
-  `Task(subagent_type="oh-my-claudecode:…")`). If you want cross-agent delegation, note that a
-  subagent cannot use the `Agent` tool — express hand-offs as recommendations in the output, for
-  the orchestrator to act on.
+- `level:` frontmatter 필드 **제거** — 비표준, Claude Code 가 무시함.
+- `<Agent_Prompt>…</Agent_Prompt>` XML 래퍼 **제거** 및 `<Section>` 태그를 마크다운 `##` 헤딩으로
+  변환 — 네이티브 시스템 프롬프트로서 더 깔끔함.
+- `disallowedTools: Write, Edit` **유지** — 이것은 표준 Claude Code 필드가 맞다.
+- 프레임워크 특화 경로/네임스페이스 참조 **삭제** (`.omc/plans/`,
+  `Task(subagent_type="oh-my-claudecode:…")`). 에이전트 간 위임을 원한다면, 서브에이전트는 `Agent`
+  도구를 쓸 수 없음에 유의하라 — 핸드오프는 오케스트레이터가 처리하도록 출력에 권고 형태로
+  표현하라.

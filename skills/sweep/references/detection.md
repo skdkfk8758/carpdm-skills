@@ -1,10 +1,10 @@
-# Detection heuristics
+# Detection 휴리스틱
 
-Per-category rules for finding cleanup candidates. Each hit must carry **evidence
-of staleness**, not just a matching path. Run `git ls-files` and `git status` once
-up front so every hit gets a recovery tier (tracked / untracked).
+정리 후보를 찾는 카테고리별 규칙. 각 히트는 일치하는 경로만이 아니라 **staleness
+의 증거**를 지녀야 한다. 모든 히트가 복구 계층(tracked / untracked)을 갖도록
+`git ls-files` 와 `git status` 를 처음에 한 번 실행하라.
 
-Table of contents:
+목차:
 - [1. Stale point-in-time docs](#1-stale-point-in-time-docs)
 - [2. Volatile logs](#2-volatile-logs)
 - [3. Orphan / duplicate docs](#3-orphan--duplicate-docs)
@@ -13,44 +13,43 @@ Table of contents:
 
 ## 1. Stale point-in-time docs
 
-Locations: `docs/plans/`, `docs/handoff/`, `docs/reports/`, `docs/reviews/`,
+위치: `docs/plans/`, `docs/handoff/`, `docs/reports/`, `docs/reviews/`,
 `docs/runbooks/`, `docs/benchmarks/`, `docs/solutions/`, `docs/_archive/`.
 
-Staleness evidence (need at least one; more = higher confidence):
+Staleness 증거(최소 하나 필요; 많을수록 확신 높음):
 
-- **Dated filename in the past** — `docs/plans/YYYY-MM-DD-*.md` where the date is
-  well behind today. A plan older than the most recent plan on the same topic is
-  likely superseded.
-- **Landed work** — a `handoff/` or `plans/` doc whose described task is done.
-  Check: does its target file/feature exist and look finished? Is there a later
-  commit that says it merged? Per the YAGNI rule, a handoff whose work shipped is
-  meant to be deleted.
-- **Superseded** — two docs on the same topic; the older is a candidate, the newer
-  stays. Confirm by reading both, not by date alone.
-- **Already archived** — anything under `docs/_archive/` is by definition retired;
-  propose it (tracked → recoverable) unless the user uses `_archive` as long-term
-  cold storage (ask if unclear).
+- **과거의 날짜 파일명** — `docs/plans/YYYY-MM-DD-*.md` 에서 날짜가 오늘보다 한참
+  뒤처진 것. 같은 주제의 가장 최근 plan 보다 오래된 plan 은 대체되었을 가능성이
+  높다.
+- **랜딩된 작업** — 기술된 작업이 끝난 `handoff/` 또는 `plans/` 문서. 확인:
+  대상 파일/기능이 존재하고 완성돼 보이는가? 머지됐다고 말하는 후속 커밋이
+  있는가? YAGNI 규칙에 따라, 작업이 출시된 handoff 는 삭제하도록 되어 있다.
+- **대체됨** — 같은 주제의 문서 둘; 오래된 게 후보, 새 게 남는다. 날짜만이
+  아니라 둘 다 읽어 확인하라.
+- **이미 archive 됨** — `docs/_archive/` 아래 무엇이든 정의상 은퇴한 것이다;
+  제안하라(tracked → 복구 가능) — 단 유저가 `_archive` 를 장기 cold storage 로
+  쓰는 경우는 예외(불확실하면 물어보라).
 
-Useful commands (read evidence, don't act):
+유용한 명령(증거를 읽되 행동하지 말 것):
 ```bash
 git -C <repo> log --oneline -5 -- docs/plans/<file>      # was its work merged?
 git ls-files docs/plans docs/handoff docs/reports        # tracked candidates
 ls -lt docs/handoff                                       # oldest-last by mtime
 ```
 
-Do NOT treat as stale: an active SPEC (`docs/specs/`), a plan with a future date or
-open checkboxes, a report referenced from `docs/_index/index.md`.
+stale 로 취급하지 말 것: 활성 SPEC (`docs/specs/`), 미래 날짜나 열린 체크박스를
+가진 plan, `docs/_index/index.md` 에서 참조되는 report.
 
 ## 2. Volatile logs
 
-Locations: `logs/` (esp. `logs/qa/`, `logs/agents/`), `*.status.log`.
+위치: `logs/` (특히 `logs/qa/`, `logs/agents/`), `*.status.log`.
 
-- `logs/qa/` has a **7-day GC window** by convention — files older than 7 days are
-  prime candidates.
-- `logs/agents/*.log`, `*.status.log` — agent run scratch, almost always volatile.
-- These are usually **untracked → NOT recoverable**. Flag that tier loudly.
-- If `logs/` should keep emitting, prefer ensuring it is `.gitignore`d over deleting
-  the directory itself — deleting it just makes the next run recreate it.
+- `logs/qa/` 는 컨벤션상 **7일 GC 윈도우**를 가진다 — 7일보다 오래된 파일이 1순위
+  후보.
+- `logs/agents/*.log`, `*.status.log` — agent 실행 scratch, 거의 항상 휘발성.
+- 이것들은 보통 **untracked → 복구 불가**다. 그 계층을 큰소리로 flag 하라.
+- `logs/` 가 계속 출력돼야 한다면, 디렉토리 자체를 삭제하기보다 `.gitignore` 되어
+  있는지 확인하는 쪽을 선호하라 — 삭제해 봐야 다음 실행이 다시 만든다.
 
 ```bash
 find logs -type f -mtime +7 2>/dev/null     # older than 7 days
@@ -59,13 +58,13 @@ git check-ignore logs/qa/ || echo "logs/qa NOT gitignored"
 
 ## 3. Orphan / duplicate docs
 
-- **Orphans** — docs under `docs/` not reachable from `docs/_index/index.md` (the
-  portal). Grep the portal for the filename; zero hits + point-in-time location =
-  orphan candidate. Knowledge sub-tree files missing from the portal are a *portal
-  gap to fix*, not a delete candidate — flag, don't propose.
-- **Duplicates** — two files with near-identical content / same SSOT. The convention
-  forbids duplicate SSOT; keep the canonical one, propose the copy.
-- **Empty dirs** — directories with no files (often left after earlier moves).
+- **고아(Orphan)** — `docs/` 아래에서 `docs/_index/index.md`(portal)로부터 도달할
+  수 없는 문서. portal 에서 파일명을 grep 해, 0 히트 + 시점 기록 위치 = 고아
+  후보. portal 에서 빠진 knowledge sub-tree 파일은 *고칠 portal gap* 이지 삭제
+  후보가 아니다 — 제안 말고 flag 하라.
+- **중복(Duplicate)** — 거의 동일한 내용 / 같은 SSOT 의 파일 둘. 컨벤션은 중복
+  SSOT 를 금지한다; 정본을 남기고 사본을 제안하라.
+- **빈 디렉토리** — 파일 없는 디렉토리(이전 이동 후 남은 경우가 많다).
 
 ```bash
 grep -rl "<filename>" docs/_index/ || echo "orphan: not in portal"
@@ -74,22 +73,20 @@ find docs -type d -empty
 
 ## 4. Build / tmp leftovers
 
-- `*.bak-*` (the timestamped backups `install.sh` and similar make), `*.tmp`,
-  `*.orig`, `*~`.
-- Build output: `dist/`, `build/`, `out/`, `.next/`, `coverage/` — but ONLY if the
-  project clearly regenerates them (a build step exists). For a docs-only or
-  markdown repo, a `build/` dir might be meaningful — check before assuming.
+- `*.bak-*` (`install.sh` 등이 만드는 타임스탬프 백업), `*.tmp`, `*.orig`, `*~`.
+- Build 출력: `dist/`, `build/`, `out/`, `.next/`, `coverage/` — 단 프로젝트가
+  이를 분명히 재생성할 때만(build 단계가 존재). 문서 전용이나 markdown 레포라면
+  `build/` 디렉토리가 의미 있을 수 있다 — 가정하기 전에 확인하라.
 - `tmp/`, `.cache/` scratch.
-- These are typically **untracked → NOT recoverable**.
+- 이것들은 보통 **untracked → 복구 불가**다.
 
-**Recent-backup caution.** A `.bak` / `.orig` with a *recent* mtime (or a name that
-is not an epoch-timestamped tool backup, e.g. `config.json.bak-recent` vs
-`config.json.bak-1748000000`) may be one the user just made on purpose. Deleting an
-untracked, non-recoverable file someone created minutes ago is exactly the
-irreversible mistake to avoid. Do NOT fold it into the auto-proposed batch — move it
-to "Excluded on purpose" and offer it as an explicit opt-in, noting it looks
-intentional. Stale tool backups (old mtime + epoch-timestamp name) stay normal
-candidates.
+**최근 백업 주의.** *최근* mtime 을 가진 `.bak` / `.orig`(또는 epoch 타임스탬프
+도구 백업이 아닌 이름, 예: `config.json.bak-recent` vs
+`config.json.bak-1748000000`)은 유저가 방금 일부러 만든 것일 수 있다. 누군가
+몇 분 전에 만든 untracked, 복구 불가 파일을 삭제하는 것은 피해야 할 바로 그
+비가역 실수다. 자동 제안 배치에 묶지 말 것 — "Excluded on purpose" 로 옮기고
+의도적으로 보인다고 적으며 명시적 opt-in 으로 제공하라. stale 도구 백업(오래된
+mtime + epoch 타임스탬프 이름)은 평범한 후보로 남는다.
 
 ```bash
 find . -name '*.bak-*' -o -name '*.tmp' -o -name '*.orig' 2>/dev/null
@@ -99,13 +96,12 @@ git status --porcelain --ignored | grep '^!!'    # ignored build/tmp output
 
 ## Cross-cutting: never-touch guard
 
-Before proposing ANY path, re-check it is not in the permanent set:
+어떤 경로든 제안하기 전에, 영속 집합에 없는지 재확인하라:
 
 `rules/`, `AGENTS.md`, `CLAUDE.md`, `MEMORY.md`, `memory/`, `.git/`, `docs/adr/`,
 `docs/concepts/`, `docs/guides/`, `docs/reference/`, `docs/_index/`, `docs/specs/`
-(active contracts), source code, `package.json`, lockfiles, CI config, `.claude/`.
+(활성 계약), source code, `package.json`, lockfile, CI config, `.claude/`.
 
-A single mis-proposed permanent file erodes all trust in the tool. When a path sits
-on the boundary (is this `report` actually durable reference?), move it to the
-"Excluded on purpose" list with your reasoning and let the user pull it back in —
-err toward keeping.
+잘못 제안된 영속 파일 하나가 도구에 대한 모든 신뢰를 무너뜨린다. 경로가 경계에
+있을 때(이 `report` 가 실은 영속 reference 인가?) "Excluded on purpose" 목록으로
+당신의 추론과 함께 옮기고 유저가 다시 끌어오게 두라 — 남기는 쪽으로 기울 것.

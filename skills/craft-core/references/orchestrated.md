@@ -1,48 +1,48 @@
 # Orchestrated Execution — team-mode council + dynamic workflow
 
-The **orchestrated driver** for the craft engine. Same five phases and the same
-content refs as the linear path (`pipeline.md`), but the *topology* is
-multi-agent instead of a single linear session: a persistent design council
-argues the plan, a Workflow builds it test-first, and a verification panel checks
-the result against the original intent.
+craft 엔진의 **orchestrated driver**. linear 경로 (`pipeline.md`) 와 같은 다섯
+phase 와 같은 content ref 를 쓰지만, *토폴로지* 가 단일 linear 세션이 아니라
+멀티에이전트다: 영속적 설계 council 이 플랜을
+논쟁하고, Workflow 가 test-first 로 빌드하고, 검증 패널이 결과를 원래
+의도에 대해 체크한다.
 
-This driver is **task-type-agnostic**. The calling skill (`forge` / `renew` /
-`hunt` / `reshape`) supplies the same two things it gives the linear engine — its
-**Phase 1 Socratic focus** and its **Phase 3 TDD entry point** — and this file
-supplies the execution structure around them. So the council interviews with
-forge's IO-contract focus or renew's preserve/change focus; the build starts from
-forge's acceptance test or hunt's regression test; nothing about the task framing
-changes, only how it is executed.
+이 driver 는 **작업유형 무관(task-type-agnostic)** 하다. 호출 스킬 (`forge` / `renew` /
+`hunt` / `reshape`) 이 linear 엔진에 주는 같은 두 가지 — 자신의
+**Phase 1 Socratic 초점** 과 **Phase 3 TDD 진입점** — 을 공급하고, 이 파일이
+그 주위의 실행 구조를 공급한다. 그래서 council 은
+forge 의 IO-계약 초점이나 renew 의 보존/변경 초점으로 인터뷰하고; 빌드는
+forge 의 acceptance 테스트나 hunt 의 regression 테스트에서 시작하며; 작업 framing 의
+무엇도 변하지 않는다, 어떻게 실행되는지만.
 
-Use it only when the user explicitly asked for the heavyweight treatment (see
-`pipeline.md` → *Execution mode*). It is expensive — persistent agents + workflow
-fan-out + manual shutdown — and only pays off when design risk is real. The
-linear path runs the same engine far cheaper.
+사용자가 명시적으로 heavyweight 처리를 요청했을 때만 쓴다 (`pipeline.md` →
+*Execution mode* 참조). 비싸다 — 영속 에이전트 + 워크플로
+fan-out + 수동 shutdown — 그리고 설계 리스크가 진짜일 때만 본전을 뽑는다.
+linear 경로는 같은 엔진을 훨씬 싸게 돌린다.
 
-The **main session is the hub**: it relays the user ↔ the council agents, launches
-the Workflow runs, and routes verification findings. Team-mode agents cannot talk
-to the user directly — every user turn passes through the main session.
+**메인 세션이 허브다**: 사용자 ↔ council 에이전트를 중계하고, Workflow
+실행을 시작하고, 검증 발견을 라우팅한다. team-mode 에이전트는 사용자와
+직접 대화할 수 없다 — 모든 사용자 턴은 메인 세션을 거친다.
 
-Persistence rule (the reason team mode is here at all): an agent stays alive
-**only if it must remember across rounds**. The **designer** qualifies (it carries
-the design intent from Phase 1 into Phase 4 judgment); the **adversary** qualifies
-for the council loop. QA / tester / security do **not** — they run once as a
-stateless Workflow fan-out.
+영속 룰 (team mode 가 여기 있는 이유): 에이전트는 **라운드 간에 기억해야 할
+때만** 살아있다. **designer** 가 자격이 있다 (Phase 1 의 설계 의도를
+Phase 4 판정으로 운반); **adversary** 는 council 루프에 대해 자격이
+있다. QA / tester / security 는 **그렇지 않다** — 무상태(stateless) Workflow fan-out
+으로 한 번 돈다.
 
-Models: designer + adversary + verification judges = **opus** (`claude-opus-4-8`);
-the Phase 3 build = **sonnet** (`claude-sonnet-4-6`) — see §3.
+모델: designer + adversary + 검증 judge = **opus** (`claude-opus-4-8`);
+Phase 3 빌드 = **sonnet** (`claude-sonnet-4-6`) — §3 참조.
 
 ---
 
 ## §0 — Frame & convene the team
 
-1. Restate the task type and one-line goal. Confirm the heavyweight path is
-   wanted — if the user just wants the work done, fall back to the linear engine.
-2. Isolation (project rule): 6+ files, an architecture change, or a 3+ file
-   refactor → branch into a worktree before any edit. Say why if you skip it.
+1. 작업유형과 한 줄 목표를 되짚는다. heavyweight 경로가 원해진 것인지
+   확인 — 사용자가 그냥 작업이 되길 원하면, linear 엔진으로 폴백한다.
+2. Isolation (프로젝트 룰): 6+ 파일, 아키텍처 변경, 또는 3+ 파일
+   리팩터 → 편집 전에 worktree 로 브랜치한다. 스킵하면 이유를 말한다.
 3. `TeamCreate({ team_name: 'craft-<topic>', description: '<one-line goal>' })`.
-4. Spawn the two council agents with the Agent tool, `team_name` set, `model: 'opus'`:
-   - **designer** (`subagent_type: general-purpose`) — owns the spec and the plan.
+4. 두 council 에이전트를 Agent 도구로 spawn 한다, `team_name` 설정, `model: 'opus'`:
+   - **designer** (`subagent_type: general-purpose`) — spec 과 플랜을 소유한다.
      Brief: "You are the designer on a craft council. Run the Socratic interview
      (the main session relays the user's answers to you) **applying the calling
      skill's Phase 1 focus** — read that skill's SKILL.md Phase 1 section and
@@ -52,7 +52,7 @@ the Phase 3 build = **sonnet** (`claude-sonnet-4-6`) — see §3.
      companion. You will defend and revise this plan against an adversary, and
      later judge the built result against your own intent. Keep your design
      rationale in context — you persist across the whole job."
-   - **adversary** (`subagent_type: general-purpose`) — hostile plan reviewer.
+   - **adversary** (`subagent_type: general-purpose`) — 적대적 플랜 리뷰어.
      Brief: "You are the adversarial reviewer. Attack the designer's plan per
      `~/.claude/skills/craft-core/references/codex-review.md` — hidden assumptions,
      missing edges, security holes, a simpler path, scope creep, ADR conflicts. If
@@ -60,69 +60,69 @@ the Phase 3 build = **sonnet** (`claude-sonnet-4-6`) — see §3.
      Label each finding blocking / non-blocking. You exist to make the plan wrong
      before code does."
 
-Do not spawn QA / tester / security here — they belong to Phase 4 and are not
-team agents.
+QA / tester / security 를 여기서 spawn 하지 말 것 — 그들은 Phase 4 에 속하고
+team 에이전트가 아니다.
 
 ---
 
-## §1 — Council loop (Phase 1 interview + Phase 2 attack, fused)
+## §1 — Council loop (Phase 1 인터뷰 + Phase 2 공격, 융합)
 
-The interview and the adversarial review run as one **convergence loop**, because
-in team mode the reviewer is a standing agent — its objections from round N inform
-the designer's round N+1, which a single linear session cannot do.
+인터뷰와 적대적 리뷰가 하나의 **수렴 루프(convergence loop)** 로 돈다, 왜냐하면
+team mode 에서 리뷰어는 standing 에이전트이기 때문이다 — 라운드 N 의 이의가
+designer 의 라운드 N+1 에 정보를 주는데, 단일 linear 세션은 이를 할 수 없다.
 
-**If a deep-interview spec is already pinned** (`docs/specs/<slug>.md`, REQ-F/REQ-N
-with acceptance), don't re-elicit it. Brief designer to load that spec as its
-starting plan and enter the loop at the **attack round** (step 3) — the council's
-value here is the adversarial design attack on already-pinned requirements, not a
-second interview. designer still does a quick ground-check against the code, and
-the user-approval gate still applies. Only fall back to the full interview (step 1)
-for the parts the spec genuinely left open.
+**deep-interview spec 이 이미 확정됐으면** (`docs/specs/<slug>.md`, acceptance 가
+있는 REQ-F/REQ-N), 그걸 다시 elicit 하지 말 것. designer 에게 그 spec 을 시작
+플랜으로 로드하고 **attack 라운드** (step 3) 에서 루프에 진입하라고 brief 한다 — 여기서
+council 의 가치는 이미 확정된 요구사항에 대한 적대적 설계 공격이지,
+두 번째 인터뷰가 아니다. designer 는 여전히 코드에 대해 빠른 ground-check 를 하고,
+user-approval 게이트도 여전히 적용된다. spec 이 진짜로 열어둔 부분에 대해서만
+전체 인터뷰 (step 1) 로 폴백한다.
 
 Loop:
 
-1. **Interview round.** designer asks a focused cluster (2–4 questions), using the
-   calling skill's Phase 1 focus. The main session surfaces them to the user,
-   collects answers, and relays them back via `SendMessage`. Use `AskUserQuestion`
-   when the choice is between concrete options. designer reads code/docs to answer
-   what it can itself.
-2. **Draft / revise.** designer writes (or updates) the plan `.md` + `.html`
-   companion. Sections are the craft-engine standard (Goal / Scope / Files /
+1. **Interview 라운드.** designer 가 집중된 클러스터 (2–4 질문) 를, 호출 스킬의
+   Phase 1 초점으로 묻는다. 메인 세션이 그것을 사용자에게 surface 하고,
+   답을 모으고, `SendMessage` 로 다시 중계한다. 선택이 구체적 옵션 사이일 때
+   `AskUserQuestion` 을 쓴다. designer 는 스스로 답할 수 있는 것을 위해 코드/문서를
+   읽는다.
+2. **Draft / revise.** designer 가 플랜 `.md` + `.html` companion 을
+   쓴다 (또는 갱신한다). 섹션은 craft-engine 표준 (Goal / Scope / Files /
    Steps→verify / Risks / Security surface / YAGNI / Acceptance).
-3. **Attack round.** main hands the plan path to **adversary**; adversary returns
-   blocking + non-blocking findings (and codex's, if present). main relays the
-   blocking findings to designer.
-4. **Converge check** — repeat 1–3 until **BOTH** gates hold:
-   - **User-approval gate** — the user has seen the current plan and approved it.
-   - **Adversary gate** — adversary (and codex) raise **no blocking** objection,
-     **or** 2 review rounds have completed. Record each round's verdict in the plan.
+3. **Attack 라운드.** main 이 플랜 경로를 **adversary** 에게 넘긴다; adversary 가
+   blocking + non-blocking 발견 (그리고 있으면 codex 의) 을 반환한다. main 이 blocking
+   발견을 designer 에게 중계한다.
+4. **Converge check** — **둘 다** 게이트가 성립할 때까지 1–3 을 반복한다:
+   - **User-approval 게이트** — 사용자가 현재 플랜을 보고 승인했다.
+   - **Adversary 게이트** — adversary (그리고 codex) 가 **blocking** 이의를
+     제기하지 않는다, **또는** 2 리뷰 라운드가 완료됐다. 각 라운드의 평결을 플랜에 기록한다.
 
-When both gates pass, the plan is frozen as the Phase 3 contract. Refresh the
-`.html` so it matches the final `.md`.
+둘 다 통과하면, 플랜은 Phase 3 계약으로 frozen 된다. 최종 `.md` 와 맞도록
+`.html` 을 갱신한다.
 
-> Termination is these two gates — nothing loops "until optimal" by feel.
+> 종료는 이 두 게이트다 — 느낌으로 "최적까지" loop 하는 것은 없다.
 
 ---
 
 ## §3 — Dynamic-workflow TDD build (sonnet)
 
-Read `~/.claude/skills/craft-core/references/dynamic-tdd.md` for the red→green→
-refactor discipline and the "atomic task" definition — but **override its model
-pin: the orchestrated build runs on `sonnet`, not opus**. The build is test-pinned
-and independently verified, which is what licenses the cheaper tier; opus is
-reserved for the judgment-heavy phases (design, adversarial review, verification).
+red→green→refactor 규율과 "atomic task" 정의를 위해
+`~/.claude/skills/craft-core/references/dynamic-tdd.md` 를 읽어라 — 단 **그 모델
+핀을 override 하라: orchestrated 빌드는 opus 가 아니라 `sonnet` 에서 돈다**. 빌드는 test-pinned
+이고 독립적으로 검증되므로, 그것이 더 싼 tier 를 정당화한다; opus 는
+판정이 무거운 phase (설계, 적대적 리뷰, 검증) 에 예약된다.
 
-The **calling skill defines where the TDD cycle starts** — exactly as in the linear
-engine: `forge` writes the acceptance test as task 1; `hunt` writes the failing
-regression test first; `renew` / `reshape` write characterization tests pinning
-preserved behavior before any task touches code. The orchestrated driver does not
-change the entry point, only the executor.
+**호출 스킬이 TDD 사이클이 어디서 시작하는지 정의한다** — linear
+엔진과 정확히 같이: `forge` 는 acceptance 테스트를 태스크 1 로 쓴다; `hunt` 는 실패하는
+regression 테스트를 먼저 쓴다; `renew` / `reshape` 는 어떤 태스크가 코드를
+건드리기 전에 보존 behavior 를 핀하는 characterization 테스트를 쓴다. orchestrated driver 는
+진입점을 바꾸지 않고, executor 만 바꾼다.
 
-The **designer stays idle-alive** through this phase (do not shut it down) so its
-design intent is still in context for Phase 4. The main session drives the
-Workflow; the build agents are stateless Workflow agents, not team members.
+**designer 는 idle-alive 로 머문다** 이 phase 내내 (shut down 하지 말 것) — 그
+설계 의도가 Phase 4 를 위해 여전히 context 에 있도록. 메인 세션이
+Workflow 를 구동한다; 빌드 에이전트는 team 멤버가 아니라 무상태 Workflow 에이전트다.
 
-Pass the approved plan's Steps in as `args.tasks` (`{ id, title, spec, files }`).
+승인된 플랜의 Steps 를 `args.tasks` (`{ id, title, spec, files }`) 로 넘긴다.
 
 ```javascript
 export const meta = {
@@ -161,28 +161,28 @@ const results = await pipeline(
 return results.filter(Boolean)
 ```
 
-`isolation: 'worktree'` only if tasks write in parallel and would collide; drop it
-for a strictly sequential set. Any task returning `testsGreen:false` or
-`verified:false` is fixed before Phase 4 — do not advance with red tasks.
+`isolation: 'worktree'` 는 태스크들이 병렬로 쓰고 충돌할 때만; 엄격히 순차적인
+집합이면 떨군다. `testsGreen:false` 나 `verified:false` 를 반환하는 태스크는
+Phase 4 전에 고친다 — red 태스크로 진행하지 말 것.
 
-`agentType: 'executor'` / `'test-engineer'` route build / verify to the curated
-`agents/` pool. Here the pool's default model (sonnet) **matches** the orchestrated
-§3 tier, so unlike the linear engine no opus override is needed — the `model:
-'sonnet'` is just explicit. If the pool isn't installed, drop `agentType`; the
-default workflow subagent runs the same prompt.
+`agentType: 'executor'` / `'test-engineer'` 가 build / verify 를 curated
+`agents/` 풀로 라우팅한다. 여기서 풀의 기본 모델 (sonnet) 이 orchestrated
+§3 tier 와 **일치**하므로, linear 엔진과 달리 opus override 가 필요 없다 — `model:
+'sonnet'` 은 그냥 명시적이다. 풀이 설치되지 않았으면, `agentType` 을 떨군다;
+기본 워크플로 subagent 가 같은 프롬프트를 돌린다.
 
 ---
 
 ## §3.5 — Convention reshape pass (forge / renew only)
 
-After §3's build is green, before §4 verify — **for `forge` and `renew` only**
-(`hunt` and `reshape` skip it, same reasoning as the linear engine). Read
-`~/.claude/skills/craft-core/references/reshape-pass.md`.
+§3 의 빌드가 green 이 된 후, §4 verify 전 — **`forge` 와 `renew` 에만**
+(`hunt` 와 `reshape` 는 스킵, linear 엔진과 같은 이유). 
+`~/.claude/skills/craft-core/references/reshape-pass.md` 를 읽어라.
 
-The main session **offers it once** (default off) via `AskUserQuestion`. If
-declined or there's nothing to align, go straight to §4. If accepted, run the
-alignment as a **single `sonnet` Workflow agent** (no fan-out — it's one
-sequential pass over the build diff, matching the §3 build tier):
+메인 세션이 `AskUserQuestion` 으로 **한 번 제안한다** (기본 off). 거부되거나
+맞출 게 없으면, 곧장 §4 로. 수락되면, 정렬을 **단일 `sonnet` Workflow
+에이전트**로 돌린다 (fan-out 없음 — 빌드 diff 에 대한 한 번의
+순차 pass, §3 빌드 tier 에 맞춤):
 
 ```javascript
 export const meta = {
@@ -206,22 +206,22 @@ return await agent(
   { label: 'reshape:convention', phase: 'Reshape', model: 'sonnet', schema: RESULT })
 ```
 
-The **designer stays idle-alive** through this phase (§4 still needs it). The
-§4 panel then verifies the **combined (build + reshape) diff** — there is no
-separate verify gate for this pass. If the pass returns `testsGreen:false`, treat
-it like a red build task: fix or revert before advancing to §4.
+**designer 는 idle-alive 로 머문다** 이 phase 내내 (§4 가 여전히 필요로 한다). 
+§4 패널은 그다음 **결합된 (build + reshape) diff** 를 검증한다 — 이 pass 를 위한
+별도 verify 게이트는 없다. pass 가 `testsGreen:false` 를 반환하면, red 빌드
+태스크처럼 취급한다: §4 로 진행 전에 고치거나 되돌린다.
 
 ---
 
 ## §4 — Verification panel (hybrid: workflow fan-out + designer judgment)
 
-Two stages. The fan-out is deterministic Workflow; the judgment is the persistent
-designer.
+두 단계. fan-out 은 결정론적 Workflow; 판정은 영속
+designer 다.
 
-**Stage A — parallel verification (Workflow `parallel()`, opus).** Read
-`~/.claude/skills/craft-core/references/security.md`. Run three independent
-verifiers over the diff, each on **opus**, including the adversarial
-refute-each-finding step for the security lane:
+**Stage A — 병렬 검증 (Workflow `parallel()`, opus).** 
+`~/.claude/skills/craft-core/references/security.md` 를 읽어라. diff 에 대해 세 독립
+검증자를 돌린다, 각각 **opus** 에서, security lane 의 적대적
+refute-each-finding 단계를 포함하여:
 
 ```javascript
 export const meta = {
@@ -248,52 +248,53 @@ return (await parallel(LANES.map(L => () =>
 ))).filter(Boolean)
 ```
 
-The tester and security lanes map to curated `agents/` pool members
-(`test-engineer` / `security-reviewer`); the qa (acceptance-check) lane carries no
-`agentType` and runs on the default subagent. `security-reviewer` is opus by default
-(matches this panel's tier); `test-engineer` is sonnet-default and **overridden to
-opus** here for the verification panel. The reviewer-class pool agents are
-`disallowedTools: Write,Edit` — a verifier can't accidentally mutate the diff it's
-judging. If the pool isn't installed, the `agentType` bindings drop and all prompts
-run on the default subagent.
+tester 와 security lane 은 curated `agents/` 풀 멤버
+(`test-engineer` / `security-reviewer`) 에 매핑된다; qa (acceptance-check) lane 은
+`agentType` 이 없고 기본 subagent 에서 돈다. `security-reviewer` 는 기본 opus 다
+(이 패널의 tier 와 일치); `test-engineer` 는 sonnet-default 이고 검증 패널을 위해 여기서
+**opus 로 override** 된다. reviewer 급 풀 에이전트는
+`disallowedTools: Write,Edit` 다 — 검증자가 자신이 판정하는 diff 를 실수로
+mutate 할 수 없다. 풀이 설치되지 않았으면, `agentType` 바인딩이 떨어지고 모든 프롬프트가
+기본 subagent 에서 돈다.
 
-**Stage B — intent judgment (the persistent designer, opus).** The main session
-hands the panel's surviving findings to the **still-alive designer** via
-`SendMessage`. The designer — which holds the original intent — classifies each:
+**Stage B — intent judgment (영속 designer, opus).** 메인 세션이
+패널의 살아남은 발견을 **여전히 살아있는 designer** 에게 `SendMessage` 로
+넘긴다. designer — 원래 의도를 보유 — 가 각각을 분류한다:
 
-- **Confirmed gap** — a real deviation from the plan's Goal/Acceptance → goes back
-  to Phase 3 as a new atomic task (re-run the build workflow with just those tasks).
-- **Out of scope** — correct behavior the plan deliberately excluded → recorded
-  and dismissed, with the reason.
-- **Plan defect** — the build is right but the *plan* missed something → a short
-  Phase 1 micro-round to amend the plan, then Phase 3 for the delta.
+- **Confirmed gap** — 플랜의 Goal/Acceptance 로부터의 진짜 deviation → 새 atomic
+  태스크로 Phase 3 으로 돌아간다 (그 태스크들만으로 빌드 워크플로 재실행).
+- **Out of scope** — 플랜이 의도적으로 제외한 올바른 behavior → 이유와 함께
+  기록되고 기각된다.
+- **Plan defect** — 빌드는 맞지만 *플랜* 이 무언가 빠뜨림 → 플랜을 amend 하는
+  짧은 Phase 1 micro-round, 그다음 delta 를 위한 Phase 3.
 
-Loop Stage A → B → (Phase 3 if needed) → A until the designer accepts: gate is
-**verify gate green AND designer raises no confirmed gap**. Nothing ships red.
+designer 가 수용할 때까지 Stage A → B → (필요하면 Phase 3) → A 를 loop 한다: 게이트는
+**verify 게이트 green AND designer 가 confirmed gap 을 제기하지 않음**. 아무것도 red 로
+출시하지 않는다.
 
 ---
 
 ## §5 — Wrap & shut down
 
-1. Summarize: what changed, tests added, security verdict, residual risks, and the
-   designer's final intent-match verdict.
-2. Durable knowledge (`context-adr.md`): ADR for an ADR-worthy decision; a
-   `docs/concepts/` page for reusable context. Only when genuinely warranted.
-3. **Shut the team down** — send `{ type: 'shutdown_request' }` to **designer** and
-   **adversary** (and any teammate still alive). These agents are persistent and
-   will linger as idle otherwise. The verification lanes were Workflow agents and
-   have already terminated.
-4. Do not commit or push unless the user asks.
+1. 요약: 무엇이 바뀌었는지, 추가된 테스트, 보안 평결, 잔여 리스크, 그리고
+   designer 의 최종 intent-match 평결.
+2. 영속 지식 (`context-adr.md`): ADR 감 결정에 ADR; 재사용 가능한 context 에
+   `docs/concepts/` 페이지. 진짜로 정당화될 때만.
+3. **team 을 shut down 하라** — `{ type: 'shutdown_request' }` 를 **designer** 와
+   **adversary** (그리고 여전히 살아있는 teammate) 에게 보낸다. 이 에이전트들은 영속적이고
+   그렇지 않으면 idle 로 lingering 한다. 검증 lane 은 Workflow 에이전트였고
+   이미 종료됐다.
+4. 사용자가 요청하지 않으면 commit 이나 push 하지 말 것.
 
 ---
 
 ## Cost & failure notes
 
-- This topology is the expensive path on purpose: 2 persistent opus agents + a
-  sonnet build fan-out + an opus verify fan-out + loop-backs. Only justified when
-  design risk is real.
-- `codex:rescue` absent → the adversary does the Phase 2 attack on its own (manual
-  fallback), same as the linear pipeline.
-- If a Workflow run fails mid-build, the designer/adversary are still alive — fix
-  and re-launch the Workflow; do not re-spawn the council.
-- Forgetting §5 shutdown leaves idle agents holding context. Always close the team.
+- 이 토폴로지는 의도적으로 비싼 경로다: 영속 opus 에이전트 2 + 
+  sonnet 빌드 fan-out + opus verify fan-out + loop-back. 설계 리스크가
+  진짜일 때만 정당하다.
+- `codex:rescue` 부재 → adversary 가 스스로 Phase 2 공격을 한다 (수동
+  폴백), linear 파이프라인과 동일.
+- Workflow 실행이 빌드 중간에 실패하면, designer/adversary 는 여전히 살아있다 — 고치고
+  Workflow 를 재시작하라; council 을 재spawn 하지 말 것.
+- §5 shutdown 을 잊으면 idle 에이전트가 context 를 쥔 채 남는다. 항상 team 을 닫아라.

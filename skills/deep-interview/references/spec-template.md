@@ -1,26 +1,25 @@
-# Requirements Spec Template — what the interview crystallizes into
+# Requirements Spec Template — 인터뷰가 결정화되는 결과물
 
-When ambiguity crosses the threshold (or a cap forces a stop), write the spec in
-this structure. It is a **system requirements document**: a stranger — or a build
-pipeline — picks it up cold, implements against the numbered requirements, and
-verifies each one without having seen the interview.
+ambiguity 가 임계값을 넘으면(또는 cap 이 멈춤을 강제하면), 이 구조로 spec 을
+작성하라. 그것은 **시스템 요구사항 문서**다: 모르는 사람이 — 또는 빌드 파이프라인이
+— 그것을 차갑게 집어 들어, 번호 매긴 요구사항에 맞춰 구현하고, 인터뷰를 본 적 없이
+각각을 검증한다.
 
-Every requirement gets a **stable ID** (`REQ-F-NNN` functional, `REQ-N-NNN`
-non-functional). IDs are the unit of traceability: the clarity trail maps back to
-them, acceptance hangs off them, and a builder can check them off one by one. Once
-an ID is assigned, never renumber it — append new ones instead, so references in
-code, commits, or downstream specs never go stale.
+모든 요구사항은 **안정적 ID**(`REQ-F-NNN` functional, `REQ-N-NNN`
+non-functional)를 받는다. ID 는 추적성의 단위다: clarity trail 이 그것으로
+역매핑되고, acceptance 가 그것에 매달리며, 빌더가 하나씩 체크할 수 있다. ID 가 한
+번 할당되면, 절대 다시 번호 매기지 말 것 — 대신 새것을 덧붙이라, 그래야 코드,
+커밋, 또는 하류 spec 의 참조가 절대 낡지 않는다.
 
-Fill every section; if one is genuinely empty, write `None` rather than deleting
-it, so a reader knows it was considered, not forgotten.
+모든 섹션을 채우라; 하나가 정말로 비어 있으면, 그것을 지우는 대신 `None` 이라고
+쓰라, 그래야 독자가 그것이 잊힌 게 아니라 고려됐음을 안다.
 
 ## Path & naming
 
-Save where the project keeps specs if there's an obvious home — `docs/specs/` in
-a repo that uses that layout. If the repo uses a directory-per-spec convention
-(`docs/specs/<slug>/spec.md`), follow it. Otherwise propose a path and let the
-user confirm before writing. Name from a slug of the goal, e.g.
-`docs/specs/<slug>.md` or `docs/specs/<slug>/spec.md`.
+명백한 거처가 있으면 프로젝트가 spec 을 두는 곳에 저장하라 — 그 레이아웃을 쓰는
+레포에서는 `docs/specs/`. 레포가 directory-per-spec 컨벤션(`docs/specs/<slug>/spec.md`)을
+쓴다면, 따르라. 없으면 경로를 제안하고 쓰기 전에 사용자가 확정하게 하라. goal 의
+slug 에서 이름 지으라, 예: `docs/specs/<slug>.md` 또는 `docs/specs/<slug>/spec.md`.
 
 ## Template
 
@@ -111,20 +110,19 @@ in as the pinned Phase-1 output and proceed straight to plan review, so the work
 isn't re-interviewed from scratch.
 ```
 
-## Filling it well
+## 잘 채우기
 
-- **Pin precisely, not directionally.** "REQ-F-003: raises `ValueError` on a
-  negative amount" beats "validates input". "REQ-N-001: caps at 1000 items" beats
-  "has a limit". The precision *is* the contract — a half-pinned requirement
-  leaves a gap a builder fills with a guess.
-- **One behavior per requirement.** If a row needs an "and" joining two testable
-  behaviors, split it into two IDs. Atomic requirements pass/fail cleanly; compound
-  ones hide a half-failure.
-- **Acceptance is mandatory, per requirement.** A requirement with no acceptance
-  criterion isn't a requirement, it's a wish — a builder can't prove it's done.
-- **Carry residual ambiguity forward honestly.** If you stopped at a cap with
-  something still vague, say so and name the affected REQ. A spec that hides its
-  own gaps turns them into production surprises; a named gap gets handled.
-- **Traceability earns its place.** The Origin column + clarity trail let a
-  reviewer see *which* question pinned *which* requirement, and spot any REQ that
-  was waved through without a real answer.
+- **방향성이 아니라 정밀하게 못 박으라.** "REQ-F-003: raises `ValueError` on a
+  negative amount" 가 "validates input" 을 이긴다. "REQ-N-001: caps at 1000 items"
+  가 "has a limit" 를 이긴다. 정밀함이 *곧* 계약이다 — 반쯤 못 박힌 요구사항은
+  빌더가 추측으로 채우는 틈을 남긴다.
+- **요구사항당 한 동작.** 한 행이 두 검증 가능한 동작을 잇는 "and" 가 필요하면, 두
+  ID 로 쪼개라. 원자적 요구사항은 깔끔하게 통과/실패하고; 복합적인 것은 절반의
+  실패를 숨긴다.
+- **Acceptance 는 요구사항당 필수.** acceptance criterion 없는 요구사항은
+  요구사항이 아니라 소망이다 — 빌더가 다 됐음을 증명할 수 없다.
+- **잔여 ambiguity 를 정직하게 앞으로 들고 가라.** 무언가 여전히 모호한 채 cap 에서
+  멈췄다면, 그렇게 말하고 영향받는 REQ 를 명명하라. 자기 틈을 숨기는 spec 은
+  그것을 프로덕션 깜짝쇼로 바꾸고; 명명된 틈은 처리된다.
+- **추적성은 제값을 한다.** Origin 칼럼 + clarity trail 은 리뷰어가 *어떤* 질문이
+  *어떤* 요구사항을 못 박았는지 보고, 실제 답 없이 통과된 REQ 를 잡아내게 한다.
