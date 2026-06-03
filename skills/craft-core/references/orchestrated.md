@@ -71,6 +71,14 @@ The interview and the adversarial review run as one **convergence loop**, becaus
 in team mode the reviewer is a standing agent — its objections from round N inform
 the designer's round N+1, which a single linear session cannot do.
 
+**If a deep-interview spec is already pinned** (`docs/specs/<slug>.md`, REQ-F/REQ-N
+with acceptance), don't re-elicit it. Brief designer to load that spec as its
+starting plan and enter the loop at the **attack round** (step 3) — the council's
+value here is the adversarial design attack on already-pinned requirements, not a
+second interview. designer still does a quick ground-check against the code, and
+the user-approval gate still applies. Only fall back to the full interview (step 1)
+for the parts the spec genuinely left open.
+
 Loop:
 
 1. **Interview round.** designer asks a focused cluster (2–4 questions), using the
