@@ -160,9 +160,33 @@ let the user choose, never auto-start.
 | Something **broken** to fix | **`/hunt`** | weak match — hunt wants a reproduction + root cause, not requirements; usually go to `/hunt` directly instead | weak |
 | Not code, or leaving this session | return the spec file | the user carries it elsewhere | — |
 
+**Recommend the intensity too, not just the skill.** The craft pipeline runs in
+one of two modes — *linear* (default, single session) or *orchestrated* (a
+multi-agent design council: adversarial design attack + post-build intent
+verification, slower and more expensive). The engine normally guesses the mode
+from a cold "stakes signal" at its start — but you just spent a whole interview
+measuring exactly that, so pass your read forward instead of letting it guess.
+Recommend **council** only when the interview surfaced real design risk; default
+to **linear** otherwise (council is opt-in and costly — don't push it on clear,
+small work). Strong council signals:
+
+- **Residual ambiguity at stop** — you hit a cap with requirements still vague.
+- **Broad topology** — 4–6 interdependent active components, large design surface.
+- **Hard convergence** — many rounds, challenge modes fired (especially the
+  ontologist at round 8+, meaning the framing itself was wrong), or churning
+  entities.
+- **Cross-cutting non-functionals** — security / migration / compatibility that
+  span components, where one design choice ripples.
+
+When these are absent (clear, converged fast, 1–2 components), say linear and
+move on. When present, name the signal in the handoff, e.g.: *"6 components,
+stopped at 18% with REQ-N-002 still soft — worth running `/forge` in council
+mode."* The user still decides; you're handing the engine an informed call.
+
 **Avoid the double interview.** Each of forge / renew / reshape / hunt runs its
-*own* Socratic requirements step (the shared craft-core Phase 1). If you hand off
-naively, the user gets interviewed twice. So the handoff must tell the next skill
+*own* Socratic requirements step (the shared craft-core Phase 1, and the fused
+council loop in orchestrated mode). If you hand off naively, the user gets
+interviewed twice. So the handoff must tell the next skill
 to treat this spec as its **already-completed Phase 1 output** and skip straight
 to plan review. Frame the recommendation that way, e.g.:
 
