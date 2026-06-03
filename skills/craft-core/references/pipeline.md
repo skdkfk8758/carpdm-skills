@@ -53,6 +53,15 @@ orchestrated build runs on **sonnet** (the linear Phase 3 below runs on opus).
 
 ## Phase 1 — Socratic interview → plan
 
+**Skip if requirements are already pinned.** If the user points you at a
+`deep-interview` requirements spec (e.g. a `docs/specs/<slug>.md` with numbered
+`REQ-F`/`REQ-N` entries and per-requirement acceptance), or hands one over, treat
+it as the completed Phase-1 output — do **not** re-interview. Read it, confirm it
+still matches the code (a quick ground-check, not a fresh interview), carry its
+requirements forward as the spec, and go straight to Phase 2. Re-running the
+interview on an already-pinned spec is the double-interview anti-pattern. The rest
+of this phase applies only when no such spec exists.
+
 Read `socratic.md`. **Ground first, then ask:** scope-read the code the task
 touches (project code-graph/LSP if available, else Read/Grep) and the relevant
 existing project docs — ADRs/concepts **and the guides/reference tree**
