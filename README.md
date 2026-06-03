@@ -1,6 +1,6 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 4종 + 심층 인터뷰 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 에이전트 저작 1종 + 공유 엔진 1종.**
+Claude Code 글로벌 스킬·에이전트 배포 레포. **작업 유형별 엄격 파이프라인 4종 + 심층 인터뷰 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 에이전트 저작 1종 + 공유 엔진 1종**, 그리고 **재사용 서브에이전트 7종.**
 
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
@@ -21,6 +21,24 @@ Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프�
 
 ---
 
+## 에이전트 (재사용 서브에이전트)
+
+[oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) 에서 큐레이트해 이 레포 컨벤션에 맞게 적응한 7종. 플랫 `.md` 파일로 `~/.claude/agents/` 에 설치된다 (스킬과 별개 아티팩트). 코드 워크플로 역할군 — orchestrated 모드가 실제 spawn 하는 역할에 정렬.
+
+| 에이전트 | 역할 | model |
+|---|---|---|
+| [`executor`](agents/executor.md) | 스코프 구현 (최소 diff) | sonnet |
+| [`code-reviewer`](agents/code-reviewer.md) | severity 등급 코드 리뷰 | opus |
+| [`security-reviewer`](agents/security-reviewer.md) | 취약점 탐지 (OWASP·secrets) | opus |
+| [`test-engineer`](agents/test-engineer.md) | 테스트 전략·커버리지·TDD | sonnet |
+| [`qa-tester`](agents/qa-tester.md) | tmux 인터랙티브 CLI 테스트 | sonnet |
+| [`debugger`](agents/debugger.md) | 근본원인 분석·빌드 에러 해소 | sonnet |
+| [`explore`](agents/explore.md) | 코드베이스 탐색·패턴 검색 | haiku |
+
+> 원본의 oh-my-claudecode 플러그인 결합(네임스페이스 Task 호출·`.omc/` 경로·consensus 모드·미import 에이전트 핸드오프)은 제거/일반화했다. 결정 배경은 [`docs/adr/001-agents-as-second-artifact-type.md`](docs/adr/001-agents-as-second-artifact-type.md).
+
+---
+
 ## 설치
 
 ### 전체 설치
@@ -31,7 +49,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-10개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 `.bak-<timestamp>` 백업 후 덮어씀 (멱등). 설치 후 Claude Code **재시작**.
+10개 스킬을 `~/.claude/skills/`, 7개 에이전트를 `~/.claude/agents/` 로 복사한다. 기존 동일 이름은 `.bak-<timestamp>` 백업 후 덮어씀 (멱등). 설치 후 Claude Code **재시작**.
 
 ### 개별 설치 (하나씩)
 
@@ -82,6 +100,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 
 ```bash
 ls ~/.claude/skills/   # forge hunt renew reshape deep-interview handoff sweep land summon craft-core
+ls ~/.claude/agents/   # executor code-reviewer security-reviewer test-engineer qa-tester debugger explore (*.md)
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.
@@ -105,6 +124,6 @@ bash sync.sh           # ~/.claude/skills/ → repo skills/ 미러링 후 변경
 bash sync.sh --push    # 미러링 + 브랜치·PR·머지 자동 (master 직접 push 안 함)
 ```
 
-`sync.sh` 는 **레포 `skills/` 가 추적 중인 스킬만** 갱신한다 (true mirror, 삭제 파일 반영). 새 스킬 배포 시작은 `skills/<name>/` 디렉토리를 먼저 만든 뒤 sync.
+`sync.sh` 는 **레포가 추적 중인 것만** 갱신한다 (true mirror, 삭제 파일 반영) — 스킬은 `skills/` 의 디렉토리별, 에이전트는 `agents/` 의 플랫 `.md` 집합. 새 스킬 배포 시작은 `skills/<name>/` 디렉토리를, 에이전트는 `agents/` 디렉토리를 먼저 만든 뒤 sync.
 
 `--push` 는 `chore/sync-<timestamp>` 브랜치를 만들어 PR 생성·머지까지 한다 (`gh` CLI 필요). master 직접 push 를 막는 브랜치 보호 환경에서도 동작.

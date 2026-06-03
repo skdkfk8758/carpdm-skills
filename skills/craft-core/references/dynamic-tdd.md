@@ -54,14 +54,14 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `tdd:${t.id}`, phase: 'Implement', model: 'opus',
+    { label: `tdd:${t.id}`, phase: 'Implement', agentType: 'executor', model: 'opus',
       isolation: 'worktree', schema: RESULT }
   ),
   // Stage 2: independent verify that the task's tests actually pass
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
     `Report testsGreen honestly — do not trust the implementer's claim.`,
-    { label: `verify:${t.id}`, phase: 'Verify', model: 'opus', schema: RESULT }
+    { label: `verify:${t.id}`, phase: 'Verify', agentType: 'test-engineer', model: 'opus', schema: RESULT }
   ).then(v => ({ ...impl, verified: v.testsGreen }))
 )
 
@@ -72,6 +72,13 @@ Notes on the skeleton:
 
 - `model: 'opus'` on every implementation/verify agent — this is the required
   model for Phase 3 per the skill contract.
+- `agentType: 'executor'` / `'test-engineer'` route the implement / verify stages
+  to the curated `agents/` pool (battle-tested system prompts; test-engineer is
+  RO-safe for the verify lane). The pool's own model (sonnet) is **deliberately
+  overridden** by `model: 'opus'` here — Phase 3's opus contract wins over the
+  pool default. If the pool isn't installed (`~/.claude/agents/` missing these),
+  **drop `agentType`** and the default workflow subagent runs the same prompt —
+  the pool is an upgrade, not a hard dependency.
 - `isolation: 'worktree'` only when tasks write files in parallel and would
   collide. For a strictly sequential set of tasks you can drop it (it costs disk
   + setup).

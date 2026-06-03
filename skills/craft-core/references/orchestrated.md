@@ -148,13 +148,13 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `build:${t.id}`, phase: 'Build', model: 'sonnet',
+    { label: `build:${t.id}`, phase: 'Build', agentType: 'executor', model: 'sonnet',
       isolation: 'worktree', schema: RESULT }
   ),
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
     `Report testsGreen honestly — do not trust the implementer's claim.`,
-    { label: `verify:${t.id}`, phase: 'Verify', model: 'sonnet', schema: RESULT }
+    { label: `verify:${t.id}`, phase: 'Verify', agentType: 'test-engineer', model: 'sonnet', schema: RESULT }
   ).then(v => ({ ...impl, verified: v.testsGreen }))
 )
 
@@ -164,6 +164,12 @@ return results.filter(Boolean)
 `isolation: 'worktree'` only if tasks write in parallel and would collide; drop it
 for a strictly sequential set. Any task returning `testsGreen:false` or
 `verified:false` is fixed before Phase 4 — do not advance with red tasks.
+
+`agentType: 'executor'` / `'test-engineer'` route build / verify to the curated
+`agents/` pool. Here the pool's default model (sonnet) **matches** the orchestrated
+§3 tier, so unlike the linear engine no opus override is needed — the `model:
+'sonnet'` is just explicit. If the pool isn't installed, drop `agentType`; the
+default workflow subagent runs the same prompt.
 
 ---
 
@@ -231,16 +237,23 @@ const FINDING = { type: 'object', required: ['lane','findings'], properties: {
 } }
 
 const LANES = [
-  { lane: 'qa',       prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
-  { lane: 'tester',   prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
-  { lane: 'security', prompt: 'Security pass over the diff per security.md. For each candidate finding, adversarially try to REFUTE it; report only those that survive, with evidence.' },
+  { lane: 'qa',       agentType: 'qa-tester',         prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
+  { lane: 'tester',   agentType: 'test-engineer',     prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
+  { lane: 'security', agentType: 'security-reviewer', prompt: 'Security pass over the diff per security.md. For each candidate finding, adversarially try to REFUTE it; report only those that survive, with evidence.' },
 ]
 
 return (await parallel(LANES.map(L => () =>
   agent(`${L.prompt}\n\nThe approved plan and the diff are on disk — Read them.`,
-    { label: `verify:${L.lane}`, phase: 'Panel', model: 'opus', schema: FINDING })
+    { label: `verify:${L.lane}`, phase: 'Panel', agentType: L.agentType, model: 'opus', schema: FINDING })
 ))).filter(Boolean)
 ```
+
+Each lane maps 1:1 to a curated `agents/` pool member: `qa-tester` / `test-engineer`
+/ `security-reviewer`. `security-reviewer` is opus by default (matches this panel's
+tier); the other two are sonnet-default and **overridden to opus** here for the
+verification panel. The reviewer-class pool agents are `disallowedTools: Write,Edit`
+— a verifier can't accidentally mutate the diff it's judging. If the pool isn't
+installed, drop `agentType` and the prompts run on the default subagent.
 
 **Stage B — intent judgment (the persistent designer, opus).** The main session
 hands the panel's surviving findings to the **still-alive designer** via
