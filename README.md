@@ -1,6 +1,6 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 4종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 공유 엔진 1종.**
+Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 4종 + 심층 인터뷰 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 공유 엔진 1종.**
 
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
@@ -8,6 +8,7 @@ Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프�
 | [`hunt`](skills/hunt) | 버그 수정 (재현→회귀잠금) | "X 깨졌어", "왜 null 반환하지" | craft-core |
 | [`renew`](skills/renew) | 기존 기능 변경/리뉴얼 | "X 다시 만들어", "동작 바꿔줘" | craft-core |
 | [`reshape`](skills/reshape) | 리팩터 (동작 불변) | "정리/추출/분리/DRY 해줘" | craft-core |
+| [`deep-interview`](skills/deep-interview) | 모호한 아이디어 → 검증가능 spec (소크라테스 인터뷰, ambiguity 게이트) | "인터뷰해줘", "이거 같이 정리하자", "/deep-interview" | 없음 (독립) |
 | [`handoff`](skills/handoff) | 세션 인계 (저장/복원) | "여기까지 하자 이어서", "어디까지 했지" | 없음 (독립) |
 | [`sweep`](skills/sweep) | 프로젝트 잡동사니 정리 (문서/로그) | "쌓인 로그/플랜 치워줘", "docs 청소" | 없음 (독립) |
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
@@ -29,7 +30,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-8개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 `.bak-<timestamp>` 백업 후 덮어씀 (멱등). 설치 후 Claude Code **재시작**.
+9개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 `.bak-<timestamp>` 백업 후 덮어씀 (멱등). 설치 후 Claude Code **재시작**.
 
 ### 개별 설치 (하나씩)
 
@@ -79,7 +80,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew reshape handoff sweep land craft-core
+ls ~/.claude/skills/   # forge hunt renew reshape deep-interview handoff sweep land craft-core
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.
