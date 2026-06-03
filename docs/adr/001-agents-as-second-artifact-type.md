@@ -17,7 +17,8 @@
 
 **(2) 를 택한다.** `agents/` 를 `skills/` 와 나란한 1급 배포 아티팩트로 추가한다.
 
-- import 대상은 **큐레이트 7종** (전체 19 아님): `executor`, `code-reviewer`, `security-reviewer`, `test-engineer`, `qa-tester`, `debugger`, `explore`. 선정 기준 = craft-core orchestrated 모드가 실제 spawn 하는 코드 워크플로 역할군.
+- import 대상은 **큐레이트 6종** (전체 19 아님): `executor`, `code-reviewer`, `security-reviewer`, `test-engineer`, `debugger`, `explore`. 선정 기준 = craft-core orchestrated 모드가 실제 spawn 하는 코드 워크플로 역할군.
+- 당초 7종에 `qa-tester` 포함이었으나 **드롭**: 설계 전체가 tmux 전용(프리req 미충족 시 fail fast)이고 인터랙티브 CLI/서버 테스트라는 좁은 니치라, 이 사용자 워크플로에 맞지 않음. orchestrated 검증 패널의 acceptance-QA 레인은 풀 에이전트 없이 기본 subagent 로 동작하도록 변경.
 - `planner`/`critic`/`architect` 는 **제외**. 이유: (a) craft-core 파이프라인이 이미 계획·적대적리뷰·설계자문을 제공해 기능 중복, (b) oh-my-claudecode 결합(consensus/ralplan 모드 24참조, `.omc/` 경로, `/oh-my-claudecode:start-work` 명령, analyst 데이터흐름 계약)이 이 셋에 집중돼 이식 비용·동작변경 리스크가 큼.
 - 적응(adaptation): 비정식 `level:` 제거, `oh-my-claudecode:` 네임스페이스 Task 호출 일반화, `.omc/` 경로 제거, 미import 에이전트 핸드오프(analyst/document-specialist/verifier/explore-high) 일반화. `disallowedTools`/`model` 등 정식 frontmatter 는 유지.
 - `agents/` 컨벤션은 `summon` 스킬(신규 에이전트 저작)의 산출물 경로와 호환되게 둔다.

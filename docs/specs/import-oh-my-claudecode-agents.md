@@ -19,9 +19,9 @@
 | C3 | Deploy plumbing — install/sync/문서 | active |
 | C4 | 기존 스킬 재배선 | deferred |
 
-## Selection (C1) — import 대상 7개 (Phase 2 리뷰로 10→7 축소)
+## Selection (C1) — import 대상 6개 (10→7→6)
 
-당초 10개에서, Phase 2 적대 리뷰가 planner/critic/architect 의 oh-my-claudecode 결합 집중(consensus 24참조·`.omc/`·start-work·analyst 데이터계약) + craft-core 파이프라인 기능 중복을 밝혀 **유저가 light 7개로 축소**(ADR 001). 남은 7개 = orchestrated 모드가 실제 spawn 하는 코드 워크플로 역할군:
+당초 10개 → Phase 2 적대 리뷰가 planner/critic/architect 의 oh-my-claudecode 결합 집중(consensus 24참조·`.omc/`·start-work·analyst 데이터계약) + craft-core 기능 중복을 밝혀 **7개로 축소**(ADR 001) → 이후 `qa-tester` 가 tmux 전용·좁은 니치로 판명돼 **6개로 추가 드롭**. 남은 6개 = orchestrated 모드가 실제 spawn 하는 코드 워크플로 역할군:
 
 | 역할 | 외부 agent | model |
 |---|---|---|
@@ -29,11 +29,10 @@
 | reviewer | `code-reviewer` | opus |
 | security | `security-reviewer` | opus |
 | tester | `test-engineer` | sonnet |
-| QA | `qa-tester` | sonnet |
 | debugger | `debugger` | sonnet |
 | explore | `explore` | haiku |
 
-제외(deferred): `planner`/`critic`/`architect` (결합 집중·중복).
+제외: `planner`/`critic`/`architect` (결합 집중·중복), `qa-tester` (tmux 전용·좁은 니치).
 
 ## Brownfield context
 

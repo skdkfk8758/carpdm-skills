@@ -54,7 +54,7 @@ fi
 
 echo
 echo "Done. Installed skills: forge, hunt, renew, reshape, handoff, craft-core, sweep, land."
-echo "      Installed agents: $agent_count (executor, code-reviewer, test-engineer, qa-tester, security-reviewer, explore, debugger)."
+echo "      Installed agents: $agent_count (executor, code-reviewer, test-engineer, security-reviewer, explore, debugger)."
 echo "Restart Claude Code (or start a new session) to load them."
 echo
 echo "Note: the forge/hunt/renew/reshape pipeline uses the 'codex:rescue'"
