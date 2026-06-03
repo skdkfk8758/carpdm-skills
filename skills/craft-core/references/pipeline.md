@@ -97,7 +97,9 @@ Write the plan to `docs/plans/YYYY-MM-DD-<topic>.md` (or the project's
 ## Risks
 ## Security surface
 ## YAGNI (deletions in this change)
-## Acceptance (the checks that mean "done")
+## Acceptance (the checks that mean "done" — each a numbered, single, checkable
+##   condition; the skill's acceptance / regression / characterization test IS
+##   the item, not vague prose like "handles errors")
 ```
 
 Alongside the `.md`, write a review-friendly HTML companion at the same path with
@@ -162,6 +164,8 @@ nothing to align, skip straight to Phase 4.
 Read `security.md`. Run the project verify gate (tests / typecheck / lint /
 build) **and** a security pass over the diff. Adversarially verify each security
 finding (try to refute it) before reporting it as real. Nothing ships red.
+Before shipping, check each Acceptance item from the plan as pass / fail — an
+unmet item counts as red, same rule.
 
 ## Phase 5 — Wrap
 
