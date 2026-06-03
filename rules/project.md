@@ -9,7 +9,7 @@ Claude Code 글로벌 스킬·에이전트 **배포 레포**. 빌드/런타임 �
 
 스킬 10종: 작업유형 파이프라인 4 (`forge`/`hunt`/`renew`/`reshape`) + 심층인터뷰 1 (`deep-interview`) + 세션인계 1 (`handoff`) + 정리유틸 1 (`sweep`) + PR 랜딩 1 (`land`) + 에이전트저작 1 (`summon`) + 공유엔진 1 (`craft-core`). 공유엔진은 두 실행 모드를 가진다 — linear(기본) / orchestrated(멀티에이전트 council, §5). `deep-interview` 는 standalone (craft-core 무의존) — 모호한 아이디어를 소크라테스 인터뷰 + 수학적 ambiguity 게이트로 검증가능 spec 까지 끌어올린 뒤 빌드 파이프라인으로 핸드오프. 빌드는 안 함.
 
-에이전트 7종 (`agents/*.md`): `executor`/`code-reviewer`/`security-reviewer`/`test-engineer`/`qa-tester`/`debugger`/`explore`. oh-my-claudecode 에서 큐레이트해 레포 컨벤션에 맞게 적응(§6). 스킬과 **별개 아티팩트 타입** — 디렉토리 단위가 아니라 플랫 파일 단위. `summon` 스킬이 새로 저작하는 에이전트도 같은 `agents/` 컨벤션을 쓴다.
+에이전트 6종 (`agents/*.md`): `executor`/`code-reviewer`/`security-reviewer`/`test-engineer`/`debugger`/`explore`. oh-my-claudecode 에서 큐레이트해 레포 컨벤션에 맞게 적응(§6). 스킬과 **별개 아티팩트 타입** — 디렉토리 단위가 아니라 플랫 파일 단위. `summon` 스킬이 새로 저작하는 에이전트도 같은 `agents/` 컨벤션을 쓴다.
 
 ## Commands
 
@@ -19,7 +19,7 @@ Claude Code 글로벌 스킬·에이전트 **배포 레포**. 빌드/런타임 �
 | `bash sync.sh` | 반대 방향. live `~/.claude/{skills,agents}/` → repo `skills/`·`agents/` 미러(rsync `--delete`). repo 가 **이미 추적 중인** 것만 갱신. staged 변경 표시 |
 | `bash sync.sh --push` | 미러 + `chore/sync-<ts>` 브랜치·PR·머지 자동 (`gh` CLI 필요). master 직접 push 금지 환경 대응 |
 | `ls ~/.claude/skills/` | 스킬 설치 검증 — `forge hunt renew reshape handoff sweep land summon craft-core` 보여야 함 |
-| `ls ~/.claude/agents/` | 에이전트 설치 검증 — `executor code-reviewer security-reviewer test-engineer qa-tester debugger explore` (`*.md`) |
+| `ls ~/.claude/agents/` | 에이전트 설치 검증 — `executor code-reviewer security-reviewer test-engineer debugger explore` (`*.md`) |
 
 검증 스위트는 없다. "테스트"는 `install.sh`/`sync.sh` 실행 + `ls` 확인이 전부.
 
@@ -52,7 +52,7 @@ craft 엔진은 **두 토폴로지**를 가진다. **linear**(기본, `pipeline.
 ### 6. agents = 두 번째 배포 아티팩트 (플랫 파일)
 `agents/*.md` 는 스킬과 **다른 shape** 의 배포 아티팩트 — 디렉토리당 1스킬이 아니라 파일당 1에이전트. 따라서 install/sync 가 스킬 루프(`*/`)와 **별개 플랫 블록**으로 처리한다 (스킬 블록 복제 아님 — flat `.md` glob). frontmatter 정식 필드(`name`/`description`/`model`/`tools`/`disallowedTools` 등)만 사용; oh-my-claudecode 원본의 비정식 `level:`·`oh-my-claudecode:` 네임스페이스 Task 호출·`.omc/` 경로·consensus 모드·미import 에이전트 핸드오프는 import 시 제거/일반화했다. 배경: [`docs/adr/001-agents-as-second-artifact-type.md`](../docs/adr/001-agents-as-second-artifact-type.md).
 
-**craft 가 풀을 소비한다:** craft-core Phase 3(구현/검증)·Phase 4(orchestrated 검증 패널)의 Workflow `agent()` 가 이 풀을 `agentType` 으로 라우팅한다 — 구현 `executor`, 검증 `test-engineer`, 패널 `qa-tester`/`test-engineer`/`security-reviewer`. **upgrade-not-hard-dep:** 페이즈 계약과 풀 기본 모델이 충돌하면 명시 `model:` 이김(Phase 3 는 풀의 sonnet 을 opus 로 override), 풀 미설치면 `agentType` 생략하고 동일 프롬프트가 기본 subagent 로 돈다. council(designer/adversary)은 범용 추론 역할이라 풀로 안 바꾸고 `general-purpose` 유지. "작업 후 에이전트 정리" 로직은 **없다 — 불필요**: workflow subagent 는 ephemeral 자동소멸, 유일한 영속 에이전트인 council 은 orchestrated §5 에서 shutdown.
+**craft 가 풀을 소비한다:** craft-core Phase 3(구현/검증)·Phase 4(orchestrated 검증 패널)의 Workflow `agent()` 가 이 풀을 `agentType` 으로 라우팅한다 — 구현 `executor`, 검증 `test-engineer`, 패널 `test-engineer`/`security-reviewer`(acceptance-QA 레인은 풀 에이전트 없이 기본 subagent). **upgrade-not-hard-dep:** 페이즈 계약과 풀 기본 모델이 충돌하면 명시 `model:` 이김(Phase 3 는 풀의 sonnet 을 opus 로 override), 풀 미설치면 `agentType` 생략하고 동일 프롬프트가 기본 subagent 로 돈다. council(designer/adversary)은 범용 추론 역할이라 풀로 안 바꾸고 `general-purpose` 유지. "작업 후 에이전트 정리" 로직은 **없다 — 불필요**: workflow subagent 는 ephemeral 자동소멸, 유일한 영속 에이전트인 council 은 orchestrated §5 에서 shutdown.
 
 ## Editing workflow
 정식 개발 루프: live `~/.claude/skills/<name>/` 편집 → `bash sync.sh` 로 repo 반영 → 리뷰 → `--push`. repo 에서 직접 편집했다면 `install.sh` 로 live 반영. 두 방향 혼용 시 마지막 동기화 방향 주의 (`--delete` 미러라 한쪽이 SSOT).

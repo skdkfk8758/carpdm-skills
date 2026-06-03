@@ -237,7 +237,7 @@ const FINDING = { type: 'object', required: ['lane','findings'], properties: {
 } }
 
 const LANES = [
-  { lane: 'qa',       agentType: 'qa-tester',         prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
+  { lane: 'qa',                                       prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
   { lane: 'tester',   agentType: 'test-engineer',     prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
   { lane: 'security', agentType: 'security-reviewer', prompt: 'Security pass over the diff per security.md. For each candidate finding, adversarially try to REFUTE it; report only those that survive, with evidence.' },
 ]
@@ -248,12 +248,14 @@ return (await parallel(LANES.map(L => () =>
 ))).filter(Boolean)
 ```
 
-Each lane maps 1:1 to a curated `agents/` pool member: `qa-tester` / `test-engineer`
-/ `security-reviewer`. `security-reviewer` is opus by default (matches this panel's
-tier); the other two are sonnet-default and **overridden to opus** here for the
-verification panel. The reviewer-class pool agents are `disallowedTools: Write,Edit`
-— a verifier can't accidentally mutate the diff it's judging. If the pool isn't
-installed, drop `agentType` and the prompts run on the default subagent.
+The tester and security lanes map to curated `agents/` pool members
+(`test-engineer` / `security-reviewer`); the qa (acceptance-check) lane carries no
+`agentType` and runs on the default subagent. `security-reviewer` is opus by default
+(matches this panel's tier); `test-engineer` is sonnet-default and **overridden to
+opus** here for the verification panel. The reviewer-class pool agents are
+`disallowedTools: Write,Edit` — a verifier can't accidentally mutate the diff it's
+judging. If the pool isn't installed, the `agentType` bindings drop and all prompts
+run on the default subagent.
 
 **Stage B — intent judgment (the persistent designer, opus).** The main session
 hands the panel's surviving findings to the **still-alive designer** via

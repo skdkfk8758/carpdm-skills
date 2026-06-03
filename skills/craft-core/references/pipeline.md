@@ -148,8 +148,8 @@ relevant project guides (`docs/guides/`) before writing code, and implements
 nothing not in the plan without going back to Phase 1.
 
 The workflow routes its implement / verify agents to the curated `agents/` pool
-via `agentType` (`executor`, `test-engineer`; the §4 panel adds `qa-tester` /
-`security-reviewer`) — battle-tested prompts, with reviewer-class agents tool-locked
+via `agentType` (`executor`, `test-engineer`; the §4 panel adds `security-reviewer`,
+plus a no-agentType acceptance-QA lane) — battle-tested prompts, with reviewer-class agents tool-locked
 to read-only. The pool is an **upgrade, not a hard dependency**: where its default
 model conflicts with a phase contract the explicit `model:` wins (Phase 3 forces
 opus over the pool's sonnet), and if `~/.claude/agents/` lacks the pool the
