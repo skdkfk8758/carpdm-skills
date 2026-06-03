@@ -30,11 +30,21 @@ if [ -d "$DST_DIR" ] && [ -d "$SRC_DIR" ]; then
   done
 fi
 
+# (a2) agents drift: flat .md mirror (live -> repo). Agents are flat files, not
+# dir-per-artifact, so mirror the whole agents/ dir in one checksum dry-run.
+SRC_AGENTS="$HOME/.claude/agents"
+DST_AGENTS="$REPO_DIR/agents"
+if [ -d "$DST_AGENTS" ] && [ -d "$SRC_AGENTS" ]; then
+  if rsync -ainc --delete --include='*.md' --include='*/' --exclude='*' "$SRC_AGENTS/" "$DST_AGENTS/" 2>/dev/null | grep -qE '^(\*deleting|[<>]f)'; then
+    msgs+=("live ~/.claude/agents/ 가 repo 에 미반영 — 'bash sync.sh' 필요")
+  fi
+fi
+
 cd "$REPO_DIR" 2>/dev/null || exit 0
 
-# (b) uncommitted changes under skills/ (worktree or staged)
-if ! git diff --quiet -- skills 2>/dev/null || ! git diff --cached --quiet -- skills 2>/dev/null; then
-  msgs+=("repo skills/ 에 미커밋 변경 존재 — sync/commit 필요")
+# (b) uncommitted changes under skills/ or agents/ (worktree or staged)
+if ! git diff --quiet -- skills agents 2>/dev/null || ! git diff --cached --quiet -- skills agents 2>/dev/null; then
+  msgs+=("repo skills/ 또는 agents/ 에 미커밋 변경 존재 — sync/commit 필요")
 fi
 
 # (c) local commits ahead of upstream

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — Import oh-my-claudecode agents</title>
+<style>
+  :root { --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --fg:#e6e9ef; --mut:#9aa4b2; --acc:#7aa2f7; --ok:#7ee787; --warn:#f0a36b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; padding:32px; }
+  .wrap { max-width:920px; margin:0 auto; }
+  h1 { font-size:24px; margin:0 0 4px; }
+  .sub { color:var(--mut); font-size:13px; margin-bottom:24px; }
+  h2 { font-size:16px; color:var(--acc); border-bottom:1px solid var(--line); padding-bottom:6px; margin:28px 0 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin-bottom:14px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--mut); font-weight:600; }
+  code { background:#11141a; border:1px solid var(--line); border-radius:4px; padding:1px 5px; font:12.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; color:#cdd6f4; }
+  .pill { display:inline-block; font-size:11px; padding:2px 8px; border-radius:20px; border:1px solid var(--line); color:var(--mut); }
+  .in { color:var(--ok); border-color:#2f5a37; }
+  .out { color:var(--warn); border-color:#5a432f; }
+  ol,ul { margin:6px 0; padding-left:22px; }
+  li { margin:4px 0; }
+  .mut { color:var(--mut); }
+  .tag { font-size:11px; color:var(--bg); background:var(--acc); padding:2px 8px; border-radius:5px; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Import oh-my-claudecode agents <span class="tag">PLAN</span></h1>
+  <div class="sub">forge linear · Phase-1 spec pinned (ambiguity 0.15) · 2026-06-03 · 검토용 렌더링 (산출물 아님)</div>
+
+  <h2>Goal</h2>
+  <div class="card">agent 10개를 repo <code>agents/</code> 로 import — 최소 변형(level 제거 + dangling 참조 prune) + install/sync 배포배선 + 문서 갱신. 성공 = Acceptance 7항목 전부 pass.</div>
+
+  <h2>Scope</h2>
+  <div class="card">
+    <p><span class="pill in">IN</span> agents/ 신설 + 10개 .md · install.sh/sync.sh agents 블록 · README/rules 갱신</p>
+    <p><span class="pill out">OUT</span> 기존 스킬 재배선(C4) · 비코드 agent 9종 · summon 연동 · AGENTS.md 손편집</p>
+  </div>
+
+  <h2>Import 대상 (10) + model pin</h2>
+  <div class="card"><table>
+    <tr><th>agent</th><th>model</th><th>역할 매핑</th></tr>
+    <tr><td><code>architect</code></td><td>opus</td><td>설계자문 (read-only)</td></tr>
+    <tr><td><code>code-reviewer</code></td><td>opus</td><td>reviewer</td></tr>
+    <tr><td><code>critic</code></td><td>opus</td><td>adversary</td></tr>
+    <tr><td><code>planner</code></td><td>opus</td><td>planner</td></tr>
+    <tr><td><code>security-reviewer</code></td><td>opus</td><td>security</td></tr>
+    <tr><td><code>executor</code></td><td>sonnet</td><td>executor</td></tr>
+    <tr><td><code>debugger</code></td><td>sonnet</td><td>debugger</td></tr>
+    <tr><td><code>qa-tester</code></td><td>sonnet</td><td>QA</td></tr>
+    <tr><td><code>test-engineer</code></td><td>sonnet</td><td>tester</td></tr>
+    <tr><td><code>explore</code></td><td>haiku</td><td>explore</td></tr>
+  </table><p class="mut">opus 5 / sonnet 4 / haiku 1 — 원본 pin 보존</p></div>
+
+  <h2>Files</h2>
+  <div class="card"><table>
+    <tr><th>path</th><th>변경</th><th>근거</th></tr>
+    <tr><td><code>agents/*.md</code></td><td>신규 10</td><td>REQ-F-001</td></tr>
+    <tr><td><code>install.sh</code></td><td>edit</td><td>agents 복사 블록 (멱등·.bak)</td></tr>
+    <tr><td><code>sync.sh</code></td><td>edit</td><td>agents 미러 블록 (--delete)</td></tr>
+    <tr><td><code>README.md</code></td><td>edit</td><td>agents 표·카운트</td></tr>
+    <tr><td><code>rules/project.md</code></td><td>edit</td><td>agents 아티팩트 반영</td></tr>
+  </table></div>
+
+  <h2>Steps → verify</h2>
+  <div class="card"><table>
+    <tr><th>#</th><th>step</th><th>verify</th></tr>
+    <tr><td>1</td><td>agents/ 생성 + 10개 복사</td><td><code>ls agents/*.md | wc -l</code> == 10</td></tr>
+    <tr><td>2</td><td><code>level:</code> 줄 삭제</td><td><code>grep -l '^level:' agents/*.md</code> 빈출력</td></tr>
+    <tr><td>3</td><td>dangling 참조 prune (reword)</td><td>handoff 문에 비-import agent 0건</td></tr>
+    <tr><td>4</td><td>install.sh agents 블록</td><td><code>install.sh</code>→<code>~/.claude/agents</code> 10, 재실행 .bak</td></tr>
+    <tr><td>5</td><td>sync.sh agents 미러 블록</td><td>왕복 무손실</td></tr>
+    <tr><td>6</td><td>README/rules 갱신</td><td>10개 링크</td></tr>
+    <tr><td>7</td><td>model pin 보존</td><td>opus5/sonnet4/haiku1</td></tr>
+  </table></div>
+
+  <h2>Risks</h2>
+  <div class="card"><ul>
+    <li><b>R1 analyst 허브 의존</b> — planner 본문이 analyst 에 구조 의존. 삭제 아닌 일반 능력으로 reword. <span class="mut">codex 검토 핵심.</span></li>
+    <li><b>R2 스크립트 중복</b> — install/sync 가 skills 전용. 블록 복제 vs 함수추출 → 단순성 위해 복제(2회뿐).</li>
+    <li><b>R3 guard-readme-fresh 훅</b> — agents 강제 여부 확인. skills 만 체크면 무영향.</li>
+    <li><b>R4 disallowedTools</b> — 정식 필드 검증 완료, 변형 불필요.</li>
+  </ul></div>
+
+  <h2>YAGNI / Security</h2>
+  <div class="card">
+    <p><b>삭제:</b> frontmatter <code>level:</code> · dangling 핸드오프 참조. 신규 orphan 없음.</p>
+    <p><b>Security:</b> agent .md = 프롬프트 텍스트(비실행). install/sync = 로컬 cp/rsync, 외부발신·시크릿·인증경계 없음.</p>
+  </div>
+</div>
+</body>
+</html>

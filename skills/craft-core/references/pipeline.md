@@ -147,6 +147,17 @@ contract: each implementation agent re-reads the approved plan (`.md`) and the
 relevant project guides (`docs/guides/`) before writing code, and implements
 nothing not in the plan without going back to Phase 1.
 
+The workflow routes its implement / verify agents to the curated `agents/` pool
+via `agentType` (`executor`, `test-engineer`; the §4 panel adds `qa-tester` /
+`security-reviewer`) — battle-tested prompts, with reviewer-class agents tool-locked
+to read-only. The pool is an **upgrade, not a hard dependency**: where its default
+model conflicts with a phase contract the explicit `model:` wins (Phase 3 forces
+opus over the pool's sonnet), and if `~/.claude/agents/` lacks the pool the
+agents simply drop `agentType` and run the same prompt on the default subagent.
+See `dynamic-tdd.md` / `orchestrated.md` for the exact mapping. (No agent
+"cleanup" step exists or is needed — workflow subagents are ephemeral and the only
+persistent agents, the orchestrated council, are torn down in §5.)
+
 ## Phase 3.5 — Convention reshape pass (forge / renew only)
 
 Read `reshape-pass.md`. For `forge` and `renew` only, after Phase 3 is green:
