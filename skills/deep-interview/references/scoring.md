@@ -1,52 +1,52 @@
-# Ambiguity Scoring — the gate that ends the interview
+# Ambiguity Scoring — 인터뷰를 끝내는 게이트
 
-The interview is gated on a single number: **ambiguity**. You score a few
-weighted dimensions each round, combine them, and stop when ambiguity crosses
-the threshold. This file defines the dimensions, the formulas, and how to track
-convergence honestly.
+인터뷰는 단일 숫자에 게이트된다: **ambiguity**. 매 라운드 몇 개의 가중 차원에
+점수를 매기고, 그것들을 결합하고, ambiguity 가 임계값을 넘으면 멈춘다. 이 파일은
+차원, 공식, 그리고 수렴을 정직하게 추적하는 방법을 정의한다.
 
-The score is not a measurement instrument pretending to physics-grade precision.
-It's a *structured judgment* — a way to make "are we clear yet?" answerable and
-directional instead of a vibe. Its two jobs: show the user a finish line, and
-tell you which dimension to attack next. Score honestly; a number you don't
-believe is worse than no number.
+점수는 물리학급 정밀도를 가장하는 측정 기구가 아니다. 그것은 *구조화된 판단* —
+"우리 이제 명확한가?"를 분위기가 아니라 답할 수 있고 방향성 있게 만드는 방법이다.
+그것의 두 가지 일: 사용자에게 결승선을 보여주고, 다음에 어느 차원을 공략할지
+당신에게 알려준다. 정직하게 점수를 매기라; 믿지 않는 숫자는 숫자가 없느니만
+못하다.
 
-## The dimensions
+## 차원들
 
-Each dimension is scored **0.0 (no idea) to 1.0 (a stranger could verify it)**.
+각 차원은 **0.0 (전혀 모름) 부터 1.0 (모르는 사람도 검증할 수 있음)** 까지 점수를
+매긴다.
 
-| Dimension | Question it answers | Fully clear (1.0) means |
+| 차원 | 답하는 질문 | 완전히 명확(1.0)하다는 것은 |
 |-----------|---------------------|--------------------------|
-| **Goal** | What are we building, and why? | One sentence a stranger reads and knows what success looks like. |
-| **Constraints** | What limits / assumptions / non-functionals bound it? | The real limits are named and pinned (perf, security, compat, deps, the worst inputs). |
-| **Criteria** | How do we know it's done and working? | Acceptance criteria you could hand to a tester who never heard the discussion. |
-| **Context** *(brownfield only)* | How does it meet the existing system? | Integration points, preserved behavior, and blast radius are identified from the code. |
+| **Goal** | 무엇을, 왜 만드는가? | 모르는 사람이 한 문장을 읽고 성공이 어떤 모습인지 안다. |
+| **Constraints** | 무슨 한계 / 가정 / non-functional 이 그것을 묶는가? | 진짜 한계들이 명명되고 못 박혔다(perf, security, compat, deps, 최악의 입력). |
+| **Criteria** | 다 됐고 작동한다는 걸 어떻게 아는가? | 그 논의를 들어본 적 없는 tester 에게 건넬 수 있는 acceptance criteria. |
+| **Context** *(brownfield 전용)* | 기존 시스템과 어떻게 만나는가? | 통합 지점, 보존된 동작, blast radius 가 코드로부터 식별됐다. |
 
-Score each *active* component separately when the topology has more than one —
-the weakest component's weakest dimension is your target.
+토폴로지가 둘 이상이면 각 *active* 컴포넌트를 따로 점수 매기라 — 가장 약한
+컴포넌트의 가장 약한 차원이 당신의 타깃이다.
 
-## The formulas
+## 공식들
 
-Combine the dimensions into clarity, then ambiguity is its complement:
+차원들을 clarity 로 결합하고, ambiguity 는 그 여집합이다:
 
-**Greenfield** (net-new, no existing system to integrate with):
+**Greenfield** (완전히 새로움, 통합할 기존 시스템 없음):
 
 ```
 clarity   = goal×0.40 + constraints×0.30 + criteria×0.30
 ambiguity = 1 − clarity
 ```
 
-**Brownfield** (touches an existing codebase):
+**Brownfield** (기존 코드베이스를 건드림):
 
 ```
 clarity   = goal×0.35 + constraints×0.25 + criteria×0.25 + context×0.15
 ambiguity = 1 − clarity
 ```
 
-Goal carries the most weight because a wrong goal makes every other dimension
-moot — perfectly specified constraints on the wrong target is wasted rigor.
-Brownfield adds a context term and rebalances down the others, because in
-existing code the integration surface is a first-class source of ambiguity.
+Goal 이 가장 큰 가중치를 갖는 이유는 잘못된 goal 이 다른 모든 차원을 무의미하게
+만들기 때문이다 — 잘못된 타깃 위의 완벽히 명세된 constraints 는 낭비된 엄밀함이다.
+Brownfield 는 context 항을 더하고 나머지를 낮춰 재조정하는데, 기존 코드에서는
+통합 표면이 ambiguity 의 일급 원천이기 때문이다.
 
 ### Worked example
 
@@ -57,12 +57,12 @@ clarity   = 0.8×0.40 + 0.5×0.30 + 0.4×0.30 = 0.32 + 0.15 + 0.12 = 0.59
 ambiguity = 1 − 0.59 = 0.41  (41%)
 ```
 
-Weakest dimension is **criteria** (0.4) → next question is type 3/5 to pin a
-measurable "done". Threshold 0.20 not met → continue.
+가장 약한 차원은 **criteria** (0.4) → 다음 질문은 측정 가능한 "done" 을 못 박기
+위한 유형 3/5. 임계값 0.20 미충족 → 계속.
 
-## The round report
+## 라운드 보고
 
-Print this compact table each round so the trail is visible and resumable:
+트레일이 보이고 재개 가능하도록 매 라운드 이 간결한 테이블을 출력하라:
 
 ```
 Round 3 · brownfield · component: ingest (active)
@@ -72,31 +72,27 @@ Round 3 · brownfield · component: ingest (active)
   [challenge: contrarian fires next round]
 ```
 
-The sequence of these tables *is* the interview's state. If the session is
-interrupted, the last table says exactly where to resume — no separate state
-file is kept.
+이 테이블들의 연속이 *곧* 인터뷰의 상태다. 세션이 중단되면, 마지막 테이블이 어디서
+재개할지 정확히 말해준다 — 별도의 상태 파일은 보관하지 않는다.
 
-## Tracking convergence (rounds 2+)
+## 수렴 추적 (rounds 2+)
 
-A dropping ambiguity number is necessary but not sufficient — watch two things:
+떨어지는 ambiguity 숫자는 필요하지만 충분하지 않다 — 두 가지를 지켜보라:
 
-- **Entity stability.** Each round, note the core entities (nouns) the user
-  introduces. From round 2, eyeball how much the entity set is *churning*: if new
-  fundamental nouns keep appearing, the topology may be wrong (consider the
-  ontologist challenge mode), even if dimension scores are creeping up. A stable
-  entity set with rising scores is real convergence; a churning set with rising
-  scores is false comfort.
-- **Diminishing returns.** If two consecutive rounds each move ambiguity by less
-  than ~2 points, you're either nearly done (cross the threshold and stop) or
-  stuck on something the user can't resolve by talking (name it as a residual
-  assumption in the spec and move on). Don't grind.
+- **Entity stability.** 매 라운드, 사용자가 도입하는 핵심 엔티티(명사)를 기록하라.
+  라운드 2부터, 엔티티 집합이 얼마나 *요동치는지* 가늠하라: 새로운 근본 명사가
+  계속 나타나면, 차원 점수가 슬금슬금 올라가더라도 토폴로지가 틀렸을 수 있다
+  (ontologist challenge mode 고려). 안정적인 엔티티 집합 + 오르는 점수는 진짜
+  수렴이고; 요동치는 집합 + 오르는 점수는 거짓 안도감이다.
+- **Diminishing returns.** 연속한 두 라운드가 각각 ambiguity 를 ~2 포인트 미만
+  으로 움직이면, 거의 끝났거나(임계값을 넘고 멈추라) 사용자가 말로는 해결 못 하는
+  무언가에 막힌 것이다(spec 에 잔여 가정으로 명명하고 넘어가라). 갈지 말 것.
 
-## Honesty rules for the score
+## 점수에 대한 정직성 규칙
 
-- Score the dimension you'd defend to a skeptic, not the one that makes progress
-  look good. A score that jumps 0.3 → 0.9 on a hand-wave is theater.
-- It's fine for a score to *drop* between rounds — a good question often reveals
-  that a dimension you thought was clear actually wasn't. That's the mechanism
-  working, not a regression.
-- Round numbers (0.2, 0.5, 0.8) are fine; the precision is in the *direction and
-  ordering* of dimensions, not in a phony third decimal.
+- 진전이 좋아 보이게 하는 차원이 아니라, 회의론자에게 방어할 차원에 점수를 매기라.
+  손짓 한 번에 0.3 → 0.9 로 뛰는 점수는 theater 다.
+- 점수가 라운드 사이에 *떨어지는* 것은 괜찮다 — 좋은 질문은 종종 명확하다고 여긴
+  차원이 실은 아니었음을 드러낸다. 그건 메커니즘이 작동하는 것이지 퇴행이 아니다.
+- 둥근 숫자(0.2, 0.5, 0.8)는 괜찮다; 정밀함은 가짜 세 번째 소수점이 아니라 차원의
+  *방향과 순서*에 있다.

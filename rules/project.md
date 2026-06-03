@@ -11,6 +11,18 @@ Claude Code 글로벌 스킬·에이전트 **배포 레포**. 빌드/런타임 �
 
 에이전트 6종 (`agents/*.md`): `executor`/`code-reviewer`/`security-reviewer`/`test-engineer`/`debugger`/`explore`. oh-my-claudecode 에서 큐레이트해 레포 컨벤션에 맞게 적응(§6). 스킬과 **별개 아티팩트 타입** — 디렉토리 단위가 아니라 플랫 파일 단위. `summon` 스킬이 새로 저작하는 에이전트도 같은 `agents/` 컨벤션을 쓴다.
 
+## 작성 언어 정책 (skill/agent authoring) — 글로벌 language-policy override
+
+신규·수정 스킬(`SKILL.md`+`references/*.md`)과 에이전트(`agents/*.md`)의 **본문 prose 와 frontmatter `description:` 값은 한국어로 작성**한다. 글로벌 `language-policy`(문서=영어)를 이 레포의 skills/agents 산출물에 한해 override — 사용자가 한국어 운용을 명시했기 때문.
+
+**단, 다음은 항상 원문(영어/식별자) 유지 — 번역·한글화 금지(시스템이 깨짐):**
+- frontmatter `name:` 값 (스킬/에이전트 식별자 — install·sync·invocation·craft-core 절대경로가 참조).
+- `model:`/`user-invocable:`/`disallowedTools:`/`tools:` 등 frontmatter 키와 그 값(opus/sonnet/haiku, Write/Edit 등).
+- 코드 식별자·도구명(Read/Grep/Bash/Task/Workflow/Edit…)·`agentType` 값·파일경로·URL·XML 태그·코드블록 내용.
+- `description:` 안의 **인용된 트리거 예시 구절**(자연어 발화 매칭용) — 원어 그대로(영어 예시는 영어로) 유지하고 설명 prose 만 한글.
+
+`summon` 스킬은 이 정책대로 새 에이전트를 생성한다(본문·description 한글, name·식별자 영어).
+
 ## Commands
 
 | 명령 | 용도 |

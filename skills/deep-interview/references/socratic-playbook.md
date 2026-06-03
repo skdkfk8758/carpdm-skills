@@ -1,153 +1,144 @@
-# Socratic Playbook — the six question types, in depth
+# Socratic Playbook — 여섯 가지 질문 유형, 심층
 
-The interview runs on one instrument: the six classic Socratic question types.
-This file is the depth behind the table in `SKILL.md` — example banks per type,
-how to pick the right type for the weakest dimension, and the three challenge
-modes that layer on top.
+인터뷰는 하나의 도구로 돌아간다: 여섯 가지 고전적 Socratic 질문 유형. 이 파일은
+`SKILL.md` 의 테이블 뒤에 있는 깊이다 — 유형별 예시 모음, 가장 약한 차원에 맞는
+유형을 고르는 법, 그리고 그 위에 얹히는 세 가지 challenge mode.
 
-The point of naming the type to yourself each round is discipline. Under time
-pressure it's easy to slide from *asking* into *suggesting* ("should we just use
-a queue here?") — that's not Socratic, it's you writing the spec and getting a
-rubber stamp. Keeping each question inside one of the six types forces the user
-to do the thinking, which is the only way the spec ends up being *theirs* and
-therefore correct.
+매 라운드 스스로에게 유형을 명명하는 핵심은 규율이다. 시간 압박 아래서는
+*묻기*에서 *제안하기*("그냥 여기 queue 를 쓸까요?")로 미끄러지기 쉽다 — 그건
+Socratic 이 아니라, 당신이 spec 을 쓰고 도장만 받는 것이다. 각 질문을 여섯 유형
+안에 가두는 것이 사용자에게 사고를 강제하고, 그것이 spec 이 결국 *그들의 것*이고
+따라서 올바르게 되는 유일한 길이다.
 
-## Table of contents
+## 목차
 
-- The six types — when to use, example bank
-- Selecting a type from the weakest dimension
+- 여섯 유형 — 언제 쓰는가, 예시 모음
+- 가장 약한 차원에서 유형 선택하기
 - Challenge modes (contrarian / simplifier / ontologist)
-- Grounding brownfield questions in code
-- Keeping it one question at a time
+- brownfield 질문을 코드에 근거 두기
+- 한 번에 한 질문 유지하기
 
-## The six types
+## 여섯 유형
 
-### 1. Clarification — make the vague concrete
+### 1. Clarification — 모호한 것을 구체적으로
 
-Use when a noun or verb in the idea is doing too much work ("a dashboard", "sync
-it", "handle errors"). The cure is a concrete example: one real input, one
-desired output.
+아이디어 안의 명사나 동사가 일을 너무 많이 하고 있을 때("a dashboard", "sync
+it", "handle errors") 사용한다. 치료는 구체적 예시다: 실제 입력 하나, 원하는 출력
+하나.
 
-- "When you say *dashboard*, walk me through one screen — what's the first thing
-  a user sees, and what data is on it?"
-- "Give me one concrete row of input and exactly what you'd want out of it."
-- "*Sync* how often, in which direction, and what wins on a conflict?"
-- "Name the single most important thing this must do. If it did only that, would
-  it be worth building?"
+- "*dashboard* 라고 할 때, 한 화면을 짚어 주세요 — 사용자가 처음 보는 것은
+  무엇이고, 거기 어떤 데이터가 있나요?"
+- "구체적인 입력 한 행과, 거기서 정확히 무엇을 원하는지 주세요."
+- "*Sync* 를 얼마나 자주, 어느 방향으로, 충돌 시 무엇이 이기나요?"
+- "이것이 반드시 해야 하는 가장 중요한 단 한 가지를 명명하세요. 그것만 한다면,
+  만들 가치가 있나요?"
 
-### 2. Probing assumptions — surface the unstated premise
+### 2. Probing assumptions — 진술되지 않은 전제 드러내기
 
-Use when the user states something as settled fact. Reflect it back as an
-assumption and test whether it holds.
+사용자가 무언가를 정해진 사실로 진술할 때 사용한다. 그것을 가정으로 되비추고
+성립하는지 시험하라.
 
-- "You're assuming the input is always valid UTF-8 — is it? What arrives if it
-  isn't?"
-- "That presumes one user at a time. Does it ever run concurrently?"
-- "We're treating the upstream API as reliable. What's the plan when it's down?"
-- "What has to be true about the data for this design to work — and is it?"
+- "입력이 항상 유효한 UTF-8 이라고 가정하고 있는데 — 그런가요? 아니면 무엇이
+  들어오나요?"
+- "그건 한 번에 한 사용자를 전제합니다. 동시에 실행되는 경우가 있나요?"
+- "upstream API 를 신뢰할 수 있다고 다루고 있네요. 그게 다운되면 계획은요?"
+- "이 디자인이 작동하려면 데이터에 대해 무엇이 참이어야 하나요 — 그리고 그런가요?"
 
-### 3. Probing reasons & evidence — demand the backing
+### 3. Probing reasons & evidence — 근거 요구하기
 
-Use when a claim or a success metric is asserted without support. This is where
-acceptance criteria get pinned.
+주장이나 성공 지표가 뒷받침 없이 단언될 때 사용한다. acceptance criteria 가
+못 박히는 곳이다.
 
-- "What makes you confident users want this? Is there a case or a complaint that
-  already shows it?"
-- "How will we *know* it worked — what's the measurable signal?"
-- "You said it's slow today. Slow how — a number, a log, a reproduction?"
-- "If it shipped and did nothing, what would you observe that's different now?"
+- "사용자가 이것을 원한다고 확신하는 근거는요? 이미 보여주는 사례나 불만이
+  있나요?"
+- "작동했다는 걸 어떻게 *알* 수 있나요 — 측정 가능한 신호는요?"
+- "오늘 느리다고 하셨죠. 얼마나 느린가요 — 숫자, 로그, 재현?"
+- "출시했는데 아무것도 안 했다면, 지금과 달라진 무엇을 관찰하게 되나요?"
 
-### 4. Alternative viewpoints — break tunnel vision
+### 4. Alternative viewpoints — 터널 시야 깨기
 
-Use when the user has locked onto one approach, or when the design is getting
-heavy. Invite a competing path or a dissenting stakeholder.
+사용자가 한 접근에 고착됐을 때, 또는 디자인이 무거워질 때 사용한다. 경쟁하는
+경로나 이견 있는 이해관계자를 초대하라.
 
-- "Is there a simpler approach that avoids this whole component?"
-- "Who else touches this — would any of them break or object?"
-- "If you had a tenth of the time, what would you cut and would it still work?"
-- "What's the strongest argument *against* doing it this way?"
+- "이 컴포넌트 전체를 피하는 더 단순한 접근이 있나요?"
+- "또 누가 이걸 건드리나요 — 그들 중 깨지거나 반대할 사람이 있나요?"
+- "시간이 10분의 1뿐이라면, 무엇을 잘라낼 것이고 그래도 작동할까요?"
+- "이렇게 하는 것에 *반대하는* 가장 강한 논거는요?"
 
-### 5. Implications & consequences — follow it downstream
+### 5. Implications & consequences — 하류로 따라가기
 
-Use to surface edge cases, blast radius, and the worst-case inputs the thing
-must survive. This is the dimension most often left vague and most expensive to
-discover late.
+엣지 케이스, blast radius, 그리고 그것이 견뎌야 하는 최악의 입력을 드러내기 위해
+사용한다. 가장 자주 모호하게 남고 늦게 발견할수록 가장 비싼 차원이다.
 
-- "If we change that return type, what downstream caller has to move with it?"
-- "What's the worst, emptiest, largest, or most concurrent input this now has to
-  survive — and what does it do on failure: raise, default, or retry?"
-- "Ship this and double the traffic — what's the first thing that breaks?"
-- "What does this make *impossible* later that's fine today?"
+- "그 반환 타입을 바꾸면, 어떤 하류 호출자가 함께 옮겨가야 하나요?"
+- "이것이 이제 견뎌야 하는 최악의, 가장 비어 있는, 가장 큰, 또는 가장 동시적인
+  입력은 무엇이고 — 실패 시 무엇을 하나요: raise, default, 아니면 retry?"
+- "이걸 출시하고 트래픽을 두 배로 — 가장 먼저 깨지는 게 무엇인가요?"
+- "이것이 오늘은 괜찮지만 나중에 무엇을 *불가능*하게 만드나요?"
 
-### 6. Question the question — check you're solving the right problem
+### 6. Question the question — 올바른 문제를 풀고 있는지 점검하기
 
-Use when the request might be a solution in search of the real need. The highest-
-leverage type: it can collapse the whole topology.
+요청이 실제 필요를 찾는 해법일 수 있을 때 사용한다. 가장 레버리지 높은 유형:
+토폴로지 전체를 무너뜨릴 수 있다.
 
-- "What's the underlying goal this is in service of?"
-- "If we solved that need a completely different way, would this task still
-  matter?"
-- "Why this, and why now — what changes for you when it exists?"
-- "Is this the actual problem, or a workaround for one upstream of it?"
+- "이것이 봉사하는 근본 goal 은 무엇인가요?"
+- "그 필요를 완전히 다른 방식으로 해결한다면, 이 작업이 여전히 중요할까요?"
+- "왜 이것, 왜 지금 — 그것이 존재하면 당신에게 무엇이 바뀌나요?"
+- "이것이 실제 문제인가요, 아니면 그 위쪽 어딘가에 있는 문제의 우회책인가요?"
 
-## Selecting a type from the weakest dimension
+## 가장 약한 차원에서 유형 선택하기
 
-Each round you target the weakest dimension (see `scoring.md`). Map it to types:
+매 라운드 가장 약한 차원을 조준한다(`scoring.md` 참조). 그것을 유형으로 매핑하라:
 
-| Weakest dimension | Reach for | Why |
+| 가장 약한 차원 | 손 뻗을 것 | 이유 |
 |-------------------|-----------|-----|
-| **Goal** (what & why is fuzzy) | 1 Clarification, 6 Question-the-question | Concretize the target or check it's the right one. |
-| **Constraints** (limits/assumptions loose) | 2 Probing assumptions, 5 Implications | Expose unstated premises and downstream limits. |
-| **Criteria** (no measurable "done") | 3 Reasons/evidence, 5 Implications | Force a verifiable signal and its edge behavior. |
-| **Context** (brownfield: integration unclear) | 1 Clarification, 2 Probing assumptions | Pin how it meets the existing system; ground in code. |
+| **Goal** (무엇 & 왜가 흐릿) | 1 Clarification, 6 Question-the-question | 타깃을 구체화하거나 올바른지 점검. |
+| **Constraints** (한계/가정 느슨) | 2 Probing assumptions, 5 Implications | 진술되지 않은 전제와 하류 한계를 드러냄. |
+| **Criteria** (측정 가능한 "done" 없음) | 3 Reasons/evidence, 5 Implications | 검증 가능한 신호와 그 엣지 동작을 강제. |
+| **Context** (brownfield: 통합 불명확) | 1 Clarification, 2 Probing assumptions | 기존 시스템과 어떻게 만나는지 못 박음; 코드에 근거. |
 
-This is a starting heuristic, not a rule. If a different type obviously fits the
-moment, use it — the goal is to move the weakest dimension, not to obey a table.
+이건 시작용 휴리스틱이지 규칙이 아니다. 다른 유형이 그 순간에 명백히 맞으면, 그걸
+쓰라 — 목표는 가장 약한 차원을 움직이는 것이지 테이블에 복종하는 게 아니다.
 
-## Challenge modes — perspective shifts at depth
+## Challenge modes — 깊이에서의 관점 전환
 
-When ambiguity stalls, the blocker is usually a wrong assumption, not a missing
-fact. Fire each mode once, at its round threshold. They don't replace the six
-types — they're a *stance* you adopt while still asking one typed question.
+ambiguity 가 정체되면, 막힌 것은 대개 누락된 사실이 아니라 잘못된 가정이다. 각
+모드를 그 라운드 임계값에서 한 번씩 발동하라. 여섯 유형을 대체하지 않는다 — 그것은
+여전히 한 개의 유형화된 질문을 던지면서 취하는 *자세*다.
 
-- **Round 4+ — Contrarian.** Pick the load-bearing assumption and attack it
-  directly (uses type 2/4). Opener: *"Let me push on the core idea — you're
-  assuming [X]. I think there's a real case where that's false: [case]. How do
-  we handle it, or am I wrong?"* The aim isn't to win; it's to find out whether
-  the assumption survives contact.
-- **Round 6+ — Simplifier.** Probe whether the accumulating complexity is
-  earning its keep (type 4/5). Opener: *"We've added [components/cases]. If we
-  cut [the heaviest one], what specifically fails? Could a dumber version ship
-  first?"*
-- **Round 8+ — Ontologist.** If it's still murky this deep, the framing is
-  probably wrong. Reframe around the core *entities* and their relationships
-  (type 1/6). Opener: *"Let's reset to the nouns. The real things here seem to be
-  [A, B, C]. What's the relationship between them, and which one is the spec
-  actually about?"* A late ontology shift often dissolves ambiguity that no
-  amount of detail questioning could.
+- **Round 4+ — Contrarian.** 하중을 지는 가정을 골라 직접 공격한다(유형 2/4 사용).
+  오프너: *"핵심 아이디어를 밀어보겠습니다 — 당신은 [X] 를 가정하고 있어요. 그게
+  거짓인 실제 경우가 있다고 봅니다: [case]. 어떻게 다루나요, 아니면 제가 틀렸나요?"*
+  목표는 이기는 게 아니라, 그 가정이 접촉을 견디는지 알아내는 것이다.
+- **Round 6+ — Simplifier.** 쌓여가는 복잡성이 제값을 하는지 탐색한다(유형 4/5).
+  오프너: *"우리는 [components/cases] 를 더했습니다. [가장 무거운 것] 을 잘라내면,
+  구체적으로 무엇이 실패하나요? 더 멍청한 버전을 먼저 출시할 수 있나요?"*
+- **Round 8+ — Ontologist.** 이만큼 깊이 와서도 흐릿하다면, 프레이밍이 아마 틀린
+  것이다. 핵심 *엔티티*와 그 관계를 중심으로 재구성한다(유형 1/6). 오프너:
+  *"명사로 리셋합시다. 여기 진짜 것들은 [A, B, C] 같습니다. 그들 사이의 관계는
+  무엇이고, spec 이 실제로 다루는 것은 어느 것인가요?"* 뒤늦은 ontology 전환은
+  어떤 디테일 질문도 풀 수 없던 ambiguity 를 종종 녹여버린다.
 
-Each mode fires once per interview. Note in the round report when one activates,
-so the trail shows why the questioning shifted.
+각 모드는 인터뷰당 한 번 발동한다. 하나가 활성화될 때 라운드 보고에 기록해, 질문이
+왜 전환됐는지 트레일에 남게 하라.
 
-## Grounding brownfield questions in code
+## brownfield 질문을 코드에 근거 두기
 
-A generic question gets a generic answer. Before asking the user about anything
-the code already knows, read it (scoped to the impact radius) and put the fact in
-the question:
+일반적인 질문은 일반적인 답을 얻는다. 코드가 이미 아는 무언가에 대해 사용자에게
+묻기 전에, 그것을 읽고(영향 반경에 한정) 그 사실을 질문에 넣으라:
 
-- Generic: "What should happen on a missing record?"
-- Grounded: "`getPlan` returns `None` on a missing id today, and `summarize`
-  maps that to `[]`. Keep that, or raise now?"
+- Generic: "없는 레코드에는 무슨 일이 일어나야 하나요?"
+- Grounded: "`getPlan` 은 오늘 없는 id 에 `None` 을 반환하고, `summarize` 는
+  그것을 `[]` 로 매핑합니다. 유지할까요, 아니면 이제 raise 할까요?"
 
-The grounded version converts the question from "explain your system to me" into
-"make the one decision I can't make for you" — faster, and it signals you did the
-reading. Code tells you *what is*; the user tells you *what should be*.
+근거 있는 버전은 질문을 "당신의 시스템을 내게 설명하라"에서 "내가 대신 못 하는 그
+한 가지 결정을 내려라"로 바꾼다 — 더 빠르고, 당신이 읽었다는 신호도 보낸다. 코드는
+*무엇인지*를 말하고; 사용자는 *무엇이어야 하는지*를 말한다.
 
-## Keeping it one question at a time
+## 한 번에 한 질문 유지하기
 
-The single most important mechanic. Batching ("also, what about auth, and
-scale, and the schema?") lets the user spray shallow answers across everything
-and think hard about nothing. One sharp question on the current bottleneck makes
-them stop and actually reason. If you genuinely need two facts to score a
-dimension, ask the more load-bearing one first and let the answer reshape the
-second — it often makes the second moot.
+가장 중요한 단일 메커닉. 묶기("그리고, auth 는, 그리고 scale 은, 그리고 schema
+는?")는 사용자가 모든 것에 얕은 답을 뿌리고 어느 것도 깊이 생각하지 않게 한다.
+현재 병목에 대한 날카로운 질문 하나가 그들을 멈추고 실제로 추론하게 만든다. 한
+차원을 점수 매기는 데 정말로 두 사실이 필요하면, 더 하중을 지는 것을 먼저 묻고 그
+답이 두 번째를 재구성하게 두라 — 종종 두 번째를 무의미하게 만든다.

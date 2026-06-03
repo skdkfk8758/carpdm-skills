@@ -1,60 +1,56 @@
 ---
 name: hunt
-description: Fix a BUG with a reproduction-first, regression-locked pipeline — Socratic interview to pin the exact reproduction and root cause → adversarial plan review by codex → dynamic-workflow TDD on opus (failing regression test first) → security-verified. Use this whenever the user reports something BROKEN, failing, erroring, crashing, throwing, returning the wrong result, hanging, or behaving unexpectedly and wants it fixed — phrasings like "X is broken", "Y throws on Z", "why does this return null", "the page crashes when…", "this used to work and now…", "getting a 500 from…". Do NOT use it to build a new feature (use forge), to intentionally change a working feature (use renew), or to restructure code with no behavior change (use reshape).
+description: 재현 우선, 회귀 잠금 파이프라인으로 BUG 를 고친다 — 정확한 재현과 근본 원인을 고정하는 소크라테스식 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD(실패하는 회귀 테스트 먼저) → 보안 검증. 사용자가 무언가 BROKEN, 실패, 에러, 크래시, throw, 잘못된 결과 반환, 멈춤, 또는 예기치 않게 동작한다고 보고하며 고치고 싶어 할 때마다 사용한다 — "X is broken", "Y throws on Z", "why does this return null", "the page crashes when…", "this used to work and now…", "getting a 500 from…" 같은 표현. 새 기능을 만들거나(use forge), 동작하는 기능을 의도적으로 변경하거나(use renew), 동작 변화 없이 코드를 재구조화하는(use reshape) 데에는 사용하지 말 것.
 ---
 
-# Hunt — fix a bug
+# Hunt — 버그 수정
 
-The two failure modes of bug fixing are: fixing the symptom instead of the cause,
-and fixing it in a way that silently comes back later. The pipeline blocks both —
-you can't fix what you can't reproduce, so the cause must be pinned by evidence
-first, and the fix is locked by a regression test that fails before and passes
-after.
+버그 수정의 두 가지 실패 양상은: 원인 대신 증상을 고치는 것, 그리고 나중에 조용히
+되살아나는 방식으로 고치는 것이다. 파이프라인은 둘 다 막는다 — 재현할 수 없는 것은
+고칠 수 없으므로 원인은 먼저 증거로 고정되어야 하고, 수정은 이전엔 실패하고 이후엔
+통과하는 회귀 테스트로 잠긴다.
 
-Run the shared engine in `~/.claude/skills/craft-core/references/pipeline.md`
-(read it first). Apply these hunt-specific emphases inside it:
+`~/.claude/skills/craft-core/references/pipeline.md` 의 공유 엔진을 실행하라
+(먼저 읽을 것). 그 안에서 다음 hunt 고유 강조점을 적용한다:
 
 ## Phase 1 — Socratic focus (see craft-core/references/socratic.md)
 
-- **Exact reproduction** — the precise steps, inputs, and environment that
-  trigger it. If you can't reproduce it, that's the first thing to resolve with
-  the user; don't guess at a fix for a bug you can't see.
-- **Expected vs actual** — what should happen, what does happen, with the real
-  error message / stack / wrong output quoted exactly (not paraphrased).
-- **Scope & onset** — how widespread, since when, what changed around then.
-- **Root-cause hypothesis** — trace it to the actual cause in the code (graph/LSP
-  first for callers/impact, else Read/Grep) and the error's own vocabulary; check
-  whether an ADR/concept already documents this area (`context-adr.md`). State
-  confidence; if it's a guess, say so and verify before planning the fix. Fixing a
-  symptom you haven't traced is the most common way bug fixes fail.
-- **ADR-worthy?** Usually **no**. Exception: the fix establishes a standing
-  invariant/policy future code must honor → record an ADR in Phase 5.
-- **Blast radius & edge inputs (type 5)** — what else the root cause touches, and
-  the edge inputs the fix must not break (no new regressions). Run the completeness
-  sweep before finalizing, so the fix doesn't trade one bug for another.
+- **Exact reproduction** — 그것을 유발하는 정확한 단계, 입력, 환경. 재현할 수 없다면
+  그것이 사용자와 함께 가장 먼저 해결할 일이다; 볼 수 없는 버그의 수정을 추측하지 말 것.
+- **Expected vs actual** — 무엇이 일어나야 하는지, 무엇이 일어나는지, 실제
+  에러 메시지 / 스택 / 잘못된 출력을 정확히 인용 (의역하지 말 것).
+- **Scope & onset** — 얼마나 광범위한지, 언제부터인지, 그 무렵 무엇이 바뀌었는지.
+- **Root-cause hypothesis** — 코드 안의 실제 원인까지 추적하라 (호출자/영향은 graph/LSP
+  먼저, 아니면 Read/Grep) 그리고 에러 자체의 어휘로; 이 영역을 이미 문서화한
+  ADR/concept 가 있는지 확인 (`context-adr.md`). 신뢰도를 진술하라; 추측이면 그렇게
+  말하고 수정을 계획하기 전에 검증하라. 추적하지 않은 증상을 고치는 것이 버그 수정이
+  실패하는 가장 흔한 경로다.
+- **ADR-worthy?** 보통 **아니오**. 예외: 수정이 향후 코드가 지켜야 할 항구적
+  invariant/정책을 수립하는 경우 → Phase 5 에서 ADR 기록.
+- **Blast radius & edge inputs (type 5)** — 근본 원인이 그 밖에 무엇을 건드리는지,
+  그리고 수정이 깨뜨려서는 안 되는 edge input (새 회귀 없음). 마무리 전에 완전성
+  sweep 을 실행해, 수정이 하나의 버그를 다른 버그와 맞바꾸지 않도록 하라.
 
 ### Parallel hypothesis diagnosis (optional — multi-candidate bugs only)
 
-When the cause has **two or more plausible candidates** and tracing each is
-expensive (e.g. a 500 that could be a migration, an ORM mapping, an env var, or a
-race), don't anchor on the first guess. Use the `Workflow` tool to fan out one
-agent per hypothesis, each tracing its candidate **independently** — they do not
-talk to each other, because cross-talk re-introduces the anchoring this is meant
-to break. Each returns its evidence: the exact code path, the reproduction it
-explains, and what it cannot explain. You then weigh the evidence and pick the
-cause the reproduction actually supports — confirm it before planning the fix.
+원인에 **두 개 이상의 그럴듯한 후보**가 있고 각각을 추적하는 비용이 비쌀 때
+(예: migration, ORM 매핑, env var, 또는 race 일 수 있는 500), 첫 추측에 닻을 내리지
+말 것. `Workflow` 도구로 가설당 에이전트 하나씩 fan out 하여 각자 자기 후보를
+**독립적으로** 추적하게 하라 — 이들은 서로 대화하지 않는다. 교차 대화가 이 방식이
+깨뜨리려는 앵커링을 다시 들여오기 때문이다. 각자는 증거를 반환한다: 정확한 코드
+경로, 그것이 설명하는 재현, 그리고 설명하지 못하는 것. 그다음 당신은 증거를 저울질해
+재현이 실제로 뒷받침하는 원인을 고른다 — 수정을 계획하기 전에 확인하라.
 
-Skip this when the bug traces to one obvious cause — most do, and a single
-high-confidence trace needs no panel. This is hub-and-spoke fan-out for
-independent evidence, not a peer team; the independence is the whole value.
+버그가 하나의 명백한 원인으로 추적될 때는 이것을 건너뛰어라 — 대부분이 그렇고,
+신뢰도 높은 단일 추적에는 패널이 필요 없다. 이것은 독립 증거를 위한 hub-and-spoke
+fan-out 이지 peer team 이 아니다; 독립성이 가치의 전부다.
 
 ## Phase 3 — TDD entry point (see craft-core/references/dynamic-tdd.md)
 
-Task 1 is a **failing regression test that reproduces the bug** — it fails for
-exactly the reported reason against current code. Only then implement the fix on
-opus until that test goes green, and confirm no other test regressed. The
-regression test staying in the suite is what stops the bug from returning.
+Task 1 은 **버그를 재현하는 실패하는 회귀 테스트**다 — 현재 코드에 대해 정확히
+보고된 이유로 실패한다. 그다음에야 그 테스트가 green 이 될 때까지 opus 에서 수정을
+구현하고, 다른 어떤 테스트도 회귀하지 않았음을 확인하라. 회귀 테스트가 스위트에
+남아 있는 것이 버그의 재발을 막는다.
 
-Keep the fix minimal and targeted at the root cause — a bug fix is not a license
-to refactor surrounding code (that's reshape). Phases 0, 2, 4, 5 run exactly as
-in the shared pipeline.
+수정은 최소로, 근본 원인을 겨냥하라 — 버그 수정은 주변 코드를 리팩터링할 면허가
+아니다 (그건 reshape). Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.

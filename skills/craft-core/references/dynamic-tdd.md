@@ -1,32 +1,31 @@
 # Dynamic Workflow — Task Split + TDD on Opus
 
-Phase 3 turns the approved, codex-reviewed plan into working code. Use the
-`Workflow` tool to (a) split the plan into atomic tasks and (b) drive each task
-through a strict TDD cycle. Implementation runs on **opus** (4.8) — the highest
-implementation quality for the test-pinned tasks; the per-task red/green
-discipline and the independent verify stage, not a cheaper tier, are what keep
-the workflow honest.
+Phase 3 은 승인되고 codex 리뷰를 거친 플랜을 동작하는 코드로 바꾼다.
+`Workflow` 도구로 (a) 플랜을 atomic 태스크로 쪼개고 (b) 각 태스크를
+엄격한 TDD 사이클로 구동한다. 구현은 **opus** (4.8) 에서 돈다 — test-pinned
+태스크에 대한 최고 구현 품질; 더 싼 tier 가 아니라, 태스크별 red/green
+규율과 독립 verify 단계가 워크플로를 정직하게 유지한다.
 
-Invoking `Workflow` is authorized here because this skill's instructions tell you
-to — that is the skill-invoked opt-in path.
+여기서 `Workflow` 호출이 허가되는 것은 이 스킬의 지침이 그렇게 하라고
+말하기 때문이다 — 그것이 skill-invoked opt-in 경로다.
 
-## What "atomic task" means
+## "atomic task" 가 의미하는 것
 
-One task = one slice of the plan that can be made green on its own: a single
-behavior, endpoint, function, or fix. If a task can't be expressed as "write a
-test that fails for reason X, then make it pass," it's too big — split it.
+태스크 하나 = 자체적으로 green 이 될 수 있는 플랜의 한 조각: 단일
+behavior, 엔드포인트, 함수, 또는 수정. 태스크가 "X 이유로 실패하는 테스트를
+쓰고, 그다음 통과시켜라" 로 표현될 수 없으면, 너무 크다 — 쪼개라.
 
-## The TDD cycle each task must follow
+## 각 태스크가 따라야 할 TDD 사이클
 
-1. **Red** — write the test FIRST. It must fail, and fail for the *right reason*
-   (the behavior is missing), not a typo or import error.
-2. **Green** — the minimal implementation that makes the test pass. No
-   speculative extras (YAGNI).
-3. **Refactor** — clean up with the test staying green. No new behavior here.
+1. **Red** — 테스트를 먼저 쓴다. 실패해야 하고, *올바른 이유로* 실패해야 한다
+   (behavior 가 없음), typo 나 import 에러가 아니라.
+2. **Green** — 테스트를 통과시키는 최소 구현. 투기적 extra 없음
+   (YAGNI).
+3. **Refactor** — 테스트가 green 인 채로 정리. 여기서 새 behavior 없음.
 
-A task is done only when its own tests are green AND it didn't break a sibling's.
+태스크는 자신의 테스트가 green 이고 형제를 깨지 않았을 때만 완료된다.
 
-## Workflow script skeleton (adapt — do not copy blindly)
+## Workflow 스크립트 골격 (적응 — 맹목적으로 복사하지 말 것)
 
 ```javascript
 export const meta = {
@@ -68,39 +67,38 @@ const results = await pipeline(
 return results.filter(Boolean)
 ```
 
-Notes on the skeleton:
+골격에 대한 주석:
 
-- `model: 'opus'` on every implementation/verify agent — this is the required
-  model for Phase 3 per the skill contract.
-- `agentType: 'executor'` / `'test-engineer'` route the implement / verify stages
-  to the curated `agents/` pool (battle-tested system prompts; test-engineer is
-  RO-safe for the verify lane). The pool's own model (sonnet) is **deliberately
-  overridden** by `model: 'opus'` here — Phase 3's opus contract wins over the
-  pool default. If the pool isn't installed (`~/.claude/agents/` missing these),
-  **drop `agentType`** and the default workflow subagent runs the same prompt —
-  the pool is an upgrade, not a hard dependency.
-- `isolation: 'worktree'` only when tasks write files in parallel and would
-  collide. For a strictly sequential set of tasks you can drop it (it costs disk
-  + setup).
-- Pass the task list through Workflow `args`, not hard-coded in the script, so the
-  same script serves any plan.
-- Keep each agent's command pointing at *paths and the plan*, not pasted code —
-  the agent has Read.
+- 모든 구현/verify 에이전트에 `model: 'opus'` — 이것이 스킬 계약상 Phase 3
+  의 필수 모델이다.
+- `agentType: 'executor'` / `'test-engineer'` 는 구현 / verify 단계를
+  curated `agents/` 풀로 라우팅한다 (battle-tested 시스템 프롬프트; test-engineer 는
+  verify lane 용으로 RO-safe). 풀 자신의 모델 (sonnet) 은 여기서 `model: 'opus'` 로
+  **의도적으로 override** 된다 — Phase 3 의 opus 계약이 풀 기본값을 이긴다.
+  풀이 설치되지 않았으면 (`~/.claude/agents/` 에 이것들이 없으면),
+  **`agentType` 을 떨궈라** — 기본 워크플로 subagent 가 같은 프롬프트를 돌린다 —
+  풀은 하드 의존이 아니라 업그레이드다.
+- `isolation: 'worktree'` 는 태스크들이 병렬로 파일을 쓰고 충돌할 때만.
+  엄격히 순차적인 태스크 집합이면 떨궈도 된다 (디스크 + 셋업 비용이 든다).
+- 태스크 리스트를 스크립트에 하드코드하지 말고 Workflow `args` 로 넘겨라,
+  같은 스크립트가 어떤 플랜에도 쓰이게.
+- 각 에이전트의 command 를 붙여넣은 코드가 아니라 *경로와 플랜* 으로 가리켜라 —
+  에이전트는 Read 가 있다.
 
-## After the workflow returns
+## 워크플로가 반환된 후
 
-- Any task with `testsGreen:false` or `verified:false` → fix it (re-run that task
-  or handle inline). Do not proceed to Phase 4 with red tasks.
-- The task-type skill defines where the cycle *starts* — e.g. `hunt` writes the
-  failing regression test as task 1; `reshape` writes characterization tests
-  pinning current behavior before any task touches structure.
+- `testsGreen:false` 또는 `verified:false` 인 태스크 → 고친다 (그 태스크를
+  재실행하거나 inline 처리). red 태스크를 안고 Phase 4 로 진행하지 말 것.
+- 작업유형 스킬이 사이클이 *어디서 시작하는지* 정의한다 — 예: `hunt` 는
+  실패하는 regression 테스트를 태스크 1 로 쓴다; `reshape` 는 구조를 건드리기 전에
+  현재 behavior 를 핀하는 characterization 테스트를 쓴다.
 
 ## Anti-patterns
 
-- Writing implementation before the test (no red step) → you can't prove the test
-  tests anything.
-- Dropping the `model: 'opus'` override so agents fall back to a cheaper tier →
-  ignores the skill contract.
-- One giant agent call for the whole plan → loses the per-task red/green
-  discipline and truncates.
-- Trusting the implementer's "green" without the independent verify stage.
+- 테스트 전에 구현 쓰기 (red 단계 없음) → 테스트가 무언가를 테스트한다는 걸
+  증명할 수 없다.
+- 에이전트가 더 싼 tier 로 폴백하게 `model: 'opus'` override 를 떨구기 →
+  스킬 계약 무시.
+- 플랜 전체를 위한 하나의 거대 에이전트 호출 → 태스크별 red/green
+  규율을 잃고 truncate 된다.
+- 독립 verify 단계 없이 구현자의 "green" 을 신뢰하기.

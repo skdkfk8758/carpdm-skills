@@ -1,186 +1,186 @@
 ---
 name: handoff
-description: Use this skill whenever work needs to survive a session boundary — either saving state before stopping, or picking it back up later. SAVE — the user is wrapping up, pausing, or interrupting mid-task (a meeting, low context, end of day) and wants their progress, what's left, which files they touched, and WHY they decided things written down so a later session (tomorrow, another window, another person, their future self) can resume cold; e.g. "여기까지 하자 내일 이어서", "context 날아가기 전에 저장", "중단해야 되는데 상태랑 결정 남겨줘", "이유까지 기록", "남은거 정리해줘", "save progress", "핸드오프". RESUME — at session start the user wants to continue unfinished work and asks where they left off; e.g. "어디까지 했지", "이어서 하자", "마지막 세션 복원", "뭐 하다 멈췄지", "resume", "continue where we left off" — load the latest handoff first. The skill auto-detects direction (WRITE a dump vs READ a resume). Note — a concrete task name (a feature, a benchmark, a file) plus "이어서/어디까지/저장/남겨줘" still means handoff, NOT a new build (forge), fix (hunt), or change (renew). NOT for durable facts (those go to memory), meeting notes, project docs, or SPEC/PLAN authoring.
+description: 작업이 세션 경계를 넘어 살아남아야 할 때 — 중단 전에 상태를 저장하거나, 나중에 다시 이어받을 때 — 언제든 이 스킬을 사용한다. SAVE — 사용자가 작업을 마무리·일시중지하거나 작업 도중 중단(회의, 컨텍스트 부족, 하루 종료)하면서 진행 상황, 남은 일, 건드린 파일, 그리고 무엇을 WHY 그렇게 결정했는지를 기록해 두어, 나중 세션(내일, 다른 창, 다른 사람, 미래의 자신)이 맨바닥에서 이어받을 수 있게 하려는 경우; e.g. "여기까지 하자 내일 이어서", "context 날아가기 전에 저장", "중단해야 되는데 상태랑 결정 남겨줘", "이유까지 기록", "남은거 정리해줘", "save progress", "핸드오프". RESUME — 세션 시작 시 사용자가 끝내지 못한 작업을 이어가려 하며 어디까지 했는지 묻는 경우; e.g. "어디까지 했지", "이어서 하자", "마지막 세션 복원", "뭐 하다 멈췄지", "resume", "continue where we left off" — 가장 최근 handoff 를 먼저 로드한다. 이 스킬은 방향(덤프를 WRITE 할지, 재개를 READ 할지)을 자동 감지한다. Note — 구체적인 작업 이름(기능, 벤치마크, 파일)에 "이어서/어디까지/저장/남겨줘" 가 붙어도 여전히 handoff 를 의미하며, 새 빌드(forge)·수정(hunt)·변경(renew)이 아니다. 영속적 사실(memory 로), 회의 메모, 프로젝트 문서, SPEC/PLAN 작성에는 사용하지 않는다.
 ---
 
-# Handoff — freeze a session so another can pick it up cold
+# Handoff — 다른 세션이 맨바닥에서 이어받도록 세션을 동결한다
 
-A handoff document is the bridge between two sessions that share no context. The
-receiving session starts at zero — no transcript, no memory of decisions, no idea
-which files are half-edited. Your job is to make that cold start cheap: capture
-*what was decided and why*, *what is in flight*, and *what to do next* tightly
-enough that a fresh agent can resume in one read.
+handoff 문서는 컨텍스트를 공유하지 않는 두 세션 사이의 다리다. 이어받는
+세션은 영(零)에서 시작한다 — 트랜스크립트도, 결정에 대한 기억도, 어떤 파일이
+절반쯤 편집됐는지에 대한 단서도 없다. 당신의 일은 그 맨바닥 시작을 값싸게
+만드는 것이다: *무엇을 왜 결정했는지*, *무엇이 진행 중인지*, *다음에 무엇을
+할지*를, 새 에이전트가 한 번 읽고 재개할 수 있을 만큼 빈틈없이 담아낸다.
 
-Two directions, auto-detected from the user's ask:
+방향은 두 가지이며, 사용자의 요청에서 자동 감지한다:
 
 | Direction | Triggers | What you do |
 |---|---|---|
-| **WRITE** (dump) | "핸드오프", "정리해줘", "마무리", "넘겨줘", end of session | Distill the session into a handoff doc |
-| **READ** (resume) | "이어서", "resume", "어디까지 했지", "핸드오프 읽어", session start | Load the latest handoff and restore context |
+| **WRITE** (덤프) | "핸드오프", "정리해줘", "마무리", "넘겨줘", 세션 종료 | 세션을 handoff 문서로 증류한다 |
+| **READ** (재개) | "이어서", "resume", "어디까지 했지", "핸드오프 읽어", 세션 시작 | 가장 최근 handoff 를 로드하고 컨텍스트를 복원한다 |
 
-If the ask is ambiguous (e.g. just "핸드오프"), default by context: a session
-with work already done leans WRITE; a session that just started leans READ. When
-genuinely unsure, ask one short question.
+요청이 모호하면(예: 그냥 "핸드오프"), 컨텍스트로 기본값을 정한다: 이미 작업이
+진행된 세션은 WRITE 쪽으로, 막 시작한 세션은 READ 쪽으로 기운다. 정말
+확신이 안 서면 짧은 질문을 하나 한다.
 
-## Handoff is not memory, and not a SPEC
+## Handoff 는 memory 도 SPEC 도 아니다
 
-These three are easy to confuse — keep them separate or you create drift:
+이 셋은 혼동하기 쉽다 — 따로 두지 않으면 drift 가 생긴다:
 
-- **Memory** (`~/.claude/projects/<slug>/memory/`) = durable *facts* that outlive
-  the task — coordinate systems, API quirks, user preferences. Narrow, long-lived.
-- **Handoff** (`docs/handoff/`) = a *work snapshot* — what's in flight right now.
-  Broad, short-lived. Once the work lands, the handoff is stale → delete it (YAGNI).
-- **SPEC / PLAN** (`docs/specs/`, `docs/plans/`) = the external contract and the
-  intended change. Authored deliberately, not a session byproduct.
+- **Memory** (`~/.claude/projects/<slug>/memory/`) = 작업보다 오래 사는 영속적
+  *사실* — 좌표계, API 특이점, 사용자 선호. 좁고 장수한다.
+- **Handoff** (`docs/handoff/`) = *작업 스냅샷* — 지금 진행 중인 것. 넓고
+  단명한다. 작업이 랜딩되면 handoff 는 낡은 것 → 삭제한다 (YAGNI).
+- **SPEC / PLAN** (`docs/specs/`, `docs/plans/`) = 외부 계약과 의도한 변경.
+  세션 부산물이 아니라 의도적으로 작성된다.
 
-If during a WRITE you notice a durable fact worth keeping (a non-obvious gotcha,
-a confirmed decision rule), write it to memory *as well* and link it from the
-handoff. Don't smuggle long-lived facts into a doc that's meant to be deleted.
+WRITE 중에 간직할 가치가 있는 영속적 사실(눈에 안 띄는 함정, 확정된 결정
+규칙)을 발견하면, memory 에*도* 적고 handoff 에서 그것을 링크한다. 삭제될
+운명의 문서에 장수할 사실을 몰래 넣지 마라.
 
 ---
 
-## WRITE — distilling the session
+## WRITE — 세션 증류하기
 
-### 1. Locate the project and the handoff dir
+### 1. 프로젝트와 handoff 디렉터리 찾기
 
-- Project root = nearest ancestor with a `.git`. The handoff lives at
-  `<root>/docs/handoff/`. Create the dir if missing — it's a standard sub-tree.
-- No git repo / no project (e.g. a scratch session)? Fall back to
-  `~/.claude/projects/<cwd-slug>/handoff/`. Note this in your reply so the user
-  knows where it went.
+- 프로젝트 루트 = `.git` 을 가진 가장 가까운 상위 디렉터리. handoff 는
+  `<root>/docs/handoff/` 에 둔다. 없으면 디렉터리를 만든다 — 표준 sub-tree 다.
+- git repo 가 없거나 프로젝트가 아니면(예: 임시 스크래치 세션)?
+  `~/.claude/projects/<cwd-slug>/handoff/` 로 폴백한다. 어디에 갔는지 사용자가
+  알도록 응답에 적는다.
 
-**Route by where the work actually lives, not where the cwd happens to be.** A
-global skill gets invoked from inside whatever project you're sitting in, so the
-cwd's repo is often unrelated to what you worked on. If the session's primary
-work targets files *outside* the cwd repo — global config under `~/.claude/`,
-another repo, a sibling project — do NOT dump the handoff into the cwd repo's
-`docs/handoff/` (that pollutes an unrelated git tree with an off-topic doc).
-Instead write to the global `~/.claude/projects/<cwd-slug>/handoff/` and say so.
-Only use `<cwd-root>/docs/handoff/` when the work and the cwd repo are the same
-thing. When the work spans both the cwd repo and outside it, the cwd repo wins.
+**cwd 가 어디인지가 아니라, 작업이 실제로 어디에 사는지로 라우팅하라.** 글로벌
+스킬은 당신이 앉아 있는 프로젝트 안에서 호출되므로, cwd 의 repo 는 당신이
+작업한 것과 무관한 경우가 잦다. 세션의 주된 작업이 cwd repo *바깥*의 파일을
+대상으로 한다면 — `~/.claude/` 아래의 글로벌 설정, 다른 repo, 형제 프로젝트 —
+handoff 를 cwd repo 의 `docs/handoff/` 에 덤프하지 마라(주제에 안 맞는 문서로
+무관한 git 트리를 오염시킨다). 대신 글로벌 `~/.claude/projects/<cwd-slug>/handoff/`
+에 쓰고 그렇게 했다고 말하라. 작업과 cwd repo 가 같은 것일 때만
+`<cwd-root>/docs/handoff/` 를 쓴다. 작업이 cwd repo 와 그 바깥에 걸치면 cwd
+repo 가 이긴다.
 
-### 2. Pick the file — one per work-thread, not one per session
+### 2. 파일 고르기 — 세션당 하나가 아니라 작업 스레드당 하나
 
-Naming: `YYYY-MM-DD-<topic>.md` (kebab topic, e.g. `2026-06-01-stay-cluster-bench`).
-Use today's date from your context.
+명명: `YYYY-MM-DD-<topic>.md` (kebab topic, 예: `2026-06-01-stay-cluster-bench`).
+컨텍스트의 오늘 날짜를 쓴다.
 
-Before creating a new file, check `docs/handoff/` for an existing doc on the same
-thread. If this session continued earlier work, **update that doc in place**
-(refresh status, append to the log) rather than spawning a near-duplicate. A pile
-of stale handoffs for one thread is noise.
+새 파일을 만들기 전에, 같은 스레드에 대한 기존 문서가 `docs/handoff/` 에 있는지
+확인하라. 이 세션이 이전 작업을 이어간 것이라면, 거의 중복인 문서를 새로
+만들기보다 **그 문서를 제자리에서 갱신하라**(상태 새로고침, 로그에 추가). 한
+스레드에 대한 낡은 handoff 더미는 노이즈다.
 
-### 3. Capture — curated, not a transcript dump
+### 3. 담기 — 트랜스크립트 덤프가 아니라 큐레이션
 
-The receiving agent reads this once and acts. Optimize for *fast pickup*, not
-completeness. Match the project's existing handoff house style (frontmatter +
-sections) — read a sibling in `docs/handoff/` first if any exist.
+이어받는 에이전트는 이것을 한 번 읽고 행동한다. 완전성이 아니라 *빠른
+픽업*에 최적화하라. 프로젝트의 기존 handoff 하우스 스타일(frontmatter +
+섹션)에 맞춰라 — 있다면 `docs/handoff/` 의 형제 문서를 먼저 읽어라.
 
-Write the doc in the session's working language (Korean for this user).
+문서는 세션의 작업 언어로 쓴다(이 사용자는 한국어).
 
 ```markdown
 ---
-title: <one-line what-and-why>
+title: <무엇을-왜 한 줄로>
 type: handoff
 created: YYYY-MM-DD
-branch: <current branch>
-base: <base branch, if on a feature branch>
-spec: <SPEC-ID if this work has one, else omit>
+branch: <현재 브랜치>
+base: <피처 브랜치라면 베이스 브랜치>
+spec: <이 작업에 SPEC 이 있으면 SPEC-ID, 없으면 생략>
 status: in-progress | blocked | ready-to-merge
 ---
 
 # <topic> — 핸드오프
 
 ## TL;DR
-3-5 bullets. The goal, where it stands, the single most important next move.
-Someone who reads ONLY this should know what to do next.
+불릿 3-5개. 목표, 현재 위치, 단 하나 가장 중요한 다음 행동.
+이것만 읽는 사람도 다음에 무엇을 할지 알아야 한다.
 
 ## Done (this session)
-- <completed item> — <commit hash if committed>
+- <완료 항목> — <커밋했다면 commit hash>
 - ...
 
 ## In progress
-- <file path> — <what's half-done and the intent>. Why it's not finished yet.
+- <파일 경로> — <절반쯤 된 것과 의도>. 아직 끝나지 않은 이유.
 
 ## Next steps
-Phrase as verifiable goals, not vague verbs:
-1. <step> → verify: <how you'll know it's done>
+모호한 동사가 아니라 검증 가능한 목표로 표현하라:
+1. <step> → verify: <끝났는지 어떻게 알 것인가>
 2. ...
 
 ## Key decisions & why
-The rationale is the thing most easily lost across sessions. For each non-obvious
-choice: what was decided, what was rejected, and WHY. This is what stops the next
-agent from re-litigating settled questions or undoing them blindly.
+근거는 세션을 넘어가며 가장 쉽게 잃어버리는 것이다. 눈에 안 띄는 선택마다:
+무엇을 결정했고, 무엇을 기각했으며, 그리고 WHY. 이것이 다음 에이전트가
+정리된 질문을 다시 다투거나 무턱대고 되돌리는 것을 막는다.
 
 ## Open questions / blockers
-- <unresolved thing> — what's needed to unblock, who/what decides.
+- <미해결 사항> — 막힘을 풀려면 무엇이 필요한지, 누가/무엇이 결정하는지.
 
 ## Touched files
-Paths only (the next agent has Read) — group by area. Don't paste file contents.
+경로만(다음 에이전트는 Read 가 있다) — 영역별로 묶어라. 파일 내용을 붙이지 마라.
 
 ## Resume command
-Exact steps to get a working session back: branch checkout, dev boot, the one
-command to re-run the thing you were testing.
+동작하는 세션을 되찾는 정확한 단계: 브랜치 체크아웃, dev 부팅, 테스트하던
+것을 다시 돌릴 그 한 줄 명령.
 ```
 
-### 4. Discipline
+### 4. 규율
 
-- **Paths, not contents.** Never paste large file bodies, full diffs, or test
-  logs into the handoff. The next agent reads from disk. Reference `file:line`.
-- **No secrets.** Never copy `.env` values, tokens, or credentials into the doc —
-  it may be git-tracked and shared.
-- **Honest status.** If tests are failing or a step was skipped, say so in the doc.
-  A handoff that hides breakage costs the next session more than it saves.
-- **Link, don't duplicate.** Point to the SPEC/PLAN/ADR/memory rather than copying
-  their content. The handoff is a pointer-rich index, not a mirror.
+- **내용이 아니라 경로.** 큰 파일 본문, 전체 diff, 테스트 로그를 handoff 에
+  붙이지 마라. 다음 에이전트는 디스크에서 읽는다. `file:line` 으로 참조하라.
+- **시크릿 금지.** `.env` 값, 토큰, 자격증명을 문서에 복사하지 마라 — git
+  추적·공유될 수 있다.
+- **정직한 상태.** 테스트가 실패하거나 단계를 건너뛰었으면 문서에 그렇게
+  적어라. 깨짐을 숨기는 handoff 는 아끼는 것보다 다음 세션에 더 비싸다.
+- **링크하고 중복하지 마라.** SPEC/PLAN/ADR/memory 의 내용을 복사하기보다
+  그것을 가리켜라. handoff 는 포인터가 풍부한 인덱스이지 거울이 아니다.
 
-After writing, tell the user the path and give a 2-3 line summary of what you
-captured. If you also wrote a memory entry, mention it.
+작성 후, 사용자에게 경로를 알리고 담은 내용을 2-3줄로 요약하라. memory
+항목도 적었다면 그것도 언급하라.
 
 ---
 
-## READ — resuming from a handoff
+## READ — handoff 에서 재개하기
 
-### 1. Find the right handoff
+### 1. 올바른 handoff 찾기
 
-- Look in `<root>/docs/handoff/` (then the global fallback dir). If the user named
-  a topic, match it. Otherwise take the **most recent by date**, but if several are
-  recent and on different threads, list them and ask which one — resuming the wrong
-  thread is worse than a one-line question.
+- `<root>/docs/handoff/` 을 본다(그다음 글로벌 폴백 디렉터리). 사용자가 주제를
+  지정했으면 그것에 맞춘다. 아니면 **날짜 기준 가장 최근**을 택하되, 최근 것이
+  여러 개이고 서로 다른 스레드라면 나열해서 어느 것인지 물어라 — 엉뚱한
+  스레드를 재개하는 것이 한 줄 질문보다 나쁘다.
 
-### 2. Restore context before acting
+### 2. 행동 전에 컨텍스트 복원하기
 
-Read the handoff fully. Then *verify it against reality* — a handoff reflects the
-moment it was written and may be stale:
+handoff 를 끝까지 읽어라. 그다음 *현실과 대조해 검증하라* — handoff 는 작성된
+순간을 반영하므로 낡았을 수 있다:
 
-- Confirm the branch exists and check it out (`Resume command` section).
-- Spot-check `Touched files` actually match the described state (`git status`,
-  `git log` since the handoff date). If the repo moved on, say so before proceeding.
-- Surface any `Open questions / blockers` to the user up front — those are likely
-  why the work paused.
+- 브랜치가 존재하는지 확인하고 체크아웃한다(`Resume command` 섹션).
+- `Touched files` 가 기술된 상태와 실제로 맞는지 점검한다(`git status`,
+  handoff 날짜 이후의 `git log`). repo 가 그새 움직였으면, 진행하기 전에 말하라.
+- `Open questions / blockers` 를 사용자에게 먼저 드러내라 — 그것들이 작업이
+  멈춘 이유일 가능성이 높다.
 
-### 3. Re-state and proceed
+### 3. 다시 진술하고 진행하기
 
-Give the user a short "here's where we are" recap drawn from the handoff (goal,
-last state, the next step you're about to take), then continue the work. Don't
-silently dive in — confirm you're resuming the thread they meant.
+handoff 에서 끌어낸 짧은 "지금 여기까지 왔다" 요약(목표, 마지막 상태, 곧
+취할 다음 단계)을 사용자에게 준 뒤 작업을 이어가라. 말없이 뛰어들지 마라 —
+사용자가 의도한 그 스레드를 재개하는 게 맞는지 확인하라.
 
-### 4. Close the loop
+### 4. 루프 닫기
 
-When the resumed work lands (merged, shipped, abandoned), the handoff is spent.
-Delete it — keeping stale handoffs around defeats the "fast cold start" purpose
-and clutters `docs/handoff/`. If part of the thread continues, update the doc to
-reflect the new state instead.
+재개한 작업이 랜딩되면(머지·출시·폐기), handoff 는 소진된 것이다. 삭제하라 —
+낡은 handoff 를 남겨두면 "빠른 맨바닥 시작"이라는 목적을 깨뜨리고
+`docs/handoff/` 를 어지럽힌다. 스레드의 일부가 계속된다면, 대신 문서를 새
+상태로 갱신하라.
 
 ---
 
 ## Anti-patterns
 
-- Dumping the whole conversation transcript instead of distilling it — the next
-  agent then has to do the distillation you skipped.
-- Capturing *what* changed but not *why* — the rationale is the expensive part to
-  reconstruct, and the easiest to lose.
-- A handoff per session for the same ongoing thread — update in place instead.
-- Leaving landed handoffs to rot in `docs/handoff/` — delete when spent.
-- Pasting secrets, full diffs, or test logs into a git-tracked doc.
-- Putting long-lived facts in a handoff (they vanish when it's deleted) — those
-  belong in memory.
+- 증류하지 않고 대화 트랜스크립트 전체를 덤프 — 그러면 다음 에이전트가 당신이
+  건너뛴 증류를 해야 한다.
+- *무엇이* 바뀌었는지는 담고 *왜*는 안 담음 — 근거가 재구성하기 비싼 부분이고,
+  가장 잃기 쉽다.
+- 같은 진행 스레드에 대해 세션마다 handoff 하나씩 — 대신 제자리에서 갱신하라.
+- 랜딩된 handoff 를 `docs/handoff/` 에서 썩게 둠 — 소진되면 삭제하라.
+- git 추적 문서에 시크릿, 전체 diff, 테스트 로그를 붙임.
+- 장수할 사실을 handoff 에 넣음(삭제되면 함께 사라진다) — 그것들은 memory 에
+  속한다.

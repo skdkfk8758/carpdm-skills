@@ -1,92 +1,92 @@
 # Craft Pipeline — Socratic → Adversarial Plan → Dynamic TDD → Secure Verify
 
-Shared 4-phase engine behind `forge` (new feature), `renew` (renew existing),
-`reshape` (refactor), and `hunt` (bug fix). The calling skill supplies the
-task-type framing — its Socratic focus and where the TDD cycle starts. This file
-is the common spine they all run.
+`forge`(신규 기능), `renew`(기존 갱신),
+`reshape`(리팩터), `hunt`(버그 수정) 뒤에 있는 공유 4-phase 엔진. 호출 스킬이
+작업유형 framing — 자신의 Socratic 초점과 TDD 사이클이 어디서 시작하는지 — 을 공급한다. 이 파일은
+이들 모두가 돌리는 공통 척추다.
 
-The point of the pipeline is to never let a vague ask turn into vague code: an
-ask becomes a *testable spec*, the spec gets *attacked* before any code exists,
-implementation happens *test-first*, and nothing ships until it is *verified and
-secure*. Skipping a phase is allowed only when the user explicitly says so —
-otherwise the value of the skill is lost.
+파이프라인의 핵심은 모호한 요청이 모호한 코드로 변하지 않게 하는 것이다:
+요청은 *테스트 가능한 spec* 이 되고, spec 은 코드가 존재하기 전에 *공격받고*,
+구현은 *test-first* 로 일어나며, *검증되고
+안전*하기 전엔 아무것도 출시되지 않는다. phase 스킵은 사용자가 명시적으로 그렇게 말할 때만 허용된다 —
+그렇지 않으면 스킬의 가치가 사라진다.
 
-## Execution mode — linear (default) vs orchestrated
+## Execution mode — linear (기본) vs orchestrated
 
-By default this engine runs **linear**: you, in this single session, run every
-phase. That is the right mode for almost all work, and the rest of this file
-describes it.
+기본적으로 이 엔진은 **linear** 로 돈다: 당신이, 이 단일 세션에서, 모든
+phase 를 수행한다. 거의 모든 작업에 적합한 모드이며, 이 파일의 나머지는
+이를 기술한다.
 
-Escalate to the **orchestrated** mode — a persistent multi-agent design council +
-dynamic-workflow build + verification panel. It gets requested two ways:
+**orchestrated** 모드 — 영속적 멀티에이전트 설계 council +
+dynamic-workflow 빌드 + 검증 패널 — 으로 에스컬레이트한다. 이는 두 가지 방식으로 요청된다:
 
-- **Explicit cue** — phrasings like "convene a design council", "full panel
+- **명시적 신호** — "convene a design council", "full panel
   treatment", "팀으로 설계하고 워크플로로 구현해줘", "maximum rigor, spare no
-  agents", "council 소집", or the short canonical keyword **`[council]`** /
-  **`--council`** anywhere in the request. Honor it directly — no need to ask.
-- **Offer on a stakes signal** — if the user did NOT ask for council but signals
-  the work is high-stakes or they're nervous ("이거 중요한데", "리스크 커서",
-  "제대로 하고 싶어", "불안해", "this is critical", "don't get this wrong"), OR the
-  task is objectively high-risk (auth / payments / a contract change with external
-  callers / 6+ files), **offer it once** before Phase 1 via `AskUserQuestion`:
-  roughly "고위험이라 멀티에이전트 council 모드로 갈 수도 있어요 (느리지만 적대적
-  설계검토 + 구현 후 의도검증). 기본 linear로 갈까요, council로 갈까요?". Default to
-  **linear** if dismissed or unanswered, and ask at most once — don't re-offer
-  every phase.
+  agents", "council 소집", 또는 요청 어디든 짧은 정규 키워드 **`[council]`** /
+  **`--council`** 같은 표현. 직접 따른다 — 물어볼 필요 없다.
+- **stakes 신호에 대한 제안** — 사용자가 council 을 요청하지 않았지만
+  작업이 고위험이거나 긴장한 신호를 보일 때 ("이거 중요한데", "리스크 커서",
+  "제대로 하고 싶어", "불안해", "this is critical", "don't get this wrong"), 또는
+  작업이 객관적으로 고위험일 때 (auth / payments / 외부 호출자가 있는 계약 변경 /
+  6+ 파일), Phase 1 전에 `AskUserQuestion` 으로 **한 번 제안한다**:
+  대략 "고위험이라 멀티에이전트 council 모드로 갈 수도 있어요 (느리지만 적대적
+  설계검토 + 구현 후 의도검증). 기본 linear로 갈까요, council로 갈까요?". 거부되거나
+  답이 없으면 **linear** 를 기본으로 하고, 최대 한 번만 물어라 — 매 phase 마다
+  다시 제안하지 말 것.
 
-A casual "build X" / "fix Y" / "refactor Z" with no stakes signal is NOT an
-escalation — stay linear silently. This is an intensity choice orthogonal to the
-task type: any of forge / renew / hunt / reshape can run either mode.
+stakes 신호 없는 가벼운 "build X" / "fix Y" / "refactor Z" 는
+에스컬레이션이 아니다 — 조용히 linear 로 유지한다. 이는 작업유형과 직교하는
+강도(intensity) 선택이다: forge / renew / hunt / reshape 어느 것이든 두 모드 중 하나로 돌 수 있다.
 
-When escalated, read `orchestrated.md` and drive the five phases through its
-team-mode + Workflow topology instead of the linear instructions below. The phase
-*content* and your task-type Phase 1 focus / Phase 3 TDD entry point are
-unchanged — only the execution structure differs. One model change: the
-orchestrated build runs on **sonnet** (the linear Phase 3 below runs on opus).
+에스컬레이트되면 `orchestrated.md` 를 읽고 아래 linear 지침 대신 그것의
+team-mode + Workflow 토폴로지로 다섯 phase 를 구동한다. phase
+*내용* 과 당신의 작업유형 Phase 1 초점 / Phase 3 TDD 진입점은
+변하지 않는다 — 실행 구조만 다르다. 한 가지 모델 변경:
+orchestrated 빌드는 **sonnet** 에서 돈다 (아래 linear Phase 3 은 opus 에서 돈다).
 
 ## Phase 0 — Frame & isolate
 
-- Restate the task type and a one-line goal back to the user.
-- Isolation (project rule): 6+ files, architecture change, or a 3+ file refactor
-  → branch into a worktree before editing. If you skip it, say why in your first
-  response. A 1–2 file same-topic change can stay on the current branch.
+- 작업유형과 한 줄 목표를 사용자에게 되짚어준다.
+- Isolation (프로젝트 룰): 6+ 파일, 아키텍처 변경, 또는 3+ 파일 리팩터
+  → 편집 전에 worktree 로 브랜치한다. 스킵한다면, 첫 응답에서 이유를 말한다.
+  1–2 파일 동일주제 변경은 현재 브랜치에 머물러도 된다.
 
-## Phase 1 — Socratic interview → plan
+## Phase 1 — Socratic 인터뷰 → 플랜
 
-**Skip if requirements are already pinned.** If the user points you at a
-`deep-interview` requirements spec (e.g. a `docs/specs/<slug>.md` with numbered
-`REQ-F`/`REQ-N` entries and per-requirement acceptance), or hands one over, treat
-it as the completed Phase-1 output — do **not** re-interview. Read it, confirm it
-still matches the code (a quick ground-check, not a fresh interview), carry its
-requirements forward as the spec, and go straight to Phase 2. Re-running the
-interview on an already-pinned spec is the double-interview anti-pattern. The rest
-of this phase applies only when no such spec exists.
+**요구사항이 이미 확정됐으면 스킵.** 사용자가
+`deep-interview` 요구사항 spec (예: 번호 매겨진
+`REQ-F`/`REQ-N` 항목과 요구사항별 acceptance 가 있는 `docs/specs/<slug>.md`) 을 가리키거나, 건네주면, 그것을
+완료된 Phase-1 산출물로 취급한다 — 재인터뷰를 **하지** 말 것. 읽고, 코드와 여전히
+일치하는지 확인하고 (가벼운 ground-check, 새 인터뷰 아님), 그 요구사항을
+spec 으로 이어가서, 곧장 Phase 2 로 간다. 이미 확정된 spec 에 대해
+인터뷰를 재실행하는 것은 이중인터뷰 anti-pattern 이다. 이 phase 의 나머지는
+그런 spec 이 없을 때만 적용된다.
 
-Read `socratic.md`. **Ground first, then ask:** scope-read the code the task
-touches (project code-graph/LSP if available, else Read/Grep) and the relevant
-existing project docs — ADRs/concepts **and the guides/reference tree**
-(`docs/guides/`, `docs/reference/`) (`context-adr.md`) — so questions are
-code-anchored and the plan respects standing decisions and documented procedures
-instead of re-litigating them. Then use Socratic
-questioning to convert the ask into a spec you could hand to a stranger. **Do not
-write implementation code in this phase.**
+`socratic.md` 를 읽어라. **먼저 ground 하고, 그다음 물어라:** 작업이
+건드리는 코드 (가능하면 프로젝트 code-graph/LSP, 아니면 Read/Grep) 와 관련된
+기존 프로젝트 문서 — ADR/concept **그리고 guide/reference 트리**
+(`docs/guides/`, `docs/reference/`) (`context-adr.md`) — 를 scope-read 한다.
+그래야 질문이 코드에 anchor 되고 플랜이 standing 결정과 문서화된 절차를
+재론하지 않고 존중한다. 그다음 Socratic
+질문법으로 요청을 낯선 사람에게 건넬 수 있는 spec 으로 변환한다. **이 phase 에서는
+구현 코드를 쓰지 말 것.**
 
-Keep questioning (in small focused clusters, not a 20-question dump) until you
-can state all of:
+다음을 모두 진술할 수 있을 때까지 (20개 질문 폭탄이 아니라 작고 집중된 클러스터로)
+질문을 계속한다:
 
-- **Goal** as verifiable success criteria ("returns 400 on empty body", not
+- **Goal** 을 검증 가능한 성공 기준으로 ("returns 400 on empty body", 아니라
   "handles bad input").
-- **Scope IN / OUT** — what this change does and explicitly does not touch.
-- **Affected files & contracts** — verified by Read/Grep, never guessed. Naming a
-  file or symbol you haven't opened is a Phase-1 failure.
-- **Edge cases & failure modes.**
-- **Security surface** — every input, auth boundary, secret, and external call
-  this change exposes or relies on.
-- **YAGNI deletions** — dead paths this change orphans, to be removed in the
-  same change (not "a later PR").
+- **Scope IN / OUT** — 이 변경이 무엇을 하고 명시적으로 무엇을 건드리지 않는가.
+- **영향받는 파일 & 계약** — Read/Grep 으로 검증, 절대 추측 금지. 열어보지 않은
+  파일이나 심볼을 거명하는 것은 Phase-1 실패다.
+- **엣지 케이스 & 실패 모드.**
+- **보안 surface** — 이 변경이 노출하거나 의존하는 모든 입력, auth 경계, secret,
+  외부 호출.
+- **YAGNI 삭제** — 이 변경이 orphan 으로 만드는 데드 경로, 같은 변경에서
+  제거 ("나중 PR" 아님).
 
-Write the plan to `docs/plans/YYYY-MM-DD-<topic>.md` (or the project's
-`.planning/<phase>/` if it uses that). Sections:
+플랜을 `docs/plans/YYYY-MM-DD-<topic>.md` (또는 프로젝트가 그걸 쓴다면
+`.planning/<phase>/`) 에 쓴다. 섹션:
 
 ```
 # <topic>
@@ -102,96 +102,95 @@ Write the plan to `docs/plans/YYYY-MM-DD-<topic>.md` (or the project's
 ##   the item, not vague prose like "handles errors")
 ```
 
-Alongside the `.md`, write a review-friendly HTML companion at the same path with
-a `.html` extension (`docs/plans/YYYY-MM-DD-<topic>.html`). Make it self-contained
-(inline `<style>`, no external assets) so it opens straight in a browser. What the
-companion *shows* depends on whether the plan delivers a user-facing UI:
+`.md` 와 나란히, 같은 경로에 `.html` 확장자로 리뷰 친화적 HTML companion 을
+쓴다 (`docs/plans/YYYY-MM-DD-<topic>.html`). 브라우저에서 바로 열리도록
+self-contained 하게 만든다 (inline `<style>`, 외부 asset 없음). companion 이
+*보여주는* 것은 플랜이 사용자 대면 UI 를 전달하는지에 달려 있다:
 
-- **UI / frontend plans** (a screen, component, page, flow, or any visible
-  UX change): the companion is a **mockup of the resulting UI as the user will
-  see it once the plan is implemented** — not a rendering of the plan text. Lay
-  out the actual interface (chrome, panes, controls, states) and, where it
-  clarifies the UX, make it lightly interactive with inline `<script>` so the key
-  interaction can be demonstrated, not just described. Mark it visibly as a mockup
-  so it isn't mistaken for the shipped product. The plan's tables stay in the
-  `.md`; the `.html` is the picture of the outcome.
-- **Non-UI plans** (refactor, backend, DB migration, API/contract change, infra):
-  a "resulting UI" doesn't exist, so the companion is a **rendering of the plan**
-  — no new content, just the Markdown made visual for review: each section as a
-  heading + block, Scope IN/OUT and the Steps→verify pairs as tables, file paths
-  code-styled.
+- **UI / 프론트엔드 플랜** (화면, 컴포넌트, 페이지, 플로우, 또는 보이는
+  UX 변경): companion 은 **플랜이 구현된 후 사용자가 보게 될 결과 UI 의
+  목업** 이다 — 플랜 텍스트의 렌더링이 아니라. 실제 인터페이스 (chrome, pane,
+  컨트롤, 상태) 를 배치하고, UX 를 명확히 하는 곳에서는 inline `<script>` 로 가볍게
+  인터랙티브하게 만들어 핵심 인터랙션이 기술만 되지 않고 시연되게 한다.
+  출시된 제품으로 오인되지 않게 목업임을 눈에 띄게 표시한다. 플랜의 테이블은
+  `.md` 에 남는다; `.html` 은 결과의 그림이다.
+- **비 UI 플랜** (리팩터, 백엔드, DB 마이그레이션, API/계약 변경, 인프라):
+  "결과 UI" 가 존재하지 않으므로, companion 은 **플랜의 렌더링**
+  이다 — 새 내용 없이, 그냥 리뷰용으로 Markdown 을 시각화: 각 섹션을
+  heading + 블록으로, Scope IN/OUT 과 Steps→verify 쌍을 테이블로, 파일 경로는
+  코드 스타일로.
 
-If a plan is mixed (a UI change with backend work), mock the UI and keep the
-non-UI sections as plan rendering below it. When codex verdicts land in the `.md`
-in Phase 2, refresh the `.html` so the two stay in sync.
+플랜이 혼합이면 (백엔드 작업이 있는 UI 변경), UI 는 목업으로 만들고 그 아래
+비 UI 섹션은 플랜 렌더링으로 둔다. Phase 2 에서 codex 평결이 `.md` 에
+들어오면, 둘이 동기 유지되도록 `.html` 을 갱신한다.
 
-Ask the user to confirm the plan before Phase 2. A plan the user hasn't seen is
-not a plan.
+Phase 2 전에 사용자에게 플랜 확인을 요청한다. 사용자가 보지 못한 플랜은
+플랜이 아니다.
 
 ## Phase 2 — Adversarial plan review (codex)
 
-Read `codex-review.md`. Hand the plan to codex as a hostile reviewer whose job is
-to find what is wrong with it — hidden assumptions, missing edge cases, security
-holes, a simpler path, scope creep, **and whether the plan makes an architecture
-decision that warrants an ADR or conflicts with a standing one**. Fold every
-*blocking* finding back into the plan. Re-review until codex raises no blocking
-objection or you have done 2 rounds. Record each round's verdict in the plan.
+`codex-review.md` 를 읽어라. 플랜을 codex 에게 적대적 리뷰어로서 넘긴다 —
+그 일은 무엇이 잘못됐는지 찾는 것이다: 숨은 가정, 누락된 엣지 케이스, 보안
+구멍, 더 단순한 경로, scope creep, **그리고 플랜이 ADR 가 필요한 아키텍처
+결정을 하거나 standing ADR 과 충돌하는지**. 모든 *blocking* 발견을 플랜에
+다시 접어 넣는다. codex 가 blocking 이의를 제기하지 않거나 2 라운드를
+마칠 때까지 재리뷰한다. 각 라운드의 평결을 플랜에 기록한다.
 
 ## Phase 3 — Dynamic workflow: task split + TDD (opus)
 
-Read `dynamic-tdd.md`. Use the `Workflow` tool to break the approved plan into
-atomic tasks and drive each through a strict TDD cycle — **red → green →
-refactor** — with implementation agents pinned to `model: 'opus'`. Pipeline
-over the tasks; a task is done only when its own tests are green. The plan is the
-contract: each implementation agent re-reads the approved plan (`.md`) and the
-relevant project guides (`docs/guides/`) before writing code, and implements
-nothing not in the plan without going back to Phase 1.
+`dynamic-tdd.md` 를 읽어라. `Workflow` 도구로 승인된 플랜을 atomic
+태스크로 쪼개고 각각을 엄격한 TDD 사이클 — **red → green →
+refactor** — 로 구동하되 구현 에이전트는 `model: 'opus'` 로 핀한다. 태스크들을
+pipeline 하고; 태스크는 자신의 테스트가 green 일 때만 완료된다. 플랜이
+계약이다: 각 구현 에이전트는 코드를 쓰기 전에 승인된 플랜 (`.md`) 과
+관련 프로젝트 guide (`docs/guides/`) 를 다시 읽고, 플랜에 없는 것은 Phase 1 로
+돌아가지 않고서는 구현하지 않는다.
 
-The workflow routes its implement / verify agents to the curated `agents/` pool
-via `agentType` (`executor`, `test-engineer`; the §4 panel adds `security-reviewer`,
-plus a no-agentType acceptance-QA lane) — battle-tested prompts, with reviewer-class agents tool-locked
-to read-only. The pool is an **upgrade, not a hard dependency**: where its default
-model conflicts with a phase contract the explicit `model:` wins (Phase 3 forces
-opus over the pool's sonnet), and if `~/.claude/agents/` lacks the pool the
-agents simply drop `agentType` and run the same prompt on the default subagent.
-See `dynamic-tdd.md` / `orchestrated.md` for the exact mapping. (No agent
-"cleanup" step exists or is needed — workflow subagents are ephemeral and the only
-persistent agents, the orchestrated council, are torn down in §5.)
+워크플로는 구현 / 검증 에이전트를 `agentType` (`executor`, `test-engineer`;
+§4 패널이 `security-reviewer` 와 agentType 없는 acceptance-QA lane 을 추가) 으로
+curated `agents/` 풀에 라우팅한다 — battle-tested 프롬프트, reviewer 급 에이전트는
+read-only 로 tool-lock. 풀은 **하드 의존이 아니라 업그레이드**다: 그
+기본 모델이 phase 계약과 충돌하면 명시적 `model:` 이 이긴다 (Phase 3 은
+풀의 sonnet 위로 opus 를 강제), 그리고 `~/.claude/agents/` 에 풀이 없으면
+에이전트는 그냥 `agentType` 을 떨구고 같은 프롬프트를 기본 subagent 에서 돌린다.
+정확한 매핑은 `dynamic-tdd.md` / `orchestrated.md` 참조. (에이전트
+"cleanup" 단계는 존재하지도 필요하지도 않다 — 워크플로 subagent 는 일회성이고 유일한
+영속 에이전트인 orchestrated council 은 §5 에서 정리된다.)
 
 ## Phase 3.5 — Convention reshape pass (forge / renew only)
 
-Read `reshape-pass.md`. For `forge` and `renew` only, after Phase 3 is green:
-**offer once** (via `AskUserQuestion`, default off) a behavior-preserving cleanup
-that aligns the just-written diff to the project's conventions — naming,
-function/file structure, import/dependency organization, error handling
-(`convention-guide.md`, merged with the project's lint/rules and `docs/guides/`).
-The Phase 3 tests are the behavior pin; every step keeps them green, and a test
-going red means the step changed behavior — revert it. `hunt` and `reshape` skip
-this phase (a fix stays surgical; a reshape already is this pass). If declined or
-nothing to align, skip straight to Phase 4.
+`reshape-pass.md` 를 읽어라. `forge` 와 `renew` 에 한해, Phase 3 이 green 이 된 후:
+방금 작성한 diff 를 프로젝트 컨벤션 — 네이밍,
+함수/파일 구조, import/dependency 조직, 에러 처리 — 에 맞추는 behavior-preserving 정리를
+`AskUserQuestion` 으로 **한 번 제안** (기본 off)
+(`convention-guide.md`, 프로젝트 lint/rule 및 `docs/guides/` 와 머지). Phase 3
+테스트가 behavior 핀이다; 모든 단계는 그것을 green 으로 유지하고, 테스트가
+red 가 되면 그 단계가 behavior 를 바꾼 것이다 — 되돌린다. `hunt` 와 `reshape` 는 이
+phase 를 스킵한다 (수정은 surgical 하게; reshape 는 이미 이 pass 자체다). 거부되거나
+맞출 게 없으면, 곧장 Phase 4 로 스킵.
 
 ## Phase 4 — Secure verify
 
-Read `security.md`. Run the project verify gate (tests / typecheck / lint /
-build) **and** a security pass over the diff. Adversarially verify each security
-finding (try to refute it) before reporting it as real. Nothing ships red.
-Before shipping, check each Acceptance item from the plan as pass / fail — an
-unmet item counts as red, same rule.
+`security.md` 를 읽어라. 프로젝트 검증 게이트 (tests / typecheck / lint /
+build) **와** diff 에 대한 보안 pass 를 돌린다. 각 보안 발견을 진짜로 보고하기
+전에 적대적으로 검증한다 (반박을 시도). 아무것도 red 로 출시하지 않는다.
+출시 전에, 플랜의 각 Acceptance 항목을 pass / fail 로 체크한다 —
+충족되지 않은 항목은 red 로 친다, 같은 룰.
 
 ## Phase 5 — Wrap
 
-- Summarize: what changed, tests added, security verdict, residual risks.
-- Record durable decisions/knowledge (`context-adr.md`): if the work made an
-  **ADR-worthy** decision, write `docs/adr/NNN-slug.md` and update the registry;
-  if it established **reusable context**, write/update a `docs/concepts/` page.
-  Only when it's genuinely worth it — don't manufacture docs for routine work.
-- Do not commit or push unless the user asks.
+- 요약: 무엇이 바뀌었는지, 추가된 테스트, 보안 평결, 잔여 리스크.
+- 영속적 결정/지식 기록 (`context-adr.md`): 작업이 **ADR 감** 결정을
+  했다면, `docs/adr/NNN-slug.md` 를 쓰고 registry 를 갱신한다;
+  **재사용 가능한 context** 를 확립했다면, `docs/concepts/` 페이지를 쓰거나 갱신한다.
+  진짜로 가치 있을 때만 — 일상적 작업에 문서를 제조하지 말 것.
+- 사용자가 요청하지 않으면 commit 이나 push 하지 말 것.
 
-## Anti-patterns (the whole pipeline exists to prevent these)
+## Anti-patterns (이 파이프라인 전체가 이것들을 막으려 존재한다)
 
-- Coding before the spec is testable (Phase 1 skipped).
-- Treating the user's first phrasing as the full spec.
-- Skipping codex review because "the plan looks fine" — the plan looking fine is
-  exactly when an adversary is most useful.
-- Letting Phase 3 agents fall back to a cheaper tier instead of `model: 'opus'`.
-- Reporting tests green without running the security pass.
+- spec 이 테스트 가능해지기 전에 코딩 (Phase 1 스킵).
+- 사용자의 첫 표현을 완전한 spec 으로 취급.
+- "플랜이 괜찮아 보여서" codex 리뷰 스킵 — 플랜이 괜찮아 보일 때가
+  바로 적대자가 가장 유용한 때다.
+- Phase 3 에이전트가 `model: 'opus'` 대신 더 싼 tier 로 폴백하게 두기.
+- 보안 pass 를 돌리지 않고 테스트 green 을 보고하기.
