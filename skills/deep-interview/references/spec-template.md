@@ -101,8 +101,8 @@ to the REQ it constrains.>
 ## 8. Handoff
 
 Recommended next skill: <`/forge` (new) | `/renew` (change) | `/hunt` (bug)
-| implementation plan | carry elsewhere>, chosen from the nature
-of the work above.
+| `/deep-plan` (plan/design doc or UI mockup first, build deferred)
+| implementation plan | carry elsewhere>, chosen from the nature of the work above.
 
 **Treat this spec as the completed requirements step.** The recommended skill runs
 its own Socratic interview by default — skip it. Feed these numbered requirements
