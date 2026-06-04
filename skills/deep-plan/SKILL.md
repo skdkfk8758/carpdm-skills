@@ -42,6 +42,7 @@ deep-plan 은 craft 빌드 파이프라인과 같은 검증된 엔진을 쓰되 
   의 Phase 1 (특히 `.html` companion 분기 — UI 면 결과 UI 목업, 비UI 면 plan 렌더)
 - 모호할 때의 측정 게이트·여섯 Socratic 유형: `~/.claude/skills/deep-interview/references/scoring.md`
   와 `~/.claude/skills/deep-interview/references/socratic-playbook.md`
+- 종료 시 result 블록 규격(deep-* 공통): `~/.claude/skills/deep-interview/references/result-format.md`
 
 이 파일들이 없으면(craft-core/deep-interview 미설치) 같은 원리를 직접 적용하되,
 설치돼 있으면 항상 읽어서 한 소스를 따르라.
@@ -118,9 +119,23 @@ Acceptance 는 *실행* 이 아니라 *무엇을 할지/무엇이 done 인지의
 
 ### Step 4 — 제시하고 정지
 
-plan(`.md`)과 시안(`.html`) 경로를 사용자에게 보여준다. **여기서 멈춘다.** codex
-리뷰·TDD·보안·구현·자동 라우팅 없음 — deep-plan 은 plan 과 시안을 산출하는 도구다.
-사용자가 다음에 무엇을 할지는 사용자가 정한다.
+`result-format.md` 의 고정 블록으로 산출물을 보고한다 — `result:` 한 줄 + 각
+산출물의 상대경로와 `open` 명령. PLAN 행은 항상, `시안` 행은 UI plan 이라 `.html`
+을 만들었을 때만 넣는다(비UI 면 시안 행 생략). 예:
+
+```
+result: <topic> PLAN 산출 — N steps, scope IN <…> / OUT <…>
+
+산출물 — 열기:
+- PLAN `docs/plans/2026-06-04-<topic>.md`  →  `open docs/plans/2026-06-04-<topic>.md`
+- 시안 `docs/plans/2026-06-04-<topic>.html`  →  `open docs/plans/2026-06-04-<topic>.html`
+
+(`open` = macOS. Linux `xdg-open <path>`, Windows `start <path>`.
+ 경로는 터미널에서 클릭으로도 열린다.)
+```
+
+그리고 **여기서 멈춘다.** codex 리뷰·TDD·보안·구현·자동 라우팅 없음 — deep-plan 은
+plan 과 시안을 산출하는 도구다. 사용자가 다음에 무엇을 할지는 사용자가 정한다.
 
 ## Anti-patterns
 
