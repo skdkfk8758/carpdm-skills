@@ -7,7 +7,7 @@
 
 Claude Code 글로벌 스킬·에이전트 **배포 레포**. 빌드/런타임 없음 — 스킬은 마크다운(`SKILL.md` + `references/*.md`)이고 `~/.claude/skills/` 로, 에이전트는 플랫 `.md` 파일이고 `~/.claude/agents/` 로 복사돼야 동작한다. 코드 컴파일·테스트·린트 단계 없음.
 
-스킬 10종: 작업유형 파이프라인 4 (`forge`/`hunt`/`renew`/`reshape`) + 심층인터뷰 1 (`deep-interview`) + 세션인계 1 (`handoff`) + 정리유틸 1 (`sweep`) + PR 랜딩 1 (`land`) + 에이전트저작 1 (`summon`) + 공유엔진 1 (`craft-core`). 공유엔진은 두 실행 모드를 가진다 — linear(기본) / orchestrated(멀티에이전트 council, §5). `deep-interview` 는 standalone (craft-core 무의존) — 모호한 아이디어를 소크라테스 인터뷰 + 수학적 ambiguity 게이트로 검증가능 spec 까지 끌어올린 뒤 빌드 파이프라인으로 핸드오프. 빌드는 안 함.
+스킬 12종: 작업유형 파이프라인 4 (`forge`/`hunt`/`renew`/`reshape`) + 심층인터뷰 1 (`deep-interview`) + 계획수립 1 (`deep-plan`) + goal프롬프트저작 1 (`deep-prompt`) + 세션인계 1 (`handoff`) + 정리유틸 1 (`sweep`) + PR 랜딩 1 (`land`) + 에이전트저작 1 (`summon`) + 공유엔진 1 (`craft-core`). 공유엔진은 두 실행 모드를 가진다 — linear(기본) / orchestrated(멀티에이전트 council, §5). `deep-interview` 는 standalone (craft-core 무의존) — 모호한 아이디어를 소크라테스 인터뷰 + 수학적 ambiguity 게이트로 검증가능 spec 까지 끌어올린 뒤 빌드 파이프라인으로 핸드오프. 빌드는 안 함. `deep-plan` 은 craft-core 의 **Phase 0+1 만** 차용하는 5번째 craft consumer (§7) — (모호하면 적응형 인터뷰로 보강 후) 실행 가능한 PLAN 문서 + UI plan 이면 HTML 시안까지 산출하고 **멈춘다**. codex 리뷰·TDD·보안 등 빌드 페이즈는 진입하지 않으며, deep-interview 처럼 빌드로 라우팅하지도 않는다 — 순수 산출. `deep-prompt` 는 standalone (craft-core 무의존) — 자율/백그라운드 잡에 넣을 검증 가능한 Goal Prompt 를 고정 템플릿(Objective/Success Criteria/Context/Constraints/Verification/Out of Scope/Done & Report)으로 저작해 `.md` 로 저장한다. 성공 기준을 측정 가능하게 못 박아 사람 개입 없이 루프가 끝까지 돌게 하는 데 초점. 빌드는 안 함.
 
 에이전트 6종 (`agents/*.md`): `executor`/`code-reviewer`/`security-reviewer`/`test-engineer`/`debugger`/`explore`. oh-my-claudecode 에서 큐레이트해 레포 컨벤션에 맞게 적응(§6). 스킬과 **별개 아티팩트 타입** — 디렉토리 단위가 아니라 플랫 파일 단위. `summon` 스킬이 새로 저작하는 에이전트도 같은 `agents/` 컨벤션을 쓴다.
 
@@ -38,10 +38,10 @@ Claude Code 글로벌 스킬·에이전트 **배포 레포**. 빌드/런타임 �
 ## Architecture — 반드시 알 것
 
 ### 1. craft-core 절대경로 결합 (깨지기 쉬움)
-파이프라인 4종은 craft-core 엔진을 **하드코딩 절대경로**로 읽는다:
+파이프라인 4종 + `deep-plan` 은 craft-core 엔진을 **하드코딩 절대경로**로 읽는다:
 `~/.claude/skills/craft-core/references/pipeline.md`. 따라서:
-- 설치 경로는 `~/.claude/skills/` **고정**. 다른 위치면 4종 전부 깨짐.
-- forge/hunt/renew/reshape 는 craft-core 와 **항상 함께** 설치돼야 함. handoff·sweep·land·summon 은 단독 가능 (craft-core 의존 없음).
+- 설치 경로는 `~/.claude/skills/` **고정**. 다른 위치면 5종 전부 깨짐.
+- forge/hunt/renew/reshape **그리고 deep-plan** 은 craft-core 와 **항상 함께** 설치돼야 함 (deep-plan 은 deep-interview references 도 차용 — §7). handoff·sweep·land·summon 은 단독 가능 (craft-core 의존 없음).
 - craft-core 는 `user-invocable: false` — 직접 트리거 금지, 컨테이너일 뿐.
 
 ### 2. 공유 4-phase 파이프라인 (craft-core/references/pipeline.md)
@@ -65,6 +65,9 @@ craft 엔진은 **두 토폴로지**를 가진다. **linear**(기본, `pipeline.
 `agents/*.md` 는 스킬과 **다른 shape** 의 배포 아티팩트 — 디렉토리당 1스킬이 아니라 파일당 1에이전트. 따라서 install/sync 가 스킬 루프(`*/`)와 **별개 플랫 블록**으로 처리한다 (스킬 블록 복제 아님 — flat `.md` glob). frontmatter 정식 필드(`name`/`description`/`model`/`tools`/`disallowedTools` 등)만 사용; oh-my-claudecode 원본의 비정식 `level:`·`oh-my-claudecode:` 네임스페이스 Task 호출·`.omc/` 경로·consensus 모드·미import 에이전트 핸드오프는 import 시 제거/일반화했다. 배경: [`docs/adr/001-agents-as-second-artifact-type.md`](../docs/adr/001-agents-as-second-artifact-type.md).
 
 **craft 가 풀을 소비한다:** craft-core Phase 3(구현/검증)·Phase 4(orchestrated 검증 패널)의 Workflow `agent()` 가 이 풀을 `agentType` 으로 라우팅한다 — 구현 `executor`, 검증 `test-engineer`, 패널 `test-engineer`/`security-reviewer`(acceptance-QA 레인은 풀 에이전트 없이 기본 subagent). **upgrade-not-hard-dep:** 페이즈 계약과 풀 기본 모델이 충돌하면 명시 `model:` 이김(Phase 3 는 풀의 sonnet 을 opus 로 override), 풀 미설치면 `agentType` 생략하고 동일 프롬프트가 기본 subagent 로 돈다. council(designer/adversary)은 범용 추론 역할이라 풀로 안 바꾸고 `general-purpose` 유지. "작업 후 에이전트 정리" 로직은 **없다 — 불필요**: workflow subagent 는 ephemeral 자동소멸, 유일한 영속 에이전트인 council 은 orchestrated §5 에서 shutdown.
+
+### 7. deep-plan = Phase 0+1 만 차용하는 plan-only craft consumer
+`deep-plan` 은 craft 빌드 엔진과 **같은 검증된 페이즈**(Socratic + grounding + plan + HTML companion)를 쓰되 **Phase 0+1 에서 멈춘다** — Phase 2(codex)·3(TDD)·4(보안)·5(wrap) 에 진입하지 않고, 구현 코드를 한 줄도 쓰지 않으며, deep-interview 처럼 빌드로 라우팅하지도 않는다(순수 산출). 재사용 소스(복제 금지 — 한 소스를 읽어 drift 차단): 인터뷰·grounding `craft-core/references/socratic.md`+`context-adr.md`, plan 섹션+**HTML companion 분기** `craft-core/references/pipeline.md` Phase 1, 모호할 때의 측정 게이트·6 Socratic 유형 `deep-interview/references/scoring.md`+`socratic-playbook.md`. **적응형 게이트:** 요청이 이미 crisp(goal+scope+criteria 명확)면 인터뷰 스킵, 모호하면 ambiguity≤threshold 게이트 인터뷰. **HTML companion** 은 craft 와 동일 분기 — UI plan 이면 결과 UI 목업, 비UI 면 plan 렌더, 혼합이면 둘 다([[craft-html-companion-ui-mockup]] 규칙 공유). craft-core·deep-interview 미설치 폴백: 같은 원리 직접 적용. **README agents 표처럼 비강제는 아니고**, guard-readme-fresh 가 `skills/deep-plan` 링크를 강제하므로 README 스킬 표에 행이 있어야 PR 통과.
 
 ## Editing workflow
 정식 개발 루프: live `~/.claude/skills/<name>/` 편집 → `bash sync.sh` 로 repo 반영 → 리뷰 → `--push`. repo 에서 직접 편집했다면 `install.sh` 로 live 반영. 두 방향 혼용 시 마지막 동기화 방향 주의 (`--delete` 미러라 한쪽이 SSOT).
