@@ -1,94 +1,101 @@
-# real-env eval probe 스킬 (REQ-F-006)
+# probe 스킬 — real-env 트리거 eval (REQ-F-006)
 
-> deep-plan 산출. 입력: `docs/specs/usage-insight-hardening.md` REQ-F-006 (Phase-1 완료물).
-> 비-UI(스킬 저작) → HTML 시안 없음. 빌드는 이 문서 범위 밖 — plan 까지만.
+> deep-plan 산출 → forge Phase 2(codex) 반영본. 입력: `docs/specs/usage-insight-hardening.md` REQ-F-006/REQ-N-003.
+> 비-UI(스킬 저작) → HTML 시안 없음. 스킬명 `probe` 확정, eval 엔진 D1=B(자체 경량 standalone) 확정.
 
 ## Goal (testable success criteria)
 
-carpdm-skills 컨벤션의 신규 스킬을 저작해, 스킬 트리거를 **실제 설치 상태**(`~/.claude/skills/` 에 형제 스킬들과 함께 깔린 상태)에서 측정한다. skill-creator eval 의 격리-주입 빈틈을 메워 두 가지를 산출한다:
-- (a) **트리거 매칭 정확도** — 대상 스킬이 should-trigger query 에서 실제로 발화하는 비율
-- (b) **sibling-skill 경쟁** — should-not-trigger(또는 발화 실패) query 에서 *어느 형제 스킬이 가로챘는지* 캡처
+carpdm-skills 컨벤션의 신규 스킬 `probe` 를 저작해, 스킬 트리거를 **실제 설치 상태**(`~/.claude/skills/` 에 형제들과 함께 깔린 상태)에서 측정한다. 산출:
+- (a) **트리거 매칭 정확도** — 대상 스킬이 should-trigger query 에서 실제 발화한 비율
+- (b) **sibling-skill 경쟁** — query 별로 *실제 발화한 모든 스킬*을 캡처해, 대상이 아닌 형제가 가로챈 경우를 드러냄
 
-성공 = 실제 설치 환경에서 query 세트를 돌려 (a)(b)를 함께 보고하고, false 0/100 같은 격리-주입 artifact 를 구조적으로 회피한다.
+성공 = 실제 설치 환경에서 query 세트를 돌려 (a)(b)를 **outcome class 별로 분리**해 보고하고, 인프라 실패(timeout/error)와 측정 artifact 를 정상 점수와 구분한다.
 
 ## Scope (IN / OUT)
 
-**IN:**
-- 신규 스킬 디렉토리 1개(`skills/<name>/`): SKILL.md + references + 경량 측정 스크립트.
-- 실제 설치 상태에서 `claude -p`(stream-json)로 발화 스킬을 캡처하는 probe 로직.
-- 트리거 정확도 + sibling 경쟁 이중 측정 + 결과 보고.
-- README 스킬 표·카운트, install.sh done echo 갱신(guard-readme-fresh 통과).
+**IN:** 신규 스킬 `skills/probe/`(SKILL.md + references/methodology.md + scripts/real_env_probe.py); 실제 설치 상태에서 `claude -p` stream-json 으로 발화 스킬 캡처; outcome 분류 + 이중 측정 + 진단 보고; 환경 snapshot; README 표·카운트, install.sh done echo.
 
-**OUT:**
-- description 자동개선 루프 — skill-creator `improve_description.py`/`run_loop.py` 가 이미 함. probe 는 *측정*만, 개선은 기존 도구나 수동에 위임.
-- HTML 벤치마크 뷰어 — skill-creator `eval-viewer` 재사용 가능, 재구현 안 함.
-- 즉시묶음(REQ-F-001~005) — 별도 완료됨(커밋 7d3a734 + 글로벌 rules).
+**OUT:** description 자동개선 루프(skill-creator `improve_description.py` 가 함); HTML 벤치마크 뷰어(skill-creator `eval-viewer` 재사용); 즉시묶음 REQ-F-001~005(별도 완료, 커밋 7d3a734).
 
 ## Files (verified — path : why it changes)
 
-기존(조사로 검증됨 — 참조용, 수정 안 함):
-- `~/.claude/plugins/.../skill-creator/scripts/run_eval.py` : stream-json trigger 감지 기법의 참조 출처(복제 아님, 기법만 차용). 격리-주입 방식이라 sibling 측정엔 부적합 — 그래서 신규 작성.
-- `~/.claude/plugins/.../skill-creator/scripts/run_loop.py` : OUT 근거(개선 루프 이미 존재).
+기존(조사로 검증 — 참조용, 수정 안 함):
+- `~/.claude/plugins/.../skill-creator/scripts/run_eval.py` : stream-json 파싱의 **참조 계약**(B6). line 129-168 의 stream_event/assistant tool_use 파싱(`Skill.input.skill`, `Read.input.file_path`)이 sibling 캡처가 가능함을 입증하는 근거. 단 격리-주입이라 sibling 측정엔 부적합 → 신규 작성.
 
 신규(생성 대상):
-- `skills/<name>/SKILL.md` : 스킬 진입점(frontmatter name 영어 + description 한국어 트리거, 본문 한국어).
-- `skills/<name>/references/methodology.md` : 두 측정축(트리거 정확도/sibling 경쟁) 방법론 + eval set 포맷.
-- `skills/<name>/scripts/real_env_probe.py` : 실제 설치 상태에서 `claude -p` 실행, 발화 스킬 캡처.
-- `README.md` : 스킬 표 행 추가 + 카운트(13→14). guard-readme-fresh 차단 회피.
-- `install.sh` : done echo 의 스킬 목록·카운트 갱신(기능 영향 없음, 표기만).
+- `skills/probe/SKILL.md` : 진입점(name 영어 + description 한국어 트리거, 본문 한국어).
+- `skills/probe/references/methodology.md` : 두 측정축, eval set 포맷, outcome 분류, skill-creator eval 과의 차이, artifact 진단 원리.
+- `skills/probe/scripts/real_env_probe.py` : 실제 설치 상태 `claude -p` 실행 + 발화 스킬 캡처 + outcome 분류 + snapshot.
+- `skills/probe/scripts/test_parser.py` : 저장된 raw stream fixture 에 대한 파서 단위 테스트(B2/B6).
+- `skills/probe/references/fixtures/` : 캡처한 raw stream-json 샘플(outcome class 별).
+- `README.md` : 스킬 표 행 + 카운트(구현 시점 실제 `skills/` 개수로 산정 — 하드코딩 금지, B-NB1).
+- `install.sh` : done echo 목록·카운트 갱신(표기만).
 
-## 핵심 설계 결정 (plan 추천 — 사용자 확정 필요)
+## codex review — round 1 (verdict + 반영)
 
-### D1: eval 엔진 — 자체 경량 스크립트 (추천: B)
+codex 적대 리뷰(2026-06-04, ~2분, watchdog 10분 내 완료) 8 BLOCKING / 5 NON-BLOCKING. 모두 반영:
 
-| 안 | 내용 | trade-off |
-|---|---|---|
-| A | skill-creator `run_eval.py` 를 import/호출 + real-env wrapper | DRY. 단 plugin 절대경로 의존(cache/marketplace 이중 경로로 불안정) — craft-core 절대경로 결합의 fragility 교훈과 동일 리스크 |
-| **B (추천)** | 자체 경량 `real_env_probe.py` — `claude -p stream-json` 직접, 설치 상태 발화 캡처 | standalone(imprint/deep-interview 패턴 일치). 핵심 로직(설치 상태에서 *어느* 스킬 발화 캡처)이 run_eval 의 격리-주입과 정반대라 어차피 재사용분이 적음. stream 파싱 ~100줄 복제가 유일 비용 |
-| C | 순수 procedural 마크다운 — Claude 가 직접 `claude -p` 던지고 관찰 | 스크립트 0. 단 20 query 병렬 불가, 측정 정밀도·재현성 낮음 |
+- **B1/B6 sibling attribution 미증명** → Step 1 **스파이크**(구현 전 raw stream 캡처 + 추출 규칙 확정) 신설. fixture + 파서 테스트로 계약 고정.
+- **B2 verify 가 핵심 주장 미증명** → Acceptance 를 outcome class 별 실제 run + fixture 파서 테스트로 강화.
+- **B3 artifact 감지/retry 누락(REQ-F-006 갭)** → Step 5 진단 로직 + Acceptance 4 신설.
+- **B4 환경 드리프트** → Step 4 시작/끝 snapshot(skill 이름 + SKILL.md 해시), 변하면 run invalid.
+- **B5/B7 outcome 뭉갬 / error 미분리** → outcome 스키마(아래) + Step 3.
+- **B8 untrusted eval-set** → Security surface 재작성.
+- NON-BLOCKING 1~5 → README 카운트 동적 산정, D2 확정, cost 기본값(worker 소수·dry-run·예상 세션 수 경고), per-query 변동 보고, frontmatter parse check.
 
-**추천 B 근거:** real-env 측정은 run_eval 의 설계 전제(스킬 1개 격리)와 충돌한다 — 재사용해도 핵심을 새로 써야 한다. plugin 경로 의존(A)은 이 레포가 craft-core 에서 이미 겪는 절대경로 fragility 를 하나 더 늘린다. C 는 병렬·정밀도에서 spec 의 "자동 측정" 요건에 못 미친다.
+## Outcome 스키마 (B5/B7 — 측정의 핵심)
 
-### D2: 스킬명 (추천: `probe`)
-
-carpdm 스킬명은 한 단어(forge/hunt/renew/land/summon/imprint/sweep). 후보: `probe`(추천, 간결·측정 함의) / `trial` / `proof`. description 이 "스킬 트리거 real-env eval" 을 명시하므로 이름 자체는 짧게. **확정 전까지 plan 은 `<name>` 으로 둠.**
+query 당 결과는 단일 "발화 스킬명"이 아니라:
+```
+{ query, should_trigger, target,
+  triggered_skills: [],        # 발화한 모든 스킬(순서 보존)
+  target_triggered: bool,
+  sibling_triggered: [],       # 대상 아닌 발화 스킬
+  unknown_skill_events: [],    # Skill/Read 인데 스킬명 정규화 실패
+  state: "target_only" | "sibling_only" | "target_plus_sibling" | "none" | "error" | "timeout" | "parse_error" }
+```
+정확도·sibling 집계는 `state ∈ {error,timeout,parse_error}` 를 **제외**(invalid)하고 산정. invalid 는 별도 보고.
 
 ## Steps (each step → its verify check)
 
-1. D1·D2 확정(사용자) → verify: 스킬명·엔진 방식 결정됨.
-2. `skills/<name>/scripts/real_env_probe.py` 작성 — eval set(JSON: `{query, should_trigger, target}`) 입력, 각 query 를 실제 설치 상태에서 `claude -p --output-format stream-json` 실행, 발화한 스킬명을 stream event(Skill/Read tool_use)에서 캡처 → verify: 알려진 query(예: "interview me about X")로 돌려 `deep-interview` 가 잡히는지 실측.
-3. sibling 경쟁 집계 — should_trigger=true 인데 대상 미발화 시 *실제 발화 스킬* 기록, should_trigger=false 시 발화한 형제 분포 출력 → verify: 일부러 모호한 query 로 가로채기 캡처 확인.
-4. `references/methodology.md` — 두 측정축 정의, eval set 포맷, skill-creator eval 과의 차이(격리 vs real-env), false 0/100 artifact 회피 원리 → verify: (a)(b) + 차이 명시.
-5. `SKILL.md` 본문(한국어) + frontmatter(name 영어, description 한국어 트리거 — undertrigger 설계, 형제 스킬과 트리거 경쟁 회피) → verify: 작성언어 정책(project.md) 통과, node --check 미사용(python 스크립트라 무관).
-6. `README.md` 스킬 표 행 + 카운트(13→14), `install.sh` done echo → verify: `bash .claude/hooks/guard-readme-fresh.sh` 또는 PR 생성 시 차단 없음.
-7. 설치(`bash install.sh`) 후 probe 1회 자기검증 → verify: eval set 으로 (a)(b) 보고 출력.
+1. **스파이크(구현 전 계약 고정, B1/B6).** 알려진 query 3종(`deep-interview` 확실 트리거 / zero-trigger / 모호한 sibling 트리거)으로 `claude -p --output-format stream-json --include-partial-messages` 를 실제 실행해 raw stream 을 `references/fixtures/` 에 저장. 추출 규칙 확정: `Skill.input.skill`, `Read.input.file_path`→스킬명 정규화(경로에서 `skills/<name>/` 추출), 정규화 실패 시 unknown, multiple events 는 모두 기록. → verify: 3 fixture 각각에서 기대 triggered_skills 가 규칙으로 추출됨.
+2. `real_env_probe.py` 골격 — eval set(JSON: `{query, should_trigger, target}`) 입력, query 당 `claude -p` 실행(CLAUDECODE env 제거, timeout, harmless cwd), stream 파싱은 Step 1 규칙. → verify: 단일 query 실행이 outcome 스키마 dict 반환.
+3. outcome 분류 + error/timeout/parse 분리(B7) — claude -p 비정상 종료/timeout/JSON 파싱 실패를 각 state 로, no-trigger 와 구분. → verify: timeout(인위적 짧은 timeout)이 `state:"timeout"` 으로, 정상 미발화가 `state:"none"` 으로 분류.
+4. 환경 snapshot(B4) — run 시작/끝에 `~/.claude/skills/*/SKILL.md` 이름+해시 캡처, 다르면 결과를 invalid 표기하고 snapshot 을 결과에 포함. → verify: 중간에 파일 변경 시뮬레이트하면 invalid 플래그.
+5. artifact 진단/retry(B3) — 전 query no-event(파서 스키마 깨짐 의심), all-false/all-true 의심 패턴, 0 recognizable event 면 점수 대신 진단 emit + 선택적 retry. → verify: fixture 로 스키마 깨짐 주입 시 진단 출력(정상 0점 아님).
+6. 집계·보고 — (a) 정확도 (b) sibling 분포 + per-query 변동(B-NB4) + invalid/예상 세션 수 경고(B-NB3). → verify: 다회 run eval set 에서 (a)(b)+변동 출력.
+7. `test_parser.py` — fixture 대상 파서 단위 테스트(claude 호출 없음, 빠름·결정적). → verify: `python skills/probe/scripts/test_parser.py` green.
+8. `methodology.md` + `SKILL.md`(한국어, 트리거 description) — frontmatter name 영어. → verify: frontmatter parse check 가 `name`/`description` 존재 + 금지된 번역 키 없음 확인(REQ-N-003, B-NB5). node --check 미사용.
+9. `README.md` 표 행 + 카운트(`skills/` 실제 개수 산정), `install.sh` echo. → verify: guard-readme-fresh 차단 없음.
 
 ## Risks
 
-- **비용/시간:** query 당 `claude -p` 1회 × runs_per_query. 20 query × 3 = 60 세션. 병렬(ProcessPoolExecutor)로 완화하나 토큰·시간 비용 실재 — eval set 크기 가이드 필요.
-- **재현성:** real-env 는 사용자 실제 스킬 세트에 의존 → 환경마다 결과 다름. 이건 *의도된* 특성(real-env 가 목적)이나 절대 기준선이 아님을 methodology 에 명시.
-- **CLI 출력 포맷 결합:** stream-json 파싱은 `claude` CLI 출력 스키마에 의존. CLI 변경 시 깨짐 — run_eval.py 도 같은 리스크를 짐(참조처 명시로 추적 가능하게).
-- **중첩 실행:** `claude -p` 를 Claude Code 세션 안에서 실행 — run_eval.py 처럼 `CLAUDECODE` env 제거 필요(미제거 시 guard 충돌).
+- **비용/시간:** query × runs 회 `claude -p`. 기본 worker 소수 + dry-run(세션 수만 출력) + 실행 전 예상 세션 수 경고로 완화(B-NB3).
+- **재현성:** real-env 는 설치 세트 의존 — snapshot(Step 4)으로 *통제*하되 절대 기준선 아님을 methodology 명시.
+- **CLI 포맷 결합:** stream-json 파싱은 `claude` CLI 스키마 의존(run_eval.py 동일 리스크). Step 1 fixture + Step 5 smoke(0 event 시 거부)로 silent false 방지(B6).
 
 ## Security surface
 
-- `real_env_probe.py` 가 `claude -p` subprocess 실행. query 는 사용자 제공 eval set(신뢰 입력). 외부 네트워크 발신 없음 — 전부 로컬 CLI.
-- 임시 파일 없음(run_eval 의 `.claude/commands/` 주입과 달리 real-env 는 기존 설치 그대로 사용 → 정리 부담·name-collision 원천 제거).
-- subprocess env 에서 `CLAUDECODE` 제거 외 환경 변조 없음.
+- `real_env_probe.py` 가 `claude -p` subprocess 실행. **eval query 는 untrusted prompt 로 취급(B8)** — query 가 도구 호출·파일 읽기·repo 변경을 유발할 수 있음(argv 는 shell injection 만 막지 prompt/tool abuse 는 못 막음). 완화: harmless cwd(임시 빈 디렉토리)에서 실행, CLI 가 지원하면 도구 제한/제한 권한 모드, timeout 강제, stderr 캡처.
+- subprocess env 에서 `CLAUDECODE` 제거 외 변조 없음. 외부 네트워크 발신 없음(로컬 CLI).
+- 임시 command 주입 없음(run_eval 의 `.claude/commands/` 방식과 달리 기존 설치 그대로 사용 → name-collision 원천·정리 부담 제거).
 
 ## YAGNI (deletions this change would make)
 
-- 신규 스킬이므로 삭제 대상 없음. 단 **재구현 금지** 목록(OUT 과 동일): description improver, HTML 뷰어, train/test split — skill-creator 가 이미 제공하므로 probe 에 복제하지 않는다.
+- 신규 스킬이라 삭제 대상 없음. **재구현 금지**(OUT): description improver, HTML 뷰어, train/test split — skill-creator 제공분 복제 안 함.
 
 ## Acceptance (numbered, single, checkable conditions)
 
-1. `skills/<name>/` 설치 후 eval set 의 should-trigger query 에서 대상 스킬 발화율(트리거 정확도)을 수치로 출력한다.
-2. should-not-trigger(또는 대상 미발화) query 에서 *실제 발화한 형제 스킬명*을 캡처해 보고한다(sibling 경쟁).
-3. (a) 트리거 정확도와 (b) sibling 경쟁 분포를 한 결과에 함께 낸다.
-4. skill-creator 플러그인 미설치 상태에서도 독립 동작한다(D1=B 시).
-5. `README.md` 스킬 표·카운트가 갱신되어 guard-readme-fresh 를 통과한다.
-6. SKILL.md 가 레포 작성언어 정책(name 영어 / 본문·description 한국어)을 지킨다.
+1. eval set 의 should-trigger query 에서 대상 스킬 발화율(정확도)을 수치로 출력하되, invalid(error/timeout/parse) run 을 제외하고 별도 보고한다.
+2. query 별로 `triggered_skills`/`sibling_triggered` 를 캡처해, 대상 아닌 형제가 가로챈 경우를 outcome state 와 함께 보고한다.
+3. outcome 을 `target_only/sibling_only/target_plus_sibling/none/error/timeout/parse_error` 로 분류한다(단일 "발화 스킬명"으로 뭉개지 않음).
+4. 파서 스키마 깨짐·0 recognizable event·all-false 의심을 정상 0점이 아니라 **진단**으로 emit 한다(REQ-F-006 artifact 감지).
+5. run 시작/끝 설치 스킬 snapshot 을 캡처하고, 변하면 결과를 invalid 표기한다.
+6. `test_parser.py` 가 fixture 에 대해 green(claude 호출 없이 결정적).
+7. skill-creator 플러그인 미설치에서도 독립 동작(D1=B).
+8. `README.md` 표·카운트 갱신 → guard-readme-fresh 통과.
+9. SKILL.md frontmatter parse check: name 영어 / description·본문 한국어(REQ-N-003).
 
 ## 다음 (이 plan 의 범위 밖)
 
-빌드하려면 `/forge` 에 이 plan + spec REQ-F-006 을 Phase-1 완료물로 넘긴다(재인터뷰 금지, 곧장 plan review→TDD). D1·D2 확정이 선행.
+forge Phase 3(dynamic TDD, opus)이 이 plan 을 계약으로 구현. Step 1 스파이크가 첫 task(계약 고정), 이후 outside-in TDD.

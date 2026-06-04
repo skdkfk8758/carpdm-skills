@@ -50,7 +50,7 @@ if [ -d "$SRC_AGENTS" ]; then
 fi
 
 echo
-echo "Done. Installed skills: forge, hunt, renew, deep-interview, deep-plan, deep-prompt, handoff, sweep, land, summon, imprint, craft-core."
+echo "Done. Installed skills: forge, hunt, renew, deep-interview, deep-plan, deep-prompt, handoff, sweep, land, summon, imprint, probe, craft-core."
 echo "      Installed agents: $agent_count (executor, code-reviewer, test-engineer, security-reviewer, explore, debugger)."
 echo "Restart Claude Code (or start a new session) to load them."
 echo

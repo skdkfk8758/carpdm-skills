@@ -4,3 +4,7 @@ sweep-workspace/
 
 # skill-creator eval scaffolding inside a skill dir — not part of the shipped skill
 skills/*/evals/
+
+# Python bytecode
+__pycache__/
+*.pyc
