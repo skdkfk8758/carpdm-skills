@@ -1,6 +1,6 @@
 ---
 name: renew
-description: 엄격한 파이프라인을 통해 EXISTING 기능을 새단장하거나 개편한다 — 무엇이 바뀌어야 하고 무엇이 보존되어야 하는지 분리하는 소크라테스식 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD → 보안 검증. 사용자가 기존 기능, 플로우, 화면, 또는 API 를 CHANGE, REDESIGN, REVAMP, MODERNIZE, OVERHAUL, EXTEND, 또는 REWORK 하려 할 때마다 사용한다 — "redo the X", "rework how Y works", "modernize the Z flow", "change the behavior of W", "the old A should now also do B" 같은 표현. 특히 하위 호환성, 마이그레이션, 또는 기존 호출자를 깨지 않는 것이 중요할 때. 완전히 새로운 것을 만들거나(use forge), 버그를 고치거나(use hunt), 동작 변화 없이 코드를 재구조화하는(use reshape) 데에는 사용하지 말 것.
+description: 엄격한 파이프라인을 통해 EXISTING 기능을 새단장하거나 개편한다 — 무엇이 바뀌어야 하고 무엇이 보존되어야 하는지 분리하는 소크라테스식 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD → 보안 검증. 사용자가 기존 기능, 플로우, 화면, 또는 API 를 CHANGE, REDESIGN, REVAMP, MODERNIZE, OVERHAUL, EXTEND, 또는 REWORK 하려 할 때마다 사용한다 — "redo the X", "rework how Y works", "modernize the Z flow", "change the behavior of W", "the old A should now also do B" 같은 표현. 특히 하위 호환성, 마이그레이션, 또는 기존 호출자를 깨지 않는 것이 중요할 때. 완전히 새로운 것을 만들거나(use forge), 버그를 고치는(use hunt) 데에는 사용하지 말 것.
 ---
 
 # Renew — 기존 기능 개편
@@ -40,11 +40,11 @@ description: 엄격한 파이프라인을 통해 EXISTING 기능을 새단장하
 남아야 할 것을 조용히 깨뜨리지 못하게 하는 안전망이다. 그다음 *바뀐* 동작을 opus 에서
 red → green → refactor 로 몰아가되, characterization test 는 내내 green 으로 유지한다.
 
-## Phase 3.5 — Convention reshape pass (see craft-core/references/reshape-pass.md)
+## Phase 3.5 — Simplify review pass (see craft-core/references/simplify-pass.md)
 
-바뀐 동작이 green 이 되면, Phase 4 이전에 손댄 코드를 프로젝트 컨벤션에 맞추는
-동작 보존 패스를 **한 번 제안한다** (기본 off) — characterization test(보존된 동작)는
-Phase 3 에서와 똑같이 내내 green 으로 유지한 채. diff 가 사소하거나 사용자가 거절하면
-건너뛴다.
+바뀐 동작이 green 이 되면, Phase 4 이전에 손댄 diff 가 정리(simplify)가 필요한지
+검토하고, 필요하면 `/simplify` 스킬로 동작 보존 정리(재사용/단순화/효율)를 **한 번
+제안한다** (기본 off) — characterization test(보존된 동작)는 Phase 3 에서와 똑같이
+내내 green 으로 유지한 채. diff 가 사소하거나 사용자가 거절하면 건너뛴다.
 
 Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.

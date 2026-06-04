@@ -90,8 +90,8 @@ return results.filter(Boolean)
 - `testsGreen:false` 또는 `verified:false` 인 태스크 → 고친다 (그 태스크를
   재실행하거나 inline 처리). red 태스크를 안고 Phase 4 로 진행하지 말 것.
 - 작업유형 스킬이 사이클이 *어디서 시작하는지* 정의한다 — 예: `hunt` 는
-  실패하는 regression 테스트를 태스크 1 로 쓴다; `reshape` 는 구조를 건드리기 전에
-  현재 behavior 를 핀하는 characterization 테스트를 쓴다.
+  실패하는 regression 테스트를 태스크 1 로 쓴다; `renew` 는 보존돼야 할 behavior 를
+  핀하는 테스트를 먼저 쓴 뒤 변경에 들어간다.
 
 ## Anti-patterns
 

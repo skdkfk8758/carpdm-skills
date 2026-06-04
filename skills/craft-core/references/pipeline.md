@@ -1,7 +1,7 @@
 # Craft Pipeline — Socratic → Adversarial Plan → Dynamic TDD → Secure Verify
 
 `forge`(신규 기능), `renew`(기존 갱신),
-`reshape`(리팩터), `hunt`(버그 수정) 뒤에 있는 공유 4-phase 엔진. 호출 스킬이
+`hunt`(버그 수정) 뒤에 있는 공유 4-phase 엔진. 호출 스킬이
 작업유형 framing — 자신의 Socratic 초점과 TDD 사이클이 어디서 시작하는지 — 을 공급한다. 이 파일은
 이들 모두가 돌리는 공통 척추다.
 
@@ -36,7 +36,7 @@ dynamic-workflow 빌드 + 검증 패널 — 으로 에스컬레이트한다. 이
 
 stakes 신호 없는 가벼운 "build X" / "fix Y" / "refactor Z" 는
 에스컬레이션이 아니다 — 조용히 linear 로 유지한다. 이는 작업유형과 직교하는
-강도(intensity) 선택이다: forge / renew / hunt / reshape 어느 것이든 두 모드 중 하나로 돌 수 있다.
+강도(intensity) 선택이다: forge / renew / hunt 어느 것이든 두 모드 중 하나로 돌 수 있다.
 
 에스컬레이트되면 `orchestrated.md` 를 읽고 아래 linear 지침 대신 그것의
 team-mode + Workflow 토폴로지로 다섯 phase 를 구동한다. phase
@@ -157,17 +157,16 @@ read-only 로 tool-lock. 풀은 **하드 의존이 아니라 업그레이드**�
 "cleanup" 단계는 존재하지도 필요하지도 않다 — 워크플로 subagent 는 일회성이고 유일한
 영속 에이전트인 orchestrated council 은 §5 에서 정리된다.)
 
-## Phase 3.5 — Convention reshape pass (forge / renew only)
+## Phase 3.5 — Simplify review pass (forge / renew / hunt)
 
-`reshape-pass.md` 를 읽어라. `forge` 와 `renew` 에 한해, Phase 3 이 green 이 된 후:
-방금 작성한 diff 를 프로젝트 컨벤션 — 네이밍,
-함수/파일 구조, import/dependency 조직, 에러 처리 — 에 맞추는 behavior-preserving 정리를
-`AskUserQuestion` 으로 **한 번 제안** (기본 off)
-(`convention-guide.md`, 프로젝트 lint/rule 및 `docs/guides/` 와 머지). Phase 3
-테스트가 behavior 핀이다; 모든 단계는 그것을 green 으로 유지하고, 테스트가
-red 가 되면 그 단계가 behavior 를 바꾼 것이다 — 되돌린다. `hunt` 와 `reshape` 는 이
-phase 를 스킵한다 (수정은 surgical 하게; reshape 는 이미 이 pass 자체다). 거부되거나
-맞출 게 없으면, 곧장 Phase 4 로 스킵.
+`simplify-pass.md` 를 읽어라. `forge` / `renew` 구현이나 `hunt` 수정이 Phase 3 에서
+green 이 된 후: 방금 작성한 diff 가 정리(simplify)가 필요한지 검토하고, 필요하면
+`/simplify` 스킬로 behavior-preserving 정리 — 재사용/단순화/효율/altitude — 를
+`AskUserQuestion` 으로 **한 번 제안** (기본 off) 후 돌린다. `/simplify` 미설치 시
+같은 정리를 직접 수행 (`convention-guide.md`, 프로젝트 lint/rule 및 `docs/guides/`
+참조). Phase 3 테스트가 behavior 핀이다; 정리 후 테스트가 red 가 되면 그 단계가
+behavior 를 바꾼 것이다 — 되돌린다. trivial 변경, 거부, 또는 정리할 게 없으면 곧장
+Phase 4 로 스킵.
 
 ## Phase 4 — Secure verify
 

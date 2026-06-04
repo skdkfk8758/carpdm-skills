@@ -53,10 +53,10 @@ if [ -d "$SRC_AGENTS" ]; then
 fi
 
 echo
-echo "Done. Installed skills: forge, hunt, renew, reshape, deep-interview, deep-plan, deep-prompt, handoff, sweep, land, summon, craft-core."
+echo "Done. Installed skills: forge, hunt, renew, deep-interview, deep-plan, deep-prompt, handoff, sweep, land, summon, craft-core."
 echo "      Installed agents: $agent_count (executor, code-reviewer, test-engineer, security-reviewer, explore, debugger)."
 echo "Restart Claude Code (or start a new session) to load them."
 echo
-echo "Note: the forge/hunt/renew/reshape pipeline uses the 'codex:rescue'"
+echo "Note: the forge/hunt/renew pipeline uses the 'codex:rescue'"
 echo "plugin for its adversarial plan-review phase. If it is not installed,"
 echo "that phase falls back to manual review. See README.md."

@@ -1,6 +1,6 @@
 # Context & ADR — grounding 을 위해 읽고, 영속적 결정을 위해 쓴다
 
-두 가지 일, 둘 다 forge/renew/reshape/hunt 가 공유한다:
+두 가지 일, 둘 다 forge/renew/hunt 가 공유한다:
 
 - **Read (Phase 1 grounding)** — 사용자에게 무엇이든 묻기 전에, 프로젝트의
   기존 결정, 도메인 context, 문서화된 절차 (guide/reference) 를 읽어
@@ -83,9 +83,6 @@ invariant, glossary 용어, layer 경계) 를 확립했을 때,
   ADR. 기존 레일 위의 평범한 기능 → ADR 없음.
 - **renew** — 진짜 결정인 계약/behavior 변경 (auth 모델
   교체, API envelope 변경, 마이그레이션 전략) → ADR.
-- **reshape** — 보통 **ADR 없음** (behavior 불변). 예외: 리팩터가
-  미래 코드가 따라야 할 *구조적 패턴을 채택* (예: "modular monolith", "writer SSOT") →
-  ADR.
 - **hunt** — 보통 **ADR 없음**. 예외: 수정이 미래 코드가 존중해야 할
   standing invariant 나 정책 ("all sum-zero inputs normalize to uniform") 을
   확립 → ADR.

@@ -7,7 +7,7 @@ phase 와 같은 content ref 를 쓰지만, *토폴로지* 가 단일 linear 세
 의도에 대해 체크한다.
 
 이 driver 는 **작업유형 무관(task-type-agnostic)** 하다. 호출 스킬 (`forge` / `renew` /
-`hunt` / `reshape`) 이 linear 엔진에 주는 같은 두 가지 — 자신의
+`hunt`) 이 linear 엔진에 주는 같은 두 가지 — 자신의
 **Phase 1 Socratic 초점** 과 **Phase 3 TDD 진입점** — 을 공급하고, 이 파일이
 그 주위의 실행 구조를 공급한다. 그래서 council 은
 forge 의 IO-계약 초점이나 renew 의 보존/변경 초점으로 인터뷰하고; 빌드는
@@ -114,7 +114,7 @@ red→green→refactor 규율과 "atomic task" 정의를 위해
 
 **호출 스킬이 TDD 사이클이 어디서 시작하는지 정의한다** — linear
 엔진과 정확히 같이: `forge` 는 acceptance 테스트를 태스크 1 로 쓴다; `hunt` 는 실패하는
-regression 테스트를 먼저 쓴다; `renew` / `reshape` 는 어떤 태스크가 코드를
+regression 테스트를 먼저 쓴다; `renew` 는 어떤 태스크가 코드를
 건드리기 전에 보존 behavior 를 핀하는 characterization 테스트를 쓴다. orchestrated driver 는
 진입점을 바꾸지 않고, executor 만 바꾼다.
 
@@ -173,22 +173,22 @@ Phase 4 전에 고친다 — red 태스크로 진행하지 말 것.
 
 ---
 
-## §3.5 — Convention reshape pass (forge / renew only)
+## §3.5 — Simplify review pass (forge / renew / hunt)
 
-§3 의 빌드가 green 이 된 후, §4 verify 전 — **`forge` 와 `renew` 에만**
-(`hunt` 와 `reshape` 는 스킵, linear 엔진과 같은 이유). 
-`~/.claude/skills/craft-core/references/reshape-pass.md` 를 읽어라.
+§3 의 빌드가 green 이 된 후, §4 verify 전 — **`forge` / `renew` / `hunt` 모두**.
+`~/.claude/skills/craft-core/references/simplify-pass.md` 를 읽어라.
 
 메인 세션이 `AskUserQuestion` 으로 **한 번 제안한다** (기본 off). 거부되거나
-맞출 게 없으면, 곧장 §4 로. 수락되면, 정렬을 **단일 `sonnet` Workflow
-에이전트**로 돌린다 (fan-out 없음 — 빌드 diff 에 대한 한 번의
-순차 pass, §3 빌드 tier 에 맞춤):
+정리할 게 없으면, 곧장 §4 로. 수락되면 변경된 diff 를 `/simplify` 스킬로
+정리한다 (재사용/단순화/효율/altitude, behavior 불변). `/simplify` 미설치 시
+같은 정리를 **단일 `sonnet` Workflow 에이전트**로 돌린다 (fan-out 없음 — 빌드
+diff 에 대한 한 번의 순차 pass, §3 빌드 tier 에 맞춤):
 
 ```javascript
 export const meta = {
-  name: 'craft-reshape-pass',
-  description: 'Align the build diff to project convention, behavior-preserving, on sonnet',
-  phases: [{ title: 'Reshape', model: 'sonnet' }],
+  name: 'craft-simplify-pass',
+  description: 'Simplify the build diff, behavior-preserving, on sonnet (fallback when /simplify absent)',
+  phases: [{ title: 'Simplify', model: 'sonnet' }],
 }
 const RESULT = { type: 'object', required: ['testsGreen','summary'], properties: {
   testsGreen: { type: 'boolean' },
@@ -196,18 +196,18 @@ const RESULT = { type: 'object', required: ['testsGreen','summary'], properties:
   summary: { type: 'string' },
 } }
 return await agent(
-  `Convention reshape pass per reshape-pass.md and convention-guide.md ` +
+  `Simplify pass per simplify-pass.md and convention-guide.md ` +
   `(merge with the project's lint/rules and docs/guides/, most specific wins).\n` +
   `Scope: the §3 build diff and its immediate neighborhood only — Read the diff.\n` +
-  `The build's test suite is the behavior pin. Align in small steps (naming, ` +
-  `guard-clauses, import groups, error handling); run the suite after each step. ` +
+  `The build's test suite is the behavior pin. Clean in small steps (reuse, ` +
+  `dedup, inline, simpler expressions); run the suite after each step. ` +
   `A test goes red → that step changed behavior → revert it and stop on that axis. ` +
-  `Never edit a test to make it pass. Report testsGreen + files changed.`,
-  { label: 'reshape:convention', phase: 'Reshape', model: 'sonnet', schema: RESULT })
+  `Never edit a test to make it pass. Do not hunt bugs. Report testsGreen + files changed.`,
+  { label: 'simplify:diff', phase: 'Simplify', model: 'sonnet', schema: RESULT })
 ```
 
 **designer 는 idle-alive 로 머문다** 이 phase 내내 (§4 가 여전히 필요로 한다). 
-§4 패널은 그다음 **결합된 (build + reshape) diff** 를 검증한다 — 이 pass 를 위한
+§4 패널은 그다음 **결합된 (build + simplify) diff** 를 검증한다 — 이 pass 를 위한
 별도 verify 게이트는 없다. pass 가 `testsGreen:false` 를 반환하면, red 빌드
 태스크처럼 취급한다: §4 로 진행 전에 고치거나 되돌린다.
 

@@ -1,11 +1,11 @@
 ---
 name: sweep
-description: Clean up accumulated project cruft — 시점 기록 문서(오래된 plan, 랜딩된 handoff, 대체된 report), 휘발성 로그(logs/qa, agent 로그), 고아/중복 문서, build/tmp 잔여물 — 을 scan → classify → propose → confirm → delete 파이프라인으로, git 히스토리를 안전망 삼아 정리한다. 유저가 forge/hunt/renew/reshape 를 거치며 쌓인 잔여 문서/로그/아티팩트를 명시적으로 정리/정돈/prune/sweep/비우기 요청할 때 사용 — "레거시 문서 정리해줘", "쌓인 로그/플랜 치워줘", "docs 청소해줘", "오래된 리포트 정리", "clean up old reports", "prune stale handoffs", "이 프로젝트 잡동사니 좀 치워줘" 같은 표현. 영속 knowledge sub-tree (adr / concepts / guides / reference), 모든 rule 과 코드, 아직 참조되는 것은 모두 보존한다. 프로젝트 문서/로그 컨벤션 밖의 일반 파일 삭제, 코드 재구조화(reshape 사용), handoff 작성(handoff 사용) 에는 트리거하지 말 것.
+description: Clean up accumulated project cruft — 시점 기록 문서(오래된 plan, 랜딩된 handoff, 대체된 report), 휘발성 로그(logs/qa, agent 로그), 고아/중복 문서, build/tmp 잔여물 — 을 scan → classify → propose → confirm → delete 파이프라인으로, git 히스토리를 안전망 삼아 정리한다. 유저가 forge/hunt/renew 를 거치며 쌓인 잔여 문서/로그/아티팩트를 명시적으로 정리/정돈/prune/sweep/비우기 요청할 때 사용 — "레거시 문서 정리해줘", "쌓인 로그/플랜 치워줘", "docs 청소해줘", "오래된 리포트 정리", "clean up old reports", "prune stale handoffs", "이 프로젝트 잡동사니 좀 치워줘" 같은 표현. 영속 knowledge sub-tree (adr / concepts / guides / reference), 모든 rule 과 코드, 아직 참조되는 것은 모두 보존한다. 프로젝트 문서/로그 컨벤션 밖의 일반 파일 삭제, 코드 재구조화/편집(forge/renew/hunt 사용), handoff 작성(handoff 사용) 에는 트리거하지 말 것.
 ---
 
 # Sweep — 중요한 것은 하나도 잃지 않고 프로젝트 잡동사니 제거
 
-`forge` / `hunt` / `renew` / `reshape` 를 거치는 프로젝트는 *시점 기록
+`forge` / `hunt` / `renew` 를 거치는 프로젝트는 *시점 기록
 아티팩트*를 쌓는다: 이미 랜딩된 plan, 작업이 출시된 handoff, agent 로그, `.bak`
 파일, 대체된 report. 이것들이 쌓여 `grep` 을 흐리고, 레포가 절반쯤 아직 진행
 중인 것처럼 읽히게 만든다. Sweep 은 그 레이어를 제거한다 — 그리고 **오직** 그
@@ -113,7 +113,7 @@ Permanent knowledge & code untouched.
 ## Sweep 이 아닌 것
 
 - `git clean -fdx` 가 아니다 — 그건 무딘 도구이고 knowledge/아티팩트 경계를 무시한다.
-- refactor 가 아니다 — 파일 *내용*을 절대 편집하지 않는다 (`reshape` 사용).
+- refactor 가 아니다 — 파일 *내용*을 절대 편집하지 않는다 (`forge`/`renew`/`hunt` 사용).
 - memory 나 handoff 위생 로직이 아니다 — stale handoff 는 삭제하지만 작성하지는
   않는다 (`handoff` 사용).
 - 자동이 아니다 — 스캔하고 제안할 뿐, 삭제는 항상 확인을 기다린다.

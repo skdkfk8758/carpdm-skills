@@ -1,6 +1,6 @@
 ---
 name: deep-plan
-description: 모호하면 먼저 인터뷰로 보강하고, 검증 가능한 구현 PLAN 문서(`docs/plans/…md`)를 도출하며, plan 의 결과물이 UI/UX 면 그 화면을 self-contained HTML 시안(목업)으로까지 시각화한 뒤 — 빌드하지 않고 — 멈춘다. 사용자가 무언가를 어떻게 만들지 PLAN, 설계, 기획안, 제안서, 접근법, 로드맵, 또는 UI 시안을 원하되 지금 당장 구현은 원하지 않을 때마다 사용한다 — "계획 세워줘", "이거 어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안/제안서 만들어줘", "approach 정리해줘", "design doc 작성", "UI 시안 뽑아줘", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 요청이 흐릿하면 한 번에 한 질문씩 Socratic 인터뷰로 보강하고, 이미 명확하면 인터뷰를 건너뛰고 곧장 plan 으로 간다. deep-interview 와 다르다 — deep-interview 는 번호 매긴 요구사항 spec 을 만들어 빌드 파이프라인으로 라우팅하지만, deep-plan 은 바로 실행 가능한 plan 문서 + HTML 시안을 산출하고 멈춘다. 실제로 기능을 구현/빌드(use forge)·버그 수정(use hunt)·기존 동작 변경(use renew)·리팩터(use reshape)하려 할 때는 사용하지 말 것 — deep-plan 은 코드를 쓰지 않는다, plan 만 쓴다.
+description: 모호하면 먼저 인터뷰로 보강하고, 검증 가능한 구현 PLAN 문서(`docs/plans/…md`)를 도출하며, plan 의 결과물이 UI/UX 면 그 화면을 self-contained HTML 시안(목업)으로까지 시각화한 뒤 — 빌드하지 않고 — 멈춘다. 사용자가 무언가를 어떻게 만들지 PLAN, 설계, 기획안, 제안서, 접근법, 로드맵, 또는 UI 시안을 원하되 지금 당장 구현은 원하지 않을 때마다 사용한다 — "계획 세워줘", "이거 어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안/제안서 만들어줘", "approach 정리해줘", "design doc 작성", "UI 시안 뽑아줘", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 요청이 흐릿하면 한 번에 한 질문씩 Socratic 인터뷰로 보강하고, 이미 명확하면 인터뷰를 건너뛰고 곧장 plan 으로 간다. deep-interview 와 다르다 — deep-interview 는 번호 매긴 요구사항 spec 을 만들어 빌드 파이프라인으로 라우팅하지만, deep-plan 은 바로 실행 가능한 plan 문서 + HTML 시안을 산출하고 멈춘다. 실제로 기능을 구현/빌드(use forge)·버그 수정(use hunt)·기존 동작 변경(use renew)하려 할 때는 사용하지 말 것 — deep-plan 은 코드를 쓰지 않는다, plan 만 쓴다.
 ---
 
 # Deep Plan — 인터뷰로 보강된 PLAN(+UI 시안) 도출, 빌드 없음
@@ -25,10 +25,10 @@ self-contained HTML 시안(`.html`). 끝나면 멈춘다 — codex 리뷰도, TD
   **plan 문서 + HTML 시안** 을 산출하고 *멈춘다*. 사용자가 "요구사항을 못 박고
   싶다"면 deep-interview, "어떻게 만들지 + 화면이 어떻게 보일지 보고 싶다"면
   deep-plan.
-- **vs `forge`/`renew`/`hunt`/`reshape`** — 이들은 **빌드한다**. deep-plan 은
+- **vs `forge`/`renew`/`hunt`** — 이들은 **빌드한다**. deep-plan 은
   구현 코드를 한 줄도 쓰지 않는다. plan 만 쓴다.
 
-빌드/수정/리팩터를 *지금* 하려 하면 deep-plan 이 아니라 해당 빌드 스킬이다.
+빌드/수정을 *지금* 하려 하면 deep-plan 이 아니라 해당 빌드 스킬이다.
 
 ## craft-core 재사용 (Phase 0+1 만, 그다음 정지)
 

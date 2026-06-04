@@ -1,6 +1,6 @@
 ---
 name: hunt
-description: 재현 우선, 회귀 잠금 파이프라인으로 BUG 를 고친다 — 정확한 재현과 근본 원인을 고정하는 소크라테스식 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD(실패하는 회귀 테스트 먼저) → 보안 검증. 사용자가 무언가 BROKEN, 실패, 에러, 크래시, throw, 잘못된 결과 반환, 멈춤, 또는 예기치 않게 동작한다고 보고하며 고치고 싶어 할 때마다 사용한다 — "X is broken", "Y throws on Z", "why does this return null", "the page crashes when…", "this used to work and now…", "getting a 500 from…" 같은 표현. 새 기능을 만들거나(use forge), 동작하는 기능을 의도적으로 변경하거나(use renew), 동작 변화 없이 코드를 재구조화하는(use reshape) 데에는 사용하지 말 것.
+description: 재현 우선, 회귀 잠금 파이프라인으로 BUG 를 고친다 — 정확한 재현과 근본 원인을 고정하는 소크라테스식 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD(실패하는 회귀 테스트 먼저) → 보안 검증. 사용자가 무언가 BROKEN, 실패, 에러, 크래시, throw, 잘못된 결과 반환, 멈춤, 또는 예기치 않게 동작한다고 보고하며 고치고 싶어 할 때마다 사용한다 — "X is broken", "Y throws on Z", "why does this return null", "the page crashes when…", "this used to work and now…", "getting a 500 from…" 같은 표현. 새 기능을 만들거나(use forge), 동작하는 기능을 의도적으로 변경하는(use renew) 데에는 사용하지 말 것.
 ---
 
 # Hunt — 버그 수정
@@ -53,4 +53,14 @@ Task 1 은 **버그를 재현하는 실패하는 회귀 테스트**다 — 현�
 남아 있는 것이 버그의 재발을 막는다.
 
 수정은 최소로, 근본 원인을 겨냥하라 — 버그 수정은 주변 코드를 리팩터링할 면허가
-아니다 (그건 reshape). Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.
+아니다.
+
+## Phase 3.5 — Simplify review pass (see craft-core/references/simplify-pass.md)
+
+수정이 green 이 되면, Phase 4 이전에 *방금 변경한 diff* 가 정리(simplify)가 필요한지
+검토하고, 필요하면 `/simplify` 스킬로 동작 보존 정리(재사용/단순화/효율)를 **한 번
+제안한다** (기본 off). simplify 는 방금 바뀐 코드만 보므로 surgical 한 수정의 범위를
+넘지 않는다 — 주변 미변경 코드로 번지지 않는다. diff 가 사소하거나 사용자가 거절하면
+건너뛴다.
+
+Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.

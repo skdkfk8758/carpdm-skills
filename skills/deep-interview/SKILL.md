@@ -1,6 +1,6 @@
 ---
 name: deep-interview
-description: 측정 가능한 ambiguity 점수로 게이트되어 요구사항이 명확해지는 정확한 시점에 — 그 이전이 아니라 — 멈추는, 한 번에 한 질문씩 진행하는 엄격한 Socratic 인터뷰를 실행해 모호한 아이디어를 검증 가능하고 빌드 준비가 된 spec 으로 끌어올린다. 사용자가 흐릿하거나 반쯤 형태만 잡힌 또는 야심 찬 아이디어를 들고 와서, 코드를 작성하기 전에 인터뷰받거나 질문받거나 "함께 생각을 정리"하고 싶어 할 때마다 사용한다 — "interview me about X", "help me think this through", "I have a rough idea for Y", "socratically question me", "pin down what I actually want", "deep dive on the requirements", "/deep-interview" 같은 표현. 여섯 가지 고전적 Socratic 질문 유형(clarification, probing assumptions, probing reasons/evidence, alternative viewpoints, implications/consequences, questioning the question)으로 대화를 이끌며, 먼저 컴포넌트 토폴로지를 고정한 뒤, spec 이 모르는 사람도 검증할 수 있을 만큼 명확해질 때까지 매 라운드 가장 약한 단일 차원을 공략한다. 아이디어가 정말로 모호하거나 클 때는 곧장 plan 으로 직행하기보다 이것을 우선한다. 작고 이미 명확한 작업, 알려진 버그 수정, 또는 빌드 파이프라인(forge/renew/hunt/reshape)이 이미 자체 요구사항 단계를 돌리고 있을 때는 사용하지 말 것.
+description: 측정 가능한 ambiguity 점수로 게이트되어 요구사항이 명확해지는 정확한 시점에 — 그 이전이 아니라 — 멈추는, 한 번에 한 질문씩 진행하는 엄격한 Socratic 인터뷰를 실행해 모호한 아이디어를 검증 가능하고 빌드 준비가 된 spec 으로 끌어올린다. 사용자가 흐릿하거나 반쯤 형태만 잡힌 또는 야심 찬 아이디어를 들고 와서, 코드를 작성하기 전에 인터뷰받거나 질문받거나 "함께 생각을 정리"하고 싶어 할 때마다 사용한다 — "interview me about X", "help me think this through", "I have a rough idea for Y", "socratically question me", "pin down what I actually want", "deep dive on the requirements", "/deep-interview" 같은 표현. 여섯 가지 고전적 Socratic 질문 유형(clarification, probing assumptions, probing reasons/evidence, alternative viewpoints, implications/consequences, questioning the question)으로 대화를 이끌며, 먼저 컴포넌트 토폴로지를 고정한 뒤, spec 이 모르는 사람도 검증할 수 있을 만큼 명확해질 때까지 매 라운드 가장 약한 단일 차원을 공략한다. 아이디어가 정말로 모호하거나 클 때는 곧장 plan 으로 직행하기보다 이것을 우선한다. 작고 이미 명확한 작업, 알려진 버그 수정, 또는 빌드 파이프라인(forge/renew/hunt)이 이미 자체 요구사항 단계를 돌리고 있을 때는 사용하지 말 것.
 ---
 
 # Deep Interview — 빌드 전 Socratic 모호성 해소
@@ -152,7 +152,6 @@ greenfield/brownfield 판단 + goal), 그 성격은 특정 작업유형 스킬�
 |---------------------|----------|------------------------|-----|
 | 존재하지 않는 **새** 능력 (greenfield) | **`/forge`** | spec 이 *곧* 못 박힌 요구사항 | best |
 | 기존 기능 **변경** — 동작이 옮겨가고 호출자가 깨질 수 있음 (brownfield) | **`/renew`** | 무엇이 바뀌어야 하고 무엇이 보존돼야 하는지 | strong |
-| 동작 변경 없는 **재구조화** (brownfield) | **`/reshape`** | 지킬 불변 조건 + blast radius — 단 순수 리팩터는 전체 인터뷰가 거의 필요 없음 | partial |
 | 고칠 **고장난** 무언가 | **`/hunt`** | 약한 매치 — hunt 는 요구사항이 아니라 재현 + 근본 원인을 원함; 보통 `/hunt` 로 직행 | weak |
 | 코드가 아니거나, 이 세션을 떠남 | spec 파일 반환 | 사용자가 다른 곳으로 들고 감 | — |
 
@@ -177,7 +176,7 @@ greenfield/brownfield 판단 + goal), 그 성격은 특정 작업유형 스킬�
 무른 채로 18% 에서 멈춤 — council 모드로 `/forge` 를 돌릴 가치가 있음."* 결정은
 여전히 사용자가 한다; 당신은 엔진에 정보에 근거한 판단을 넘기는 것이다.
 
-**이중 인터뷰를 피하라.** forge / renew / reshape / hunt 각각은 *자체*
+**이중 인터뷰를 피하라.** forge / renew / hunt 각각은 *자체*
 Socratic 요구사항 단계를 돌린다(공유 craft-core Phase 1, 그리고 orchestrated
 모드의 융합된 council 루프). 순진하게 핸드오프하면 사용자는 두 번 인터뷰받는다.
 그러니 핸드오프는 다음 스킬에게 이 spec 을 **이미 완료된 Phase 1 산출물**로

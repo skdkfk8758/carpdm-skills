@@ -1,7 +1,8 @@
-# Convention Guide — reshape pass 가 맞추는 baseline
+# Convention Guide — simplify pass 폴백이 맞추는 baseline
 
-이것은 `forge` 나 `renew` 구현이 green 이 된 후 Phase 3.5 convention reshape
-pass (`reshape-pass.md`) 가 코드를 맞추는 **공유 baseline** 이다.
+이것은 Phase 3.5 simplify pass (`simplify-pass.md`) 가 `/simplify` 미설치 시
+직접 정리할 때 코드를 맞추는 **공유 baseline** 이다 (`forge` / `renew` / `hunt`
+diff 대상).
 의도적으로 linter 와 글로벌 룰이 하지 **않는** 것만 다룬다:
 
 - linter/formatter 가 이미 mechanical 스타일 (들여쓰기, 따옴표,
@@ -56,7 +57,7 @@ pass 는 세 소스를 머지한다, **가장 구체적인 것이 이긴다**:
 - layer 방향을 존중: 하위 layer 는 상위에서 import 하면 안 된다
   (예: domain 은 UI 에서 import 하면 안 된다). 역 import 은 구조적 smell 이다 —
   플래그하라; 그것을 바꾸는 방식으로 behavior 를 옮겨 "고치지" 말 것 (그건
-  reshape 가 아니라 `renew` 다).
+  정리가 아니라 `renew` 다).
 
 ## Axis 4 — Error handling
 
