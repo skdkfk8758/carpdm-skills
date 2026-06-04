@@ -52,6 +52,15 @@ If the plan is sound, say so plainly and return empty lists.
 </structured_output_contract>
 ```
 
+## 시간 가드 — watchdog (필수)
+
+codex 호출은 hang 할 수 있다(실측 ~39분, 최종 포맷 단계). 글로벌 `delegated-review-watchdog` 규칙을 여기서 구현한다:
+
+1. `codex:rescue` 호출을 background 로 돌리고 `Monitor` 로 진행을 본다 — 포그라운드 무한 대기 금지.
+2. **10분 cap** — 10분 안에 결과가 없으면 hang 으로 간주, kill 하고 부분 결과가 있으면 회수한다.
+3. kill 후 **로컬 multi-agent 리뷰**(adversarial reviewer 역할 subagent)로 fallback — Phase 2 를 통째로 건너뛰지 않는다.
+4. codex/fallback 의 verdict 는 **권고**다 — BLOCKING 발견은 플랜에 접기 전 직접 확인(grep/build/재현)으로 독립 재검증한다.
+
 ## codex 가 응답한 후
 
 - Triage: 모든 **BLOCKING** 발견을 플랜에 접어 넣는다 (관련 섹션 수정).
