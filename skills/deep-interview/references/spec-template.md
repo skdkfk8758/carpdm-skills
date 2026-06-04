@@ -100,8 +100,8 @@ to the REQ it constrains.>
 
 ## 8. Handoff
 
-Recommended next skill: <`/forge` (new) | `/renew` (change) | `/reshape` (refactor)
-| `/hunt` (bug) | implementation plan | carry elsewhere>, chosen from the nature
+Recommended next skill: <`/forge` (new) | `/renew` (change) | `/hunt` (bug)
+| implementation plan | carry elsewhere>, chosen from the nature
 of the work above.
 
 **Treat this spec as the completed requirements step.** The recommended skill runs

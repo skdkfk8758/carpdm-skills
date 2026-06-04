@@ -1,6 +1,6 @@
 ---
 name: forge
-description: 엄격한 파이프라인을 통해 NEW 기능을 end-to-end 로 구축한다 — 소크라테스식 요구사항 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD 구현 → 보안 검증. 사용자가 아직 존재하지 않는 기능, 엔드포인트, 컴포넌트, 페이지, 명령, 능력을 ADD, BUILD, IMPLEMENT, 또는 CREATE 하려 할 때마다 사용한다 — "add X", "build me Y", "I need a Z", "can you make it do W" 처럼 캐주얼하게 표현하더라도, 프로세스나 테스트를 전혀 언급하지 않더라도 마찬가지다. 사소하지 않은 신규 기능이라면 즉흥적 코딩보다 forge 를 우선하라. 깨진 동작을 고치거나(use hunt), 기존 기능을 변경하거나(use renew), 동작 변화 없이 코드를 재구조화하는(use reshape) 경우에는 사용하지 말 것.
+description: 엄격한 파이프라인을 통해 NEW 기능을 end-to-end 로 구축한다 — 소크라테스식 요구사항 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD 구현 → 보안 검증. 사용자가 아직 존재하지 않는 기능, 엔드포인트, 컴포넌트, 페이지, 명령, 능력을 ADD, BUILD, IMPLEMENT, 또는 CREATE 하려 할 때마다 사용한다 — "add X", "build me Y", "I need a Z", "can you make it do W" 처럼 캐주얼하게 표현하더라도, 프로세스나 테스트를 전혀 언급하지 않더라도 마찬가지다. 사소하지 않은 신규 기능이라면 즉흥적 코딩보다 forge 를 우선하라. 깨진 동작을 고치거나(use hunt), 기존 기능을 변경하는(use renew) 경우에는 사용하지 말 것.
 ---
 
 # Forge — 새 기능 구축
@@ -36,11 +36,12 @@ test 다 (실패한다 — 기능이 부재하므로). 그다음 각 후속 task
 통과할 때까지 opus 에서 red → green → refactor 로 몰아가는 unit slice 다.
 acceptance scenario 가 요구하지 않는 인프라는 만들지 말 것.
 
-## Phase 3.5 — Convention reshape pass (see craft-core/references/reshape-pass.md)
+## Phase 3.5 — Simplify review pass (see craft-core/references/simplify-pass.md)
 
-acceptance test 가 통과하면, Phase 4 이전에 새 코드를 프로젝트 컨벤션에 맞추는
-동작 보존 패스를 **한 번 제안한다** (기본 off). 새 기능은 신선하고 정렬되지 않은
-코드가 자리 잡는 곳이므로, 이 패스가 값어치를 하는 지점이다. diff 가 사소하거나
-사용자가 거절하면 건너뛴다.
+acceptance test 가 통과하면, Phase 4 이전에 새로 작성한 diff 가 정리(simplify)가
+필요한지 검토하고, 필요하면 `/simplify` 스킬로 동작 보존 정리(재사용/단순화/효율)를
+**한 번 제안한다** (기본 off). 새 기능은 신선하고 정렬되지 않은 코드가 자리 잡는
+곳이므로, 이 패스가 값어치를 하는 지점이다. diff 가 사소하거나 사용자가 거절하면
+건너뛴다.
 
 Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.

@@ -64,8 +64,6 @@
   지표를 못 박는다.
 - **renew** → 유형 2, 4 & 5: 현재 behavior 중 보존돼야 할 것 대 바뀔 것,
   누가 의존하는지, 변경이 견뎌야 할 worst-case/엣지 입력을 surface 한다.
-- **reshape** → 유형 2 & 5: 관측적으로 바뀌면 안 되는 invariant 와
-  blast radius 를 핀한다.
 - **hunt** → 유형 1, 3 & 5: 정확한 재현과 증거 기반 근본
   원인, 그리고 수정이 깨면 안 되는 blast radius / 엣지 입력을 얻는다.
 

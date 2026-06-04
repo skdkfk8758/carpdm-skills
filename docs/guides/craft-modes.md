@@ -1,9 +1,9 @@
 # Craft 스킬 + 실행 모드 — 사용 가이드
 
-craft 엔진(forge / hunt / renew / reshape)과 그 위의 두 실행 모드(linear /
+craft 엔진(forge / hunt / renew)과 그 위의 두 실행 모드(linear /
 orchestrated) 사용법. 영속 가이드 — 동작이 바뀌면 본 파일 갱신.
 
-## 1. 작업타입 4스킬
+## 1. 작업타입 3스킬
 
 "무슨 작업이냐"로 스킬이 갈린다. 트리거는 자연어 — 슬래시 없이도 발화된다.
 
@@ -12,14 +12,17 @@ orchestrated) 사용법. 영속 가이드 — 동작이 바뀌면 본 파일 갱
 | **forge** | 없는 걸 **새로 만듦** | "X 추가해줘", "build me Y", "엔드포인트 만들어" |
 | **renew** | 있는 걸 **바꿈/재설계** | "X 재설계", "이 플로우 갈아엎어", "modernize Y" |
 | **hunt** | **버그 고침** | "X 깨졌어", "500 떠", "왜 null 나와" |
-| **reshape** | **행동변경 없이 리팩터** | "이 파일 정리", "helper로 추출", "DRY하게" |
 
-넷 다 같은 엔진 위에서 돈다: Socratic 인터뷰 → codex 적대리뷰 →
-동적 워크플로 TDD → 보안검증 → wrap. **forge·renew 만** TDD와 보안검증 사이에
-**Phase 3.5 컨벤션 정렬 리팩터**(옵션·동작불변 — build diff를 프로젝트 컨벤션에
-맞춤, 테스트 green 유지)가 더 붙는다. hunt(surgical 유지)·reshape(자체가 그 패스)
-는 건너뛴다. 차이는 Phase 1에서 뭘 묻나 + Phase 3 TDD 시작점 + (forge·renew)
-Phase 3.5뿐. 엔진 SSOT: `craft-core/references/pipeline.md`.
+셋 다 같은 엔진 위에서 돈다: Socratic 인터뷰 → codex 적대리뷰 →
+동적 워크플로 TDD → 보안검증 → wrap. **셋 모두** TDD와 보안검증 사이에
+**Phase 3.5 simplify 검토 패스**(옵션·동작불변 — 변경된 diff에 `/simplify` 필요
+여부를 검토하고 재사용/단순화/효율 정리, 테스트 green 유지)가 더 붙는다. 차이는
+Phase 1에서 뭘 묻나 + Phase 3 TDD 시작점뿐. 엔진 SSOT:
+`craft-core/references/pipeline.md`.
+
+> 순수 리팩터("이 파일 정리", "helper로 추출", "DRY하게")는 더 이상 별도 작업타입
+> 스킬이 아니다 — 변경 diff 정리는 빌드 후 Phase 3.5(`/simplify`)가 흡수하고,
+> 동작이 바뀌는 재구조화는 `renew` 다.
 
 ## 2. 두 실행 모드 — 강도 선택
 
@@ -63,7 +66,7 @@ Phase 3.5뿐. 엔진 SSOT: `craft-core/references/pipeline.md`.
 | 0 | 팀 생성(TeamCreate) + designer·adversary spawn | opus |
 | 1+2 | **council 루프** — designer 인터뷰(메인 경유)→plan, adversary 공격, 수렴까지. 종료: 유저 승인 AND adversary blocking 없음(≤2R) | opus |
 | 3 | **Workflow TDD** — plan을 atomic task 분할, red→green→refactor | **sonnet** |
-| 3.5 | **컨벤션 정렬 리팩터**(forge·renew만, 옵션) — build diff를 컨벤션에 맞춤, 테스트 green 유지. designer는 idle-alive 유지 | **sonnet** |
+| 3.5 | **simplify 검토 패스**(forge·renew·hunt, 옵션) — 변경 diff를 `/simplify`로 정리, 테스트 green 유지. designer는 idle-alive 유지 | **sonnet** |
 | 4 | **검증패널** — QA/tester/security 병렬 fan-out + 살아있는 designer가 원의도 대조 판정 → accept or Phase 3 재진입 | opus |
 | 5 | 요약 + **팀 shutdown**(영속 agent 정리) | — |
 
@@ -73,7 +76,7 @@ Phase 3.5뿐. 엔진 SSOT: `craft-core/references/pipeline.md`.
 
 - **써라**: 설계 리스크 큰 고위험 작업 — 결제·인증 재설계, 외부 계약 바뀌는
   대규모 변경. 적대적 설계검토 + 구현 후 의도대조가 토큰값을 하는 경우.
-- **쓰지 마라**: 일상 작업 99%. 버튼 추가, 단순 버그, 작은 리팩터 → linear가
+- **쓰지 마라**: 일상 작업 99%. 버튼 추가, 단순 버그, 작은 변경 → linear가
   훨씬 싸고 충분. orchestrated는 비싸다(영속 opus 2 + fan-out + loop-back).
 
 ## 5. 주의
