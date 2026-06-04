@@ -1,6 +1,6 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬·에이전트 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 에이전트 저작 1종 + 공유 엔진 1종**, 그리고 **재사용 서브에이전트 6종.**
+Claude Code 글로벌 스킬·에이전트 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 에이전트 저작 1종 + UI 디자인 충실 재현 1종 + 공유 엔진 1종**, 그리고 **재사용 서브에이전트 6종.**
 
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
@@ -14,6 +14,7 @@ Claude Code 글로벌 스킬·에이전트 배포 레포. **작업 유형별 엄
 | [`sweep`](skills/sweep) | 프로젝트 잡동사니 정리 (문서/로그) | "쌓인 로그/플랜 치워줘", "docs 청소" | 없음 (독립) |
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
 | [`summon`](skills/summon) | 새 서브에이전트 정의 파일 저작 (model·tool 선택 + 검증된 프롬프트 골격) | "X 하는 에이전트 만들어줘", "서브에이전트 설계해줘", "/summon" | 없음 (독립) |
+| [`imprint`](skills/imprint) | DESIGN.md(design-extractor 추출) → React+Tailwind 테마·컴포넌트·HTML 시안 충실 재현 (token-traceability) | "이 DESIGN.md 로 컴포넌트 만들어줘", "추출한 디자인대로 Tailwind 테마", "/imprint" | 없음 (독립) |
 | [`craft-core`](skills/craft-core) | ⚙️ 공유 엔진 (직접 호출 X) | forge/hunt/renew 가 내부에서 읽음 | — |
 
 **파이프라인 3종 공통 흐름**: 소크라테스 인터뷰 → codex 적대적 플랜 리뷰 → 동적 워크플로 TDD(sonnet) → simplify 검토 패스(forge·renew·hunt, 옵션·동작불변, `/simplify` 위임) → 보안 검증.
@@ -49,7 +50,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-11개 스킬을 `~/.claude/skills/`, 6개 에이전트를 `~/.claude/agents/` 로 복사한다. 기존 동일 이름은 `.bak-<timestamp>` 백업 후 덮어씀 (멱등). 설치 후 Claude Code **재시작**.
+12개 스킬을 `~/.claude/skills/`, 6개 에이전트를 `~/.claude/agents/` 로 복사한다. 기존 동일 이름은 `.bak-<timestamp>` 백업 후 덮어씀 (멱등). 설치 후 Claude Code **재시작**.
 
 ### 개별 설치 (하나씩)
 
@@ -61,7 +62,7 @@ cp -R skills/handoff ~/.claude/skills/
 cp -R skills/forge skills/craft-core ~/.claude/skills/
 ```
 
-> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / summon / deep-prompt 은 단독 설치 가능.
+> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / summon / deep-prompt / imprint 은 단독 설치 가능.
 
 ---
 
@@ -100,7 +101,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land summon craft-core
+ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land summon imprint craft-core
 ls ~/.claude/agents/   # executor code-reviewer security-reviewer test-engineer debugger explore (*.md)
 ```
 
