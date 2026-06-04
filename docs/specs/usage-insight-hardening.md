@@ -2,6 +2,10 @@
 
 > Crystallized from a deep-interview on 2026-06-04. Final ambiguity: 18% (target ≤ 20%).
 > Type: brownfield. Rounds: 5. Status: draft.
+>
+> **ROLLBACK NOTE (2026-06-04):** REQ-F-006/REQ-N-003 의 `probe` 스킬은 머지 후
+> 철회됨 — real-env 측정이 호출당 실제 `claude -p` CLI 세션을 띄우는 비용 구조라
+> 불필요 판단. 즉시묶음(REQ-F-001~005, rule 2 + 기존수정 2)만 유효하다.
 
 ## 1. Goal & scope
 
@@ -33,7 +37,7 @@ Round 0 에서 4개 active 로 고정 → 인터뷰 중 C4 가 C2 로 흡수.
 | REQ-F-003 | `~/.claude/skills/craft-core/references/codex-review.md` 에 REQ-F-002 의 watchdog 절차를 codex 호출 지점에 적용한다(background + Monitor 10분 → kill + 수동 리뷰 fallback). | Must | codex-review.md 의 codex 호출 단계에 10분 watchdog + fallback 절차가 명시적으로 박혀 있음. craft 파이프라인이 더 이상 무한 대기하지 않음. | R2 |
 | REQ-F-004 | carpdm-skills `rules/project.md` 에 authoring 검증 규칙을 추가한다: "스킬 skeleton 은 `node --check` 로 검증 금지(async wrapper → false 'Illegal return statement'); 대체 검증법 사용. 스킬 eval 은 synthetic 단독 신뢰 금지 — real-env probe 병행." | Must | project.md 에 node --check 금지 사유 + 대체법, real-env eval 병행 규칙이 기술됨. `AGENTS.md` 재생성으로 미러. | R4 |
 | REQ-F-005 | `install.sh` 가 기존 동명 설치물을 덮어쓸 때 `.bak-<ts>` 백업을 생성하지 않도록 수정한다(git history 가 안전망). | Must | install.sh 실행 후 `.bak-*` 파일이 생성되지 않음. 기존 동작 대비 백업 생성 코드 제거됨. project.md 의 install.sh 설명도 갱신. | R4 |
-| REQ-F-006 | carpdm-skills 컨벤션(`skills/<name>/SKILL.md` + `references/`, 본문 한국어)으로 real-env eval probe 신규 스킬을 저작한다. 스킬은 (a) 설치 후 트리거 매칭 정확도, (b) sibling-skill 경쟁(다른 스킬 오발화)을 둘 다 측정하고, artifact(name-collision 등) 감지 시 재시도하는 eval loop 를 포함한다. | Must | `skills/<name>/` 존재, SKILL.md frontmatter `name`(영어)+`description`(한국어 트리거) 적격, references 에 eval 방법론 기술, 두 측정 축(트리거 정확도 + sibling 경쟁) 명시. README 스킬 표·카운트 갱신(guard-readme-fresh 통과). | R5 |
+| REQ-F-006 | carpdm-skills 컨벤션(`skills/<name>/SKILL.md` + `references/`, 본문 한국어)으로 real-env eval probe 신규 스킬을 저작한다. 스킬은 (a) 설치 후 트리거 매칭 정확도, (b) sibling-skill 경쟁(다른 스킬 오발화)을 둘 다 측정하고, artifact(name-collision 등) 감지 시 재시도하는 eval loop 를 포함한다. | ~~Must~~ **Won't (rolled back)** | `skills/<name>/` 존재, SKILL.md frontmatter `name`(영어)+`description`(한국어 트리거) 적격, references 에 eval 방법론 기술, 두 측정 축(트리거 정확도 + sibling 경쟁) 명시. README 스킬 표·카운트 갱신(guard-readme-fresh 통과). | R5 |
 
 Priority: MoSCoW. Origin 은 못 박은 인터뷰 라운드.
 
