@@ -43,6 +43,7 @@ deep-plan 은 craft 빌드 파이프라인과 같은 검증된 엔진을 쓰되 
 - 모호할 때의 측정 게이트·여섯 Socratic 유형: `~/.claude/skills/deep-interview/references/scoring.md`
   와 `~/.claude/skills/deep-interview/references/socratic-playbook.md`
 - 종료 시 result 블록 규격(deep-* 공통): `~/.claude/skills/deep-interview/references/result-format.md`
+- 다음 스킬 추천 규격(deep-* 공통): `~/.claude/skills/deep-interview/references/next-skill-routing.md`
 
 이 파일들이 없으면(craft-core/deep-interview 미설치) 같은 원리를 직접 적용하되,
 설치돼 있으면 항상 읽어서 한 소스를 따르라.
@@ -134,8 +135,27 @@ result: <topic> PLAN 산출 — N steps, scope IN <…> / OUT <…>
  경로는 터미널에서 클릭으로도 열린다.)
 ```
 
-그리고 **여기서 멈춘다.** codex 리뷰·TDD·보안·구현·자동 라우팅 없음 — deep-plan 은
-plan 과 시안을 산출하는 도구다. 사용자가 다음에 무엇을 할지는 사용자가 정한다.
+### Step 5 — 다음 단계 제안 (제안만, 시작 안 함)
+
+산출물을 제시한 뒤, 사용자가 *다음에* 무엇으로 이어가면 좋을지 한 번 추천한다.
+deep-plan 은 "순수 산출" 도구라 **빌드로 자동 라우팅하지 않는다** — 이건 다음
+스킬을 **시작하는 게 아니라 제안하는** 것이고, 시작 여부는 항상 사용자가 정한다.
+
+규칙은 `next-skill-routing.md`(deep-interview 와 공유 — 복제 금지)를 읽어 적용한다.
+deep-plan 특이사항만:
+
+- **설치 스킬을 Bash 로 스캔하지 마라** — available-skills 목록이 이미 컨텍스트에
+  있다. 거기서 valid-next 필터로 후보만 남긴다.
+- 입력은 방금 만든 **PLAN 문서**다. 가장 흔한 다음 단계: plan 을 받아 빌드
+  (Tier 1: greenfield→`/forge`, 변경→`/renew`, 고장→`/hunt`) 하거나 이슈로 분해
+  (`to-issues`). `deep-plan` 자신은 후보에서 제외(이미 만들었다).
+- 빌드로 제안하면 plan 을 **이미 완료된 Phase-1 결과물**로 취급해 다시 인터뷰하지
+  말라고 프레이밍한다(이중 인터뷰 회피).
+- **`AskUserQuestion` 으로 제안만** 한다.
+
+그리고 **여기서 멈춘다.** codex 리뷰·TDD·보안·구현 없음, 다음 스킬 자동 시작 없음 —
+deep-plan 은 plan 과 시안을 산출하고 다음 단계를 *제안*하는 도구다. 무엇을 할지는
+사용자가 정한다.
 
 ## Anti-patterns
 
@@ -147,3 +167,6 @@ plan 과 시안을 산출하는 도구다. 사용자가 다음에 무엇을 할�
 - **UI plan 인데 `.html` 이 plan 표만 렌더** — UI 면 결과 화면 목업이어야 한다.
 - **파일/계약을 Read/Grep 없이 거명** — Files 섹션은 검증된 것만.
 - **질문 묶기** — 인터뷰가 발동하면 라운드당 한 질문.
+- **다음 스킬 자동 시작** — Step 5 는 `AskUserQuestion` 제안까지다. forge/renew/hunt
+  등을 직접 호출하지 말 것(제안 ≠ 시작).
+- **설치 스킬 Bash 스캔** — available-skills 가 이미 컨텍스트에 있다. `ls`/캐시 긁기 금지.
