@@ -53,14 +53,14 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `tdd:${t.id}`, phase: 'Implement', agentType: 'executor', model: 'opus',
+    { label: `tdd:${t.id}`, phase: 'Implement', model: 'opus',
       isolation: 'worktree', schema: RESULT }
   ),
   // Stage 2: independent verify that the task's tests actually pass
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
     `Report testsGreen honestly — do not trust the implementer's claim.`,
-    { label: `verify:${t.id}`, phase: 'Verify', agentType: 'test-engineer', model: 'opus', schema: RESULT }
+    { label: `verify:${t.id}`, phase: 'Verify', model: 'opus', schema: RESULT }
   ).then(v => ({ ...impl, verified: v.testsGreen }))
 )
 
@@ -71,13 +71,7 @@ return results.filter(Boolean)
 
 - 모든 구현/verify 에이전트에 `model: 'opus'` — 이것이 스킬 계약상 Phase 3
   의 필수 모델이다.
-- `agentType: 'executor'` / `'test-engineer'` 는 구현 / verify 단계를
-  curated `agents/` 풀로 라우팅한다 (battle-tested 시스템 프롬프트; test-engineer 는
-  verify lane 용으로 RO-safe). 풀 자신의 모델 (sonnet) 은 여기서 `model: 'opus'` 로
-  **의도적으로 override** 된다 — Phase 3 의 opus 계약이 풀 기본값을 이긴다.
-  풀이 설치되지 않았으면 (`~/.claude/agents/` 에 이것들이 없으면),
-  **`agentType` 을 떨궈라** — 기본 워크플로 subagent 가 같은 프롬프트를 돌린다 —
-  풀은 하드 의존이 아니라 업그레이드다.
+- 구현 / verify 는 기본 워크플로 subagent 에서 돈다 — 위 프롬프트가 곧 계약이다.
 - `isolation: 'worktree'` 는 태스크들이 병렬로 파일을 쓰고 충돌할 때만.
   엄격히 순차적인 태스크 집합이면 떨궈도 된다 (디스크 + 셋업 비용이 든다).
 - 태스크 리스트를 스크립트에 하드코드하지 말고 Workflow `args` 로 넘겨라,
