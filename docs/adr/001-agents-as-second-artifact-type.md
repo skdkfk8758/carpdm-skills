@@ -1,8 +1,11 @@
 # ADR 001 — agents as a second deployed artifact type
 
-- Status: Accepted
+- Status: Superseded by ADR 002 (2026-06-07)
 - Date: 2026-06-03
 - Context source: deep-interview → forge (linear), Phase 2 adversarial review
+
+> **Superseded:** 이 결정은 [ADR 002](002-revert-agents-artifact-type.md) 로 되돌려졌다.
+> `agents/` 는 더는 배포 아티팩트가 아니다. 아래는 당시(2026-06-03) 결정의 역사적 기록.
 
 ## Context
 

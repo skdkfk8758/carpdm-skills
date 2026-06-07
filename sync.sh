@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-# Sync (publish) live skills + agents from ~/.claude/ into this repo.
-# Skills mirror per repo-tracked dir under skills/; agents mirror as a flat set
-# of .md files under agents/. Source of truth for the list is what the repo
-# already tracks. To start distributing a NEW skill, create its dir under skills/
-# once (even empty); for agents, create repo agents/ once — then this script
-# keeps them in sync.
+# Sync (publish) live skills from ~/.claude/ into this repo.
+# Skills mirror per repo-tracked dir under skills/. Source of truth for the list
+# is what the repo already tracks. To start distributing a NEW skill, create its
+# dir under skills/ once (even empty) — then this script keeps them in sync.
 #
 # Usage:
 #   bash sync.sh           # mirror files, stage, show status, print next steps
@@ -35,25 +33,9 @@ for dst in "$DST_DIR"/*/; do
   echo "  = $name"
 done
 
-# Agents: flat .md files mirrored as a whole (live -> repo, true mirror).
-# --delete means a repo agent not present in live ~/.claude/agents/ is removed
-# here too — same strictness as skills; git history is the safety net.
-SRC_AGENTS="$HOME/.claude/agents"
-DST_AGENTS="$REPO_DIR/agents"
-if [ -d "$DST_AGENTS" ]; then
-  if [ -d "$SRC_AGENTS" ]; then
-    rsync -a --delete --include='*.md' --include='*/' --exclude='*' "$SRC_AGENTS/" "$DST_AGENTS/"
-    echo "  = agents/ (flat mirror)"
-  else
-    echo "  ! agents/  (not found in $SRC_AGENTS — skipped)"
-    missing=1
-  fi
-fi
-
 echo
 cd "$REPO_DIR"
 git add -A skills
-[ -d "$DST_AGENTS" ] && git add -A agents
 
 if git diff --cached --quiet; then
   echo "No changes — repo already up to date."
@@ -61,7 +43,7 @@ if git diff --cached --quiet; then
 fi
 
 echo "=== staged changes ==="
-git status --short -- skills $([ -d "$DST_AGENTS" ] && printf '%s' agents)
+git status --short -- skills
 echo
 
 if [ "${1:-}" = "--push" ]; then
@@ -71,11 +53,11 @@ if [ "${1:-}" = "--push" ]; then
   BR="chore/sync-$(date +%Y%m%d-%H%M%S)"
   # 새 브랜치로 분기 (master 직접 push 우회). staged 변경은 그대로 따라옴.
   git checkout -q -b "$BR"
-  git commit -q -m "chore: 스킬·에이전트 동기화 ($DATE)"
+  git commit -q -m "chore: 스킬 동기화 ($DATE)"
   git push -q -u origin "$BR"
   gh pr create --base "$BASE" --head "$BR" \
-    --title "chore: 스킬·에이전트 동기화 ($DATE)" \
-    --body "\`sync.sh --push\` 자동 생성 — \`~/.claude/{skills,agents}/\` → repo \`skills/\`·\`agents/\` 미러링." >/dev/null
+    --title "chore: 스킬 동기화 ($DATE)" \
+    --body "\`sync.sh --push\` 자동 생성 — \`~/.claude/skills/\` → repo \`skills/\` 미러링." >/dev/null
   gh pr merge "$BR" --merge --delete-branch
   git checkout -q "$BASE"
   git pull -q --ff-only origin "$BASE"

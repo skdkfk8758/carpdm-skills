@@ -146,14 +146,8 @@ pipeline 하고; 태스크는 자신의 테스트가 green 일 때만 완료된�
 관련 프로젝트 guide (`docs/guides/`) 를 다시 읽고, 플랜에 없는 것은 Phase 1 로
 돌아가지 않고서는 구현하지 않는다.
 
-워크플로는 구현 / 검증 에이전트를 `agentType` (`executor`, `test-engineer`;
-§4 패널이 `security-reviewer` 와 agentType 없는 acceptance-QA lane 을 추가) 으로
-curated `agents/` 풀에 라우팅한다 — battle-tested 프롬프트, reviewer 급 에이전트는
-read-only 로 tool-lock. 풀은 **하드 의존이 아니라 업그레이드**다: 그
-기본 모델이 phase 계약과 충돌하면 명시적 `model:` 이 이긴다 (Phase 3 은
-풀의 sonnet 위로 opus 를 강제), 그리고 `~/.claude/agents/` 에 풀이 없으면
-에이전트는 그냥 `agentType` 을 떨구고 같은 프롬프트를 기본 subagent 에서 돌린다.
-정확한 매핑은 `dynamic-tdd.md` / `orchestrated.md` 참조. (에이전트
+워크플로는 구현 / 검증 에이전트를 기본 subagent 로 돌린다 — 프롬프트가 곧 계약이다.
+정확한 골격은 `dynamic-tdd.md` / `orchestrated.md` 참조. (에이전트
 "cleanup" 단계는 존재하지도 필요하지도 않다 — 워크플로 subagent 는 일회성이고 유일한
 영속 에이전트인 orchestrated council 은 §5 에서 정리된다.)
 

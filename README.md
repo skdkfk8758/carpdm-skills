@@ -1,6 +1,6 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬·에이전트 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 에이전트 저작 1종 + UI 디자인 충실 재현 1종 + 공유 엔진 1종**, 그리고 **재사용 서브에이전트 6종.**
+Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + UI 디자인 충실 재현 1종 + 공유 엔진 1종**, 총 **스킬 11종.**
 
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
@@ -13,7 +13,6 @@ Claude Code 글로벌 스킬·에이전트 배포 레포. **작업 유형별 엄
 | [`handoff`](skills/handoff) | 세션 인계 (저장/복원) | "여기까지 하자 이어서", "어디까지 했지" | 없음 (독립) |
 | [`sweep`](skills/sweep) | 프로젝트 잡동사니 정리 (문서/로그) | "쌓인 로그/플랜 치워줘", "docs 청소" | 없음 (독립) |
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
-| [`summon`](skills/summon) | 새 서브에이전트 정의 파일 저작 (model·tool 선택 + 검증된 프롬프트 골격) | "X 하는 에이전트 만들어줘", "서브에이전트 설계해줘", "/summon" | 없음 (독립) |
 | [`imprint`](skills/imprint) | DESIGN.md(design-extractor 추출) → React+Tailwind 테마·컴포넌트·HTML 시안 충실 재현 (token-traceability) | "이 DESIGN.md 로 컴포넌트 만들어줘", "추출한 디자인대로 Tailwind 테마", "/imprint" | 없음 (독립) |
 | [`craft-core`](skills/craft-core) | ⚙️ 공유 엔진 (직접 호출 X) | forge/hunt/renew 가 내부에서 읽음 | — |
 
@@ -21,22 +20,7 @@ Claude Code 글로벌 스킬·에이전트 배포 레포. **작업 유형별 엄
 
 엔진은 두 실행 모드를 가진다 — **linear**(기본, 단일세션) / **orchestrated**(멀티에이전트 council, 명시 요청 시). 사용법은 [`docs/guides/craft-modes.md`](docs/guides/craft-modes.md).
 
----
-
-## 에이전트 (재사용 서브에이전트)
-
-[oh-my-claudecode](https://github.com/Yeachan-Heo/oh-my-claudecode) 에서 큐레이트해 이 레포 컨벤션에 맞게 적응한 6종. 플랫 `.md` 파일로 `~/.claude/agents/` 에 설치된다 (스킬과 별개 아티팩트). 코드 워크플로 역할군 — orchestrated 모드가 실제 spawn 하는 역할에 정렬.
-
-| 에이전트 | 역할 | model |
-|---|---|---|
-| [`executor`](agents/executor.md) | 스코프 구현 (최소 diff) | sonnet |
-| [`code-reviewer`](agents/code-reviewer.md) | severity 등급 코드 리뷰 | opus |
-| [`security-reviewer`](agents/security-reviewer.md) | 취약점 탐지 (OWASP·secrets) | opus |
-| [`test-engineer`](agents/test-engineer.md) | 테스트 전략·커버리지·TDD | sonnet |
-| [`debugger`](agents/debugger.md) | 근본원인 분석·빌드 에러 해소 | sonnet |
-| [`explore`](agents/explore.md) | 코드베이스 탐색·패턴 검색 | haiku |
-
-> 원본의 oh-my-claudecode 플러그인 결합(네임스페이스 Task 호출·`.omc/` 경로·consensus 모드·미import 에이전트 핸드오프)은 제거/일반화했다. 결정 배경은 [`docs/adr/001-agents-as-second-artifact-type.md`](docs/adr/001-agents-as-second-artifact-type.md).
+> 과거 재사용 서브에이전트 6종(`agents/*.md`)과 에이전트 저작 스킬 `summon` 을 함께 배포했으나 [ADR 002](docs/adr/002-revert-agents-artifact-type.md) 로 철회했다 — 이 레포는 다시 스킬 단일 아티팩트다.
 
 ---
 
@@ -50,7 +34,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-12개 스킬을 `~/.claude/skills/`, 6개 에이전트를 `~/.claude/agents/` 로 복사한다. 기존 동일 이름은 `.bak-<timestamp>` 백업 후 덮어씀 (멱등). 설치 후 Claude Code **재시작**.
+11개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
 ### 개별 설치 (하나씩)
 
@@ -62,7 +46,7 @@ cp -R skills/handoff ~/.claude/skills/
 cp -R skills/forge skills/craft-core ~/.claude/skills/
 ```
 
-> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / summon / deep-prompt / imprint 은 단독 설치 가능.
+> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / deep-prompt / imprint 은 단독 설치 가능.
 
 ---
 
@@ -101,8 +85,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land summon imprint craft-core
-ls ~/.claude/agents/   # executor code-reviewer security-reviewer test-engineer debugger explore (*.md)
+ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land imprint craft-core
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.
@@ -126,6 +109,6 @@ bash sync.sh           # ~/.claude/skills/ → repo skills/ 미러링 후 변경
 bash sync.sh --push    # 미러링 + 브랜치·PR·머지 자동 (master 직접 push 안 함)
 ```
 
-`sync.sh` 는 **레포가 추적 중인 것만** 갱신한다 (true mirror, 삭제 파일 반영) — 스킬은 `skills/` 의 디렉토리별, 에이전트는 `agents/` 의 플랫 `.md` 집합. 새 스킬 배포 시작은 `skills/<name>/` 디렉토리를, 에이전트는 `agents/` 디렉토리를 먼저 만든 뒤 sync.
+`sync.sh` 는 **레포가 추적 중인 것만** 갱신한다 (true mirror, 삭제 파일 반영) — `skills/` 의 디렉토리별. 새 스킬 배포 시작은 `skills/<name>/` 디렉토리를 먼저 만든 뒤 sync.
 
 `--push` 는 `chore/sync-<timestamp>` 브랜치를 만들어 PR 생성·머지까지 한다 (`gh` CLI 필요). master 직접 push 를 막는 브랜치 보호 환경에서도 동작.

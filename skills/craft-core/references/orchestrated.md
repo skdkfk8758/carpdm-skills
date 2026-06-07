@@ -116,7 +116,7 @@ red→green→refactor 규율과 "atomic task" 정의를 위해
 엔진과 정확히 같이: `forge` 는 acceptance 테스트를 태스크 1 로 쓴다; `hunt` 는 실패하는
 regression 테스트를 먼저 쓴다; `renew` 는 어떤 태스크가 코드를
 건드리기 전에 보존 behavior 를 핀하는 characterization 테스트를 쓴다. orchestrated driver 는
-진입점을 바꾸지 않고, executor 만 바꾼다.
+진입점을 바꾸지 않고, 구현 단계만 바꾼다.
 
 **designer 는 idle-alive 로 머문다** 이 phase 내내 (shut down 하지 말 것) — 그
 설계 의도가 Phase 4 를 위해 여전히 context 에 있도록. 메인 세션이
@@ -148,13 +148,13 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `build:${t.id}`, phase: 'Build', agentType: 'executor', model: 'sonnet',
+    { label: `build:${t.id}`, phase: 'Build', model: 'sonnet',
       isolation: 'worktree', schema: RESULT }
   ),
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
     `Report testsGreen honestly — do not trust the implementer's claim.`,
-    { label: `verify:${t.id}`, phase: 'Verify', agentType: 'test-engineer', model: 'sonnet', schema: RESULT }
+    { label: `verify:${t.id}`, phase: 'Verify', model: 'sonnet', schema: RESULT }
   ).then(v => ({ ...impl, verified: v.testsGreen }))
 )
 
@@ -165,11 +165,8 @@ return results.filter(Boolean)
 집합이면 떨군다. `testsGreen:false` 나 `verified:false` 를 반환하는 태스크는
 Phase 4 전에 고친다 — red 태스크로 진행하지 말 것.
 
-`agentType: 'executor'` / `'test-engineer'` 가 build / verify 를 curated
-`agents/` 풀로 라우팅한다. 여기서 풀의 기본 모델 (sonnet) 이 orchestrated
-§3 tier 와 **일치**하므로, linear 엔진과 달리 opus override 가 필요 없다 — `model:
-'sonnet'` 은 그냥 명시적이다. 풀이 설치되지 않았으면, `agentType` 을 떨군다;
-기본 워크플로 subagent 가 같은 프롬프트를 돌린다.
+build / verify 는 기본 워크플로 subagent 에서 돈다 — `model: 'sonnet'` 이
+orchestrated §3 tier 와 일치한다. 프롬프트가 곧 계약이다.
 
 ---
 
@@ -237,25 +234,20 @@ const FINDING = { type: 'object', required: ['lane','findings'], properties: {
 } }
 
 const LANES = [
-  { lane: 'qa',                                       prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
-  { lane: 'tester',   agentType: 'test-engineer',     prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
-  { lane: 'security', agentType: 'security-reviewer', prompt: 'Security pass over the diff per security.md. For each candidate finding, adversarially try to REFUTE it; report only those that survive, with evidence.' },
+  { lane: 'qa',       prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
+  { lane: 'tester',   prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
+  { lane: 'security', prompt: 'Security pass over the diff per security.md. For each candidate finding, adversarially try to REFUTE it; report only those that survive, with evidence.' },
 ]
 
 return (await parallel(LANES.map(L => () =>
   agent(`${L.prompt}\n\nThe approved plan and the diff are on disk — Read them.`,
-    { label: `verify:${L.lane}`, phase: 'Panel', agentType: L.agentType, model: 'opus', schema: FINDING })
+    { label: `verify:${L.lane}`, phase: 'Panel', model: 'opus', schema: FINDING })
 ))).filter(Boolean)
 ```
 
-tester 와 security lane 은 curated `agents/` 풀 멤버
-(`test-engineer` / `security-reviewer`) 에 매핑된다; qa (acceptance-check) lane 은
-`agentType` 이 없고 기본 subagent 에서 돈다. `security-reviewer` 는 기본 opus 다
-(이 패널의 tier 와 일치); `test-engineer` 는 sonnet-default 이고 검증 패널을 위해 여기서
-**opus 로 override** 된다. reviewer 급 풀 에이전트는
-`disallowedTools: Write,Edit` 다 — 검증자가 자신이 판정하는 diff 를 실수로
-mutate 할 수 없다. 풀이 설치되지 않았으면, `agentType` 바인딩이 떨어지고 모든 프롬프트가
-기본 subagent 에서 돈다.
+세 lane (qa / tester / security) 모두 기본 워크플로 subagent 에서 `model: 'opus'`
+로 돈다 — 프롬프트가 각 lane 의 검증 계약이다 (security lane 은 발견을 적대적으로
+반박해 살아남은 것만 보고).
 
 **Stage B — intent judgment (영속 designer, opus).** 메인 세션이
 패널의 살아남은 발견을 **여전히 살아있는 designer** 에게 `SendMessage` 로
