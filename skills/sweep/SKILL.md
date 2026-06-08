@@ -110,6 +110,11 @@ Permanent knowledge & code untouched.
 리뷰하고 commit 할 수 있는 상태로 레포를 남길 것 — commit 은 유저의
 몫(외부/비가역)이지 sweep 의 것이 아니다.
 
+마지막 메시지는 `result:` 한 줄로 못 박는다(`~/.claude/skills/craft-core/references/output-contract.md`
+L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 삭제/보존 수치를 담되 self-contained 로
+(예: `result: <project> 정리 — N개 stale 삭제(staged), M개 보존, .gitignore K줄 추가`).
+산출물이 git 상태 변화라 열기 블록(L2)·다음 스킬 제안(L3)은 적용 안 한다.
+
 ## Sweep 이 아닌 것
 
 - `git clean -fdx` 가 아니다 — 그건 무딘 도구이고 knowledge/아티팩트 경계를 무시한다.

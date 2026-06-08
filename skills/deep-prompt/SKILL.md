@@ -145,8 +145,19 @@ goal 프롬프트 2개 + 나쁜 것을 고친 before/after).
 - 없으면 `goal-prompts/<slug>.md` 또는 사용자 지정 위치.
 - 파일명 `<slug>` 는 Objective 에서 kebab-case 로.
 
-쓴 뒤 경로를 알리고, 그 내용을 goal 칸에 붙여넣어 백그라운드 잡으로 돌리면
-된다고 안내하라.
+쓴 뒤 `~/.claude/skills/craft-core/references/output-contract.md` 의 종료 블록으로
+보고한다 — `result:` 한 줄(무엇을 위한 goal 인지) + `프롬프트` 행의 상대경로와 `open`
+명령(L1+L2). 그다음 그 내용을 goal 칸에 붙여넣어 백그라운드 잡으로 돌리면 된다고
+안내하라. 예:
+
+```
+result: <topic> goal prompt 산출 — 검증 가능한 성공 기준 N개
+
+산출물 — 열기:
+- 프롬프트 `goal-prompts/<slug>.md`  →  `open goal-prompts/<slug>.md`
+
+(`open` = macOS. Linux `xdg-open`, Windows `start`.)
+```
 
 ## Anti-patterns
 

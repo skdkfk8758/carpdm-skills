@@ -42,7 +42,7 @@ deep-plan 은 craft 빌드 파이프라인과 같은 검증된 엔진을 쓰되 
   의 Phase 1 (특히 `.html` companion 분기 — UI 면 결과 UI 목업, 비UI 면 plan 렌더)
 - 모호할 때의 측정 게이트·여섯 Socratic 유형: `~/.claude/skills/deep-interview/references/scoring.md`
   와 `~/.claude/skills/deep-interview/references/socratic-playbook.md`
-- 종료 시 result 블록 규격(deep-* 공통): `~/.claude/skills/deep-interview/references/result-format.md`
+- 종료 시 result 블록 규격(전 스킬 공통): `~/.claude/skills/craft-core/references/output-contract.md`
 - 다음 스킬 추천 규격(deep-* 공통): `~/.claude/skills/deep-interview/references/next-skill-routing.md`
 
 이 파일들이 없으면(craft-core/deep-interview 미설치) 같은 원리를 직접 적용하되,
@@ -141,7 +141,7 @@ Acceptance 는 *실행* 이 아니라 *무엇을 할지/무엇이 done 인지의
 
 ### Step 4 — 제시하고 정지
 
-`result-format.md` 의 고정 블록으로 산출물을 보고한다 — `result:` 한 줄 + 각
+`output-contract.md` 의 고정 블록으로 산출물을 보고한다 — `result:` 한 줄 + 각
 산출물의 상대경로와 `open` 명령. PLAN 행은 항상, `시안` 행은 UI plan 이라 `.html`
 을 만들었을 때만 넣는다(비UI 면 시안 행 생략). 예:
 

@@ -38,14 +38,14 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 파이프라인 3종 + `deep-plan` 은 craft-core 엔진을 **하드코딩 절대경로**로 읽는다:
 `~/.claude/skills/craft-core/references/pipeline.md`. 따라서:
 - 설치 경로는 `~/.claude/skills/` **고정**. 다른 위치면 4종 전부 깨짐.
-- forge/hunt/renew **그리고 deep-plan** 은 craft-core 와 **항상 함께** 설치돼야 함 (deep-plan 은 deep-interview references 도 차용 — §6). handoff·sweep·land 는 단독 가능 (craft-core 의존 없음).
+- forge/hunt/renew **그리고 deep-plan** 은 craft-core 와 **항상 함께** 설치돼야 함 (deep-plan 은 deep-interview references 도 차용 — §6). handoff·sweep·land 는 craft-core **엔진(pipeline) 무의존** — 단 종료 출력은 craft-core 의 `output-contract.md` 를 공유 참조한다(§7, 엔진 결합 아니라 출력 규격 한 장).
 - craft-core 는 `user-invocable: false` — 직접 트리거 금지, 컨테이너일 뿐.
 
 ### 2. 공유 4-phase 파이프라인 (craft-core/references/pipeline.md)
 Socratic 인터뷰 → codex 적대적 플랜 리뷰(`codex:rescue` 플러그인) → 동적 워크플로 TDD(sonnet) → 보안 검증.
 각 작업유형 스킬은 이 엔진 위에 **자기 Phase 1 Socratic 초점 + Phase 3 TDD 진입점**만 얹는다 (SKILL.md 본문은 짧음 — 차이만 기술). 공통 Phase 0/2/4/5 는 엔진 그대로.
 - `codex:rescue` 미설치 시 Phase 2 는 수동 리뷰로 폴백.
-- 참조 분리: `socratic.md`/`codex-review.md`/`dynamic-tdd.md`/`security.md`/`context-adr.md` — phase 필요 시 lazy load.
+- 참조 분리: `socratic.md`/`codex-review.md`/`dynamic-tdd.md`/`security.md`/`context-adr.md` — phase 필요 시 lazy load. `output-contract.md` 는 phase 참조가 아니라 **전 스킬 공통 종료 출력 규격**(§7).
 
 ### 3. SKILL.md frontmatter = 트리거
 `name` + `description` 만. `description` 이 자연어 트리거 매칭을 좌우 — 파이프라인 3종은 **언더트리거 설계**(과발화 방지, 슬래시 명시 권장), handoff 는 **양방향 자동 감지**(작업종료=저장 / 세션시작=복원).
@@ -60,6 +60,13 @@ craft 엔진은 **두 토폴로지**를 가진다. **linear**(기본, `pipeline.
 
 ### 6. deep-plan = Phase 0+1 만 차용하는 plan-only craft consumer
 `deep-plan` 은 craft 빌드 엔진과 **같은 검증된 페이즈**(Socratic + grounding + plan + HTML companion)를 쓰되 **Phase 0+1 에서 멈춘다** — Phase 2(codex)·3(TDD)·4(보안)·5(wrap) 에 진입하지 않고, 구현 코드를 한 줄도 쓰지 않으며, deep-interview 처럼 빌드로 *자동 라우팅* 하지 않는다(순수 산출). **단 종료 시(Step 5) 다음 스킬을 `AskUserQuestion` 으로 *제안*만 한다 — 시작은 사용자 몫(제안 ≠ 자동 시작).** 재사용 소스(복제 금지 — 한 소스를 읽어 drift 차단): 인터뷰·grounding `craft-core/references/socratic.md`+`context-adr.md`, plan 섹션+**HTML companion 분기** `craft-core/references/pipeline.md` Phase 1, 모호할 때의 측정 게이트·6 Socratic 유형 `deep-interview/references/scoring.md`+`socratic-playbook.md`, **다음 스킬 추천 `deep-interview/references/next-skill-routing.md`(deep-* 공통)**. **적응형 게이트:** 요청이 이미 crisp(goal+scope+criteria 명확)면 인터뷰 스킵, 모호하면 ambiguity≤threshold 게이트 인터뷰. **HTML companion** 은 craft 와 동일 분기 — UI plan 이면 결과 UI 목업, 비UI 면 plan 렌더, 혼합이면 둘 다([[craft-html-companion-ui-mockup]] 규칙 공유). craft-core·deep-interview 미설치 폴백: 같은 원리 직접 적용. guard-readme-fresh 가 `skills/deep-plan` 링크를 강제하므로 README 스킬 표에 행이 있어야 PR 통과.
+
+### 7. 전 스킬 공통 출력 contract (craft-core/references/output-contract.md)
+모든 스킬의 **종료 출력**을 한 SSOT 로 정규화한다 — `output-contract.md` 하나를 읽어 emit(복제 금지, drift 차단). 통일 대상은 *출력 전체가 아니라 종료 레이어*다 — 산출물 본문(commit/`.md`/삭제목록/PR 보고)은 성질이 달라 억지 통일하면 의미가 깨지므로 그대로 둔다. 3레이어:
+- **L1 `result:` 1줄 — 전 스킬 의무.** 백그라운드 잡 classifier 가 메시지 텍스트만 읽어 완료를 판정하는데, `result:` 가 그 유일한 신호다. 이전엔 deep-interview/deep-plan 2종만 emit → forge/hunt/sweep/land 등은 완료 미감지(버그성)였고, 본 contract 가 전 스킬로 확장했다.
+- **L2 산출물 열기 블록(`open` 경로) — 파일 산출 스킬만**(deep-*/deep-prompt/imprint/handoff). commit·삭제·머지 보고형(forge/hunt/renew/sweep/land)은 비적용 — git 상태 변화라 각자 보고.
+- **L3 다음 스킬 제안(`AskUserQuestion`) — 전진형만**(deep-*/빌드 3종). 운영(sweep/land/handoff)은 `next-skill-routing.md` 가 "다음 후보 아님"으로 배제 → L3 비적용. 규칙은 `next-skill-routing.md` SSOT 를 포인터로만 참조(재기술 안 함).
+- 빌드 3종의 L1+L3 은 `pipeline.md` Phase 5 한 곳에서 주입(개별 SKILL.md 안 건드림). craft-core 에 두지만 엔진 의존 아님 — handoff·sweep·land 도 이 한 장만 읽는다(§1). line 10 의 `standalone`/`craft-core 무의존` 표기는 *엔진(pipeline)* 무의존을 뜻하며 output-contract 공유와 무관.
 
 ## Skill authoring 검증
 
