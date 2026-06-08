@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PLAN — craft-core 검증 재편 (자동 floor + 사람 체크리스트)</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --ink:#e6e8ec; --muted:#9aa3b2;
+    --line:#262b36; --accent:#7aa2f7; --auto:#7ee787; --human:#f0b86e;
+    --hi:#f7768e; --mid:#e0af68; --lo:#9ece6a; --code:#1d2230;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding:40px 16px}
+  .wrap{max-width:860px;margin:0 auto}
+  .tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;
+    padding:2px 8px;border-radius:99px;vertical-align:middle}
+  .planmark{background:#2a2f3d;color:var(--accent);border:1px solid var(--line)}
+  header h1{font-size:23px;margin:.4em 0 .2em}
+  header .sub{color:var(--muted);font-size:13px}
+  header .src code{color:var(--accent)}
+  h2{font-size:17px;margin:2em 0 .6em;padding-bottom:.3em;border-bottom:1px solid var(--line)}
+  h2 .n{color:var(--muted);font-weight:400;margin-right:.4em}
+  section.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:16px 20px;margin:14px 0}
+  code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:13px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:#c0caf5}
+  table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13.5px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+  ol,ul{margin:.4em 0 .4em 1.2em;padding:0}
+  li{margin:.35em 0}
+  .verify{color:var(--muted);font-size:12.5px}
+  .verify::before{content:"→ verify: ";color:var(--accent)}
+  .badge{font-size:11px;font-weight:700;padding:1px 7px;border-radius:5px}
+  .b-auto{background:rgba(126,231,135,.14);color:var(--auto)}
+  .b-human{background:rgba(240,184,110,.16);color:var(--human)}
+  .sev{font-weight:700;font-size:12px;padding:1px 7px;border-radius:5px;margin-right:6px}
+  .s-hi{background:rgba(247,118,142,.16);color:var(--hi)}
+  .s-mid{background:rgba(224,175,104,.16);color:var(--mid)}
+  .s-lo{background:rgba(158,206,105,.16);color:var(--lo)}
+  .warn{border-left:3px solid var(--hi);background:rgba(247,118,142,.06)}
+  .in{color:var(--auto)} .out{color:var(--human)}
+  .foot{color:var(--muted);font-size:12px;margin-top:30px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="tag planmark">PLAN MOCKUP · 빌드 아님</span>
+  <h1>craft-core 검증 재편 — 자동 TDD floor + 플랜 파생 사람 체크리스트</h1>
+  <div class="sub">deep-plan · 2026-06-08 · brownfield</div>
+  <div class="sub src">source spec: <code>docs/specs/craft-scenario-checklist.md</code> (ambiguity 20%)</div>
+</header>
+
+<section class="panel warn">
+  <h2 style="border:0;margin-top:0"><span class="n">0</span>사전 정직성 — 기존 구현과의 겹침</h2>
+  <p>ground 결과 spec 제안의 상당 부분이 <b>이미 존재</b>한다 (<code>2026-06-03-craft-acceptance-gate.md</code> 랜딩됨):</p>
+  <ul>
+    <li>pipeline.md Phase 1 Acceptance = "번호 매긴 단일 검증가능 조건" — <b>이미 있음</b></li>
+    <li>pipeline.md Phase 4 = "ship 전 각 항목 통과/미통과 대조" — <b>이미 있음</b></li>
+    <li>그 plan 의 codex 리뷰가 <b>"유저확인 후 재진입" 흐름을 과설계로 차단(B6)</b>, 가치를 "집행력 아닌 plan 품질"로 재정의</li>
+  </ul>
+  <p>→ 이 plan 은 spec 전체가 아니라 <b>진짜 delta</b>에만 범위를 좁힌다.</p>
+</section>
+
+<h2><span class="n">1</span>Goal — 세 가지 delta</h2>
+<section class="panel">
+  <ol>
+    <li>Acceptance 각 항목을 <span class="badge b-auto">AUTO</span> / <span class="badge b-human">HUMAN</span> 으로 분류 (경계 규칙 = 단일 SSOT ref)</li>
+    <li><span class="badge b-auto">AUTO</span> = Phase 3 자동 TDD 가 커버하는 "최소 floor"(회귀+보안+결정론). <span class="badge b-human">HUMAN</span> 은 floor 제외</li>
+    <li><span class="badge b-human">HUMAN</span> 항목으로 사람 체크리스트 <code>.md</code> 생성 — <b>기본 non-blocking</b>, <b>고위험만 Phase 4 blocking</b>(기존 stakes 트리거 재사용)</li>
+  </ol>
+</section>
+
+<h2><span class="n">2</span>Scope</h2>
+<section class="panel">
+<table>
+  <tr><th>IN</th><th>왜</th></tr>
+  <tr><td><code>scenario-checklist.md</code> <span class="in">(신규)</span></td><td>delta SSOT: 경계규칙·체크리스트 포맷·게이팅</td></tr>
+  <tr><td><code>pipeline.md</code></td><td>Phase 1 태깅+ref 링크, Phase 4 조건부 게이트</td></tr>
+  <tr><td><code>dynamic-tdd.md</code></td><td><code>[AUTO]</code> floor 경계 명문화</td></tr>
+</table>
+<table>
+  <tr><th>OUT (의도적 제외)</th><th>왜</th></tr>
+  <tr><td class="out">번호매긴 Acceptance + Phase4 대조</td><td>이미 존재 — 재구현 금지</td></tr>
+  <tr><td class="out">orchestrated.md</td><td>패널이 이미 Acceptance 대조+intent 판정(중복)</td></tr>
+  <tr><td class="out">작업유형별 진입점 (component D)</td><td>deferred</td></tr>
+  <tr><td class="out">새 어휘/자동루프/prd.json/SKILL.md</td><td>YAGNI</td></tr>
+</table>
+</section>
+
+<h2><span class="n">3</span>Files (verified)</h2>
+<section class="panel">
+<table>
+  <tr><th>path</th><th>변경 이유</th></tr>
+  <tr><td><code>skills/craft-core/references/scenario-checklist.md</code> <span class="in">신규</span></td><td>delta SSOT. 기존 lazy-load ref 패턴 동일</td></tr>
+  <tr><td><code>skills/craft-core/references/pipeline.md</code></td><td>Phase 1 Acceptance 태깅, Phase 4 조건부 게이트, ref 목록</td></tr>
+  <tr><td><code>skills/craft-core/references/dynamic-tdd.md</code></td><td>atomic task 근처에 AUTO floor 단락</td></tr>
+</table>
+</section>
+
+<h2><span class="n">4</span>Steps</h2>
+<section class="panel">
+  <ol>
+    <li>신규 <code>scenario-checklist.md</code> — 경계규칙/포맷/게이팅/동어반복 회피 4섹션<br><span class="verify">4섹션 존재, REQ-F-003 4예시 일치, 보안=항상 AUTO 명시</span></li>
+    <li>pipeline.md Phase 1 — AUTO/HUMAN 태깅 한 줄 + ref lazy-load 추가<br><span class="verify">태깅 명시 + 신규 ref 가리킴, 기존 문구 보존(surgical)</span></li>
+    <li>pipeline.md Phase 4 — 고위험 blocking 한 줄(기존 "nothing ships red" 흡수)<br><span class="verify">조건부 게이트 기존 규율 표현, 새 흐름 어휘 미등장</span></li>
+    <li>dynamic-tdd.md — <code>[AUTO]</code> floor 경계 단락<br><span class="verify">floor 명문화, opus pin·red-green 모순 없음</span></li>
+    <li>정합 점검 — 4문서 통독, AUTO/HUMAN SSOT 단일<br><span class="verify">같은 개념 이중정의 없음</span></li>
+  </ol>
+</section>
+
+<h2><span class="n">5</span>Risks</h2>
+<section class="panel">
+  <p><span class="sev s-hi">높음</span> <b>blocking 게이트가 codex 선례(B6)와 충돌.</b> 새 제어흐름 신설 말고 기존 "nothing ships red"+stakes 트리거에 흡수하는 표현으로만. /renew Phase 2 재검증 대상.</p>
+  <p><span class="sev s-mid">중간</span> <b>delta 가 작다.</b> 순이득 = 태깅 + 사람 체크리스트 파일. 값어치는 /renew Phase 2 에서 다툼.</p>
+  <p><span class="sev s-mid">중간</span> <b>non-blocking skip 위험.</b> 자율성(REQ-N-003) 위한 의도적 트레이드오프 — 고위험만 강제 보완.</p>
+  <p><span class="sev s-lo">낮음</span> <b>마크다운 집행력 한계.</b> 모든 craft 변경 공통, 기존과 동급.</p>
+</section>
+
+<h2><span class="n">6 · 7</span>Security surface / YAGNI</h2>
+<section class="panel">
+  <p><b>Security:</b> 코드 surface 없음(마크다운). 단 내용상 REQ-N-002(보안 불변식 항상 <span class="badge b-auto">AUTO</span>) 명문화.</p>
+  <p><b>YAGNI:</b> 삭제 없음 — 순수 추가. 기존 Acceptance gate 서술 보존(중복 재작성=drift). component C 별도 서술 금지(A/B 흡수됨).</p>
+</section>
+
+<h2><span class="n">8</span>Acceptance</h2>
+<section class="panel">
+  <ol>
+    <li><code>scenario-checklist.md</code> 존재 + 4섹션</li>
+    <li>경계규칙 = REQ-F-003 4예시 일치</li>
+    <li>보안 불변식 항상 <span class="badge b-auto">AUTO</span>, HUMAN-only 강등 금지 명문화</li>
+    <li>Phase 1 태깅 명시 + ref lazy-load, 기존 "번호매긴 조건" 보존</li>
+    <li>Phase 4 고위험 blocking 이 새 흐름 없이 기존 규율 흡수(B6 준수)</li>
+    <li>dynamic-tdd.md AUTO floor 명문화, 기존 규율 무모순</li>
+    <li>AUTO/HUMAN 정의 SSOT 단일(scenario-checklist.md), 나머지 참조만</li>
+  </ol>
+</section>
+
+<h2><span class="n">9</span>다음 단계 (제안)</h2>
+<section class="panel">
+  <p>brownfield 변경 → <code>/renew</code>. spec + 이 plan 을 <b>완료된 Phase-1</b> 로 넣어 재인터뷰 없이 codex plan review(Phase 2)로. 핵심 = Risk(높음, B6 충돌)를 codex 가 적대적으로 다투게.</p>
+</section>
+
+<div class="foot">PLAN MOCKUP — deep-plan 산출. 빌드 아님. 구현은 /renew.</div>
+</div>
+</body>
+</html>

@@ -98,9 +98,18 @@ spec 으로 이어가서, 곧장 Phase 2 로 간다. 이미 확정된 spec 에 �
 ## Security surface
 ## YAGNI (deletions in this change)
 ## Acceptance (the checks that mean "done" — each a numbered, single, checkable
-##   condition; the skill's acceptance / regression / characterization test IS
-##   the item, not vague prose like "handles errors")
+##   condition tagged [AUTO] or [HUMAN]; the skill's acceptance / regression /
+##   characterization test IS the item, not vague prose like "handles errors")
 ```
+
+각 Acceptance 항목 앞에 **`[AUTO]` 또는 `[HUMAN]`** 태그를 붙인다 (예:
+`1. [AUTO] 빈 비번 → 400` / `2. [HUMAN] 로그인 후 대시보드 화면이 안 깨짐`):
+
+- **`[AUTO]`** — 결정론적·회귀민감·보안·계약 수준. Phase 3 자동 테스트가 커버해야 한다.
+- **`[HUMAN]`** — 시각 판단·UX 의도·카피 톤·주관적 사용성, 또는 자동화 비용이 가치를
+  크게 초과하는 일회성 검증. Phase 3 테스트 의무에서 제외하되 Phase 4 보고에 노출한다.
+- **보안 불변식**(auth / payment / crypto / permission 경계)은 절대 `[HUMAN]`-only 금지 —
+  항상 `[AUTO]` 로 잠근다.
 
 `.md` 와 나란히, 같은 경로에 `.html` 확장자로 리뷰 친화적 HTML companion 을
 쓴다 (`docs/plans/YYYY-MM-DD-<topic>.html`). 브라우저에서 바로 열리도록
@@ -168,7 +177,9 @@ Phase 4 로 스킵.
 build) **와** diff 에 대한 보안 pass 를 돌린다. 각 보안 발견을 진짜로 보고하기
 전에 적대적으로 검증한다 (반박을 시도). 아무것도 red 로 출시하지 않는다.
 출시 전에, 플랜의 각 Acceptance 항목을 pass / fail 로 체크한다 —
-충족되지 않은 항목은 red 로 친다, 같은 룰.
+충족되지 않은 항목은 red 로 친다, 같은 룰. 단 `[HUMAN]` 항목은 자동으로 단정할 수
+없으니 `pass / fail / not-run` 으로 보고하고, `not-run` 은 출시를 막는 red 가 아니라
+**잔여 리스크**로 wrap 에 남긴다 (사람이 도는 검증 — 새 blocking 게이트는 만들지 않는다).
 
 ## Phase 5 — Wrap
 
