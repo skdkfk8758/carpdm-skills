@@ -44,6 +44,7 @@ deep-plan 은 craft 빌드 파이프라인과 같은 검증된 엔진을 쓰되 
   와 `~/.claude/skills/deep-interview/references/socratic-playbook.md`
 - 종료 시 result 블록 규격(전 스킬 공통): `~/.claude/skills/craft-core/references/output-contract.md`
 - 다음 스킬 추천 규격(deep-* 공통): `~/.claude/skills/deep-interview/references/next-skill-routing.md`
+- DB/BE plan 의 ERD 시안 생성법: `~/.claude/skills/erd/SKILL.md` + `assets/erd-template.html` + `references/schema-discovery.md` (Step 3 의 ERD 분기에서 차용 — 복제 금지)
 
 이 파일들이 없으면(craft-core/deep-interview 미설치) 같은 원리를 직접 적용하되,
 설치돼 있으면 항상 읽어서 한 소스를 따르라.
@@ -118,6 +119,23 @@ Acceptance 는 *실행* 이 아니라 *무엇을 할지/무엇이 done 인지의
   과 Steps→verify 를 표로, 파일 경로는 코드 스타일로 시각화.
 - **혼합**(백엔드 작업이 있는 UI 변경) → UI 는 목업, 그 아래 비UI 섹션은 plan 렌더.
 
+#### ERD companion — plan 이 DB 스키마/BE 데이터 모델을 수반하면 (위 분기와 별개·추가)
+
+plan 이 **새 테이블·컬럼·관계 또는 BE 데이터 모델 변경**을 수반하면, 위 design
+companion 과 **별개로** ERD 도 HTML 로 생성한다(둘 다 산출 — design 시안이 "어떻게
+보일지"라면 ERD 는 "데이터가 어떻게 엮일지"다). 순수 비UI plan(리팩터·DB·API)이면 design
+companion 은 plan 렌더지만 ERD 는 여전히 실제 도식 가치를 준다.
+
+생성 방법은 복제하지 말고 `erd` 스킬을 한 소스로 읽어 그대로 따른다(drift 차단):
+`~/.claude/skills/erd/SKILL.md` + `assets/erd-template.html` + `references/schema-discovery.md`.
+스키마는 Step 0 grounding 에서 이미 Read 한 마이그레이션/모델/repository 에서
+재구성한다(추측 금지 — 못 본 테이블/관계는 그리지 않고 footer 에 한계 명시). 산출은 plan
+과 같은 디렉토리·basename 에 `-erd.html`(예: `docs/plans/2026-06-04-<topic>-erd.html`).
+
+판정이 애매하면(이 plan 에 ERD 가 의미 있나) 스키마/관계가 plan 의 핵심이면 그린다 —
+컬럼 한둘 추가뿐이면 과투자다(생략하고 plan 텍스트로 족). `erd` 가 미설치면(available-skills
+에 없음) 그 사실을 말하고 ERD 를 생략한다(design companion 은 그대로 진행).
+
 #### 시안을 누가 만드나 — inline 기본, 신호 있으면 전문 스킬로 라우팅
 
 기본은 deep-plan 이 직접 inline 으로 쓴다. companion 의 목적은 *리뷰·합의*("이렇게
@@ -143,7 +161,8 @@ Acceptance 는 *실행* 이 아니라 *무엇을 할지/무엇이 done 인지의
 
 `output-contract.md` 의 고정 블록으로 산출물을 보고한다 — `result:` 한 줄 + 각
 산출물의 상대경로와 `open` 명령. PLAN 행은 항상, `시안` 행은 UI plan 이라 `.html`
-을 만들었을 때만 넣는다(비UI 면 시안 행 생략). 예:
+을 만들었을 때만, `ERD` 행은 DB/BE plan 이라 `-erd.html` 을 만들었을 때만 넣는다(만들지
+않은 산출물 행은 생략 — output-contract L2 규칙). 예:
 
 ```
 result: <topic> PLAN 산출 — N steps, scope IN <…> / OUT <…>
@@ -151,6 +170,7 @@ result: <topic> PLAN 산출 — N steps, scope IN <…> / OUT <…>
 산출물 — 열기:
 - PLAN `docs/plans/2026-06-04-<topic>.md`  →  `open docs/plans/2026-06-04-<topic>.md`
 - 시안 `docs/plans/2026-06-04-<topic>.html`  →  `open docs/plans/2026-06-04-<topic>.html`
+- ERD  `docs/plans/2026-06-04-<topic>-erd.html`  →  `open docs/plans/2026-06-04-<topic>-erd.html`
 
 (`open` = macOS. Linux `xdg-open <path>`, Windows `start <path>`.
  경로는 터미널에서 클릭으로도 열린다.)
@@ -188,6 +208,7 @@ deep-plan 은 plan 과 시안을 산출하고 다음 단계를 *제안*하는 �
 - **이미 crisp 한 요청을 인터뷰** — 적응형 게이트의 핵심은 *건너뛸 줄 아는 것*.
 - **HTML companion 규칙을 복제** — `pipeline.md` 의 한 소스를 읽어라(중복 = drift).
 - **UI plan 인데 `.html` 이 plan 표만 렌더** — UI 면 결과 화면 목업이어야 한다.
+- **DB/BE plan 인데 ERD 미생성** — 스키마/관계가 plan 핵심이면 `erd` 로 `-erd.html` 도 만든다. 반대로 컬럼 한둘 추가에 ERD 까지 그리는 건 과투자(plan 텍스트로 족).
 - **DESIGN.md 가 있는데 손으로 mockup** — 토큰을 위반한다; `imprint` 로 시안을 넘겨라.
   반대로 슬림·단일 방향 UI 에 `frontend-design`/`prototype` 까지 끌어오는 것도 과투자 —
   inline 스케치로 족하다. 신호가 라우팅을 정한다(위 Step 3 표).

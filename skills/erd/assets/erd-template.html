@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{TITLE}}</title>
+<style>
+  /* Design tokens — DESIGN.md 가 컨텍스트에 있으면 그 값으로 덮어쓴다(색/타이포만).
+     없으면 아래 중립 기본을 그대로 둔다. 레이아웃·뱃지·edge 토큰은 항상 보존. */
+  :root{
+    --brand:#03C75A;        /* 강조(현행 SSOT 헤더·실 FK) — DESIGN.md primary 로 대체 가능 */
+    --brand-weak:#03C75A22;
+    --ink:#0f1722;
+    --ink-2:#46586c;
+    --ink-3:#7a8aa0;
+    --bg:#f4f7fa;
+    --card:#ffffff;
+    --line:#d7e0ea;
+    --hub:#03C75A;          /* 허브 테이블 헤더 */
+    --dep:#b0392f;          /* deprecated edge/헤더 */
+    --soft:#8a6df0;         /* soft 참조(FK 없는 값 매칭) */
+    --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --ui:'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui)}
+  header.page{
+    padding:22px 32px 14px;border-bottom:1px solid var(--line);background:var(--card);
+    position:sticky;top:0;z-index:50;
+  }
+  header.page h1{margin:0;font-size:19px;letter-spacing:-.3px}
+  header.page h1 b{color:var(--brand)}
+  header.page p{margin:6px 0 0;font-size:12.5px;color:var(--ink-2)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:11.5px;color:var(--ink-2)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .swatch{width:26px;height:0;border-top-width:2.5px;border-top-style:solid;display:inline-block}
+  .sw-fk{border-color:var(--brand)}
+  .sw-dep{border-color:var(--dep);border-top-style:dashed}
+  .sw-soft{border-color:var(--soft);border-top-style:dashed}
+  .sw-hier{border-color:var(--ink-3)}
+
+  .stage-wrap{overflow:auto;padding:24px}
+  .stage{position:relative;width:{{STAGE_W}}px;height:{{STAGE_H}}px;margin:0 auto}
+  svg.wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+
+  .tbl{
+    position:absolute;width:228px;background:var(--card);border:1px solid var(--line);
+    border-radius:10px;box-shadow:0 2px 10px #1a2b3d12;z-index:2;overflow:hidden;
+  }
+  .tbl .hd{
+    font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:.2px;
+    padding:8px 11px;background:#eef3f8;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--ink);
+  }
+  .tbl.hub .hd{background:var(--brand);color:#fff}
+  .tbl.dep .hd{background:#fbe9e7;color:var(--dep)}
+  .tbl.lookup .hd{background:#f0ecff;color:#5b46c2}
+  .tbl .tag{
+    font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+    padding:2px 6px;border-radius:5px;background:#ffffff55;
+  }
+  .tbl.hub .tag{background:#ffffff33;color:#fff}
+  .tbl.dep .tag{background:#fff;color:var(--dep)}
+  .tbl ul{list-style:none;margin:0;padding:4px 0}
+  .tbl li{
+    font-family:var(--mono);font-size:11px;line-height:1.5;padding:2.5px 11px;
+    display:flex;align-items:center;gap:6px;color:var(--ink-2);white-space:nowrap;
+  }
+  .tbl li .col{flex:1;overflow:hidden;text-overflow:ellipsis}
+  .tbl li.key{color:var(--ink);font-weight:600}
+  .badge{font-size:8.5px;font-weight:700;padding:1px 4px;border-radius:4px;letter-spacing:.3px}
+  .b-pk{background:#fff3cd;color:#8a6d00}
+  .b-fk{background:var(--brand-weak);color:#067a3a}
+  .b-uq{background:#e6eef7;color:#3a5673}
+  .b-soft{background:#efeaff;color:#5b46c2}
+  .grp-label{
+    position:absolute;z-index:1;font-size:11px;font-weight:700;letter-spacing:1px;
+    text-transform:uppercase;color:var(--ink-3);
+  }
+  .note{
+    position:absolute;z-index:2;width:228px;font-size:10.5px;line-height:1.5;color:var(--ink-2);
+    background:#fffbe9;border:1px dashed #e3cf8a;border-radius:8px;padding:9px 11px;
+  }
+  footer{padding:16px 32px 40px;font-size:11.5px;color:var(--ink-3);max-width:1000px}
+  footer code{font-family:var(--mono);background:#e9eef4;padding:1px 5px;border-radius:4px;color:var(--ink-2)}
+</style>
+</head>
+<body>
+<header class="page">
+  <h1>{{HEADER_H1}}</h1>
+  <p>{{HEADER_SUB}}</p>
+  <div class="legend">
+    <span><i class="swatch sw-fk"></i> 실 FK</span>
+    <span><i class="swatch sw-hier"></i> 위계 FK</span>
+    <span><i class="swatch sw-dep"></i> deprecated</span>
+    <span><i class="swatch sw-soft"></i> soft 참조 (FK 없음, 값 매칭)</span>
+  </div>
+</header>
+
+<div class="stage-wrap">
+<div class="stage" id="stage">
+  <svg class="wires" id="wires">
+    <defs>
+      <marker id="ar-fk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#03C75A"/></marker>
+      <marker id="ar-hier" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#7a8aa0"/></marker>
+      <marker id="ar-dep" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#b0392f"/></marker>
+      <marker id="ar-soft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#8a6df0"/></marker>
+    </defs>
+  </svg>
+
+  <!-- ============================================================
+       GROUP LABELS — 그룹마다 한 줄. left/top 으로 절대배치.
+       <div class="grp-label" style="left:40px;top:18px">LOOKUP</div>
+       ============================================================ -->
+  {{GROUP_LABELS}}
+
+  <!-- ============================================================
+       TABLES — 테이블당 .tbl 블록 하나. id 는 t_<table>, EDGES 가 참조.
+       클래스: 기본(없음) / hub / dep / lookup.
+       ※ 도메인 그룹별로 묶고 각 묶음 위에 한글 섹션 주석을 단다(영어 그룹명 금지):
+         <!-- ===== 허브 (도구 카탈로그) ===== -->  <!-- ===== 분류축 (LOOKUP) ===== -->
+       <div class="tbl hub" id="t_<name>" style="left:560px;top:150px">
+         <div class="hd"><span><name></span><span class="tag">HUB</span></div>
+         <ul>
+           <li class="key"><span class="badge b-pk">PK</span><span class="col">id</span><span style="color:#9fb0c2">bigint</span></li>
+           <li class="key"><span class="badge b-fk">FK</span><span class="col">parent_id</span><span style="color:#9fb0c2">→ parents</span></li>
+           <li class="key"><span class="badge b-soft">→</span><span class="col">category</span></li>
+           <li><span class="col">title / status</span></li>
+         </ul>
+       </div>
+       ============================================================ -->
+  {{TABLES}}
+
+  <!-- ============================================================
+       NOTES (선택) — 결정·collapse·deprecation 맥락 메모.
+       <div class="note" style="left:1180px;top:680px"><b>ⓘ ...</b> ...</div>
+       ============================================================ -->
+  {{NOTES}}
+</div>
+</div>
+
+<footer>{{FOOTER}}</footer>
+
+<script>
+(function(){
+  // EDGES: [from-id, to-id, label, kind]  kind ∈ fk | hier | dep | soft
+  //   fk   = 실 FK (자식 → 부모, 도메인 핵심 참조)
+  //   hier = 위계/구조 FK (companies←brands←members 등)
+  //   dep  = deprecated 경로 (collapse·rename·DROP 대기)
+  //   soft = FK 없는 값 매칭 참조 (lookup slug 등)
+  // ※ 관계를 종류별로 묶고 각 묶음 위에 한글 한 줄 주석을 단다. 예:
+  //     // 실 FK — 도구 카탈로그 참조
+  //     ['t_posts','t_users','author_id','fk'],
+  //     // soft 참조 — FK 없이 slug 값 매칭
+  //     ['t_analysis_tools','t_tool_categories','category','soft'],
+  const EDGES = [
+    {{EDGES}}
+  ];
+  const COLOR = {fk:'#03C75A', hier:'#7a8aa0', dep:'#b0392f', soft:'#8a6df0'};
+  const MARK  = {fk:'ar-fk', hier:'ar-hier', dep:'ar-dep', soft:'ar-soft'};
+
+  const stage = document.getElementById('stage');
+  const svg = document.getElementById('wires');
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  function rectOf(id){
+    const el = document.getElementById(id);
+    return {x:el.offsetLeft, y:el.offsetTop, w:el.offsetWidth, h:el.offsetHeight};
+  }
+  // perimeter point of rect r toward external point p
+  function edgePoint(r, p){
+    const cx=r.x+r.w/2, cy=r.y+r.h/2;
+    let dx=p.x-cx, dy=p.y-cy;
+    if(dx===0 && dy===0) return {x:cx,y:cy};
+    const hw=r.w/2, hh=r.h/2;
+    const sx = dx!==0 ? hw/Math.abs(dx) : Infinity;
+    const sy = dy!==0 ? hh/Math.abs(dy) : Infinity;
+    const s = Math.min(sx,sy);
+    return {x:cx+dx*s, y:cy+dy*s};
+  }
+  function draw(){
+    // clear existing paths/labels (keep defs)
+    [...svg.querySelectorAll('path,text')].forEach(n=>n.remove());
+    EDGES.forEach(([fromId,toId,label,kind])=>{
+      const a=rectOf(fromId), b=rectOf(toId);
+      const ca={x:a.x+a.w/2,y:a.y+a.h/2}, cb={x:b.x+b.w/2,y:b.y+b.h/2};
+      const p1=edgePoint(a,cb), p2=edgePoint(b,ca);
+      // bezier control: bias horizontally if mostly horizontal else vertically
+      const dx=p2.x-p1.x, dy=p2.y-p1.y;
+      let c1,c2;
+      if(Math.abs(dx)>=Math.abs(dy)){
+        const off=Math.abs(dx)*0.4;
+        c1={x:p1.x+Math.sign(dx)*off,y:p1.y};
+        c2={x:p2.x-Math.sign(dx)*off,y:p2.y};
+      }else{
+        const off=Math.abs(dy)*0.4;
+        c1={x:p1.x,y:p1.y+Math.sign(dy)*off};
+        c2={x:p2.x,y:p2.y-Math.sign(dy)*off};
+      }
+      const path=document.createElementNS(SVGNS,'path');
+      path.setAttribute('d',`M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke',COLOR[kind]);
+      path.setAttribute('stroke-width', kind==='fk'?'2.4':'1.8');
+      if(kind==='dep'||kind==='soft') path.setAttribute('stroke-dasharray','6 4');
+      path.setAttribute('marker-end',`url(#${MARK[kind]})`);
+      path.setAttribute('opacity', kind==='fk'?'0.95':'0.8');
+      svg.appendChild(path);
+      // label at midpoint
+      const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+      const t=document.createElementNS(SVGNS,'text');
+      t.setAttribute('x',mx); t.setAttribute('y',my-3);
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('font-family',"'IBM Plex Mono', monospace");
+      t.setAttribute('font-size','10');
+      t.setAttribute('fill',COLOR[kind]);
+      t.setAttribute('paint-order','stroke');
+      t.setAttribute('stroke','#f4f7fa');
+      t.setAttribute('stroke-width','3.5');
+      t.textContent=label;
+      svg.appendChild(t);
+    });
+  }
+  window.addEventListener('load',draw);
+  window.addEventListener('resize',draw);
+})();
+</script>
+</body>
+</html>
