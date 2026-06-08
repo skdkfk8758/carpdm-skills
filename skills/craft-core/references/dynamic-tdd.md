@@ -31,6 +31,11 @@ behavior, 엔드포인트, 함수, 또는 수정. 태스크가 "X 이유로 실�
 
 태스크는 자신의 테스트가 green 이고 형제를 깨지 않았을 때만 완료된다.
 
+UI 태스크에서는 TDD 가 **behavior** 만 잠근다 — 미감은 테스트로 단언하지 않는다.
+*visual/미감* 레이어는 승인된 mockup(있으면)에 충실히, DESIGN.md 면 `imprint` 로,
+net-new 면 `frontend-design` 으로 빌드한다. 라우팅 규칙은 `pipeline.md` Phase 3 의
+"UI / 프론트엔드 작업의 visual 레이어" 참조(SSOT — 여기 복제하지 않는다).
+
 ## Workflow 스크립트 골격 (적응 — 맹목적으로 복사하지 말 것)
 
 ```javascript

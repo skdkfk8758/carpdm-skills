@@ -155,6 +155,23 @@ pipeline 하고; 태스크는 자신의 테스트가 green 일 때만 완료된�
 관련 프로젝트 guide (`docs/guides/`) 를 다시 읽고, 플랜에 없는 것은 Phase 1 로
 돌아가지 않고서는 구현하지 않는다.
 
+**UI / 프론트엔드 작업의 visual 레이어.** 빌드가 사용자 대면 UI(화면·컴포넌트·
+페이지)를 만들면 behavior 와 미감을 **분리**해 다룬다 — TDD(red→green→refactor)는
+*behavior*(상태·props·이벤트·데이터·접근성 계약)를 잠그고, *visual/미감* 레이어는
+디자인 스킬로 빌드해 plan 단계의 시안과 일치시킨다(미감은 테스트로 단언하지 않는다).
+빌드가 미감을 새로 발명해 합의된 시안과 따로 노는 것이 가장 흔한 UI 빌드 실패다 —
+다음으로 라우팅한다:
+
+- **승인된 mockup 이 있으면**(deep-plan companion `.html` / 이전 시안) → 그것에
+  **충실히 구현**한다. 시안이 곧 visual 계약이다.
+- **`DESIGN.md` / 추출 디자인 시스템이 있으면** → `imprint` 로 토큰 충실 재현
+  (raw hex/px 하드코딩 0 — 모든 값이 token 으로 역추적).
+- **mockup 도 디자인 시스템도 없는 net-new UI** → `frontend-design` 으로 고품질
+  visual 레이어를 만든다(제네릭 AI 미감 회피).
+
+매칭 디자인 스킬이 미설치면 그 원칙(시안/토큰 충실, 제네릭 미감 회피)을 직접 적용한다.
+비 UI 빌드(백엔드·리팩터·CLI 등)는 이 분기와 무관 — 평소 TDD 그대로.
+
 워크플로는 구현 / 검증 에이전트를 기본 subagent 로 돌린다 — 프롬프트가 곧 계약이다.
 정확한 골격은 `dynamic-tdd.md` / `orchestrated.md` 참조. (에이전트
 "cleanup" 단계는 존재하지도 필요하지도 않다 — 워크플로 subagent 는 일회성이고 유일한
