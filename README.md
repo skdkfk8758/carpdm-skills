@@ -1,8 +1,8 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + UI 디자인 충실 재현 1종 + ERD 도식 1종 + 공유 엔진 1종**, 총 **스킬 12종.**
+Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + UI 디자인 충실 재현 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + 공유 엔진 1종**, 총 **스킬 13종.**
 
-스킬은 역할에 따라 **4개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
+스킬은 역할에 따라 **5개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
 
 ### 🔨 build-pipeline — 코드를 짓는 엄격 파이프라인
 
@@ -29,6 +29,12 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 |---|---|---|---|
 | [`imprint`](skills/imprint) | DESIGN.md(design-extractor 추출) → React+Tailwind 테마·컴포넌트·HTML 시안 충실 재현 (token-traceability) | "이 DESIGN.md 로 컴포넌트 만들어줘", "추출한 디자인대로 Tailwind 테마", "/imprint" | 없음 (독립) |
 | [`erd`](skills/erd) | DB 스키마(마이그/ORM/repo) → self-contained HTML ERD (테이블 카드 + SVG 관계선 4종 색) | "이 마이그레이션으로 ERD 그려줘", "DB 관계도 HTML 로", "스키마 다이어그램", "/erd" | 없음 (독립) |
+
+### 🏗 codebase context — 코드 옆에 도메인 지식 두기 + 노후화 게이트
+
+| 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
+|---|---|---|---|
+| [`colocate-domain-context`](skills/colocate-domain-context) | 도메인별 CLAUDE.md 를 코드 옆에 배치(경로 근접 auto-load) + 코드만 바뀌고 문서 미갱신 시 경고하는 co-update 게이트 셋업. 프로젝트 구조·verify host(verify.sh/husky/pre-commit/CI/Makefile/none)에 적응 | "폴더별 CLAUDE.md", "도메인 지식 코드 옆에", "co-update 게이트 만들어줘", "문서 노후화 막는 게이트" | 없음 (독립) |
 
 ### 🧹 session & ops — 작업 사이클 운영 (저장·정리·랜딩)
 
