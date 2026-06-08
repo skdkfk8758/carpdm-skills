@@ -141,14 +141,16 @@ result: <topic> PLAN 산출 — N steps, scope IN <…> / OUT <…>
 deep-plan 은 "순수 산출" 도구라 **빌드로 자동 라우팅하지 않는다** — 이건 다음
 스킬을 **시작하는 게 아니라 제안하는** 것이고, 시작 여부는 항상 사용자가 정한다.
 
-규칙은 `next-skill-routing.md`(deep-interview 와 공유 — 복제 금지)를 읽어 적용한다.
-deep-plan 특이사항만:
+규칙은 `next-skill-routing.md`(deep-interview 와 공유 — 복제 금지)에 산다. **추천을
+만들기 전에 반드시 그 파일을 Read 하라** — 기억으로 추천하면 Tier 1 로컬 스킬로
+편향돼 글로벌·플러그인 후보를 빠뜨린다. deep-plan 특이사항만:
 
 - **설치 스킬을 Bash 로 스캔하지 마라** — available-skills 목록이 이미 컨텍스트에
-  있다. 거기서 valid-next 필터로 후보만 남긴다.
-- 입력은 방금 만든 **PLAN 문서**다. 가장 흔한 다음 단계: plan 을 받아 빌드
-  (Tier 1: greenfield→`/forge`, 변경→`/renew`, 고장→`/hunt`) 하거나 이슈로 분해
-  (`to-issues`). `deep-plan` 자신은 후보에서 제외(이미 만들었다).
+  있다. 추천 전 그 목록을 실제로 훑어 valid-next 후보를 재선정한다(예시 이름에
+  anchor 되지 말 것 — 글로벌·플러그인 `plugin:skill` 포함).
+- 입력은 방금 만든 **PLAN 문서**다. 빌드가 명백하면 Tier 1 단축(greenfield→`/forge`,
+  변경→`/renew`, 고장→`/hunt`), 아니면 Tier 2 전체 후보(`to-issues`·`deep-research`·
+  `understand-anything:understand` 등)를 함께 본다. `deep-plan` 자신은 제외(이미 만들었다).
 - 빌드로 제안하면 plan 을 **이미 완료된 Phase-1 결과물**로 취급해 다시 인터뷰하지
   말라고 프레이밍한다(이중 인터뷰 회피).
 - **`AskUserQuestion` 으로 제안만** 한다.

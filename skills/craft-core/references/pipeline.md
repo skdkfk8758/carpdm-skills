@@ -178,6 +178,21 @@ build) **와** diff 에 대한 보안 pass 를 돌린다. 각 보안 발견을 �
   **재사용 가능한 context** 를 확립했다면, `docs/concepts/` 페이지를 쓰거나 갱신한다.
   진짜로 가치 있을 때만 — 일상적 작업에 문서를 제조하지 말 것.
 - 사용자가 요청하지 않으면 commit 이나 push 하지 말 것.
+- **다음 스킬 제안 (post-build routing — 추천만, 자동 시작 금지):** 빌드 사이클이
+  끝났으니 사용자가 다음에 무엇으로 이어가면 좋을지 *한 번* 제안한다. 산출물(spec/
+  plan)을 받아 *전진*시키는 deep-* 의 next-skill-routing 과는 **맥락이 다르다** —
+  여기는 *작업 사이클 종료* 라, 자연스러운 다음은 전진이 아니라 정리/랜딩이다:
+    - 변경을 PR 로 push 했다 → `/land` (CI 통과 후 머지 + 로컬/워크트리 정리) 제안.
+    - 시점 문서·로그가 쌓였다 (오래된 plan, 랜딩된 handoff, agent 로그) → `/sweep`
+      (정리) 제안.
+  위 `land`/`sweep` 은 *예시*일 뿐 고정 목록이 아니다 — available-skills 목록을 실제로
+  훑어 정리/검증 성격의 후보를 열거하라. 글로벌·플러그인도 동등 후보다(예: 머지 전
+  `/verify`·`/code-review` 로 변경 검증, `understand-anything:understand` 로 결과 구조
+  파악). 두 이름에 anchor 되지 말 것.
+  메커니즘은 next-skill-routing 과 동일하다 — `AskUserQuestion` 으로 추천만 하고,
+  설치된 스킬은 available-skills 컨텍스트에서 읽으며 (`ls ~/.claude/skills/` Bash
+  스캔 금지), **절대 자동 시작하지 않는다**. 제안할 자연스러운 다음이 없으면 (작은
+  변경, push 안 함, 정리할 것 없음) 생략한다 — 매번 밀어붙이지 말 것.
 
 ## Anti-patterns (이 파이프라인 전체가 이것들을 막으려 존재한다)
 

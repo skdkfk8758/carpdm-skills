@@ -2,23 +2,46 @@
 
 Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + UI 디자인 충실 재현 1종 + 공유 엔진 1종**, 총 **스킬 11종.**
 
+스킬은 역할에 따라 **4개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
+
+### 🔨 build-pipeline — 코드를 짓는 엄격 파이프라인
+
+craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → TDD → 보안 검증) 위에서 도는 작업유형 3종 + 엔진.
+
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
 | [`forge`](skills/forge) | 새 기능 구현 (0→1) | "X 추가/구현/만들어줘" | craft-core |
 | [`hunt`](skills/hunt) | 버그 수정 (재현→회귀잠금) | "X 깨졌어", "왜 null 반환하지" | craft-core |
 | [`renew`](skills/renew) | 기존 기능 변경/리뉴얼 | "X 다시 만들어", "동작 바꿔줘" | craft-core |
+| [`craft-core`](skills/craft-core) | ⚙️ 공유 엔진 (직접 호출 X) | forge/hunt/renew/deep-plan 이 내부에서 읽음 | — |
+
+### 🧭 think & plan — 코드 전에 요구사항·계획·목표를 정리
+
+| 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
+|---|---|---|---|
 | [`deep-interview`](skills/deep-interview) | 모호한 아이디어 → 검증가능 spec (소크라테스 인터뷰, ambiguity 게이트) | "인터뷰해줘", "이거 같이 정리하자", "/deep-interview" | 없음 (독립) |
 | [`deep-plan`](skills/deep-plan) | (모호하면 인터뷰 보강 후) 실행 가능 PLAN 문서 + UI면 HTML 시안, 빌드는 안 함 | "계획 세워줘", "어떻게 만들지 설계", "구현 말고 플랜만", "UI 시안 뽑아줘", "/deep-plan" | craft-core |
 | [`deep-prompt`](skills/deep-prompt) | 입력 → 자율 goal/백그라운드 잡 실행용 검증가능 Goal Prompt(.md) 저작 (고정 템플릿, 성공기준 측정가능화) | "goal 프롬프트 만들어줘", "백그라운드로 돌릴 목표 정리", "/deep-prompt" | 없음 (독립) |
+
+### 🎨 design & ui — 추출된 디자인 시스템 충실 재현
+
+| 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
+|---|---|---|---|
+| [`imprint`](skills/imprint) | DESIGN.md(design-extractor 추출) → React+Tailwind 테마·컴포넌트·HTML 시안 충실 재현 (token-traceability) | "이 DESIGN.md 로 컴포넌트 만들어줘", "추출한 디자인대로 Tailwind 테마", "/imprint" | 없음 (독립) |
+
+### 🧹 session & ops — 작업 사이클 운영 (저장·정리·랜딩)
+
+| 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
+|---|---|---|---|
 | [`handoff`](skills/handoff) | 세션 인계 (저장/복원) | "여기까지 하자 이어서", "어디까지 했지" | 없음 (독립) |
 | [`sweep`](skills/sweep) | 프로젝트 잡동사니 정리 (문서/로그) | "쌓인 로그/플랜 치워줘", "docs 청소" | 없음 (독립) |
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
-| [`imprint`](skills/imprint) | DESIGN.md(design-extractor 추출) → React+Tailwind 테마·컴포넌트·HTML 시안 충실 재현 (token-traceability) | "이 DESIGN.md 로 컴포넌트 만들어줘", "추출한 디자인대로 Tailwind 테마", "/imprint" | 없음 (독립) |
-| [`craft-core`](skills/craft-core) | ⚙️ 공유 엔진 (직접 호출 X) | forge/hunt/renew 가 내부에서 읽음 | — |
 
-**파이프라인 3종 공통 흐름**: 소크라테스 인터뷰 → codex 적대적 플랜 리뷰 → 동적 워크플로 TDD(sonnet) → simplify 검토 패스(forge·renew·hunt, 옵션·동작불변, `/simplify` 위임) → 보안 검증.
+**파이프라인 3종 공통 흐름**: 소크라테스 인터뷰 → codex 적대적 플랜 리뷰 → 동적 워크플로 TDD(sonnet) → simplify 검토 패스(forge·renew·hunt, 옵션·동작불변, `/simplify` 위임) → 보안 검증 → 빌드 후 다음 스킬 제안(push 했으면 `/land`, 잔여 정리면 `/sweep` — 추천만, 자동 시작 X).
 
 엔진은 두 실행 모드를 가진다 — **linear**(기본, 단일세션) / **orchestrated**(멀티에이전트 council, 명시 요청 시). 사용법은 [`docs/guides/craft-modes.md`](docs/guides/craft-modes.md).
+
+문서를 산출하는 스킬(plan·spec·goal·adr)의 출력 형태 카탈로그는 [`docs/reference/output-templates.md`](docs/reference/output-templates.md).
 
 > 과거 재사용 서브에이전트 6종(`agents/*.md`)과 에이전트 저작 스킬 `summon` 을 함께 배포했으나 [ADR 002](docs/adr/002-revert-agents-artifact-type.md) 로 철회했다 — 이 레포는 다시 스킬 단일 아티팩트다.
 
