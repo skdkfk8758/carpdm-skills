@@ -191,7 +191,9 @@ Phase 4 로 스킵.
 ## Phase 4 — Secure verify
 
 `security.md` 를 읽어라. 프로젝트 검증 게이트 (tests / typecheck / lint /
-build) **와** diff 에 대한 보안 pass 를 돌린다. 각 보안 발견을 진짜로 보고하기
+build), diff 에 대한 **correctness 리뷰** (`/code-review` — 테스트가 못 잡은 버그만,
+effort 는 실행 모드를 따름; 발견은 바로 고치지 말고 회귀 테스트 먼저), 그리고
+diff 에 대한 **보안 pass** 를 돌린다. correctness·보안 발견 모두 진짜로 보고하기
 전에 적대적으로 검증한다 (반박을 시도). 아무것도 red 로 출시하지 않는다.
 출시 전에, 플랜의 각 Acceptance 항목을 pass / fail 로 체크한다 —
 충족되지 않은 항목은 red 로 친다, 같은 룰. 단 `[HUMAN]` 항목은 자동으로 단정할 수

@@ -26,7 +26,7 @@ linear 경로는 같은 엔진을 훨씬 싸게 돌린다.
 영속 룰 (team mode 가 여기 있는 이유): 에이전트는 **라운드 간에 기억해야 할
 때만** 살아있다. **designer** 가 자격이 있다 (Phase 1 의 설계 의도를
 Phase 4 판정으로 운반); **adversary** 는 council 루프에 대해 자격이
-있다. QA / tester / security 는 **그렇지 않다** — 무상태(stateless) Workflow fan-out
+있다. QA / tester / correctness / security 는 **그렇지 않다** — 무상태(stateless) Workflow fan-out
 으로 한 번 돈다.
 
 모델: designer + adversary + 검증 judge = **opus** (`claude-opus-4-8`);
@@ -60,7 +60,7 @@ Phase 3 빌드 = **sonnet** (`claude-sonnet-4-6`) — §3 참조.
      Label each finding blocking / non-blocking. You exist to make the plan wrong
      before code does."
 
-QA / tester / security 를 여기서 spawn 하지 말 것 — 그들은 Phase 4 에 속하고
+QA / tester / correctness / security 를 여기서 spawn 하지 말 것 — 그들은 Phase 4 에 속하고
 team 에이전트가 아니다.
 
 ---
@@ -216,14 +216,14 @@ return await agent(
 designer 다.
 
 **Stage A — 병렬 검증 (Workflow `parallel()`, opus).** 
-`~/.claude/skills/craft-core/references/security.md` 를 읽어라. diff 에 대해 세 독립
-검증자를 돌린다, 각각 **opus** 에서, security lane 의 적대적
+`~/.claude/skills/craft-core/references/security.md` 를 읽어라. diff 에 대해 네 독립
+검증자를 돌린다, 각각 **opus** 에서, correctness·security lane 의 적대적
 refute-each-finding 단계를 포함하여:
 
 ```javascript
 export const meta = {
   name: 'craft-verify',
-  description: 'QA + tester + security verification of the orchestrated build, on opus',
+  description: 'QA + tester + correctness + security verification of the orchestrated build, on opus',
   phases: [{ title: 'Panel', model: 'opus' }],
 }
 
@@ -234,9 +234,10 @@ const FINDING = { type: 'object', required: ['lane','findings'], properties: {
 } }
 
 const LANES = [
-  { lane: 'qa',       prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
-  { lane: 'tester',   prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
-  { lane: 'security', prompt: 'Security pass over the diff per security.md. For each candidate finding, adversarially try to REFUTE it; report only those that survive, with evidence.' },
+  { lane: 'qa',          prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
+  { lane: 'tester',      prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
+  { lane: 'correctness', prompt: 'Correctness review of the diff: hunt for bugs the tests MISS — untested branches, off-by-one, null/boundary handling, wrong conditionals/operators, resource leaks, races. Quality (reuse/simplify) and security are other lanes — focus only on correctness defects. For each finding, adversarially try to REFUTE it (is the path reachable? do existing tests already cover it? does an input constraint exclude the branch?); report only survivors with evidence.' },
+  { lane: 'security',    prompt: 'Security pass over the diff per security.md. For each candidate finding, adversarially try to REFUTE it; report only those that survive, with evidence.' },
 ]
 
 return (await parallel(LANES.map(L => () =>
@@ -245,9 +246,9 @@ return (await parallel(LANES.map(L => () =>
 ))).filter(Boolean)
 ```
 
-세 lane (qa / tester / security) 모두 기본 워크플로 subagent 에서 `model: 'opus'`
-로 돈다 — 프롬프트가 각 lane 의 검증 계약이다 (security lane 은 발견을 적대적으로
-반박해 살아남은 것만 보고).
+네 lane (qa / tester / correctness / security) 모두 기본 워크플로 subagent 에서 `model: 'opus'`
+로 돈다 — 프롬프트가 각 lane 의 검증 계약이다 (correctness·security lane 은 발견을
+적대적으로 반박해 살아남은 것만 보고).
 
 **Stage B — intent judgment (영속 designer, opus).** 메인 세션이
 패널의 살아남은 발견을 **여전히 살아있는 designer** 에게 `SendMessage` 로
