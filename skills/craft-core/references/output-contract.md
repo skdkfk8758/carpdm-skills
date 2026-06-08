@@ -35,7 +35,7 @@ PR 보고)은 본질적으로 다르고, 본문 구조를 억지 통일하면 �
 |---|---|---|---|---|
 | 빌드 | forge / hunt / renew | ✓ | — (commit 참조) | ✓ (pipeline Phase 5) |
 | 설계·산출 | deep-interview / deep-plan | ✓ | ✓ | ✓ |
-| 산출(단발) | deep-prompt / imprint | ✓ | ✓ | — |
+| 산출(단발) | deep-prompt / imprint / erd | ✓ | ✓ | — |
 | 운영 | handoff / sweep / land | ✓ | handoff 만 ✓ | — |
 
 L3 비적용 근거: `next-skill-routing.md` 가 sweep/land/handoff 를 "다음 후보 아님"으로
@@ -89,7 +89,8 @@ result: <L1 한 줄>
 
 | 스킬 | 열기 블록 행 |
 |---|---|
-| `deep-plan` | `PLAN` (`docs/plans/…md`) + (UI plan 이면) `시안` (`…html`) |
+| `deep-plan` | `PLAN` (`docs/plans/…md`) + (UI plan 이면) `시안` (`…html`) + (DB/BE plan 이면) `ERD` (`…-erd.html`) |
+| `erd` | `ERD` (`docs/preview/…-erd.html` 또는 plan 동일 디렉토리 `…-erd.html`) |
 | `deep-interview` | `SPEC` (`docs/specs/…md` 또는 프로젝트 spec 위치) |
 | `deep-prompt` | `프롬프트` (`…md`) |
 | `imprint` | 산출 디렉토리(테마/컴포넌트/preview) — 대표 `시안` (`…html`) |
