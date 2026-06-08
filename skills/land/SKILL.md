@@ -111,6 +111,12 @@ Proceed?
 기다리며 rebase 중간에 남은 것). 미완 항목을 분명히 드러내 아무것도 조용히
 빠져나가지 않게 할 것.
 
+마지막 메시지는 `result:` 한 줄로 못 박는다(`~/.claude/skills/craft-core/references/output-contract.md`
+L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 머지/정리 수치를 담되 self-contained 로
+(예: `result: N개 PR 머지 — 로컬 <default> 동기화, M개 브랜치/워크트리 정리, K개 rebase`).
+산출물이 git 상태 변화라 열기 블록(L2)·다음 스킬 제안(L3)은 적용 안 한다. conflict 로
+멈춘 rebase 가 있으면 `result:` 가 아니라 진행 상태로 보고한다(미납품).
+
 ## 이 스킬이 틀린 선택일 때
 
 - 유저가 변경을 *작성*하려는 것이지 머지하려는 게 아닐 때 → `forge` / `hunt` / `renew`.

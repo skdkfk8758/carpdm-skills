@@ -94,6 +94,21 @@ DESIGN.md 에 없어서 *만들어낸* 값(hover 색, 그림자 등)도 예외�
 지정 안 하면 대표 세트를 생성한다. 출력 shape(Tailwind config 모양, 컴포넌트
 컨벤션, 독립 HTML 구성)은 [`references/output.md`](references/output.md).
 
+생성을 마치면 `~/.claude/skills/craft-core/references/output-contract.md` 의 종료
+블록으로 보고한다 — `result:` 한 줄(무엇을 어느 DESIGN.md 로 재현했는지 + raw hex/px
+grep = 0 확인) + 산출물 열기 블록(L1+L2). 대표 열기 행은 독립 시안 `preview.html`.
+imprint 는 종착 산출이라 다음 스킬 제안(L3)은 하지 않는다. 예:
+
+```
+result: <brand> DESIGN.md 재현 — 컴포넌트 N개 + theme + 시안, raw hex/px = 0
+
+산출물 — 열기:
+- 시안 `imprint-out/preview.html`  →  `open imprint-out/preview.html`
+- 테마 `imprint-out/theme/tokens.css`  →  `open imprint-out/theme/tokens.css`
+
+(`open` = macOS. Linux `xdg-open`, Windows `start`.)
+```
+
 ## 이 스킬이 아닌 것 (frontend-design 과의 경계)
 
 - **새 미감을 발명하지 않는다.** DESIGN.md(또는 그 파생)로 도출 불가능한 디자인

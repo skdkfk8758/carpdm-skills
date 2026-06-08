@@ -140,10 +140,10 @@ constraints, 해결된 assumptions, brownfield context, 그리고 clarity trail 
 요구사항 기록으로 살아남도록 의도된 것이므로, 번호 매긴 ID 는 한 번 할당되면 안정적
 으로 유지돼야 한다.
 
-spec 을 쓴 직후 `references/result-format.md` 의 고정 블록으로 산출물을 보고한다 —
-`result:` 한 줄(결정화 요약 + ambiguity %) + `SPEC` 행의 상대경로와 `open` 명령
-(deep-plan 과 동일한 공통 포맷). 이 블록을 먼저 내고 **그다음에** Phase 5 의 다음
-스킬 라우팅 추천을 잇는다 — result 블록이 라우팅을 대체하지 않는다.
+spec 을 쓴 직후 `~/.claude/skills/craft-core/references/output-contract.md` 의 고정
+블록으로 산출물을 보고한다 — `result:` 한 줄(결정화 요약 + ambiguity %) + `SPEC` 행의
+상대경로와 `open` 명령(전 스킬 공통 포맷). 이 블록을 먼저 내고 **그다음에** Phase 5 의
+다음 스킬 라우팅 추천을 잇는다 — result 블록이 라우팅을 대체하지 않는다.
 
 ### Phase 5 — 올바른 다음 스킬로 라우팅
 

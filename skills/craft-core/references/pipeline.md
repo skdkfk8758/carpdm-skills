@@ -206,6 +206,11 @@ build) **와** diff 에 대한 보안 pass 를 돌린다. 각 보안 발견을 �
   **재사용 가능한 context** 를 확립했다면, `docs/concepts/` 페이지를 쓰거나 갱신한다.
   진짜로 가치 있을 때만 — 일상적 작업에 문서를 제조하지 말 것.
 - 사용자가 요청하지 않으면 commit 이나 push 하지 말 것.
+- **완료 신호 (`result:` — 전 스킬 공통, `~/.claude/skills/craft-core/references/output-contract.md` L1):**
+  마지막 메시지를 `result:` 한 줄로 못 박는다 — 무엇이 바뀌었는지 + 추가 테스트 +
+  보안 평결(예: `result: <기능> 구현 — N 테스트 통과, 보안 pass`). 빌드형이라 산출물은
+  커밋이므로 열기 블록 대신 변경 요약을 가리킨다(L2 비적용). 백그라운드 잡 classifier
+  가 이 줄로 완료를 판정하니 글자 그대로 `result:` 로 시작하고 self-contained 로.
 - **다음 스킬 제안 (post-build routing — 추천만, 자동 시작 금지):** 빌드 사이클이
   끝났으니 사용자가 다음에 무엇으로 이어가면 좋을지 *한 번* 제안한다. 산출물(spec/
   plan)을 받아 *전진*시키는 deep-* 의 next-skill-routing 과는 **맥락이 다르다** —
