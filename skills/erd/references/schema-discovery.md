@@ -43,7 +43,11 @@ Read/Grep 으로 확인한다(karpathy 원칙 1). 입력은 보통 다음 중 �
 CLI 가 있으면 그걸로, 없으면 프레임워크 introspection 으로 폴백한다. 출력이 길면
 `logs/` 로 redirect 후 필요한 줄만 Read.
 
-**PostgreSQL** (`psql "$DATABASE_URL" -c '<sql>'`, 또는 `PGPASSWORD=… psql -h … -U … -d … -c '<sql>'`):
+**PostgreSQL** — 비번이 argv(`ps aux`)·셸 히스토리에 남지 않게 `PGPASSWORD` env 로 넘긴다:
+`PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '<sql>'`.
+(`psql "$DATABASE_URL"` 는 편하지만 URL 에 비번이 박혀 있으면 그대로 argv 에 노출되니 비번
+포함 URL 은 피한다.) 아래 쿼리는 `table_schema='public'` 기준 — 앱이 다른 스키마를 쓰면
+그 스키마명으로 바꾼다(스키마 목록: `SELECT schema_name FROM information_schema.schemata;`).
 
 ```sql
 -- 테이블
@@ -61,16 +65,19 @@ JOIN information_schema.key_column_usage kcu
 WHERE tc.table_schema='public' AND tc.constraint_type IN ('PRIMARY KEY','UNIQUE')
 ORDER BY tc.table_name;
 -- FK (자식→부모 + ON DELETE 규칙)
-SELECT tc.table_name AS child, kcu.column_name AS child_col,
+-- 복합 FK 안전: 자식 컬럼 ordinal_position 을 부모 컬럼 position_in_unique_constraint 로 짝짓는다.
+-- (constraint_column_usage 를 name 으로만 JOIN 하면 복합키에서 카테시안 곱이 나 컬럼이 오매핑됨)
+SELECT kcu.table_name AS child, kcu.column_name AS child_col,
        ccu.table_name AS parent, ccu.column_name AS parent_col, rc.delete_rule
-FROM information_schema.table_constraints tc
+FROM information_schema.referential_constraints rc
 JOIN information_schema.key_column_usage kcu
-  ON kcu.constraint_name=tc.constraint_name AND kcu.table_schema=tc.table_schema
-JOIN information_schema.constraint_column_usage ccu
-  ON ccu.constraint_name=tc.constraint_name AND ccu.table_schema=tc.table_schema
-JOIN information_schema.referential_constraints rc
-  ON rc.constraint_name=tc.constraint_name
-WHERE tc.constraint_type='FOREIGN KEY' AND tc.table_schema='public';
+  ON kcu.constraint_name=rc.constraint_name AND kcu.constraint_schema=rc.constraint_schema
+JOIN information_schema.key_column_usage ccu
+  ON ccu.constraint_name=rc.unique_constraint_name
+ AND ccu.constraint_schema=rc.unique_constraint_schema
+ AND ccu.ordinal_position=kcu.position_in_unique_constraint
+WHERE kcu.table_schema='public'
+ORDER BY child, kcu.ordinal_position;
 ```
 
 **MySQL/MariaDB** (`mysql -h … -u … -e '<sql>' <db>`, 비번은 `MYSQL_PWD`): 위와 동일하되
@@ -78,7 +85,8 @@ WHERE tc.constraint_type='FOREIGN KEY' AND tc.table_schema='public';
 key_column_usage` 에서 `referenced_table_name IS NOT NULL` 로, ON DELETE 규칙은
 `referential_constraints` 에서.
 
-**SQLite** (`sqlite3 <file.db>`): `SELECT name FROM sqlite_master WHERE type='table';`
+**SQLite** (`sqlite3 <file.db>`): `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';`
+(`sqlite_%` 내부 테이블 — `sqlite_sequence`/FTS shadow 등 — 제외)
 → 테이블별 `PRAGMA table_info(<t>);`(컬럼·PK), `PRAGMA foreign_key_list(<t>);`(FK·on_delete),
 `PRAGMA index_list(<t>)`+`index_info`(UNIQUE).
 
