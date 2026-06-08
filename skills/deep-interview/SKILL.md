@@ -152,15 +152,18 @@ spec 을 쓴 직후 `references/result-format.md` 의 고정 블록으로 산출
 greenfield/brownfield 판단 + goal), 그 성격은 특정 작업유형 스킬로 매핑된다.
 
 라우팅 규칙·후보군·강도 추천·이중 인터뷰 회피 프레이밍은 모두
-`references/next-skill-routing.md` 에 산다(deep-plan 과 공유 — 복제 금지). 그
-파일을 읽어 적용하라. 핵심만:
+`references/next-skill-routing.md` 에 산다(deep-plan 과 공유 — 복제 금지). **추천을
+만들기 전에 반드시 그 파일을 Read 하라** — 기억으로 추천하지 말 것(기억은 Tier 1
+로컬 스킬로 편향돼 글로벌·플러그인 후보를 빠뜨린다). 핵심만:
 
 - **설치 스킬을 Bash 로 스캔하지 마라** — available-skills 목록이 이미 컨텍스트에
-  있다. 거기서 고르라.
+  있다. 추천 전 그 목록을 실제로 훑어 후보를 재선정하라(아래 예시 이름에 anchor
+  되지 말 것).
 - **valid-next 필터** 로 다음 단계가 될 수 있는 스킬만 후보로 남긴다.
-- **Tier 1**(curated 빌드 라우팅: greenfield→`/forge`, brownfield 변경→`/renew`,
-  고장→`/hunt`) 을 먼저 보고, 안 맞으면 **Tier 2**(valid-next 보강: `/deep-plan`
-  으로 plan 먼저, `to-issues`/`to-prd`/`deep-research`/`prototype` 등) 를 본다.
+- **Tier 1**(빌드가 명백할 때의 단축: greenfield→`/forge`, brownfield 변경→`/renew`,
+  고장→`/hunt`) 은 단축일 뿐 — 명백하지 않으면 **Tier 2**(available-skills 에서
+  valid-next 전체 후보, **글로벌·플러그인 포함**: `/deep-plan`·`to-issues`·`to-prd`·
+  `deep-research`·`prototype`·`understand-anything:understand` 등)를 함께 열거한다.
 - 빌드로 라우팅하면 **강도(linear/council)** 도 함께 추천한다 — 인터뷰가 측정한
   디자인 리스크를 엔진에 넘기라.
 - **`AskUserQuestion` 으로 추천만** 한다 — 사용자가 선택하게 하고 자동 시작 금지.

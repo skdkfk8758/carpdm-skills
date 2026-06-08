@@ -185,6 +185,10 @@ build) **와** diff 에 대한 보안 pass 를 돌린다. 각 보안 발견을 �
     - 변경을 PR 로 push 했다 → `/land` (CI 통과 후 머지 + 로컬/워크트리 정리) 제안.
     - 시점 문서·로그가 쌓였다 (오래된 plan, 랜딩된 handoff, agent 로그) → `/sweep`
       (정리) 제안.
+  위 `land`/`sweep` 은 *예시*일 뿐 고정 목록이 아니다 — available-skills 목록을 실제로
+  훑어 정리/검증 성격의 후보를 열거하라. 글로벌·플러그인도 동등 후보다(예: 머지 전
+  `/verify`·`/code-review` 로 변경 검증, `understand-anything:understand` 로 결과 구조
+  파악). 두 이름에 anchor 되지 말 것.
   메커니즘은 next-skill-routing 과 동일하다 — `AskUserQuestion` 으로 추천만 하고,
   설치된 스킬은 available-skills 컨텍스트에서 읽으며 (`ls ~/.claude/skills/` Bash
   스캔 금지), **절대 자동 시작하지 않는다**. 제안할 자연스러운 다음이 없으면 (작은
