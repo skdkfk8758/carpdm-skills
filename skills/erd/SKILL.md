@@ -1,6 +1,6 @@
 ---
 name: erd
-description: DB 스키마(마이그레이션·ORM 모델·repository 코드·산문·PLAN 문서)를 입력으로 받아, 테이블 카드 + PK/FK/UQ/soft 뱃지 + SVG 로 자동 라우팅되는 관계선(실 FK / 위계 FK / deprecated / soft 참조 4종 색 구분)을 갖춘 self-contained HTML ERD(엔티티 관계도)를 그린다. 외부 asset 없이 브라우저에서 바로 열리는 단일 파일. 사용자가 DB 스키마·테이블 관계·엔티티 관계를 그림으로 보고 싶어 하거나, ERD/관계도/스키마 다이어그램/DB 구조도를 HTML 로 그려 달라고 할 때마다 사용한다 — "이 마이그레이션으로 ERD 그려줘", "DB 스키마 관계도 HTML 로", "테이블 관계 시각화", "엔티티 관계도 만들어줘", "스키마 다이어그램 뽑아줘", "DB 구조 그림으로 보여줘", "draw an ERD", "/erd" 같은 표현. 마이그레이션 디렉토리나 모델 파일을 가리키며 "이거 관계 어떻게 돼 있어 그림으로" 라고 해도 마찬가지다. 코드를 빌드/수정(use forge/renew/hunt)하거나, 추출된 디자인 시스템을 재현(use imprint)하거나, 일반 UI 를 창작(use frontend-design)하는 데는 사용하지 말 것 — erd 는 스키마를 도식으로 그릴 뿐 마이그레이션을 작성하거나 DB 를 바꾸지 않는다.
+description: DB 스키마(라이브 DB 접속·마이그레이션·ORM 모델·repository 코드·산문·PLAN 문서)를 입력으로 받아, 테이블 카드 + PK/FK/UQ/soft 뱃지 + SVG 로 자동 라우팅되는 관계선(실 FK / 위계 FK / deprecated / soft 참조 4종 색 구분)을 갖춘 self-contained HTML ERD(엔티티 관계도)를 그린다. 외부 asset 없이 브라우저에서 바로 열리는 단일 파일. 접속 정보(.env DATABASE_URL·docker-compose·프레임워크 설정)가 있거나 사용자가 connection string 을 주면 실제 DB 에 읽기 전용으로 붙어 information_schema 를 introspection 해 현재 운영 스키마 그대로 그린다(접속 전 확인, credential 비노출, 쓰기·DDL 금지). 사용자가 DB 스키마·테이블 관계·엔티티 관계를 그림으로 보고 싶어 하거나, ERD/관계도/스키마 다이어그램/DB 구조도를 HTML 로 그려 달라고 할 때마다 사용한다 — "이 마이그레이션으로 ERD 그려줘", "DB 스키마 관계도 HTML 로", "실제 DB 접속해서 ERD 그려줘", "운영 DB 스키마 보고 관계도", "DB 접속정보로 스키마 읽어서 그려줘", "테이블 관계 시각화", "엔티티 관계도 만들어줘", "스키마 다이어그램 뽑아줘", "DB 구조 그림으로 보여줘", "draw an ERD", "/erd" 같은 표현. 마이그레이션 디렉토리나 모델 파일을 가리키며 "이거 관계 어떻게 돼 있어 그림으로" 라고 해도 마찬가지다. 코드를 빌드/수정(use forge/renew/hunt)하거나, 추출된 디자인 시스템을 재현(use imprint)하거나, 일반 UI 를 창작(use frontend-design)하는 데는 사용하지 말 것 — erd 는 스키마를 도식으로 그릴 뿐 마이그레이션을 작성하거나 DB 를 바꾸지 않는다.
 ---
 
 # ERD — DB 스키마를 self-contained HTML 관계도로
@@ -20,9 +20,21 @@ DB 스키마를 받아 한 파일짜리 HTML ERD 를 그린다. 산출물은 외
 ### Step 1 — 스키마 재구성 (추측 금지)
 
 입력 소스에서 테이블·컬럼·관계를 실제로 확인한다 — `~/.claude/skills/erd/references/schema-discovery.md`
-를 Read 해 소스별(마이그레이션 / ORM 모델 / repository 코드 / 산문·PLAN) 추출법과
-테이블 분류·edge kind 판정·레이아웃·검증 기준을 따른다. 열어보지 않은 테이블/컬럼/관계를
-그리는 것은 실패다. 불확실하면 footer 에 한계를 명시한다(예: 정확 SSOT = 운영DB).
+를 Read 해 소스별(**라이브 DB introspection** / 마이그레이션 / ORM 모델 / repository 코드
+/ 산문·PLAN) 추출법과 테이블 분류·edge kind 판정·레이아웃·검증 기준을 따른다. 열어보지
+않은 테이블/컬럼/관계를 그리는 것은 실패다. 불확실하면 footer 에 한계를 명시한다.
+
+**라이브 DB 가 가능하면 그게 SSOT 다.** 코드베이스에 접속 정보(`.env` `DATABASE_URL`,
+docker-compose, 프레임워크 설정)가 있거나 사용자가 connection string 을 주면, 실제 DB 에
+붙어 `information_schema`/카탈로그를 **읽기 전용**으로 introspection 해 현재 운영 스키마
+그대로를 얻는다(마이그레이션 drift 없음). 단:
+
+- **읽기 전용만** — introspection SELECT/`SHOW`/`PRAGMA`/`db pull`. 쓰기·DDL 절대 금지.
+- **접속 전 확인** — host 가 localhost 가 아니거나 이름에 `prod`/`live` 가 보이면 운영
+  DB 로 간주하고 접속 전 사용자에게 명시 확인. 로컬/replica/스테이징을 우선 권한다.
+- **credential 비노출** — 비번·전체 connection string 을 출력·footer 에 찍지 않는다.
+- **한계** — introspection 은 강제된 FK 만 본다. soft 참조·deprecated 는 안 잡히므로
+  코드 소스를 병행한다. 상세 쿼리·안전수칙은 schema-discovery.md §0.
 
 scope 가 큰 스키마(테이블 20+)면 사용자에게 **무엇을 중심으로** 그릴지 먼저 확인한다 —
 전부 그리면 읽히지 않는다. 중심 hub + 직접 관계 1홉이 보통 맞다.
@@ -114,5 +126,6 @@ result: <중심 테이블> ERD 산출 — N 테이블 / M 관계, 출처 <경로
 - **자동 레이아웃(force-directed 등) 도입** — YAGNI. 위치는 손으로, 엔진은 wire 만 자동.
 - **거대 스키마를 통째로** — 20+ 테이블을 한 장에 다 넣으면 안 읽힌다. 중심 + 1홉으로 좁히거나 보조군을 한 카드로 접는다.
 - **마이그레이션/DDL 작성** — erd 는 그리기만. 스키마 변경이 필요하면 forge/renew.
+- **라이브 DB 에 쓰기·DDL 실행** — introspection(읽기 전용 SELECT/`SHOW`/`PRAGMA`)만. `INSERT`/`ALTER`/`DROP` 등 절대 금지. 운영 DB 는 접속 전 확인, credential 은 출력·footer 에 비노출.
 - **`EDGES` id 오타** — `t_<table>` 카드 id 와 정확히 일치해야 선이 그려진다. 그린 뒤 반드시 검증.
 - **결과물 주석·`.note`·footer 를 영어로** — 산출 ERD 의 설명 텍스트는 한국어가 기본(Step 2 규칙). 단 엔진 `<script>` 의 영어 기술 주석은 verbatim 보존(한글화 금지).

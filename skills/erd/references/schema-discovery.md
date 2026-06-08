@@ -1,7 +1,105 @@
 # Schema discovery — 스키마를 어디서 어떻게 재구성하나
 
 ERD 를 그리려면 먼저 **테이블·컬럼·관계**를 확정해야 한다. 추측 금지 — 실제 소스를
-Read/Grep 으로 확인한다(karpathy 원칙 1). 입력은 보통 다음 넷 중 하나다.
+Read/Grep 으로 확인한다(karpathy 원칙 1). 입력은 보통 다음 중 하나다. **신뢰도 순서:
+라이브 DB(0) > 마이그레이션(1) > ORM(2) > repository 코드(3) > 산문/plan(4)**. 라이브 DB
+접속이 가능하면 그게 SSOT 다 — 0 을 우선하되, soft 참조·deprecated 는 introspection 에
+안 잡히므로(아래 한계) 코드 소스(1~3)를 보조로 병행한다.
+
+## 0. 라이브 DB introspection (최고 신뢰도 — SSOT)
+
+실제 DB 에 붙어 `information_schema`/시스템 카탈로그를 읽으면 마이그레이션 누락·drift 없이
+**현재 운영 스키마 그대로**를 얻는다. 정적 소스로 재구성한 결과와 운영 실물이 어긋날 때
+이게 정답이다.
+
+### 안전 수칙 (IMPORTANT — 어기면 사고)
+
+- **읽기 전용만.** `information_schema`/카탈로그 SELECT, `SHOW`, `PRAGMA`, `db pull`/
+  `inspectdb` introspection 만 실행한다. `INSERT`/`UPDATE`/`DELETE`/`ALTER`/`DROP` 등
+  쓰기·DDL 은 **절대 금지** — ERD 는 그리기만 한다.
+- **접속 전 확인.** host 가 localhost/127.0.0.1 가 아니거나 DB 이름·호스트에 `prod`/
+  `production`/`live` 가 보이면 **운영 DB 로 간주**하고, 접속 전에 사용자에게 "이 DB 에
+  붙어 읽기전용 introspection 해도 되는가" 를 명시적으로 확인한다. 가능하면 로컬·read
+  replica·스테이징을 우선 권한다.
+- **credential 비노출.** 비밀번호·전체 connection string 을 출력·로그·ERD footer 에
+  찍지 않는다. 명령 구성 시 비밀번호는 env var(`PGPASSWORD`, `MYSQL_PWD`)로 넘기고
+  커맨드라인 평문에 두지 않는다. footer 출처 표기는 `live DB: <dbname>@<host>` 까지만
+  (포트·유저·비번 제외).
+
+### 접속 정보 발견 (추측 금지 — 실제로 확인)
+
+코드베이스에서 접속 정보를 Grep 으로 찾는다. 못 찾으면 사용자에게 connection string 을
+물어본다 — 임의로 지어내지 않는다.
+
+- **env 파일** — `.env`, `.env.local`, `.env.*` 의 `DATABASE_URL`/`DB_HOST`·`DB_PORT`·
+  `DB_USER`·`DB_PASSWORD`·`DB_NAME`/`POSTGRES_*`/`MYSQL_*`.
+- **docker-compose** — `docker-compose.yml`/`compose.yaml` 의 db 서비스 env·ports.
+  로컬 컨테이너면 `localhost:<mapped port>` 로 붙을 수 있다.
+- **프레임워크 설정** — Rails `config/database.yml`, Django `settings.py` `DATABASES`,
+  Prisma `schema.prisma` `datasource.url`, `knexfile.js`, TypeORM `ormconfig`/`data-source.ts`.
+
+### 엔진별 introspection
+
+CLI 가 있으면 그걸로, 없으면 프레임워크 introspection 으로 폴백한다. 출력이 길면
+`logs/` 로 redirect 후 필요한 줄만 Read.
+
+**PostgreSQL** (`psql "$DATABASE_URL" -c '<sql>'`, 또는 `PGPASSWORD=… psql -h … -U … -d … -c '<sql>'`):
+
+```sql
+-- 테이블
+SELECT table_name FROM information_schema.tables
+WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY table_name;
+-- 컬럼 (타입·nullable·default)
+SELECT table_name, column_name, data_type, is_nullable, column_default
+FROM information_schema.columns WHERE table_schema='public'
+ORDER BY table_name, ordinal_position;
+-- PK / UNIQUE
+SELECT tc.table_name, tc.constraint_type, kcu.column_name
+FROM information_schema.table_constraints tc
+JOIN information_schema.key_column_usage kcu
+  ON kcu.constraint_name=tc.constraint_name AND kcu.table_schema=tc.table_schema
+WHERE tc.table_schema='public' AND tc.constraint_type IN ('PRIMARY KEY','UNIQUE')
+ORDER BY tc.table_name;
+-- FK (자식→부모 + ON DELETE 규칙)
+SELECT tc.table_name AS child, kcu.column_name AS child_col,
+       ccu.table_name AS parent, ccu.column_name AS parent_col, rc.delete_rule
+FROM information_schema.table_constraints tc
+JOIN information_schema.key_column_usage kcu
+  ON kcu.constraint_name=tc.constraint_name AND kcu.table_schema=tc.table_schema
+JOIN information_schema.constraint_column_usage ccu
+  ON ccu.constraint_name=tc.constraint_name AND ccu.table_schema=tc.table_schema
+JOIN information_schema.referential_constraints rc
+  ON rc.constraint_name=tc.constraint_name
+WHERE tc.constraint_type='FOREIGN KEY' AND tc.table_schema='public';
+```
+
+**MySQL/MariaDB** (`mysql -h … -u … -e '<sql>' <db>`, 비번은 `MYSQL_PWD`): 위와 동일하되
+`table_schema=DATABASE()`(또는 대상 DB명) 로 거른다. FK 는 `information_schema.
+key_column_usage` 에서 `referenced_table_name IS NOT NULL` 로, ON DELETE 규칙은
+`referential_constraints` 에서.
+
+**SQLite** (`sqlite3 <file.db>`): `SELECT name FROM sqlite_master WHERE type='table';`
+→ 테이블별 `PRAGMA table_info(<t>);`(컬럼·PK), `PRAGMA foreign_key_list(<t>);`(FK·on_delete),
+`PRAGMA index_list(<t>)`+`index_info`(UNIQUE).
+
+**ORM/프레임워크 폴백** (CLI 없거나 접속만 코드로 가능할 때): Prisma `npx prisma db pull`
+→ `schema.prisma` 재생성 후 소스 2 로 읽기, Django `python manage.py inspectdb`,
+Rails `rails db:schema:dump` → `db/schema.rb`. introspection 결과 산출물을 소스로 다시 읽는다.
+
+### 라이브 DB 의 한계 (코드 병행 필요)
+
+introspection 은 **DB 가 강제하는 것만** 보여준다:
+
+- **soft 참조 안 보임** — FK 제약 없이 값으로만 매칭하는 참조(lookup slug 등)는
+  introspection 에 안 잡힌다. `soft` edge 는 repository/쿼리 코드(소스 3)로 보강한다.
+- **deprecated 의미 없음** — DB 엔진엔 "deprecated" 개념이 없다. `dep` 분류·edge 는
+  마이그레이션 주석·코드 맥락(소스 1·3)에서 온다.
+- **fk vs hier 는 의미 구분** — introspection 은 둘 다 그냥 FK 로 준다. 위계/소유 계층
+  여부는 도메인 판단(아래 Edge kind 판정)으로 나눈다.
+
+따라서 최고 충실도 = 라이브 DB(실 스키마·강제 FK) + 코드(soft·dep 보강). footer 에는
+`출처: live DB <db>@<host> (introspection) + 코드 보강` 로 적고, introspection 으로 확정한
+부분은 추측 캐비엇 없이 SSOT 로 표기한다.
 
 ## 1. 마이그레이션 디렉토리 (가장 신뢰도 높음)
 
