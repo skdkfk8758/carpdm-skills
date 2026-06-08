@@ -118,6 +118,27 @@ Acceptance 는 *실행* 이 아니라 *무엇을 할지/무엇이 done 인지의
   과 Steps→verify 를 표로, 파일 경로는 코드 스타일로 시각화.
 - **혼합**(백엔드 작업이 있는 UI 변경) → UI 는 목업, 그 아래 비UI 섹션은 plan 렌더.
 
+#### 시안을 누가 만드나 — inline 기본, 신호 있으면 전문 스킬로 라우팅
+
+기본은 deep-plan 이 직접 inline 으로 쓴다. companion 의 목적은 *리뷰·합의*("이렇게
+보일 거다")이지 출시 아티팩트가 아니라서, 대개 손으로 쓴 단일 스케치로 충분하다 —
+비UI plan, 그리고 방향이 하나로 정해진 슬림한 UI plan 이 여기다. 과투자하지 말 것.
+
+단 아래 신호가 있으면 손으로 쓰는 게 오히려 나쁘다 — 그 일을 위해 존재하는 전문
+스킬이 더 나은 시안을 만든다. 신호가 보이면 **`AskUserQuestion` 으로 한 번 제안**한다
+(inline 스케치 vs 전문 스킬). 사용자가 전문 스킬을 고르면 그 스킬에 시안 생성을 넘기고
+(결과 `.html` 은 그대로 deep-plan 의 companion 산출물로 둔다), inline 으로 충분하다 하거나
+신호가 없으면 inline 으로 쓴다. 이건 시안 *충실도* 축이라 Step 5 의 빌드 라우팅과는 다른
+축이지만, 같은 **"제안 ≠ 자동 시작"** 원칙을 따른다(무신호면 질문 없이 inline).
+
+| 신호 | 라우팅 | 왜 |
+|---|---|---|
+| `DESIGN.md` / design-extractor 추출 디자인 시스템이 컨텍스트에 있음 | **`imprint`** | 토큰 충실 재현이 핵심 — 손으로 쓰면 raw hex/px 로 토큰을 위반한다 (강한 신호) |
+| UI 방향이 안 정해져 여러 안을 비교·탐색하고 싶음 | **`prototype`** | 토글 가능한 여러 변형으로 옵션을 나란히 본다 |
+| net-new 미감 + 높은 완성도 바가 plan 의 핵심 | **`frontend-design`** | 제네릭 AI 미감을 피한 고품질 자유 창작 |
+
+매칭 스킬이 미설치면(available-skills 에 없음) 그 사실을 말하고 inline 으로 폴백한다.
+
 ### Step 4 — 제시하고 정지
 
 `result-format.md` 의 고정 블록으로 산출물을 보고한다 — `result:` 한 줄 + 각
@@ -167,6 +188,9 @@ deep-plan 은 plan 과 시안을 산출하고 다음 단계를 *제안*하는 �
 - **이미 crisp 한 요청을 인터뷰** — 적응형 게이트의 핵심은 *건너뛸 줄 아는 것*.
 - **HTML companion 규칙을 복제** — `pipeline.md` 의 한 소스를 읽어라(중복 = drift).
 - **UI plan 인데 `.html` 이 plan 표만 렌더** — UI 면 결과 화면 목업이어야 한다.
+- **DESIGN.md 가 있는데 손으로 mockup** — 토큰을 위반한다; `imprint` 로 시안을 넘겨라.
+  반대로 슬림·단일 방향 UI 에 `frontend-design`/`prototype` 까지 끌어오는 것도 과투자 —
+  inline 스케치로 족하다. 신호가 라우팅을 정한다(위 Step 3 표).
 - **파일/계약을 Read/Grep 없이 거명** — Files 섹션은 검증된 것만.
 - **질문 묶기** — 인터뷰가 발동하면 라운드당 한 질문.
 - **다음 스킬 자동 시작** — Step 5 는 `AskUserQuestion` 제안까지다. forge/renew/hunt
