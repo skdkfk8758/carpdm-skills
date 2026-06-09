@@ -1,6 +1,6 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + UI 디자인 충실 재현 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + 공유 엔진 1종**, 총 **스킬 13종.**
+Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 배포 전 최종 검토 1종 + UI 디자인 충실 재현 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + 공유 엔진 1종**, 총 **스킬 14종.**
 
 스킬은 역할에 따라 **5개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
 
@@ -36,13 +36,14 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 |---|---|---|---|
 | [`colocate-domain-context`](skills/colocate-domain-context) | 도메인별 CLAUDE.md 를 코드 옆에 배치(경로 근접 auto-load) + 코드만 바뀌고 문서 미갱신 시 경고하는 co-update 게이트 셋업. 프로젝트 구조·verify host(verify.sh/husky/pre-commit/CI/Makefile/none)에 적응 | "폴더별 CLAUDE.md", "도메인 지식 코드 옆에", "co-update 게이트 만들어줘", "문서 노후화 막는 게이트" | 없음 (독립) |
 
-### 🧹 session & ops — 작업 사이클 운영 (저장·정리·랜딩)
+### 🧹 session & ops — 작업 사이클 운영 (저장·정리·랜딩·배포검토)
 
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
 | [`handoff`](skills/handoff) | 세션 인계 (저장/복원) | "여기까지 하자 이어서", "어디까지 했지" | 없음 (독립) |
 | [`sweep`](skills/sweep) | 프로젝트 잡동사니 정리 (문서/로그) | "쌓인 로그/플랜 치워줘", "docs 청소" | 없음 (독립) |
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
+| [`preflight`](skills/preflight) | 배포 직전 앱 전체 최종 검토 → 10차원 + 기술부채 점검, 고정 포맷 리포트 + GO/조건부GO/NO-GO 판정 | "배포 전에 검토해줘", "최종 점검", "출시 전 전체 봐줘", "배포 가능한지", "/preflight" | 없음 (독립) |
 
 **파이프라인 3종 공통 흐름**: 소크라테스 인터뷰 → codex 적대적 플랜 리뷰 → 동적 워크플로 TDD(sonnet) → simplify 검토 패스(forge·renew·hunt, 옵션·동작불변, `/simplify` 위임) → 보안 검증 → 빌드 후 다음 스킬 제안(push 했으면 `/land`, 잔여 정리면 `/sweep` — 추천만, 자동 시작 X).
 
@@ -64,7 +65,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-12개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
+14개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
 ### 개별 설치 (하나씩)
 
@@ -115,7 +116,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land imprint craft-core
+ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land preflight imprint erd craft-core
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.

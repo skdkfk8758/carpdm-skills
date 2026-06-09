@@ -36,6 +36,7 @@ PR 보고)은 본질적으로 다르고, 본문 구조를 억지 통일하면 �
 | 빌드 | forge / hunt / renew | ✓ | — (commit 참조) | ✓ (pipeline Phase 5) |
 | 설계·산출 | deep-interview / deep-plan | ✓ | ✓ | ✓ |
 | 산출(단발) | deep-prompt / imprint / erd | ✓ | ✓ | — |
+| 리뷰·판정 | preflight | ✓ | ✓ (docs/reviews) | ✓ (수정 라우팅) |
 | 운영 | handoff / sweep / land | ✓ | handoff 만 ✓ | — |
 
 L3 비적용 근거: `next-skill-routing.md` 가 sweep/land/handoff 를 "다음 후보 아님"으로
@@ -94,6 +95,7 @@ result: <L1 한 줄>
 | `deep-interview` | `SPEC` (`docs/specs/…md` 또는 프로젝트 spec 위치) |
 | `deep-prompt` | `프롬프트` (`…md`) |
 | `imprint` | 산출 디렉토리(테마/컴포넌트/preview) — 대표 `시안` (`…html`) |
+| `preflight` | `리포트` (`docs/reviews/…-preflight.md`) |
 | `handoff` (WRITE) | `핸드오프` (`…md`) |
 
 ## L3 — 다음 스킬 제안 (전진형 스킬)
@@ -108,6 +110,10 @@ result: <L1 한 줄>
 - **deep-interview / deep-plan** — next-skill-routing.md 그대로.
 - **forge / hunt / renew** — `pipeline.md` Phase 5 가 이미 next-skill-routing 메커니즘과
   동일하게 빌드 후 제안을 emit 한다. 별도 적용 불필요.
+- **preflight** — L3 는 *산출물 전진*이 아니라 **발견→수정 라우팅**이다(blocker/시급
+  should → forge/renew/hunt/simplify). next-skill-routing 의 *메커니즘 원칙*(설치 스킬
+  Bash 스캔 금지·available-skills 에서 읽기·자동 시작 금지)만 공유하고 후보군 규칙은
+  다르다 — preflight `SKILL.md` Step 5 가 SSOT. 고칠 게 없으면(GO) 생략.
 
 ## 적용 체크 (스킬 저작 시)
 
