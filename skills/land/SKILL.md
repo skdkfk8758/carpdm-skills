@@ -64,6 +64,12 @@ re-basing 동작은 `references/stacking.md` 참조.
 후보 집합에서 제외할 것: draft, 기다리지 말라고 들은 실패/대기 CI 의 PR,
 `mergeable` 아닌 것 모두. 무엇을 왜 제외했는지 나열할 것.
 
+단, **`mergeStateStatus` 가 `BLOCKED` 라고 stacked child 를 drop 하지 말 것** — stack 의
+자식 PR 은 부모가 아직 머지 안 됐거나 base 가 default 가 아니면 GitHub 에서 흔히
+`BLOCKED` 로 표시된다(`mergeable` 은 여전히 `MERGEABLE`). 이건 정상이고, 부모를
+머지하고 base 를 re-point 하면(4 단계) 풀린다. 제외 판단은 `mergeStateStatus` 가
+아니라 draft·CI 결론·`mergeable` 로 한다.
+
 ### 3. Confirm — 하나의 플랜, 하나의 승인
 
 비가역 액션 전에 단일 플랜을 유저에게 보여줄 것:
@@ -87,7 +93,7 @@ Proceed?
 ### 4. Merge — squash, CI 대기
 
 각 PR 을 순서대로: `gh pr merge <n> --squash --auto --delete-branch`.
-`--auto` 는 필수 체크가 통과하면 GitHub 이 머지하게 한다; `MERGED` 가 되거나 체크가 실패할 때까지 `gh pr view <n> --json state,mergeStateStatus` 를 폴링한다. (레포에 필수 체크가 없으면 `mergeStateStatus` 가 `CLEAN` 이고 즉시 머지된다 — 대기 없음.)
+`--auto` 는 필수 체크가 통과하면 GitHub 이 머지하게 한다; `MERGED` 가 되거나 체크가 실패할 때까지 `gh pr view <n> --json state,mergeStateStatus` 를 폴링한다. (레포에 필수 체크가 없으면 `mergeStateStatus` 가 `CLEAN` 이고 즉시 머지된다 — 대기 없음.) 레포에 auto-merge 가 꺼져 있으면 `--auto` 가 에러를 낸다 — 그땐 CI 가 green 인지 직접 확인한 뒤 `--auto` 없이 `gh pr merge <n> --squash --delete-branch` 로 머지한다.
 
 `--delete-branch` 는 머지 시 remote 브랜치를 제거한다. 한 가지 편의: PR 의 head 브랜치가 **이 메인 워크트리에 현재 체크아웃된** 브랜치라면, `gh` 가 *로컬* 브랜치도 삭제하고 당신을 기본 브랜치로 전환시킨다 — 그래서 흔한 "내가 올라가 있는 브랜치를 머지" 케이스는 여기서 완전히 정리되고, 5 단계의 브랜치 삭제는 *다른* 워크트리에 사는 브랜치만 처리하면 된다. 다른 곳에 체크아웃된 브랜치는 `gh` 가 건드리지 않으므로 여전히 5 단계가 필요하다.
 
