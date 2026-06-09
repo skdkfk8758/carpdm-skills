@@ -15,6 +15,12 @@ description: 엄격한 파이프라인을 통해 EXISTING 기능을 새단장하
 
 ## Phase 1 — Socratic focus (see craft-core/references/socratic.md)
 
+이 renew 가 `improve-codebase-architecture` 가 발굴한 deepening/리팩터 기회에서
+출발했다면(그 스킬이 CONTEXT.md·ADR 기반으로 결합 해소·테스트 용이성 개선 항목을
+이미 짚었다면), 그 분석을 Phase 1 입력으로 가져와라 — "무엇을 왜 바꾸나" 는 이미
+근거가 있으니 재발굴하지 말고, renew 고유의 **preserve vs change 경계 확정**과
+**호출자/계약 보존**에 인터뷰를 집중한다. (해당 스킬을 안 거쳤으면 무시.)
+
 여기서의 spec 은 현재 현실에 대한 *delta* 이므로, 현재 현실을 먼저 매핑하라:
 
 - **Current behavior inventory** — 이 기능은 오늘 무엇을 하는가? 먼저 읽어서 확립하라

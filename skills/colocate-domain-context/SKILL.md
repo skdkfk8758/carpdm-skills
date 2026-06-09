@@ -107,6 +107,14 @@ and front-end (if applicable) exercises both gate branches. Name them and why.
 For each pilot domain, mine **real** gotchas from the code (open the files; cite
 actual symbols/paths — never invent). Use this shape, kept short (≈20–35 lines):
 
+> **Optional scaffold seed.** If `understand-anything:understand-domain` is installed,
+> you may use its extracted domain map (domains, flows, entry points) to *seed the
+> scaffold* — the `Entry points`, `Contracts`, and `Cross-layer` lines. This is not a
+> contradiction of "don't auto-generate": the extraction only fills the skeleton, and
+> the `Gotchas` section — the part that actually stops wrong guesses — is still
+> human-curated from reading the code. The co-update gate stays a human-maintained
+> warning, never an extraction pipeline. If the skill isn't installed, mine by hand.
+
 ```markdown
 # <domain> domain
 
@@ -148,6 +156,13 @@ discipline plainly: which domains are enrolled, that the gate warns (doesn't blo
 that they update a domain `CLAUDE.md` in the same change *only when the domain
 knowledge actually changed*, and that expansion to more domains should wait until the
 pilot proves out.
+
+For ongoing quality of the colocated files (and the root CLAUDE.md they defer to),
+point the user at `claude-md-management:claude-md-improver` — it audits CLAUDE.md
+files against templates and applies targeted fixes, which complements this skill's
+co-update gate: the gate catches *staleness* (code moved, doc didn't), the improver
+catches *quality drift* (bloat, vague gotchas, missing structure). Suggest it as a
+periodic pass, not a wiring step — it's not part of the verification host.
 
 ## Scope discipline
 
