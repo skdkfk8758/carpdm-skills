@@ -61,33 +61,35 @@ spec 인 "plan", 몇 분 전 쓰인 로그, 유저가 방금 일부러 만든 `.
 증거가 약하면 삭제 제안 대신 "flagged, not proposed" 로 강등하라.
 
 ### 3. Propose — 항상 이 report 형태를 사용할 것
-유저는 이 report 만 보고 결정하므로, 제거와 이유가 읽기 쉽게:
+유저는 이 report 만 보고 결정하므로, 제거와 이유가 읽기 쉽게. **report 는 한국어로
+작성한다** — 아래 예시처럼 섹션 헤더·설명을 한글로 쓰고, 경로·git 상태 라벨
+(`[tracked]` / `[untracked, NOT recoverable]`)·명령은 원문 그대로 둔다:
 
 ```
-# Sweep proposal — <repo name>
+# Sweep 제안 — <repo name>
 
-## Summary
-<N> candidates, <X> tracked (recoverable) / <Y> untracked (NOT recoverable).
-Permanent knowledge & code untouched.
+## 요약
+후보 <N>개 — tracked <X>개 (복구 가능) / untracked <Y>개 (복구 불가).
+영속 knowledge·코드는 건드리지 않음.
 
-## Stale docs (point-in-time)
-- docs/plans/2026-04-01-old-thing.md  [tracked]  — superseded by 2026-05 plan; work merged in <commit>
-- docs/handoff/foo.md                 [tracked]  — referenced task shipped; handoff is stale per YAGNI
+## Stale 문서 (시점 기록)
+- docs/plans/2026-04-01-old-thing.md  [tracked]  — 2026-05 plan 으로 대체됨; 작업은 <commit> 에 머지
+- docs/handoff/foo.md                 [tracked]  — 참조 작업 출시됨; YAGNI 기준 stale handoff
 
-## Logs (volatile)
-- logs/qa/                            [untracked, NOT recoverable] — 14 files, all > 7d (GC window)
-- logs/agents/executor-*.log          [untracked, NOT recoverable] — 6 files
+## 로그 (휘발성)
+- logs/qa/                            [untracked, NOT recoverable] — 14개 파일, 전부 > 7일 (GC 윈도우)
+- logs/agents/executor-*.log          [untracked, NOT recoverable] — 6개 파일
 
-## Orphan / duplicate
-- docs/_archive/empty/                [tracked]  — empty dir
-- docs/reports/dup-of-X.md            [tracked]  — duplicate SSOT of docs/reports/X.md
+## 고아 / 중복
+- docs/_archive/empty/                [tracked]  — 빈 디렉토리
+- docs/reports/dup-of-X.md            [tracked]  — docs/reports/X.md 의 중복 SSOT
 
 ## Build / tmp
-- *.bak-1748* (3 files)               [untracked, NOT recoverable]
+- *.bak-1748* (3개 파일)               [untracked, NOT recoverable]
 - tmp/                                [untracked, NOT recoverable]
 
-## Excluded on purpose
-<anything you flagged but did NOT propose, with the reason — so the user sees you considered it>
+## 의도적 제외
+<flag 했지만 제안하지 않은 것 + 이유 — 검토했음을 유저가 보도록>
 ```
 
 ### 4. Confirm
