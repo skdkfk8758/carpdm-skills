@@ -31,6 +31,15 @@ description: 재현 우선, 회귀 잠금 파이프라인으로 BUG 를 고친�
   그리고 수정이 깨뜨려서는 안 되는 edge input (새 회귀 없음). 마무리 전에 완전성
   sweep 을 실행해, 수정이 하나의 버그를 다른 버그와 맞바꾸지 않도록 하라.
 
+### 막힌 재현·원인은 diagnose 로 선행 (optional — hard bug 한정)
+
+재현이 불안정하거나(간헐적·환경 의존·race) 근본 원인이 위 1-패스 추적으로 안
+잡히는 hard bug 면, 수정을 계획하기 전에 `diagnose` 스킬의 체계적 루프
+(reproduce → minimise → hypothesise → instrument)를 선행해 원인을 증거로 고정하라.
+hunt 의 Phase 1 추적은 원인이 한 번에 보이는 흔한 경우를 위한 것이고, diagnose 는
+그게 막힐 때만 — 대부분 버그는 여기까지 안 간다(둘을 겹쳐 돌리지 말 것). 원인이
+증거로 고정되면 hunt 로 돌아와 Phase 3 회귀 테스트부터 이어간다.
+
 ### Parallel hypothesis diagnosis (optional — multi-candidate bugs only)
 
 원인에 **두 개 이상의 그럴듯한 후보**가 있고 각각을 추적하는 비용이 비쌀 때
