@@ -87,7 +87,15 @@ craft 파이프라인(`forge`/`renew`/`hunt`)은 두 모드로 실행된다 — 
 
 강한 council 신호: 멈출 때 잔여 ambiguity; 넓은 토폴로지(4~6 상호의존 컴포넌트);
 힘든 수렴(많은 라운드, challenge mode 발동); 횡단 non-functional(보안/마이그레이션
-/호환성). 없으면 linear 라 말하고 넘어가라.
+/호환성); **산출물이 UI 시안과 기능 Acceptance 를 함께 가져 둘이 한 번에 맞아야
+할 때**(시안 충실도가 핵심인 경우만 — 단순 CRUD 화면이나 미감이 부차적이면 제외,
+안 그러면 거의 모든 풀스택 빌드가 council 로 과발화한다); **이번 맥락에 구현이
+plan 을 벗어나거나 한 번에 완결되지 않을 우려가 드러난 경우**(과거 세션 이력을
+추측하지 말 것 — 지금 대화/플랜에 실제로 드러난 신호만). 뒤 두 신호가 council 을
+부르는 이유는 같다 — orchestrated 의 빌드-후 intent judgment loop(verify green
+AND 살아있는 designer 가 confirmed gap 을 제기하지 않을 때까지 재구현)가 linear
+엔 없는, 시안·plan 의도 이탈을 잡는 게이트이기 때문이다. 없으면 linear 라 말하고
+넘어가라.
 
 ## 이중 인터뷰 회피 — 핸드오프 프레이밍
 
