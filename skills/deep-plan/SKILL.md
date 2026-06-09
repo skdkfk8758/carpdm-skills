@@ -97,10 +97,17 @@ Acceptance 는 *실행* 이 아니라 *무엇을 할지/무엇이 done 인지의
 ## Risks
 ## Security surface
 ## YAGNI (deletions this change would make)
-## Acceptance (numbered, single, checkable conditions)
+## Acceptance / Eval (numbered, single, checkable; 각 항목에 [AUTO] 또는 [HUMAN] 태그)
 ```
 
 열어보지 않은 파일/심볼을 거명하는 것은 실패다. Files 는 실제로 확인한다.
+
+**Acceptance 항목이 곧 eval 항목이다** — 빌드 스킬(forge/renew/hunt)이 구현을
+끝낸 뒤 Phase 4 에서 *하나씩 검증해 닫을* 체크리스트다. 그래서 각 항목에
+`[AUTO]`/`[HUMAN]` 태그를 붙인다 (`[AUTO]`=결정론·회귀·보안·계약 — 자동 테스트로
+잠금; `[HUMAN]`=시각·UX 의도·주관 — 빌드 후 사람과 walk). 태그 규칙·예시는 복제하지
+말고 `~/.claude/skills/craft-core/references/pipeline.md` Phase 1 (SSOT) 을 따른다.
+별도 "eval" 개념을 새로 만들지 말 것 — Acceptance 가 그 자리다.
 
 ### Step 3 — HTML 시안 (정적 시각 목업)
 
@@ -118,6 +125,13 @@ Acceptance 는 *실행* 이 아니라 *무엇을 할지/무엇이 done 인지의
   companion 은 **plan 의 렌더링**: 새 내용 없이 섹션을 heading+블록으로, Scope IN/OUT
   과 Steps→verify 를 표로, 파일 경로는 코드 스타일로 시각화.
 - **혼합**(백엔드 작업이 있는 UI 변경) → UI 는 목업, 그 아래 비UI 섹션은 plan 렌더.
+
+**그리고 — companion 타입과 무관하게 항상 — `.html` 에 Eval 체크리스트 패널을 넣는다.**
+Step 2 의 Acceptance(=eval) 항목을 각 `[AUTO]`/`[HUMAN]` 태그와 함께 체크리스트로
+렌더해, 사용자가 시안을 리뷰할 때 "이렇게 보일 것"과 "끝나면 무엇으로 done 을 측정할
+것"을 나란히 보게 한다. 이게 사용자가 빌드 후 forge/renew 가 하나씩 닫아줄 바로 그
+장부의 그림이다. 규칙은 복제하지 말고 `pipeline.md` Phase 1 의 "Eval 체크리스트 패널"
+(SSOT) 을 따른다 — SSOT 는 `.md` Acceptance, 이 패널은 렌더 뷰.
 
 #### ERD companion — plan 이 DB 스키마/BE 데이터 모델을 수반하면 (위 분기와 별개·추가)
 
@@ -193,7 +207,9 @@ deep-plan 은 "순수 산출" 도구라 **빌드로 자동 라우팅하지 않�
   변경→`/renew`, 고장→`/hunt`), 아니면 Tier 2 전체 후보(`to-issues`·`deep-research`·
   `understand-anything:understand` 등)를 함께 본다. `deep-plan` 자신은 제외(이미 만들었다).
 - 빌드로 제안하면 plan 을 **이미 완료된 Phase-1 결과물**로 취급해 다시 인터뷰하지
-  말라고 프레이밍한다(이중 인터뷰 회피).
+  말라고 프레이밍한다(이중 인터뷰 회피). plan 의 **Acceptance(=eval) 항목이 그
+  빌드가 Phase 4 에서 하나씩 검증해 닫을 체크리스트**이고, UI 면 곁의 `.html` 시안이
+  승인된 visual 계약임을 함께 짚는다 — 빌드 스킬이 그대로 이어받는다.
 - **`AskUserQuestion` 으로 제안만** 한다.
 
 그리고 **여기서 멈춘다.** codex 리뷰·TDD·보안·구현 없음, 다음 스킬 자동 시작 없음 —

@@ -62,6 +62,16 @@ spec 으로 이어가서, 곧장 Phase 2 로 간다. 이미 확정된 spec 에 �
 인터뷰를 재실행하는 것은 이중인터뷰 anti-pattern 이다. 이 phase 의 나머지는
 그런 spec 이 없을 때만 적용된다.
 
+같은 규칙이 **`deep-plan` PLAN** 에도 적용된다. 사용자가 `deep-plan` 이 만든
+PLAN (`docs/plans/<…>.md` — Goal / Scope / Files / Steps / **Acceptance(=eval 항목)**
+섹션, 그리고 UI 면 곁의 `.html` 시안) 을 가리키거나 건네주면, 그것을 완료된 Phase-1
+산출물로 취급한다 — 재인터뷰 **금지**, ground-check 만 (코드와 여전히 일치하는지).
+PLAN 의 **Acceptance 항목이 곧 이 빌드가 Phase 4 에서 하나씩 닫을 eval 체크리스트**다
+— 그대로 이어받는다. Acceptance 가 `[AUTO]`/`[HUMAN]` 태그 없이 왔으면(구버전
+deep-plan) 지금 한 번 아래 태그 규칙으로 빠르게 분류해 태그만 붙인다 (재인터뷰 아님).
+곁에 `.html` 시안이 있으면 그것이 **승인된 mockup**(visual 계약)이다 — Phase 3 가
+거기에 충실히 구현하고 Phase 4 시안 충실도 게이트가 대조한다.
+
 `socratic.md` 를 읽어라. **먼저 ground 하고, 그다음 물어라:** 작업이
 건드리는 코드 (가능하면 프로젝트 code-graph/LSP, 아니면 Read/Grep) 와 관련된
 기존 프로젝트 문서 — ADR/concept **그리고 guide/reference 트리**
@@ -133,6 +143,14 @@ self-contained 하게 만든다 (inline `<style>`, 외부 asset 없음). compani
 비 UI 섹션은 플랜 렌더링으로 둔다. Phase 2 에서 codex 평결이 `.md` 에
 들어오면, 둘이 동기 유지되도록 `.html` 을 갱신한다.
 
+**Eval 체크리스트 패널 (companion 타입과 무관 — 항상).** companion 종류가
+무엇이든, `.html` 은 플랜의 **Acceptance(=eval) 항목** 을 체크리스트 패널로 렌더한다 —
+각 항목을 그 `[AUTO]`/`[HUMAN]` 태그와 함께 보여, 리뷰어가 "구현이 끝나면 무엇으로
+done 을 측정하는지" 를 시안·플랜과 **나란히** 본다. UI companion 이면 목업 옆/아래
+패널로, 비UI 면 plan 렌더 안의 한 섹션으로. SSOT 는 `.md` 의 Acceptance 섹션이고 이
+패널은 그 렌더 뷰다 (`.md` 가 바뀌면 패널도 갱신 — 위 동기 규칙과 같다). 이 패널이
+빌드 스킬 Phase 4 가 항목별로 닫을 바로 그 eval 장부의 사람용 그림이다.
+
 Phase 2 전에 사용자에게 플랜 확인을 요청한다. 사용자가 보지 못한 플랜은
 플랜이 아니다.
 
@@ -195,10 +213,21 @@ build), diff 에 대한 **correctness 리뷰** (`/code-review` — 테스트가 
 effort 는 실행 모드를 따름; 발견은 바로 고치지 말고 회귀 테스트 먼저), 그리고
 diff 에 대한 **보안 pass** 를 돌린다. correctness·보안 발견 모두 진짜로 보고하기
 전에 적대적으로 검증한다 (반박을 시도). 아무것도 red 로 출시하지 않는다.
-출시 전에, 플랜의 각 Acceptance 항목을 pass / fail 로 체크한다 —
-충족되지 않은 항목은 red 로 친다, 같은 룰. 단 `[HUMAN]` 항목은 자동으로 단정할 수
-없으니 `pass / fail / not-run` 으로 보고하고, `not-run` 은 출시를 막는 red 가 아니라
-**잔여 리스크**로 wrap 에 남긴다 (사람이 도는 검증 — 새 blocking 게이트는 만들지 않는다).
+출시 전에, 플랜의 **Acceptance(=eval) 항목을 명시적 완료 장부로 삼아 하나씩**
+닫는다 (plan 이 deep-plan 에서 왔으면 사용자가 시안에서 본 그 eval 패널이 이 장부의
+그림이다 — 같은 항목을 닫는 것이다). 태그별로 **하이브리드**로 검증한다:
+
+- **`[AUTO]` 항목** — Phase 3 테스트로 자동 pass / fail. fail 이면 confirmed gap →
+  아래 loop-back 으로 Phase 3 재진입해 그 항목만 다시 green (사람 개입 없이 자동).
+- **`[HUMAN]` 항목** — 자동 단정 불가라 `not-run` 으로 흘리지 말고 **사용자와 하나씩
+  walk** 한다: 항목을 보여주고, (UI 면) 빌드 결과를 시안에 대조한 소견을 곁들여,
+  `pass / 조정 필요 / 잔여 리스크로 수용` 중 하나를 사용자와 합의한다. "조정 필요" 는
+  confirmed gap 으로 Phase 3 재진입, "잔여 리스크 수용" 만 wrap 에 남긴다 (출시 막는
+  red 아님). 합의 없이 조용히 not-run 으로 넘기지 말 것.
+
+eval 장부가 닫히는 조건: **모든 `[AUTO]` 항목 green AND 모든 `[HUMAN]` 항목이
+사용자와 walk 되어 pass 또는 명시 수용**. 보안 불변식은 `[HUMAN]`-only 금지라 항상
+`[AUTO]` 로 자동 잠긴다 (Phase 1 규칙).
 
 ### Intent & conformance 판정 — loop-back 게이트
 
