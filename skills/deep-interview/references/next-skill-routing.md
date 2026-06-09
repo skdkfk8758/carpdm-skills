@@ -92,10 +92,12 @@ craft 파이프라인(`forge`/`renew`/`hunt`)은 두 모드로 실행된다 — 
 안 그러면 거의 모든 풀스택 빌드가 council 로 과발화한다); **이번 맥락에 구현이
 plan 을 벗어나거나 한 번에 완결되지 않을 우려가 드러난 경우**(과거 세션 이력을
 추측하지 말 것 — 지금 대화/플랜에 실제로 드러난 신호만). 뒤 두 신호가 council 을
-부르는 이유는 같다 — orchestrated 의 빌드-후 intent judgment loop(verify green
-AND 살아있는 designer 가 confirmed gap 을 제기하지 않을 때까지 재구현)가 linear
-엔 없는, 시안·plan 의도 이탈을 잡는 게이트이기 때문이다. 없으면 linear 라 말하고
-넘어가라.
+부르는 이유는 같다 — linear 도 경량 conformance 게이트로 시안·plan 의도 이탈을
+잡지만(`pipeline.md` Phase 4 의 intent & conformance 판정), 그건 메인 세션이 자기
+빌드를 판정하는 self-judgment 근사다; orchestrated 의 빌드-후 intent judgment loop
+(verify green AND 살아있는 designer 가 confirmed gap 을 제기하지 않을 때까지 재구현)
+는 빌드와 분리된 **독립** designer + adversary 가 판정해 더 엄격하기 때문이다.
+없으면 linear 라 말하고 넘어가라.
 
 ## 이중 인터뷰 회피 — 핸드오프 프레이밍
 
