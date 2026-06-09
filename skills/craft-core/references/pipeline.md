@@ -188,7 +188,7 @@ green 이 된 후: 방금 작성한 diff 가 정리(simplify)가 필요한지 �
 behavior 를 바꾼 것이다 — 되돌린다. trivial 변경, 거부, 또는 정리할 게 없으면 곧장
 Phase 4 로 스킵.
 
-## Phase 4 — Secure verify
+## Phase 4 — Secure verify & intent conformance
 
 `security.md` 를 읽어라. 프로젝트 검증 게이트 (tests / typecheck / lint /
 build), diff 에 대한 **correctness 리뷰** (`/code-review` — 테스트가 못 잡은 버그만,
@@ -200,9 +200,50 @@ diff 에 대한 **보안 pass** 를 돌린다. correctness·보안 발견 모두
 없으니 `pass / fail / not-run` 으로 보고하고, `not-run` 은 출시를 막는 red 가 아니라
 **잔여 리스크**로 wrap 에 남긴다 (사람이 도는 검증 — 새 blocking 게이트는 만들지 않는다).
 
+### Intent & conformance 판정 — loop-back 게이트
+
+verify(tests / correctness / security) 와 Acceptance 체크가 green 이어도, 그것은
+빌드가 *plan 의도대로* 지어졌다는 보장이 아니다 — 테스트는 통과하면서 plan Goal
+에서 벗어날 수 있고, 빌드가 합의된 시안과 따로 놀 수 있다(가장 흔한 UI 빌드 실패).
+그래서 출시 직전, 너 자신이 designer 모자를 쓰고(linear 에선 plan 을 쓴 게 너 자신
+이라 의도를 보유한다) 빌드 결과를 plan 의도에 대조한다. orchestrated 의 §4 Stage B
+intent judgment 를 단일 세션용으로 경량화한 것이다.
+
+- **의도 일치 판정 (항상).** diff 를 plan Goal / Acceptance 에 비춰 각 deviation 을
+  세 가지로 분류한다:
+  - **Confirmed gap** — plan Goal/Acceptance 로부터의 진짜 deviation → 새 atomic
+    태스크로 **Phase 3 으로 돌아간다** (그 delta 만 TDD 로 짓는다).
+  - **Out of scope** — plan 이 의도적으로 제외한 올바른 behavior → 이유와 함께
+    기록하고 기각한다.
+  - **Plan defect** — 빌드는 맞지만 *plan* 이 무언가 빠뜨림 → plan 을 amend 하는
+    짧은 Phase 1 micro-round, 그다음 그 delta 를 Phase 3.
+
+  이 판정은 추가 에이전트 없이 메인 세션이 한다 — 이미 plan·diff 컨텍스트를 보유해
+  싸다.
+
+- **시안 충실도 게이트 (승인 mockup 이 있는 UI 작업만).** Phase 3 가 충실 구현
+  하라고 지시한 승인 mockup(deep-plan companion `.html` / 이전 시안)이 있으면, 결과를
+  그것에 직접 대조한다 — mockup 과 구현 코드/렌더를 비교해 레이아웃·간격·색·컴포넌트
+  구조가 시안과 *일치*하는지 본다(미감 점수가 아니라 시안과의 일치; 시안이 곧 visual
+  계약 — Phase 3 SSOT). 벗어난 부분은 confirmed gap 으로 친다. 이는 위 `[HUMAN]`
+  not-run 과 구분된다 — 시안과의 *구조적 일치*는 메인이 객관 판정할 수 있어 게이트로
+  치고, 순수 미감·UX 질감만 `[HUMAN]` 잔여 리스크로 남긴다. mockup 없는 net-new
+  UI·비 UI 빌드엔 비적용.
+
+- **게이트.** **verify green AND confirmed gap 없음**일 때만 출시한다. confirmed gap
+  이 있으면 Phase 3(또는 plan defect 면 Phase 1 micro-round)으로 돌아가 delta 를 짓고
+  Phase 4 를 다시 돈다 — orchestrated 의 Stage A→B→Phase 3→A loop 의 linear 대응이다.
+
+- **한계 (정직히).** linear 엔 영속 designer 가 없어 **메인 세션이 designer 겸
+  빌더**다 — 자기 빌드를 자기가 판정하는 self-judgment 라 독립성이 낮다(자기 구현을
+  관대히 볼 편향). 의도 deviation 이 의심스럽거나 설계 리스크가 크면 orchestrated 로
+  가라 — 거기선 빌드와 분리된 독립 designer + adversary 가 판정한다. 이 게이트는 그
+  독립 판정의 *경량 근사*다.
+
 ## Phase 5 — Wrap
 
-- 요약: 무엇이 바뀌었는지, 추가된 테스트, 보안 평결, 잔여 리스크.
+- 요약: 무엇이 바뀌었는지, 추가된 테스트, 보안 평결, intent-conformance 평결(해소한
+  confirmed gap / 남은 시각 `[HUMAN]` 잔여 리스크), 잔여 리스크.
 - 영속적 결정/지식 기록 (`context-adr.md`): 작업이 **ADR 감** 결정을
   했다면, `docs/adr/NNN-slug.md` 를 쓰고 registry 를 갱신한다;
   **재사용 가능한 context** 를 확립했다면, `docs/concepts/` 페이지를 쓰거나 갱신한다.
