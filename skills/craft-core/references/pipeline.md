@@ -50,6 +50,12 @@ orchestrated 빌드는 **sonnet** 에서 돈다 (아래 linear Phase 3 은 opus 
 - Isolation (프로젝트 룰): 6+ 파일, 아키텍처 변경, 또는 3+ 파일 리팩터
   → 편집 전에 worktree 로 브랜치한다. 스킵한다면, 첫 응답에서 이유를 말한다.
   1–2 파일 동일주제 변경은 현재 브랜치에 머물러도 된다.
+- **Linear binding (optional, graceful).** 이 작업에 연결된 Linear 이슈가 있으면
+  — 사용자가 이슈 ID/URL 을 줬거나, 이어받은 PLAN `.md` 에 deep-plan 이 적어둔
+  sub-issue 가 있으면 — `~/.claude/skills/craft-core/references/linear.md` 를 읽고
+  그 활성 이슈를 **In Progress 로 자동 전이**한다. Linear MCP 미설치이거나 연결된
+  이슈가 없으면 **묻지 말고** Linear 없이 평소대로 진행한다 — Linear 는 워크플로를
+  증강할 뿐 게이트하지 않는다. 상태 전이 실패는 빌드를 막지 않는다(경고만).
 
 ## Phase 1 — Socratic 인터뷰 → 플랜
 
@@ -286,6 +292,10 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
   **재사용 가능한 context** 를 확립했다면, `docs/concepts/` 페이지를 쓰거나 갱신한다.
   진짜로 가치 있을 때만 — 일상적 작업에 문서를 제조하지 말 것.
 - 사용자가 요청하지 않으면 commit 이나 push 하지 말 것.
+- **Linear 상태 전이 (활성 이슈가 있을 때만).** Phase 0 에서 In Progress 로 옮긴
+  활성 이슈가 있으면, verify 가 green 이고 Acceptance 장부가 닫힌 지금
+  `linear.md` 의 전이 맵대로 **In Review 로 자동 전이**한다(Done 은 머지 시점 —
+  `land` 가 처리). Linear 없거나 이슈 없으면 생략. 전이 실패는 wrap 을 막지 않는다.
 - **완료 신호 (`result:` — 전 스킬 공통, `~/.claude/skills/craft-core/references/output-contract.md` L1):**
   마지막 메시지를 `result:` 한 줄로 못 박는다 — 무엇이 바뀌었는지 + 추가 테스트 +
   보안 평결(예: `result: <기능> 구현 — N 테스트 통과, 보안 pass`). 빌드형이라 산출물은

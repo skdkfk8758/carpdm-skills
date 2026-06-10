@@ -44,6 +44,7 @@ deep-plan 은 craft 빌드 파이프라인과 같은 검증된 엔진을 쓰되 
   와 `~/.claude/skills/deep-interview/references/socratic-playbook.md`
 - 종료 시 result 블록 규격(전 스킬 공통): `~/.claude/skills/craft-core/references/output-contract.md`
 - 다음 스킬 추천 규격(deep-* 공통): `~/.claude/skills/deep-interview/references/next-skill-routing.md`
+- PLAN → Linear 이슈 트리 등록 + MCP 감지/스킵: `~/.claude/skills/craft-core/references/linear.md` (Step 4.5 의 Linear 분기에서 차용 — 복제 금지)
 - DB/BE plan 의 ERD 시안 생성법: `~/.claude/skills/erd/SKILL.md` + `assets/erd-template.html` + `references/schema-discovery.md` (Step 3 의 ERD 분기에서 차용 — 복제 금지)
 
 이 파일들이 없으면(craft-core/deep-interview 미설치) 같은 원리를 직접 적용하되,
@@ -189,6 +190,29 @@ result: <topic> PLAN 산출 — N steps, scope IN <…> / OUT <…>
 (`open` = macOS. Linux `xdg-open <path>`, Windows `start <path>`.
  경로는 터미널에서 클릭으로도 열린다.)
 ```
+
+### Step 4.5 — Linear 작업 등록 (optional, 확인 게이트)
+
+PLAN 을 제시한 뒤, 이를 **Linear 작업 트리로 등록할지 제안**한다. 이것이
+"작업단위로 쪼개 추적·실행 가능하게" 만드는 다리다 — parent issue 1개 +
+PLAN Step 하나당 sub-issue 하나로 쪼개고, 각 sub-issue 의 ID/URL 을 PLAN `.md` 에
+적어 두면 빌드 스킬(forge/renew/hunt)이 그 이슈를 집어 작업하며 상태를 자동 전이한다.
+
+메커니즘은 복제하지 말고 **`~/.claude/skills/craft-core/references/linear.md` 를 읽어
+그대로 따른다**(SSOT — drift 차단). 그 파일이 정의하는 순서:
+
+1. **MCP 감지** (linear.md §1). Linear MCP 미설치면 설치 가이드를 한 번 보이고
+   **스킵을 제안**한다 — 막지 않는다. 사용자가 스킵하면 PLAN 산출은 그대로 두고
+   Step 5 로 간다(Linear 없이도 plan 은 완전한 산출물).
+2. **등록 제안 → 확인 게이트** (linear.md §2). 만들 트리(parent 제목 + sub 제목
+   목록)를 미리보기로 보이고 동의받은 **뒤에만** 생성한다. 이슈 생성은 외부
+   write 라 자동 등록 금지 — deep-plan 의 "제안 ≠ 자동 시작" 원칙과 같은 정신.
+3. 생성 후 parent/sub URL 을 반환하고 sub-issue ID/URL 을 PLAN `.md` 에 적는다.
+
+**판정:** Linear MCP 가 있고 PLAN 이 2개 이상 Step 으로 쪼개졌으면 등록을 제안할
+가치가 있다. Step 1개의 사소한 plan 이면 단일 이슈로(또는 등록 생략). Linear 가
+없으면 §1a 가이드 한 번 + 스킵. 어느 쪽이든 **PLAN 자체는 이미 완성된 산출물**이라
+Linear 등록은 부가 단계다 — 등록 실패/스킵이 deep-plan 의 성공을 깎지 않는다.
 
 ### Step 5 — 다음 단계 제안 (제안만, 시작 안 함)
 
