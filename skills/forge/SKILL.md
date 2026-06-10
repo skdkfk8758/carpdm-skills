@@ -13,6 +13,16 @@ outside-in test-first 로 구현하고, 이어 검증과 보안 점검을 거친
 `~/.claude/skills/craft-core/references/pipeline.md` 의 공유 엔진을 실행하라
 (먼저 읽을 것). 그 안에서 다음 forge 고유 강조점을 적용한다:
 
+## 실행 모드 기본값 (toggle)
+
+**기본 모드: orchestrated.** craft-core 의 linear-기본을 override 한다 — 새 기능은
+설계 리스크가 커 적대적 council 검토가 기본값으로 적절하다. `pipeline.md` 의
+"Execution mode" 진입 시 linear-기본·stakes 제안을 건너뛰고 곧장 orchestrated
+(`orchestrated.md`) 로 간다.
+
+- **이번 호출만 linear**: 호출 어디든 `--linear` 가 있으면 그 호출만 linear 로 돈다.
+- **영구 토글**: 위 "기본 모드" 를 `linear` 로 바꾸면 craft-core 기본(linear)으로 복귀.
+
 ## Phase 1 — Socratic focus (see craft-core/references/socratic.md)
 
 새 기능의 spec 은 사용자의 머릿속에 있다 — 그것을 끄집어내라. 다음을 앞세운다:
