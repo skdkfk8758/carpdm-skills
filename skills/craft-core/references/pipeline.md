@@ -259,6 +259,14 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
   치고, 순수 미감·UX 질감만 `[HUMAN]` 잔여 리스크로 남긴다. mockup 없는 net-new
   UI·비 UI 빌드엔 비적용.
 
+  **대조 방법 — 실제 렌더 우선(vision).** 코드를 읽는 데 그치지 말고, 가능하면
+  빌드 UI 를 실제로 띄워 *시각적으로* 대조한다: dev 서버 또는 정적 파일을 열고
+  chrome MCP(`mcp__claude-in-chrome__take_screenshot` 또는 동등 도구)로 결과 화면을
+  캡처해 승인 mockup `.html` 과 나란히 본다 — 레이아웃·간격·색·컴포넌트 구조의 어긋남은
+  코드만 읽어선 놓치기 쉽다. 캡처한 스크린샷과 mockup 을 직접 비교해 deviation 을
+  confirmed gap 으로 분류한다. chrome MCP 미설치·헤드리스 불가·렌더 불가 경로면
+  코드/렌더 텍스트 대조로 폴백한다(게이트는 유지, 대조 방법만 격하한다).
+
 - **게이트.** **verify green AND confirmed gap 없음**일 때만 출시한다. confirmed gap
   이 있으면 Phase 3(또는 plan defect 면 Phase 1 micro-round)으로 돌아가 delta 를 짓고
   Phase 4 를 다시 돈다 — orchestrated 의 Stage A→B→Phase 3→A loop 의 linear 대응이다.
