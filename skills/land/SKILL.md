@@ -1,6 +1,6 @@
 ---
 name: land
-description: Land the open PRs you pushed from worktrees and bring local back in sync — 새 세션에서 머지 가능한 PR 들을 (CI 통과 후 squash 로) 머지하고, 기본 브랜치를 pull 하고, 머지된 로컬 브랜치를 삭제하고, 머지된 워크트리를 제거하고, 랜딩되지 않은 브랜치는 rebase 한다. 유저가 열린 PR 을 MERGE / LAND 하고 로컬 git 상태를 CLEAN UP 하려 할 때 사용 — "올린 PR들 머지하고 로컬 최신화해줘", "PR 다 머지하고 브랜치/워크트리 정리", "merged 브랜치 prune하고 master 당겨줘", "워크트리 개발 끝났으니 정리", "land my PRs and sync local", "merge the open PRs and clean up branches" 같은 표현. PR 이 독립적인지 stacked(한 PR 이 다른 PR 위에 쌓인 것)인지 자동 감지해 올바른 순서로 머지한다. 코드를 작성하거나, 기능을 빌드하거나(forge 사용), 버그를 고치거나(hunt 사용), 미완 작업을 재개/복원(handoff 사용)하는 데에는 사용하지 말 것 — land 는 이미 push 된 PR 을 머지하고 로컬 트리를 깨끗이 하는 것이지, 그 안의 작업 자체를 다루는 게 아니다.
+description: Land the open PRs you pushed from worktrees and bring local back in sync — 새 세션에서 머지 가능한 PR 들을 (CI 통과 후 squash 로) 머지하고, 기본 브랜치를 pull 하고, 머지된 로컬 브랜치를 삭제하고, 머지된 워크트리를 제거하고, 랜딩되지 않은 브랜치는 rebase 한다. 아직 PR 이 없는 브랜치(커밋은 쌓였는데 안 올린 상태)면 머지 전에 push + PR 생성부터 한다. 유저가 열린 PR 을 MERGE / LAND 하고 로컬 git 상태를 CLEAN UP 하려 할 때, 또는 작업한 브랜치를 PR 로 올려 머지까지 한 흐름으로 가려 할 때 사용 — "올린 PR들 머지하고 로컬 최신화해줘", "PR 다 머지하고 브랜치/워크트리 정리", "merged 브랜치 prune하고 master 당겨줘", "이 브랜치 PR 올려서 머지까지 해줘", "워크트리 개발 끝났으니 정리", "land my PRs and sync local", "push my branch as a PR and land it" 같은 표현. PR 이 독립적인지 stacked(한 PR 이 다른 PR 위에 쌓인 것)인지 자동 감지해 올바른 순서로 머지한다. 코드를 작성하거나, 기능을 빌드하거나(forge 사용), 버그를 고치거나(hunt 사용), 미완 작업을 재개/복원(handoff 사용)하는 데에는 사용하지 말 것 — land 는 (필요하면 PR 을 올린 뒤) 머지하고 로컬 트리를 깨끗이 하는 것이지, 그 안의 작업 자체를 다루는 게 아니다. 이 레포(carpdm-skills)의 스킬 변경 배포는 sync.sh 미러가 필요하므로 land 가 아니라 ship 을 쓴다.
 ---
 
 # Land — push 한 PR 을 머지하고 로컬을 안전하게 재동기화
@@ -10,7 +10,8 @@ description: Land the open PRs you pushed from worktrees and bring local back in
 정리하길 원한다: 기본 브랜치는 최신, 머지된 브랜치와 워크트리는 제거, 살아남은
 브랜치는 새 베이스 위로 rebase. 손으로 하면 까다롭고 틀리기 쉽다: stacked PR 을
 순서를 어겨 머지하면 엉망이 되고, 실제로 랜딩되지 않은 브랜치를 삭제하면 작업을
-잃는다.
+잃는다. 가끔은 머지할 PR 이 아직 없다 — 브랜치에 커밋은 쌓였는데 안 올린 상태다.
+그땐 머지 전에 PR 부터 올린다(Step 0).
 
 이 스킬은 그 일을 절제된 파이프라인으로 수행한다. 작업 대부분이 **거의
 비가역적**(머지, 브랜치 삭제, 워크트리 제거, rebase)이므로 계약은 이렇다:
@@ -22,8 +23,8 @@ description: Land the open PRs you pushed from worktrees and bring local back in
 | Action | 입장 |
 |---|---|
 | **절대 안 함** | 공유 브랜치에 `git push --force`, draft / CI 실패 / mergeable 아닌 PR 머지, PR 이 아직 열려 있는 브랜치 삭제, 기본 브랜치에 직접 커밋, 추측으로 conflict 해결 |
-| **한 번 확인 후 실행** | PR 머지, 머지된 로컬 브랜치 삭제, `git worktree remove`, 살아남은 브랜치 rebase |
-| **자유롭게 실행** | `gh pr list`, `git worktree list`, `git fetch`, CI 상태 읽기, `git checkout <default>` + `git pull` (fast-forward) |
+| **한 번 확인 후 실행** | 자기 feature 브랜치 push + `gh pr create`(Step 0), PR 머지, 머지된 로컬 브랜치 삭제, `git worktree remove`, 살아남은 브랜치 rebase |
+| **자유롭게 실행** | `gh pr list`, `git worktree list`, `git fetch`, `git rev-list --count`, CI 상태 읽기, `git checkout <default>` + `git pull` (fast-forward) |
 
 브랜치는 **그 PR 이 머지되었을 때만**(또는 PR 이 없고 유저가 확인했을 때만)
 삭제해도 안전하다. "머지된 것 같다"는 충분하지 않다 — 브랜치 이름이 아니라
@@ -36,6 +37,46 @@ CI 가 실패하거나, 머지가 막히거나, rebase 가 conflict 를 만나�
 conflict 를 버리지 말 것 — 유저가 해결하고 싶어 할 수 있다.
 
 ## 파이프라인
+
+### 0. Raise — 아직 PR 이 없는 브랜치를 올린다 (해당될 때만)
+
+가끔은 머지할 PR 이 아직 없다 — 워크트리/현재 브랜치에 커밋은 쌓였는데 PR 을 안
+올린 상태다. 그러면 머지 전에 먼저 PR 을 만든다. **이미 PR 이 다 올라가 있으면 이
+단계를 통째로 건너뛰고 곧장 1. Discover 로 간다** — 이 스킬의 평소 경로다.
+
+올릴 후보 탐지(읽기 전용):
+
+- `git fetch --prune` 후, 기본 브랜치보다 앞선 커밋이 있는 로컬 브랜치를 찾는다:
+  각 브랜치에 대해 `git rev-list --count <default>..<branch>` 가 0 보다 크면 후보.
+  기본 브랜치 자신과 default 의 조상(앞선 커밋 0)은 제외.
+- 그중 **열린 PR 이 없는 것만** 추린다 — `gh pr list --author @me --state open --json headRefName`
+  의 head 에 없는 브랜치. 이미 PR 이 있으면 raise 가 아니라 머지 대상(1 단계)이다.
+- 후보가 없으면 raise 할 게 없다 → 1. Discover 로.
+
+올릴 후보가 있으면, 머지 플랜과 **별개로** raise 플랜을 보여주고 한 번 승인받는다
+(PR 생성은 외부 발신이라 게이트가 필요하다. 이건 4 단계의 머지 승인과 다른
+게이트다 — 사이에 CI 가 돈다):
+
+```
+PR 없는 브랜치를 올린다 (base = <default>):
+  feat/layerdock   (5 commits ahead)  → push + PR
+  fix/tooltip-z    (2 commits ahead)  → push (이미 origin 에 있음) + PR
+Proceed?
+```
+
+승인 후 각 후보를:
+
+- push 안 됐으면 `git push -u origin <branch>` (force 금지 — 자기 feature 브랜치
+  일반 push 만).
+- `gh pr create --base <default> --head <branch> --fill` 로 PR 을 연다(draft 아님).
+  제목/본문은 커밋에서 뽑는 `--fill` 이 기본 — 유저가 따로 주면 그걸 쓴다.
+- base 는 항상 기본 브랜치. raise 는 **독립 PR(→default)만** 만든다 — stacked PR 을
+  새로 *설계*하지 않는다(그건 워크트리 작업 시점의 일이다). 이미 stacked 로 올라온
+  PR 의 머지 순서 처리는 2~4 단계가 한다.
+
+raise 한 PR 들은 이제 열린 PR 이므로, 이어지는 1. Discover→Classify→Confirm→Merge 가
+나머지와 똑같이 흡수한다. CI 는 4 단계의 머지 대기에서 함께 기다린다 — raise 가
+CI 를 따로 기다리지 않는다.
 
 ### 1. Discover — 실제 상태 파악, 가정하지 말 것
 
@@ -134,3 +175,5 @@ L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 머지/정리 수�
 - 유저가 변경을 *작성*하려는 것이지 머지하려는 게 아닐 때 → `forge` / `hunt` / `renew`.
 - 유저가 미완 작업을 재개하거나 어디까지 했는지 떠올리려 할 때 → `handoff`.
 - 유저가 git 브랜치가 아니라 오래된 문서/로그를 치우려 할 때 → `sweep`.
+- 배포할 게 이 레포(carpdm-skills)의 스킬 변경일 때 → `ship`. live↔repo `sync.sh`
+  미러가 선행돼야 하는데 land 의 Raise 는 일반 브랜치 push 만 한다(미러 안 함).
