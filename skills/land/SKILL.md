@@ -109,6 +109,12 @@ Proceed?
 2. **머지된 워크트리를 먼저 제거하고, 그 다음 브랜치 삭제** — 순서가 중요하다: 워크트리에 체크아웃된 브랜치는 삭제할 수 없다. 랜딩된 브랜치를 가진 각 워크트리에 대해, **제거 전 `git -C <path> status --porcelain` 으로 깨끗한지 확인하라** — 비어 있지 않으면(커밋 안 된 작업) 멈추고 물어볼 것, 절대 `worktree remove --force` 로 밀지 말 것(stack 여부와 무관하게 항상 적용 — `references/stacking.md` "Dirty 워크트리 가드"는 이 규칙의 rebase 케이스 포함 상세본). 깨끗하면 `git worktree remove <path>` 한 뒤 브랜치를 삭제한다. 안전망으로 `git branch -d <branch>` (소문자)를 선호하라 — git 은 그 브랜치가 기본 브랜치의 조상이 아니면 거부한다. **하지만 squash 머지는 이 체크를 깬다**: squash 는 브랜치를 기본 브랜치 위의 하나의 새 커밋으로 접어 버려서, 원래 브랜치 커밋들은 조상이 *아니게* 되고 PR 이 정말로 머지됐어도 `-d` 가 거부한다. 그러므로: `-d` 가 거부하면 작업이 랜딩 안 됐다고 단정하지 말 것 — PR 에 대해 확인하라(`gh pr view <n> --json state` 가 `MERGED` 를 보여준다). 머지됐다면 `git branch -D <branch>` 가 안전하다; 그 삭제는 로컬 조상이 아니라 머지가 뒷받침한다. PR 이 머지되지 *않았는데* `-d` 가 여전히 거부할 때만 조사할 것(절대 `-D` 금지) — 그게 진짜 "이건 랜딩 안 됐다" 신호다.
 3. **remote-tracking prune**: `git fetch --prune` / `--delete-branch` 가 이미 처리했다; 마지막 `git remote prune origin` 이 남은 것을 정리한다.
 4. **살아남은 것 rebase**: 랜딩되지 않은 각 로컬 브랜치에 대해 `git rebase <default>`. conflict 시 멈추고 그 브랜치를 보고하라(유저가 해결하거나 요청 시 당신이 해결할 수 있게 rebase 를 진행 중으로 남겨 둘 것) — 복구 형태는 `references/stacking.md` 참조.
+5. **Linear 이슈 Done 전이 (연결된 이슈가 있을 때만, graceful).** 머지된 PR 에
+   연결된 Linear 이슈를 식별할 수 있으면(PR body/브랜치명이 이슈 URL/ID 를 참조하거나
+   Linear GitHub 연동이 붙어 있으면) `~/.claude/skills/craft-core/references/linear.md`
+   의 전이 맵대로 **Done 으로 옮긴다**. 이게 빌드(In Progress→In Review)에서 시작한
+   라이프사이클의 마지막 칸이다. Linear MCP 미설치이거나 연결 이슈를 못 찾으면 **묻지
+   말고 생략**한다 — Linear 전이는 머지/정리를 막지 않는다(저위험 부가 단계).
 
 ### 6. Report
 
