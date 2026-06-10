@@ -13,6 +13,16 @@ description: 엄격한 파이프라인을 통해 EXISTING 기능을 새단장하
 `~/.claude/skills/craft-core/references/pipeline.md` 의 공유 엔진을 실행하라
 (먼저 읽을 것). 그 안에서 다음 renew 고유 강조점을 적용한다:
 
+## 실행 모드 기본값 (toggle)
+
+**기본 모드: orchestrated.** craft-core 의 linear-기본을 override 한다 — 기존 동작·
+호환성·호출자 보존 리스크가 커 적대적 council 검토가 기본값으로 적절하다.
+`pipeline.md` 의 "Execution mode" 진입 시 linear-기본·stakes 제안을 건너뛰고 곧장
+orchestrated (`orchestrated.md`) 로 간다.
+
+- **이번 호출만 linear**: 호출 어디든 `--linear` 가 있으면 그 호출만 linear 로 돈다.
+- **영구 토글**: 위 "기본 모드" 를 `linear` 로 바꾸면 craft-core 기본(linear)으로 복귀.
+
 ## Phase 1 — Socratic focus (see craft-core/references/socratic.md)
 
 이 renew 가 `improve-codebase-architecture` 가 발굴한 deepening/리팩터 기회에서
