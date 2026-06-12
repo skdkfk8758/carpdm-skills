@@ -1,0 +1,30 @@
+# Multi-stage Node build. Generated only when the project has no Dockerfile.
+# Adjust build output dir / start command to the project's framework.
+# Private @scope deps: the github_token BuildKit secret authenticates npm ci.
+
+FROM node:20-slim AS build
+WORKDIR /app
+
+COPY package*.json ./
+# @optional:private-scope:start
+# BuildKit secret -> .npmrc for private GitHub Packages.
+RUN --mount=type=secret,id=github_token \
+    sh -c 'if [ -f /run/secrets/github_token ]; then \
+      { echo "__PRIVATE_NPM_SCOPE__:registry=https://npm.pkg.github.com"; \
+        echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/github_token)"; } > .npmrc; \
+    fi' \
+    && npm ci --no-audit --no-fund
+# @optional:private-scope:end
+# @optional:no-private-scope:start
+RUN npm ci --no-audit --no-fund
+# @optional:no-private-scope:end
+
+COPY . .
+RUN __BUILD_CMD__
+
+FROM node:20-slim AS run
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=build /app ./
+EXPOSE __CONTAINER_PORT__
+CMD __START_CMD_JSON__
