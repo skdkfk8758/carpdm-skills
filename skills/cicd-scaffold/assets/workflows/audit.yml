@@ -1,0 +1,30 @@
+name: audit
+
+# Weekly + on-dependency-change npm audit. Non-blocking visibility (high+).
+on:
+  schedule:
+    - cron: '0 0 * * 1'
+  push:
+    paths:
+      - '**/package-lock.json'
+      - '**/package.json'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    # @optional:ci-self-hosted:start
+    runs-on: [self-hosted, dev]
+    container: node:20
+    # @optional:ci-self-hosted:end
+    # @optional:ci-github:start
+    runs-on: ubuntu-latest
+    # @optional:ci-github:end
+    steps:
+      - uses: actions/checkout@v4
+      # @optional:ci-github:start
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # @optional:ci-github:end
+      - name: npm audit (high+)
+        run: npm audit --audit-level=high || true

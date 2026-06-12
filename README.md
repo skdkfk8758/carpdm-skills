@@ -1,6 +1,6 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 스킬 배포 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + 공유 엔진 1종**, 총 **스킬 16종.**
+Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 스킬 배포 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + 루프 하니스 셋업 1종 + 공유 엔진 1종**, 총 **스킬 18종.**
 
 스킬은 역할에 따라 **5개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
 
@@ -30,11 +30,13 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 | [`imprint`](skills/imprint) | DESIGN.md(design-extractor 추출) → React+Tailwind 테마·컴포넌트·HTML 시안 충실 재현 (token-traceability) | "이 DESIGN.md 로 컴포넌트 만들어줘", "추출한 디자인대로 Tailwind 테마", "/imprint" | 없음 (독립) |
 | [`erd`](skills/erd) | DB 스키마(마이그/ORM/repo) → self-contained HTML ERD (테이블 카드 + SVG 관계선 4종 색) | "이 마이그레이션으로 ERD 그려줘", "DB 관계도 HTML 로", "스키마 다이어그램", "/erd" | 없음 (독립) |
 
-### 🏗 codebase context — 코드 옆에 도메인 지식 두기 + 노후화 게이트
+### 🏗 project scaffold & context — 프로젝트 인프라·컨텍스트 셋업/생성
 
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
 | [`colocate-domain-context`](skills/colocate-domain-context) | 도메인별 CLAUDE.md 를 코드 옆에 배치(경로 근접 auto-load) + 코드만 바뀌고 문서 미갱신 시 경고하는 co-update 게이트 셋업. 프로젝트 구조·verify host(verify.sh/husky/pre-commit/CI/Makefile/none)에 적응 | "폴더별 CLAUDE.md", "도메인 지식 코드 옆에", "co-update 게이트 만들어줘", "문서 노후화 막는 게이트" | 없음 (독립) |
+| [`cicd-scaffold`](skills/cicd-scaffold) | Node 앱 GitHub Actions 배포 워크플로 생성 — develop→dev 자동, 태그→prod, ECR push(OIDC)·self-hosted runner. build/test·포트 탐지 후 워크플로·Dockerfile·셋업 체크리스트 산출 | "dev/prod 배포 github actions 만들어줘", "ECR 로 CD 셋업", "develop 머지하면 자동배포" | 없음 (독립) |
+| [`loop-harness-setup`](skills/loop-harness-setup) | 레포에 개발 "하니스"(loop / eval-게이트 자율개발 오케스트레이터) 처음 설치·이식·복제 + loop/ 가시화 HTML·일별 로그 셋업 | "이 레포에 루프 하니스 깔아줘", "하니스 이식·복제", "가시화·로그까지 한번에" | 없음 (독립) |
 
 ### 🧹 session & ops — 작업 사이클 운영 (저장·정리·랜딩·배포검토)
 
@@ -67,7 +69,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-16개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
+18개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
 ### 개별 설치 (하나씩)
 
@@ -79,7 +81,7 @@ cp -R skills/handoff ~/.claude/skills/
 cp -R skills/forge skills/craft-core ~/.claude/skills/
 ```
 
-> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / deep-prompt / imprint / erd 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
+> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / deep-prompt / imprint / erd / colocate-domain-context / cicd-scaffold / loop-harness-setup 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
 
 ---
 
@@ -118,7 +120,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land ship preflight fortify imprint erd craft-core
+ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land ship preflight fortify imprint erd colocate-domain-context cicd-scaffold loop-harness-setup craft-core
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.
