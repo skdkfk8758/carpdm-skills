@@ -1,44 +1,43 @@
-# GitHub Setup — secrets, environments, runners (do this once per repo)
+# GitHub Setup — secrets, environments, runners (repo 당 한 번)
 
-Substituting the workflow tokens is not enough — the pipeline reads these
-out-of-file settings at run time, and a missing one fails the run with a
-confusing error rather than a clear "you forgot X". Walk the user through each
-section **in order**. Where `gh` can do it, offer to run the command; never
-invent a secret value — ask the user or read it from their local file.
+워크플로 토큰을 치환하는 것만으로는 부족하다 — 파이프라인은 이 파일 밖 설정들을
+실행 시점에 읽고, 하나라도 빠지면 명확한 "X 를 빠뜨렸다" 대신 혼란스러운 에러로 run 이
+실패한다. 사용자를 각 섹션 **순서대로** 안내한다. `gh` 로 할 수 있는 곳에서는 명령
+실행을 제안하고, secret 값을 절대 지어내지 말 것 — 사용자에게 묻거나 로컬 파일에서 읽는다.
 
-Prereqs: the user has `gh` installed and authenticated (`gh auth status`) with
-admin on the repo. Every `gh` command below runs from inside the repo clone, so
-`:owner/:repo` resolves automatically — no need to type the slug.
+전제: 사용자가 `gh` 를 설치·인증(`gh auth status`)했고 repo 에 admin 권한이 있다.
+아래 모든 `gh` 명령은 repo clone 안에서 실행되므로 `:owner/:repo` 가 자동 resolve 된다
+— slug 를 입력할 필요 없다.
 
 ---
 
 ## 1. Repo-level secrets (2)
 
-These are the same for every environment, so they live at the repo level.
+이들은 모든 environment 에서 동일하므로 repo level 에 둔다.
 
-| secret | what it is | where to get it |
+| secret | 무엇인가 | 어디서 얻나 |
 |---|---|---|
-| `AWS_ACCOUNT_ID` | your 12-digit AWS account number — `deploy.yml` builds the ECR registry host `…<id>.dkr.ecr.<region>.amazonaws.com` from it | AWS console top-right account menu, or `aws sts get-caller-identity --query Account --output text` |
-| `AWS_ROLE_TO_ASSUME` | full ARN of the OIDC push role | the output of `references/aws-oidc-setup.md` step 3 — `arn:aws:iam::<id>:role/<repo>-ecr-push` |
+| `AWS_ACCOUNT_ID` | 12자리 AWS 계정 번호 — `deploy.yml` 이 이걸로 ECR registry host `…<id>.dkr.ecr.<region>.amazonaws.com` 를 만든다 | AWS 콘솔 우상단 계정 메뉴, 또는 `aws sts get-caller-identity --query Account --output text` |
+| `AWS_ROLE_TO_ASSUME` | OIDC push role 의 전체 ARN | `references/aws-oidc-setup.md` step 3 의 출력 — `arn:aws:iam::<id>:role/<repo>-ecr-push` |
 
 ```bash
 gh secret set AWS_ACCOUNT_ID  --body 123456789012
 gh secret set AWS_ROLE_TO_ASSUME --body arn:aws:iam::123456789012:role/myrepo-ecr-push
 ```
 
-Verify they exist (values are never shown back):
+존재하는지 확인(값은 다시 보여주지 않음):
 ```bash
 gh secret list
 ```
 
-> Do **not** create `GITHUB_TOKEN` — Actions injects it automatically each run.
+> `GITHUB_TOKEN` 은 만들지 **말 것** — Actions 가 매 run 자동 주입한다.
 
 ---
 
-## 2. GitHub Environments — `dev` and `prod`
+## 2. GitHub Environments — `dev` 와 `prod`
 
-Environments scope secrets/vars per deploy target and are what `deploy.yml`'s
-`environment:` key selects. Create both:
+Environment 는 deploy 대상별로 secrets/vars 를 scope 하며 `deploy.yml` 의
+`environment:` 키가 선택하는 대상이다. 둘 다 만든다:
 
 ```bash
 gh api -X PUT repos/{owner}/{repo}/environments/dev
@@ -47,9 +46,9 @@ gh api -X PUT repos/{owner}/{repo}/environments/prod
 
 ### 2a. Per-environment secret — `ENV_PRODUCTION`
 
-This is the **entire `.env.production`** the container runs with. `deploy.yml`
-writes it to a file and passes it via `docker run --env-file`. dev and prod each
-hold their **own** value (different DB, different secrets), so set it twice:
+이것은 컨테이너가 실행되는 **`.env.production` 전체** 다. `deploy.yml` 이 이를 파일로
+쓰고 `docker run --env-file` 로 넘긴다. dev 와 prod 는 각자 **자기** 값(다른 DB, 다른
+secret)을 가지므로 두 번 설정한다:
 
 ```bash
 # pipe the local env file straight in — no copy/paste, no value echoed
@@ -57,22 +56,21 @@ gh secret set ENV_PRODUCTION --env dev  < ./.env.dev
 gh secret set ENV_PRODUCTION --env prod < ./.env.production
 ```
 
-Each file is plain `KEY=value` lines, e.g.:
+각 파일은 평범한 `KEY=value` 줄들이다, 예:
 ```
 NODE_ENV=production
 DATABASE_URL=postgres://user:pass@host:5432/mydb
 SESSION_SECRET=…
 ```
-> ⚠ The container is the only consumer of these — make sure the DB host/name
-> matches the target environment. (A wrong `DB_NAME` here passes CI but the
-> container fails its health check on boot.)
+> ⚠ 컨테이너가 이것들의 유일한 소비자다 — DB host/name 이 대상 environment 와
+> 맞는지 확인할 것. (여기 `DB_NAME` 이 틀리면 CI 는 통과하지만 컨테이너가 부팅 시
+> health check 에 실패한다.)
 
 ### 2b. Per-environment variable — `DEPLOY_ENABLED`
 
-A **variable** (not a secret — it's not sensitive and the gate step reads it via
-the `vars` context). `true` lets the container actually run; unset = build + ECR
-push only (a smoke test). **Leave it unset for the very first deploy**, confirm
-the image lands in ECR, then flip it on:
+**variable**(secret 아님 — 민감하지 않고 gate step 이 `vars` context 로 읽는다).
+`true` 면 컨테이너가 실제로 실행되고, unset 이면 build + ECR push 만(smoke test).
+**첫 deploy 에서는 unset 으로 둔 채** 이미지가 ECR 에 안착하는지 확인하고, 그다음 켠다:
 
 ```bash
 # first deploy: do NOT set it. After the smoke run is green:
@@ -80,22 +78,22 @@ gh variable set DEPLOY_ENABLED --env dev  --body true
 gh variable set DEPLOY_ENABLED --env prod --body true
 ```
 
-Verify environment secrets/vars:
+environment secrets/vars 확인:
 ```bash
 gh secret list   --env prod
 gh variable list --env prod
 ```
 
-### 2c. prod gate — what you actually get on each plan
+### 2c. prod gate — 각 plan 에서 실제로 얻는 것
 
-The prod gate is the **manual `v* tag`**: nothing reaches prod unless a human
-consciously runs `git tag -a v0.0.1 … && git push origin v0.0.1`. That is the
-real safety mechanism and it works on every plan.
+prod gate 는 **수동 `v* tag`** 다: 사람이 의식적으로
+`git tag -a v0.0.1 … && git push origin v0.0.1` 을 돌리지 않으면 아무것도 prod 에
+도달하지 않는다. 그것이 진짜 안전장치이며 모든 plan 에서 작동한다.
 
-**Required reviewers** (a GitHub Environment protection rule that *pauses* the
-deploy job for an explicit click-approval) is an *optional extra* on top — but it
-needs a **public repo or GitHub Pro/Team/Enterprise**. On a **private repo on the
-Free plan** the API rejects it:
+**Required reviewers**(deploy job 을 *멈춰* 명시적 click-approval 을 받는 GitHub
+Environment protection rule)는 그 위에 얹는 *선택적 추가물* 이다 — 단 **public repo
+또는 GitHub Pro/Team/Enterprise** 가 필요하다. **Free plan 의 private repo** 에서는
+API 가 거부한다:
 
 ```bash
 # Only works on public repo OR Pro/Team. On Free+private this returns
@@ -105,58 +103,58 @@ gh api -X PUT repos/{owner}/{repo}/environments/prod \
 # (get <numeric-user-id> from:  gh api users/<login> --jq .id )
 ```
 
-So tell the user plainly: on Free+private, the tag is the gate; reviewers are a
-later upgrade. Leave `dev` with no reviewers (continuous deploy). See
-`references/pitfalls.md` "Cross-plan limits".
+그러니 사용자에게 분명히 말한다: Free+private 에서는 태그가 gate 이고, reviewers 는
+나중 업그레이드다. `dev` 는 reviewers 없이 둔다(continuous deploy). `references/pitfalls.md`
+"Cross-plan limits" 참조.
 
 ---
 
-## 3. Self-hosted runners — `dev` and `prod` labels
+## 3. Self-hosted runners — `dev` 와 `prod` 라벨
 
-The deploy host runs the GitHub Actions runner agent. `deploy.yml` targets it
-with `runs-on: [self-hosted, "${{ inputs.runner_label }}"]`, so each runner needs
-the `self-hosted` label **plus** its environment label (`dev` or `prod`). With the
-default `--ci-runner self-hosted`, CI also runs here (on the `dev` runner), so the
-runner is required before *any* workflow can pass.
+deploy host 가 GitHub Actions runner agent 를 돌린다. `deploy.yml` 은
+`runs-on: [self-hosted, "${{ inputs.runner_label }}"]` 로 이를 타깃하므로, 각 runner 는
+`self-hosted` 라벨 **에 더해** environment 라벨(`dev` 또는 `prod`)이 필요하다. 기본
+`--ci-runner self-hosted` 에서는 CI 도 여기서(`dev` runner 에서) 돌므로, *어떤*
+워크플로든 통과하려면 runner 가 먼저 있어야 한다.
 
-Register a runner (per host):
+runner 등록(host 당):
 1. Repo → **Settings → Actions → Runners → New self-hosted runner**.
-2. Run the shown `./config.sh` on the host. When it asks for **labels**, add `dev`
-   (or `prod`) — `self-hosted` is added automatically.
-3. Install it as a service so it survives reboot: `sudo ./svc.sh install && sudo ./svc.sh start`.
+2. host 에서 표시된 `./config.sh` 를 실행한다. **labels** 를 물으면 `dev`
+   (또는 `prod`)를 추가 — `self-hosted` 는 자동 추가된다.
+3. 재부팅에도 살아남게 서비스로 설치: `sudo ./svc.sh install && sudo ./svc.sh start`.
 
-Host requirements:
-- **Docker** installed, and the runner's user in the `docker` group
-  (`sudo usermod -aG docker $USER` then re-login) — the deploy job shells out to
-  `docker build/push/run` and (self-hosted CI) `docker run` for the workspace wipe.
-- For `--ci-runner self-hosted`: nothing else — CI runs inside a `node:20`
-  container the runner pulls.
+host 요구사항:
+- **Docker** 설치, runner 의 유저가 `docker` 그룹에 속함
+  (`sudo usermod -aG docker $USER` 후 재로그인) — deploy job 이
+  `docker build/push/run` 으로, (self-hosted CI 면) workspace wipe 를 위해
+  `docker run` 으로 shell out 한다.
+- `--ci-runner self-hosted` 의 경우: 그 외엔 없음 — CI 는 runner 가 pull 하는
+  `node:20` 컨테이너 안에서 돈다.
 
-dev and prod can be the **same machine** (two runner agents, different labels) or
-**two machines** — the workflows don't care. Two hosts is safer: self-hosted is a
-SPOF (`pitfalls.md #5`), so if one host is down both CI and its deploys stop.
+dev 와 prod 는 **같은 머신**(runner agent 두 개, 다른 라벨)이거나 **두 머신**일 수
+있다 — 워크플로는 신경 쓰지 않는다. 두 host 가 더 안전하다: self-hosted 는 SPOF
+(`pitfalls.md #5`) 라, 한 host 가 다운되면 CI 와 그 deploy 가 함께 멈춘다.
 
-Verify the runner is online: Repo → Settings → Actions → Runners (green "Idle"),
-or `gh api repos/{owner}/{repo}/actions/runners --jq '.runners[]|{name,status,labels:[.labels[].name]}'`.
+runner 가 온라인인지 확인: Repo → Settings → Actions → Runners (녹색 "Idle"),
+또는 `gh api repos/{owner}/{repo}/actions/runners --jq '.runners[]|{name,status,labels:[.labels[].name]}'`.
 
 ---
 
-## 4. Limitation — server-side merge block is not available on Free+private
+## 4. Limitation — server-side merge block 은 Free+private 에서 불가
 
-A private repo without GitHub Pro can't set branch protection / required status
-checks (the API returns 403), so **CI red cannot block a merge** — it's advisory.
-Merge discipline falls to humans + local guard hooks until the repo is public or
-on Pro. See `branch-worktree-strategy.md §8` and `pitfalls.md` "Cross-plan limits".
+GitHub Pro 없는 private repo 는 branch protection / required status checks 를
+설정할 수 없다(API 가 403 반환). 그래서 **CI red 가 머지를 막을 수 없다** — advisory 다.
+repo 가 public 이 되거나 Pro 가 되기 전까지 머지 규율은 사람 + 로컬 guard hook 에 달려
+있다. `branch-worktree-strategy.md §8` 와 `pitfalls.md` "Cross-plan limits" 참조.
 
 ---
 
 ## Quick checklist
 
 - [ ] `gh secret set AWS_ACCOUNT_ID`, `AWS_ROLE_TO_ASSUME` (repo level)
-- [ ] `gh api -X PUT …/environments/dev` and `/prod`
-- [ ] `ENV_PRODUCTION` set for **both** dev and prod environments
-- [ ] `DEPLOY_ENABLED` **left unset** for the first run (set to `true` after smoke)
-- [ ] self-hosted runner(s) online with `dev` / `prod` labels + Docker
-- [ ] (optional, Pro/Team only) prod Required reviewers
-- [ ] AWS side done — see `references/aws-oidc-setup.md`
-</content>
+- [ ] `gh api -X PUT …/environments/dev` 와 `/prod`
+- [ ] `ENV_PRODUCTION` 을 dev 와 prod environment **둘 다** 에 설정
+- [ ] 첫 run 에서는 `DEPLOY_ENABLED` 를 **unset 으로 둠**(smoke 후 `true` 로 설정)
+- [ ] self-hosted runner 가 `dev` / `prod` 라벨 + Docker 로 온라인
+- [ ] (선택, Pro/Team 만) prod Required reviewers
+- [ ] AWS 쪽 완료 — `references/aws-oidc-setup.md` 참조

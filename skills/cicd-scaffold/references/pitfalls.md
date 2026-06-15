@@ -1,66 +1,62 @@
-# Pitfalls — production-discovered, baked into the templates
+# Pitfalls — 운영에서 발견해 템플릿에 박아 넣은 함정
 
-These five only surfaced by actually running the pipeline on GitHub Actions, not
-from reading docs. The templates this skill writes already avoid them — this file
-records *why* each guard exists so a future edit doesn't innocently remove it, and
-so you can diagnose fast if a hand-modified pipeline hits one. (Origin: the
-Intelligence-Auth as-built runbook, `구축 중 잡은 함정`.)
+이 다섯 가지는 문서를 읽어서가 아니라 실제로 GitHub Actions 에서 파이프라인을
+돌려봐야 드러났다. 이 스킬이 쓰는 템플릿은 이미 이것들을 피한다 — 이 파일은 각
+가드가 *왜* 존재하는지 기록해서 나중 편집이 무심코 제거하지 않도록 하고, 손으로 수정한
+파이프라인이 이 중 하나에 부딪혔을 때 빠르게 진단하게 한다. (출처: Intelligence-Auth
+as-built runbook, `구축 중 잡은 함정`.)
 
-## 1. workflow-level `env` cannot read `secrets`
+## 1. workflow-level `env` 는 `secrets` 를 읽지 못한다
 
-A `env:` block at the *workflow* (top) level cannot reference `${{ secrets.* }}`
-— GitHub rejects the run with `startup_failure` before any step executes. So
-`deploy.yml` puts `ECR_IMAGE` (which interpolates `secrets.AWS_ACCOUNT_ID`) under
-the **job** `env:`, not the workflow `env:`. Keep secret-derived env at job level.
+*workflow*(최상위) level 의 `env:` 블록은 `${{ secrets.* }}` 를 참조할 수 없다
+— GitHub 은 어떤 step 도 실행되기 전에 `startup_failure` 로 run 을 거부한다. 그래서
+`deploy.yml` 은 `ECR_IMAGE`(여기에 `secrets.AWS_ACCOUNT_ID` 가 interpolate 된다)를
+workflow `env:` 가 아니라 **job** `env:` 아래에 둔다. secret 파생 env 는 job level 에 둔다.
 
-## 2. A reusable workflow cannot exceed the caller's permissions
+## 2. 재사용 workflow 는 caller 의 permission 을 넘을 수 없다
 
-`deploy.yml` needs `id-token: write` to mint the OIDC token for ECR. But a
-reusable (`workflow_call`) workflow is capped by the **caller's** granted
-permissions — it cannot request more than the caller holds. So every caller
-(`deploy-dev.yml`, `release.yml`) must itself declare `permissions: id-token:
-write`. Symptom if missing: `Error: Credentials could not be loaded` /
-`Not authorized to perform sts:AssumeRoleWithWebIdentity` even though the trust
-policy is correct.
+`deploy.yml` 은 ECR 용 OIDC token 을 mint 하려면 `id-token: write` 가 필요하다.
+하지만 재사용(`workflow_call`) workflow 는 **caller 의** 부여된 permission 에 의해
+상한이 정해진다 — caller 가 가진 것보다 더 요청할 수 없다. 그래서 모든 caller
+(`deploy-dev.yml`, `release.yml`) 자신이 `permissions: id-token: write` 를
+선언해야 한다. 누락 시 증상: trust policy 가 올바른데도 `Error: Credentials could
+not be loaded` / `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
 
-## 3. `environment:` rewrites the OIDC `sub` claim
+## 3. `environment:` 가 OIDC `sub` claim 을 다시 쓴다
 
-The moment a job declares `environment: <name>`, GitHub sets the OIDC token's
-`sub` claim to `repo:OWNER/REPO:environment:<name>` — **not** the
-`:ref:refs/heads/...` form you'd expect from the branch. `deploy.yml`'s deploy job
-uses `environment:`, so the AWS role trust policy must match on
-`:environment:dev` / `:environment:prod`, not on branch/tag refs. Scope the trust
-to refs instead and `AssumeRoleWithWebIdentity` fails with "Not authorized".
-(`references/aws-oidc-setup.md` encodes the correct environment-based form.)
+job 이 `environment: <name>` 을 선언하는 순간, GitHub 은 OIDC token 의 `sub`
+claim 을 `repo:OWNER/REPO:environment:<name>` 로 설정한다 — 브랜치에서 예상할 법한
+`:ref:refs/heads/...` 형태가 **아니다**. `deploy.yml` 의 deploy job 이
+`environment:` 를 쓰므로, AWS role trust policy 는 브랜치/태그 ref 가 아니라
+`:environment:dev` / `:environment:prod` 에 매칭해야 한다. trust 를 대신 ref 에
+scope 하면 `AssumeRoleWithWebIdentity` 가 "Not authorized" 로 실패한다.
+(`references/aws-oidc-setup.md` 가 올바른 environment 기반 형태를 인코딩한다.)
 
-## 4. Container CI leaves root-owned files in a shared self-hosted workspace
+## 4. 컨테이너 CI 가 공유 self-hosted workspace 에 root 소유 파일을 남긴다
 
-Only bites the **self-hosted CI** variant. When CI runs inside a `node:20`
-container on a self-hosted runner, it runs as **root** and writes root-owned
-`.next/` / `.git/` into the runner's shared workspace dir. The next *host* job
-(the deploy job, running as the non-root runner user) then fails its checkout's
-`git clean` with `Permission denied`. Guard: the deploy job's first step wipes the
-workspace via host `docker` (root) before `actions/checkout`. The `github` CI
-variant (ubuntu-latest) is ephemeral and never shares a workspace, so it has no
-wipe step — that's why the wipe lives in the `ci-self-hosted` optional block.
+**self-hosted CI** variant 에서만 문제가 된다. CI 가 self-hosted runner 위
+`node:20` 컨테이너 안에서 돌 때 **root** 로 실행되어 runner 의 공유 workspace 디렉토리에
+root 소유 `.next/` / `.git/` 를 쓴다. 다음 *host* job(non-root runner 유저로 도는
+deploy job)이 checkout 의 `git clean` 에서 `Permission denied` 로 실패한다. 가드:
+deploy job 의 첫 step 이 `actions/checkout` 전에 host `docker`(root) 로 workspace 를
+비운다. `github` CI variant(ubuntu-latest) 는 ephemeral 이라 workspace 를 공유하지
+않으므로 wipe step 이 없다 — 그래서 wipe 가 `ci-self-hosted` 선택 블록에 들어 있다.
 
-## 5. GitHub-hosted runners die when org billing stops
+## 5. GitHub-hosted runner 는 org billing 이 멈추면 죽는다
 
-`ubuntu-latest` is a GitHub-hosted runner — billed minutes, and it simply won't
-start if the org's Actions billing is suspended (free-tier exhausted, card
-expired). The all-self-hosted variant exists to remove that dependency entirely:
-zero GitHub-hosted minutes, so CI and deploy keep running regardless of billing.
-The tradeoff — self-hosted is a SPOF: if the runner host is down, CI *and* deploy
-stop together. Two runner hosts (dev + prod) is the minimum mitigation.
+`ubuntu-latest` 는 GitHub-hosted runner 다 — billed minutes 이고, org 의 Actions
+billing 이 정지되면(free-tier 소진, 카드 만료) 아예 시작하지 않는다. all-self-hosted
+variant 는 그 의존성을 통째로 제거하려고 존재한다: zero GitHub-hosted minutes 라
+billing 과 무관하게 CI 와 deploy 가 계속 돈다. 트레이드오프 — self-hosted 는 SPOF 다:
+runner host 가 다운되면 CI *와* deploy 가 함께 멈춘다. 두 runner host(dev + prod) 가
+최소한의 완화책이다.
 
-## Cross-plan limits (not bugs — billing-tier facts)
+## Cross-plan limits (버그 아님 — billing-tier 사실)
 
-- **prod Required reviewers** (Environment protection) needs a **public repo or
-  GitHub Pro/Team/Enterprise**. On a **private repo on the Free plan** the API
-  returns `422 ... billing plan`. The de-facto prod gate is then the **manual
-  `v*` tag** — nothing reaches prod without a human consciously cutting a tag.
-- **Branch protection / required status checks** have the same limit → on
-  Free+private, CI red **cannot block a merge** (advisory only). Merge discipline
-  falls to humans + local guard hooks. See `branch-worktree-strategy.md §8`.
-</content>
-</invoke>
+- **prod Required reviewers**(Environment protection)는 **public repo 또는
+  GitHub Pro/Team/Enterprise** 가 필요하다. **Free plan 의 private repo** 에서는
+  API 가 `422 ... billing plan` 을 반환한다. 그러면 사실상의 prod gate 는 **수동
+  `v*` 태그** 다 — 사람이 의식적으로 태그를 끊지 않으면 아무것도 prod 에 도달하지 않는다.
+- **Branch protection / required status checks** 도 같은 한계를 갖는다 →
+  Free+private 에서는 CI red 가 **머지를 막을 수 없다**(advisory 일 뿐). 머지 규율은
+  사람 + 로컬 guard hook 에 달려 있다. `branch-worktree-strategy.md §8` 참조.
