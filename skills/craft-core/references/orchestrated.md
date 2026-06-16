@@ -148,8 +148,7 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `build:${t.id}`, phase: 'Build', model: 'sonnet',
-      isolation: 'worktree', schema: RESULT }
+    { label: `build:${t.id}`, phase: 'Build', model: 'sonnet', schema: RESULT }
   ),
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
@@ -161,9 +160,13 @@ const results = await pipeline(
 return results.filter(Boolean)
 ```
 
-`isolation: 'worktree'` 는 태스크들이 병렬로 쓰고 충돌할 때만; 엄격히 순차적인
-집합이면 떨군다. `testsGreen:false` 나 `verified:false` 를 반환하는 태스크는
-Phase 4 전에 고친다 — red 태스크로 진행하지 말 것.
+기본은 per-agent 워크트리 격리 **없음** — 에이전트는 메인 세션 작업 트리를
+상속해 Stage 2 verify 가 Stage 1 변경을 *같은 트리* 에서 본다. `isolation:
+'worktree'` 는 병렬로 같은 파일을 쓰고 충돌할 때만 켜고, 켜면 (a) verify 도 같은
+태스크 워크트리에서 돌리고 (b) 종료 후 메인 트리로 merge-back 한다 — 안 하면
+verify 가 빈 트리를 봐 false red 를 내거나 변경이 orphan 워크트리에 갇힌다.
+`testsGreen:false` 나 `verified:false` 를 반환하는 태스크는 Phase 4 전에 고친다 —
+red 태스크로 진행하지 말 것.
 
 build / verify 는 기본 워크플로 subagent 에서 돈다 — `model: 'sonnet'` 이
 orchestrated §3 tier 와 일치한다. 프롬프트가 곧 계약이다.

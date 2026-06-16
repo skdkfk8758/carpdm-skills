@@ -65,8 +65,7 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `tdd:${t.id}`, phase: 'Implement', model: 'opus',
-      isolation: 'worktree', schema: RESULT }
+    { label: `tdd:${t.id}`, phase: 'Implement', model: 'opus', schema: RESULT }
   ),
   // Stage 2: independent verify that the task's tests actually pass
   (impl, t) => agent(
@@ -84,8 +83,14 @@ return results.filter(Boolean)
 - 모든 구현/verify 에이전트에 `model: 'opus'` — 이것이 스킬 계약상 Phase 3
   의 필수 모델이다.
 - 구현 / verify 는 기본 워크플로 subagent 에서 돈다 — 위 프롬프트가 곧 계약이다.
-- `isolation: 'worktree'` 는 태스크들이 병렬로 파일을 쓰고 충돌할 때만.
-  엄격히 순차적인 태스크 집합이면 떨궈도 된다 (디스크 + 셋업 비용이 든다).
+- 기본은 per-agent 워크트리 격리 **없음** — 에이전트는 메인 세션의 작업 트리
+  (Phase 0 이 이미 worktree 로 분기했을 수 있음) 를 상속한다. 그래야 Stage 2
+  verify 가 Stage 1 의 변경을 *같은 트리* 에서 본다.
+- `isolation: 'worktree'` 는 태스크들이 병렬로 같은 파일을 쓰고 충돌할 때만
+  켠다 (디스크 + 셋업 비용). 켜려면 둘 다 필요하다: (a) verify 도 같은 태스크
+  워크트리에서 돌고, (b) 종료 후 변경을 메인 트리로 merge-back 한다. 그 수집
+  단계 없이 켜면 — verify 가 빈 트리를 봐서 false red 를 내거나, 변경이 orphan
+  워크트리에 갇혀 메인 트리에 안 돌아온다.
 - 태스크 리스트를 스크립트에 하드코드하지 말고 Workflow `args` 로 넘겨라,
   같은 스크립트가 어떤 플랜에도 쓰이게.
 - 각 에이전트의 command 를 붙여넣은 코드가 아니라 *경로와 플랜* 으로 가리켜라 —
