@@ -1,0 +1,161 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ENABLE_LSP_TOOL": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(npm view:*)",
+      "Bash(test:*)",
+      "Bash(tree:*)",
+      "Bash(pnpm:*)",
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm test:web:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(bash:*)",
+      "Bash(curl:*)",
+      "Bash(claude plugins:*)",
+      "Bash(git:*)",
+      "Bash(git clone:*)",
+      "Bash(git stash:*)",
+      "Bash(npx vitest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(pip3 list:*)",
+      "Bash(ls:*)",
+      "Bash(lsof:*)",
+      "Bash(kill:*)",
+      "Bash(find:*)",
+      "Bash(cmux:*)",
+      "Bash(playwright-cli:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Edit(~/.claude/skills/**)",
+      "Bash(ssh gcp-nginx:*)",
+      "Bash(ssh 4090_2WAY:*)",
+      "Bash(ssh 4090_4WAY:*)",
+      "Bash(ssh 4090_1WAY:*)",
+      "Bash(ssh hermes:*)",
+      "Bash(ssh -o ConnectTimeout=* gcp-nginx:*)",
+      "Bash(ssh -o ConnectTimeout=* 4090_2WAY:*)",
+      "Bash(ssh -o ConnectTimeout=* 4090_4WAY:*)",
+      "Bash(ssh -o ConnectTimeout=* 4090_1WAY:*)",
+      "Bash(ssh -o ConnectTimeout=* hermes:*)"
+    ],
+    "defaultMode": "auto"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-branch-protection.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-destructive-cmd.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-branch-linear-naming.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-worktree-edit-isolation.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-file-size.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-claude-md-size.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-linear-state-nudge.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/caveman-session-start.sh",
+            "timeout": 5,
+            "statusMessage": "Loading caveman mode..."
+          }
+        ]
+      }
+    ]
+  },
+  "worktree": {
+    "baseRef": "head",
+    "bgIsolation": "none"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "codex@openai-codex": true,
+    "skill-creator@claude-plugins-official": true,
+    "understand-anything@understand-anything": true,
+    "claude-md-management@claude-plugins-official": true,
+    "warp@claude-code-warp": true
+  },
+  "extraKnownMarketplaces": {
+    "understand-anything": {
+      "source": {
+        "source": "github",
+        "repo": "Lum1104/Understand-Anything"
+      }
+    },
+    "claude-code-warp": {
+      "source": {
+        "source": "github",
+        "repo": "warpdotdev/claude-code-warp"
+      }
+    }
+  },
+  "language": "korean",
+  "effortLevel": "high",
+  "tui": "default",
+  "skipWorkflowUsageWarning": true,
+  "preferredNotifChannel": "auto",
+  "remoteControlAtStartup": true,
+  "inputNeededNotifEnabled": true,
+  "agentPushNotifEnabled": true
+}
