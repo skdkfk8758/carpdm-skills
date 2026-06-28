@@ -1,6 +1,6 @@
 ---
 name: land
-description: Land the open PRs you pushed from worktrees and bring local back in sync — 새 세션에서 머지 가능한 PR 들을 (CI 통과 후 squash 로) 머지하고, 기본 브랜치를 pull 하고, 머지된 로컬 브랜치를 삭제하고, 머지된 워크트리를 제거하고, 랜딩되지 않은 브랜치는 rebase 한다. 아직 PR 이 없는 브랜치(커밋은 쌓였는데 안 올린 상태)면 머지 전에 push + PR 생성부터 한다. 유저가 열린 PR 을 MERGE / LAND 하고 로컬 git 상태를 CLEAN UP 하려 할 때, 또는 작업한 브랜치를 PR 로 올려 머지까지 한 흐름으로 가려 할 때 사용 — "올린 PR들 머지하고 로컬 최신화해줘", "PR 다 머지하고 브랜치/워크트리 정리", "merged 브랜치 prune하고 master 당겨줘", "이 브랜치 PR 올려서 머지까지 해줘", "워크트리 개발 끝났으니 정리", "land my PRs and sync local", "push my branch as a PR and land it" 같은 표현. PR 이 독립적인지 stacked(한 PR 이 다른 PR 위에 쌓인 것)인지 자동 감지해 올바른 순서로 머지한다. 코드를 작성하거나, 기능을 빌드하거나(forge 사용), 버그를 고치거나(hunt 사용), 미완 작업을 재개/복원(handoff 사용)하는 데에는 사용하지 말 것 — land 는 (필요하면 PR 을 올린 뒤) 머지하고 로컬 트리를 깨끗이 하는 것이지, 그 안의 작업 자체를 다루는 게 아니다. 이 레포(carpdm-skills)의 스킬 변경 배포는 sync.sh 미러가 필요하므로 land 가 아니라 ship 을 쓴다.
+description: Land the open PRs you pushed from worktrees and bring local back in sync — 새 세션에서 머지 가능한 PR 들을 (CI 통과 후 squash 로) 머지하고, 기본 브랜치를 pull 하고, 머지된 로컬 브랜치를 삭제하고, 머지된 워크트리를 제거하고, 랜딩되지 않은 브랜치는 rebase 한다. 아직 PR 이 없는 브랜치(커밋은 쌓였는데 안 올린 상태)면 머지 전에 push + PR 생성부터 한다. 유저가 열린 PR 을 MERGE / LAND 하고 로컬 git 상태를 CLEAN UP 하려 할 때, 또는 작업한 브랜치를 PR 로 올려 머지까지 한 흐름으로 가려 할 때 사용 — "올린 PR들 머지하고 로컬 최신화해줘", "PR 다 머지하고 브랜치/워크트리 정리", "merged 브랜치 prune하고 master 당겨줘", "이 브랜치 PR 올려서 머지까지 해줘", "워크트리 개발 끝났으니 정리", "land my PRs and sync local", "push my branch as a PR and land it" 같은 표현. 특히 forge·hunt·renew·harness 같은 빌드 흐름으로 구현/수정 작업을 막 끝낸 직후 — 유저가 "다 됐어", "작업 끝났어", "구현 완료", "이제 정리하자", "마무리하자", "머지하자", "올려서 머지까지", "PR 올려줘", "브랜치 정리해줘", "ship it", "wrap up", "let's land this" 처럼 작업 마무리를 신호하면 — 명시적으로 'land'·'머지'라는 단어가 없어도 — 이 스킬을 적극적으로 떠올려라(자동 발동을 의도). 머지·브랜치 삭제 같은 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막아 주므로, 트리거는 곧 "읽기전용 상태 발견 + 플랜 제시 + 승인 대기"일 뿐이라 적극적으로 발동해도 안전하다. 단 유저가 아직 구현 중이면(코드를 더 쓰고 있거나, 테스트가 안 끝났거나, PR 을 아직 안 올렸고 올릴 의사도 없으면) 트리거하지 말 것 — 그건 forge/hunt/renew 의 영역이다. PR 이 독립적인지 stacked(한 PR 이 다른 PR 위에 쌓인 것)인지 자동 감지해 올바른 순서로 머지한다. 코드를 작성하거나, 기능을 빌드하거나(forge 사용), 버그를 고치거나(hunt 사용), 미완 작업을 재개/복원(handoff 사용)하는 데에는 사용하지 말 것 — land 는 (필요하면 PR 을 올린 뒤) 머지하고 로컬 트리를 깨끗이 하는 것이지, 그 안의 작업 자체를 다루는 게 아니다. 이 레포(carpdm-skills)의 스킬 변경 배포는 sync.sh 미러가 필요하므로 land 가 아니라 ship 을 쓴다.
 ---
 
 # Land — push 한 PR 을 머지하고 로컬을 안전하게 재동기화
@@ -157,11 +157,45 @@ Proceed?
    라이프사이클의 마지막 칸이다. Linear MCP 미설치이거나 연결 이슈를 못 찾으면 **묻지
    말고 생략**한다 — Linear 전이는 머지/정리를 막지 않는다(저위험 부가 단계).
 
-### 6. Report
+### 6. Report — 무엇이 랜딩됐고, 그 설계가 어디 있는지
 
-짧은 요약으로 마무리: 어떤 PR 이 머지됐는지, 어떤 게 왜 제외됐는지, 어떤
-브랜치/워크트리가 제거됐는지, 어떤 브랜치가 rebase 됐는지(그리고 conflict 해결을
-기다리며 rebase 중간에 남은 것). 미완 항목을 분명히 드러내 아무것도 조용히
+land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정확히 무엇이었고 그 설계
+근거가 어디 적혀 있는지 기억이 흐릿하다. 그래서 report 는 단순 "머지함" 통보가
+아니라, 나중에 다시 읽어도 무엇이 배에 실렸는지 알 수 있는 **짧은 변경 기록**이어야
+한다. 각 머지된 PR 마다 ① 한 일 요약 ② 그 작업의 설계·문서 링크를 함께 붙인다.
+이 메타데이터는 머지·브랜치 삭제 뒤에도 `gh pr view <n>` 으로 읽히므로 report
+시점에 모아도 된다(머지 전 Discover 에서 미리 캐싱해 둬도 좋다).
+
+각 머지된 PR 에 대해 모은다:
+
+- **한 일 요약(1~2줄)**: `gh pr view <n> --json title,body,commits` 에서 압축한다.
+  PR body 의 "변경/Summary" 섹션이나 커밋 메시지 제목들이 근거다. 진단·추측이 아니라
+  실제 PR 내용을 근거로 — 없으면 커밋 제목을 그대로 쓴다.
+- **설계·문서 링크**: PR body·커밋 메시지·변경 파일에서 설계 산출물을 긁는다 —
+  - PR body/커밋 텍스트에 박힌 경로·URL: `docs/plans/…`, `docs/specs/…`, `docs/adr/…`,
+    `docs/reference/…`, Linear 이슈(`ADT-\d+`, `linear.app/…`), 외부 설계 링크.
+  - `gh pr view <n> --json files` 의 변경 파일 중 `docs/**`(특히 `plans/`·`specs/`·`adr/`) —
+    그 작업의 설계 문서는 보통 같은 PR 안에 함께 들어온다.
+  - 찾은 링크는 클릭 가능하게 — 레포 상대경로(예: `docs/plans/2026-06-29-x.md`)는
+    마크다운 링크로, 이슈/PR 은 전체 URL 로. **없으면 생략한다 — 추측해 만들어내지 말 것.**
+
+권장 형식(머지된 게 1건이면 짧게, 여러 건이면 PR 단위로):
+
+```
+## Landed
+- #451 fix(make): Makefile dev 타겟 Next 단일앱 갱신  ← PR 전체 URL 링크
+  - 한 일: NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-port.sh 삭제
+  - 설계/이슈: docs/plans/2026-06-29-makefile-next.md · ADT-33
+- #450 …
+
+## Skipped
+- #46 refactor auth — CI 실패 (재시도 후 다시 land)
+
+## Local sync
+- develop → <sha> 동기화 · 브랜치/워크트리 [stoic-wu] 제거 · [refactor-auth] rebase
+```
+
+미완 항목(conflict 로 멈춘 rebase, 막혀서 제외된 PR)을 분명히 드러내 아무것도 조용히
 빠져나가지 않게 할 것.
 
 마지막 메시지는 `result:` 한 줄로 못 박는다(`~/.claude/skills/craft-core/references/output-contract.md`
