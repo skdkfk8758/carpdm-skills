@@ -1,6 +1,6 @@
 ---
 name: linear-goal
-description: Linear 이슈 1건을 받아 goal 자율 실행에 최적화된 Goal Prompt 로 메타프롬프팅하고, 그 결과물 시안(UI 면 mockup, 비-UI 면 로직·구조 약도)을 Goal Prompt 와 함께 단일 HTML 로 제시해 승인받은 뒤, repo 라우팅·worktree 분기를 검증하고 goal worker 백그라운드 잡을 실행해 PR 까지 가는 오케스트레이터. 사용자가 Linear 티켓을 자동개발로 굴리고 싶어 할 때 사용 — "ADT-152 goal 로 돌려줘", "이 티켓 메타프롬프트해서 시안 보여주고 진행", "리니어 이슈 자율개발 시작", "티켓 하나 줄게 시안 만들어서 승인받고 goal 진행", "ADT-N 작업해줘(시안 먼저)" 같은 표현. 티켓 ID(ADT-152 등)나 붙여넣은 티켓 텍스트를 주며 "goal/자율/백그라운드로", "시안 먼저 보고 승인", "Goal Prompt 만들어서 진행" 류로 말하면 — 'linear-goal'·'스킬'이라는 말을 안 써도 — 트리거한다. harness-class(estimate≥5·cross-cutting·전면개편·research)로 판정되면 goal 강행 대신 harness-run 을 추천하고 멈춘다. 티켓 없는 일반/단발성 Goal Prompt 텍스트만 원할 때(use deep-prompt), 모호한 아이디어 결정화(use deep-interview), 직접 기능 빌드/버그수정(use forge/hunt), 열린 PR 머지·정리(use land)에는 쓰지 말 것 — linear-goal 은 '티켓→시안 승인→자율 goal 실행→PR' 한 흐름을 엮는다.
+description: Linear 이슈 1건을 받아 goal 자율 실행에 최적화된 Goal Prompt 로 메타프롬프팅하고, 그 결과물 시안(UI 면 mockup, 비-UI 면 로직·구조 약도)을 Goal Prompt 와 함께 단일 HTML 로 제시해 승인받은 뒤, repo 라우팅·worktree 분기를 검증하고 goal worker 백그라운드 잡을 실행해 PR 까지 가는 오케스트레이터. 사용자가 Linear 티켓을 자동개발로 굴리고 싶어 할 때 사용 — "ADT-211 goal 로 돌려줘", "이 티켓 메타프롬프트해서 시안 보여주고 진행", "리니어 이슈 자율개발 시작", "티켓 하나 줄게 시안 만들어서 승인받고 goal 진행", "ADT-N 작업해줘(시안 먼저)" 같은 표현. 티켓 ID(ADT-211 등)나 붙여넣은 티켓 텍스트를 주며 "goal/자율/백그라운드로", "시안 먼저 보고 승인", "Goal Prompt 만들어서 진행" 류로 말하면 — 'linear-goal'·'스킬'이라는 말을 안 써도 — 트리거한다. harness-class(estimate≥5·cross-cutting·전면개편·research)로 판정되면 goal 강행 대신 harness-run 을 추천하고 멈춘다. 티켓 없는 일반/단발성 Goal Prompt 텍스트만 원할 때(use deep-prompt), 모호한 아이디어 결정화(use deep-interview), 직접 기능 빌드/버그수정(use forge/hunt), 열린 PR 머지·정리(use land)에는 쓰지 말 것 — linear-goal 은 '티켓→시안 승인→자율 goal 실행→PR' 한 흐름을 엮는다.
 ---
 
 # linear-goal — Linear 티켓을 시안 승인 게이트로 묶어 자율 goal 실행
@@ -19,8 +19,8 @@ worktree 가 실제로 준비됐는지 확인한 뒤에만 띄운다.
 
 > 이 스킬은 `deep-prompt`(범용 의도→Goal Prompt+시안)의 **Linear 특화 자매 스킬**
 > 이다 — 티켓 없는 일반 goal 은 deep-prompt, Linear 티켓 1건을 시안 승인 게이트로
-> 묶어 자율 실행까지 가는 건 linear-goal. `linear-dispatch` 룰의 라우팅(이슈→repo,
-> goal/harness 판정)을 안에서 돈다.
+> 묶어 자율 실행까지 가는 건 linear-goal. dispatch 라우팅(이슈→repo, goal/harness
+> 판정)은 `references/routing.md`(SSOT)를 Phase 2 에서 돈다.
 
 ## 안전 불변식 — 먼저 읽을 것
 
@@ -57,7 +57,7 @@ Phase 6 에서만.
 
 입력이 둘 중 하나다:
 
-- **티켓 ID** (예 `ADT-152`) → Linear MCP(`mcp__linear*__get_issue` 등)로 fetch.
+- **티켓 ID** (예 `ADT-211`) → Linear MCP(`mcp__linear*__get_issue` 등)로 fetch.
   **반드시 읽는 필드**: 제목, 설명, Acceptance Criteria/체크리스트, 라벨
   (`area:*`·`agent:goal/harness`·`ext:*`), estimate, 첨부 이미지/스크린샷, 코멘트,
   이슈 관계(blocks/blockedBy/relates), `project.id`·`team.key`.
@@ -68,7 +68,7 @@ Phase 6 에서만.
 
 ### Phase 2 — Route & gate (repo 확정 + goal/harness 판정)
 
-`references/routing.md` 를 읽고 그대로 적용한다 (linear-dispatch Step 0/1 흡수).
+`references/routing.md` 를 읽고 그대로 적용한다 (dispatch 라우팅 SSOT).
 
 1. **repo 확정** — `team.key`(우선) 또는 `project.id`(projectExceptions) 로
    `~/.claude/linear-repo-map.json` 조회. `repo: null` 이거나 uncertain 이면
@@ -211,7 +211,7 @@ PR 링크 · critic findings) 열기 행.
   가능성 5질문 게이트 + 작동 예시. Phase 3 에서 읽는다.
 - `references/mockup-conventions.md` — UI mockup / 비-UI 로직·구조 약도 HTML 규칙
   + 단일 review HTML 합치기. Phase 4~5 에서 읽는다.
-- `references/routing.md` — linear-repo-map 조회(repo 확정) + goal/harness rubric
-  (linear-dispatch Step 0/1 흡수). Phase 2 에서 읽는다.
+- `references/routing.md` — linear-repo-map 조회(repo 확정) + goal/harness rubric.
+  dispatch 라우팅 SSOT (linear-dispatch 룰은 조회-스코프 전용 별개 관심사). Phase 2 에서 읽는다.
 - `references/adversarial-review.md` — 작성자/critic 다이어드 프로토콜 + 페이즈별
   공격 rubric. Phase 3·4·6 에서 읽는다.

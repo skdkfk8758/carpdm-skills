@@ -14,6 +14,7 @@ echo "Installing skills from: $SRC_DIR"
 echo "                   into: $DEST_DIR"
 echo
 
+installed=()
 for skill in "$SRC_DIR"/*/; do
   name="$(basename "$skill")"
   target="$DEST_DIR/$name"
@@ -24,10 +25,12 @@ for skill in "$SRC_DIR"/*/; do
     echo "  + $name"
   fi
   cp -R "$skill" "$target"
+  installed+=("$name")
 done
 
 echo
-echo "Done. Installed skills: forge, hunt, renew, deep-interview, deep-plan, deep-prompt, handoff, sweep, land, imprint, craft-core."
+# Derive the summary from what was actually installed - a hardcoded list drifts.
+echo "Done. Installed ${#installed[@]} skills: ${installed[*]}."
 echo "Restart Claude Code (or start a new session) to load them."
 echo
 echo "Note: the forge/hunt/renew pipeline uses the 'codex:rescue'"
