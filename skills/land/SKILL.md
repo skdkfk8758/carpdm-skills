@@ -179,24 +179,56 @@ land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정�
   - 찾은 링크는 클릭 가능하게 — 레포 상대경로(예: `docs/plans/2026-06-29-x.md`)는
     마크다운 링크로, 이슈/PR 은 전체 URL 로. **없으면 생략한다 — 추측해 만들어내지 말 것.**
 
-권장 형식(머지된 게 1건이면 짧게, 여러 건이면 PR 단위로):
+포맷은 **카드형** — 맨 위 한눈 요약, 그 아래 PR 카드, 마지막에 휘발성 sync. 영속
+changelog(Landed)를 시각적으로 1순위에, 운영 정리(Local sync)를 부차로 둔다. 머지 건수에
+따라 두 형태로 graceful 하게 줄인다.
+
+**다수 PR (2건+):**
 
 ```
+🚢 Landed N · ⏭ Skipped M · 🔧 Synced
+────────────────────────
+
 ## Landed
-- #451 fix(make): Makefile dev 타겟 Next 단일앱 갱신  ← PR 전체 URL 링크
-  - 한 일: NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-port.sh 삭제
-  - 설계/이슈: docs/plans/2026-06-29-makefile-next.md · ADT-33
-- #450 …
+
+▸ [#451](PR 전체 URL) · fix(make)
+  NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-port.sh 삭제
+  ↳ [plan](docs/plans/2026-06-29-makefile-next.md) · ADT-33
+
+▸ [#450](PR 전체 URL) · feat(api)
+  …한 일 1~2줄, `·` 구분…
+  ↳ [spec](docs/specs/…md) · ADT-31
 
 ## Skipped
-- #46 refactor auth — CI 실패 (재시도 후 다시 land)
+⏭ [#46](PR 전체 URL) refactor auth — CI 실패 (재시도 후 다시 land)
 
 ## Local sync
-- develop → <sha> 동기화 · 브랜치/워크트리 [stoic-wu] 제거 · [refactor-auth] rebase
+develop `→ <sha>` · 워크트리 [stoic-wu] 제거 · [refactor-auth] rebase
 ```
 
-미완 항목(conflict 로 멈춘 rebase, 막혀서 제외된 PR)을 분명히 드러내 아무것도 조용히
-빠져나가지 않게 할 것.
+**단일 PR** — 요약 헤더·구분선·섹션 헤딩 생략, 카드 1개 + sync 1줄로 압축:
+
+```
+🚢 Landed [#451](PR 전체 URL) · fix(make)
+NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-port.sh 삭제
+↳ [plan](docs/plans/2026-06-29-makefile-next.md) · ADT-33
+
+🔧 develop `→ <sha>` · 워크트리 정리
+```
+
+포맷 규칙:
+
+- **요약 헤더**(`🚢 Landed N · ⏭ Skipped M · 🔧 Synced`)는 **2건+ 일 때만**. 스크롤 없이
+  카운트 한눈에. 단일 PR 은 생략.
+- **구분선** = box-drawing `─` 반복. markdown `---` **금지** — 바로 위 요약줄을 setext
+  H2 헤딩으로 오인 렌더한다. 단일 PR 은 구분선 자체를 생략.
+- **카드 헤더** = `▸ [#N](url) · <type(scope)>` — PR 은 전체 URL 링크, type/scope 는 커밋
+  제목에서. **한 일**은 헤더 아래 2칸 들여쓰기 `·` 구분 1~2줄. **설계·이슈 링크**는 `↳`
+  줄로 분리(없으면 `↳` 줄 통째 생략 — 추측 금지, 위 수집 규칙 그대로).
+- **글리프 고정**: 🚢 Landed · ⏭ Skipped · 🔧 Local/Synced. 그 외 이모지 남발 금지(노이즈).
+
+미완 항목(conflict 로 멈춘 rebase, 막혀서 제외된 PR)은 `## Skipped` 또는 별도 `## ⚠ 미완`
+섹션에 명시해 아무것도 조용히 빠져나가지 않게 할 것.
 
 마지막 메시지는 `result:` 한 줄로 못 박는다(`~/.claude/skills/craft-core/references/output-contract.md`
 L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 머지/정리 수치를 담되 self-contained 로
