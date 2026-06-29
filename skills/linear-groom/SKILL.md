@@ -1,0 +1,143 @@
+---
+name: linear-groom
+description: >-
+  Groom an EXISTING Linear backlog — group orphan (project-less) issues into the
+  right projects (creating a new project only when nothing fits) AND enrich thin
+  issues (screenshot-only, blank, or one-liner descriptions) into build-ready
+  specs by reading the actual codebase and project memory. Always proposes the
+  full change set as an approval table before writing anything back to Linear.
+  Use this WHENEVER the user wants to tidy, organize, sort, clean up, or refine
+  their Linear issues/backlog — "리니어 이슈 정리해줘", "이슈들 프로젝트 단위로
+  묶어줘", "이슈 내용 더 자세하게 보강해줘", "백로그 그루밍", "스크린샷만 있는 이슈
+  살 붙여줘", "프로젝트별로 분류해줘", "organize my Linear issues into projects",
+  "groom the backlog", "flesh out these issues", "sort issues by project" — even
+  if they only mention one half (just grouping, or just enriching). Operates on
+  issues that ALREADY EXIST in Linear. Do NOT use to create a brand-new single
+  issue from a request (that is triage/to-issues), to register a fresh plan as an
+  issue tree (deep-plan/to-issues), or to flip issue status during a build
+  (the craft linear.md flow) — linear-groom reorganizes and deepens what is
+  already on the board.
+---
+
+# Linear Groom — 기존 백로그를 프로젝트로 묶고 설명을 보강
+
+흩어진 Linear 이슈를 **읽고 → 분류하고 → 프로젝트로 묶고 → 빈약한 설명을 코드·메모리
+근거로 채운 뒤 → 표로 제안하고 → 승인받아 일괄 반영**한다. 두 가지 갭을 메운다:
+
+1. **그룹핑 갭** — 프로젝트에 안 붙은 고아 이슈를 알맞은 프로젝트로 배정.
+2. **보강 갭** — 스크린샷-only/빈칸/한 줄짜리 이슈를 착수 가능한 spec 으로 보강.
+
+## 핵심 불변식 (먼저)
+
+- **모든 write 는 승인 게이트 뒤.** 이슈/프로젝트는 외부 상태다. 바꿀 것을 **표로 먼저**
+  보이고 사용자가 동의한 뒤에만 `save_issue`/`save_project` 를 친다. 추측으로 쏟지 않는다.
+- **원본 보존.** 보강은 *추가*다. 작성자가 넣은 스크린샷·문장은 한 글자도 지우지 않고
+  `## 원본 (작성자 입력)` 으로 남긴다(스크린샷이 곧 spec 인 경우가 많다).
+- **OPEN 이슈만.** Done/Canceled 는 건드리지 않는다 — 닫힌 이슈 그루밍은 헛 write 다.
+- **멀쩡한 이슈는 그대로.** 이미 구조(`## 배경` 등)가 있는 이슈는 갈아엎지 않는다(surgical).
+- **근거 있는 것만 단언.** 파일 경로·현황은 실제로 읽은 것만. 못 본 건 "확인 필요"로.
+
+## 워크플로
+
+### Step 0 — Linear MCP 감지
+
+`craft-core/references/linear.md` §1(MCP 감지/미설치 가이드/미인증 안내)을 그대로 따른다
+— 그 파일이 있으면 lazy-read, 없으면 최소 확인: available tools 에 `mcp__linear*` 가
+있는지 보고, deferred 면 `ToolSearch(query:"linear")` 로 로드. 미설치/미인증이면 한 번
+안내하고 멈춘다(막지 말 것). 도구 이름은 워크스페이스마다 다르니 추측 호출 금지.
+
+### Step 1 — 현재 상태 조회
+
+추측하지 말고 실제로 읽는다:
+
+- `list_teams` → 팀이 하나면 그걸 쓰고, 여럿이면 어느 팀을 그루밍할지 한 번 확인.
+- `list_projects {team}` → 기존 프로젝트의 `name`/`summary`/`description` 을 확보(그룹핑
+  매핑의 기준이 된다).
+- `list_issues {team, limit:250}` → 전체 이슈. `enrichTier` 판정에는 list 의 description
+  으로 충분하지만, **보강 대상으로 확정된** 이슈는 `get_issue {id}` 로 잘리지 않은 전체
+  본문을 다시 받아 원본 보존이 정확하게 되도록 한다.
+
+### Step 2 — 결정론 분류 (스크립트)
+
+매번 손으로 재발명하지 말고 번들 스크립트로 버킷을 가른다:
+
+```bash
+node <skill>/scripts/triage-issues.mjs '<list_issues JSON>'
+# 또는: echo "$JSON" | node <skill>/scripts/triage-issues.mjs
+```
+
+출력: `groupingGaps`(프로젝트 없음) · `enrichmentGaps`(`enrichTier: empty|shallow`) ·
+`healthy`(손 안 댐) · `skippedClosed`(Done/Canceled). 한 이슈가 두 갭에 동시에 들 수 있다
+(예: 고아 + 스크린샷-only). 로직·tier 정의는 `scripts/triage-issues.mjs` 주석 참조.
+
+**보강 범위 기본값**: `empty` tier 는 항상 후보. `shallow` tier(이미 문단이 있는 intake
+이슈 등)는 사용자가 "전부 깊게" 를 원할 때만 포함 — 기본은 표에 회색으로 보이되 선택 해제
+상태로 두고 사용자가 켜게 한다. 멀쩡한 문단을 무더기로 갈아엎지 않기 위함.
+
+### Step 3a — 그룹핑 매핑
+
+각 고아 이슈를 **가장 맞는 기존 프로젝트**에 매핑한다. 추측이 아니라 근거로:
+
+- 이슈 제목/본문 키워드를 프로젝트의 `summary`/`description` 에 적힌 도메인·경로와 대조.
+- 모호하면 코드그래프(`semantic_search_nodes`)로 이슈가 가리키는 실제 모듈을 찾아 그
+  모듈이 속한 도메인의 프로젝트로 보낸다.
+- **어디에도 안 맞으면** 새 프로젝트를 *제안*한다(자동 생성 금지) — 이름·summary 초안을
+  표에 넣고, 같은 갭의 다른 이슈도 묶어 묶음을 정당화한다(이슈 1개용 새 프로젝트는 과투자).
+
+### Step 3b — 설명 보강
+
+`references/enrichment-template.md` 를 읽고 그 템플릿·근거수집 순서·tier별 깊이를 따른다.
+요지: 코드그래프→메모리→grep 순으로 근거를 모아 `## 배경 / ## 현황(실측) / ## 작업 범위 /
+## Acceptance` 를 채우고, 원본은 `## 원본 (작성자 입력)` 으로 통째 보존. 못 본 건 단언 금지.
+
+**추천 + 체인(보강 대상에만).** 보강하는 이슈에는 `## 추천`(적응형 도구 추천)을 함께 넣는다 —
+규칙은 `~/.claude/skills/linear-register/references/recommend-section.md` §A(SSOT, linear-register
+와 공유). Step 1 에서 읽은 관계(`blockedBy`/`blocks`/`parent`)로 **연결된** 이슈면 §B 의
+`## 다음 작업`(전방 포인터 + kickoff 프롬프트)도 추가한다. **healthy 이슈엔 붙이지 않는다** —
+보강 대상(empty/shallow)에만. surgical 불변식 보존.
+
+### Step 4 — 제안 표 + 승인 게이트
+
+바꿀 전부를 **하나의 표**로 보인다. 두 블록:
+
+```
+## 그룹핑 (N건)
+| 이슈 | 현재 | → 프로젝트 | 근거 |
+|---|---|---|---|
+| ADT-7 에셋 벌크업로드 | (없음) | Admin·페르소나 에디터 | 에셋 업로드 = admin 도메인 |
+| ADT-8 N개 영역 선택 | (없음) | 지도·분석 | 탐색탭 격자선택 = map/panels |
+
+### 새 프로젝트 제안 (있으면)
+| 이름 | summary | 묶을 이슈 |
+|---|---|---|
+
+## 보강 (M건)
+| 이슈 | tier | 보강 요지 (배경/현황/범위/Acceptance/추천 한 줄, 연결되면 다음 작업) |
+|---|---|---|
+| ADT-7 | empty | 벌크업로드 UI=AssetUploader, 다중 select+큐, Acc=N개 동시업로드, 추천=/forge |
+```
+
+그다음 "이대로 그룹핑 N건 + 보강 M건을 반영할까요? (제외할 항목 알려주세요)" 로 동의를
+받는다. 사용자가 일부만 고르면 그것만. **승인 전 어떤 write 도 하지 않는다.**
+
+### Step 5 — 일괄 반영
+
+승인된 것만, 순서대로:
+
+1. **새 프로젝트 먼저** — `save_project {name, summary, description, addTeams:[team]}`. 반환
+   id 를 받아 그 프로젝트로 갈 이슈 배정에 쓴다.
+2. **그룹핑** — `save_issue {id, project}` (이름 또는 id). 다른 필드는 안 건드린다.
+3. **보강** — `save_issue {id, description}` 에 보강된 전체 마크다운(원본 보존 포함). 같은
+   이슈가 그룹핑+보강 둘 다면 한 번의 `save_issue` 로 `project`+`description` 함께 넣는다.
+
+각 write 후 성공/URL 을 요약 보고. 실패(권한/네트워크)는 그 이슈만 건너뛰고 계속 — 한
+건 실패가 전체를 멈추지 않게(나머지는 완수, 실패분만 따로 보고).
+
+## Anti-patterns
+
+- 승인 없이 `save_issue`/`save_project` 호출 — 외부 write 는 항상 표→동의 뒤(Step 4).
+- 보강하며 원본 스크린샷/문장 삭제 — *추가*만 한다, `## 원본` 보존.
+- Done/Canceled 이슈 그루밍 — OPEN 만(스크립트가 `skippedClosed` 로 분리).
+- 이미 구조 있는 이슈를 다시 갈아엎기 — healthy 는 손대지 않음.
+- 이슈 1건 때문에 새 프로젝트 생성 — 기존에 맞추거나, 새 프로젝트는 여러 이슈를 묶을 때만.
+- 도구 이름·파일 경로 추측 단언 — available tools / 코드그래프 / Read 로 확인 후.
