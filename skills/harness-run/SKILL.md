@@ -9,14 +9,15 @@ description: 루프엔지니어링 하니스 오케스트레이터 — 한 이�
 요구사항: `docs/specs/loop-engineering-harness/spec.md` REQ-F-001/002/003/007/008/009/010/014.
 게이트 계약 SSOT: [`references/gate-contract.md`](references/gate-contract.md).
 
-## 글로벌 변형 노트 (이 사본 한정)
+## 글로벌 SSOT 노트
 
-이 사본은 `~/.claude/skills/` 에 설치된 **글로벌 변형**이다 — 로컬 하니스 설치가 없는
-프로젝트에서도 `harness-run` 을 바로 쓰게 한다.
+이 스킬의 **SSOT 는 글로벌 사본**(`~/.claude/skills/`)이며 git 백킹은 `carpdm-skills`
+레포(`skills/{harness-run,eval-generate,eval-check,harness-heal}`)다. 로컬 하니스 설치가
+없는 프로젝트에서도 `harness-run` 을 바로 쓰게 한다.
 
-- **SSOT 는 `~/Workspace/Intelligence-Auth/.claude/skills/{harness-run,eval-generate,eval-check,harness-heal}`** (하니스 origin). 로직 변경은 거기서 먼저 한 뒤 이 글로벌 사본에 미러. 이 사본을 손으로 분기시키지 말 것 — 경로 차이(아래)만이 의도된 델타다.
-- **유일한 의도적 델타 = 스크립트 절대경로.** 글로벌 사본은 cwd 무관하게 동작해야 해서 `dev-eval-loop.js`(Workflow scriptPath)·`validate-rubric.mjs`(eval-generate)·`score-rubric.mjs`(eval-check) 를 `/Users/carpdm/.claude/skills/...` 절대경로로 가리킨다. 스크립트는 인자로 받은 경로만 다루는 pure 로직이라 cwd 와 무관(loop-control·validate·score 전부). IA SSOT 와 `loop-harness-setup` 의 per-project 설치본은 상대경로(`.claude/skills/...`)를 유지한다.
-- **우선순위.** 프로젝트에 로컬 하니스 설치가 있으면(loop-harness-setup) 프로젝트 스킬이 글로벌보다 우선 — 이 글로벌 사본은 로컬 미설치 프로젝트에서만 발동한다. 충돌 없음.
+- **SSOT = 글로벌(carpdm-skills 추적).** 로직 변경은 라이브 `~/.claude/skills/` 에서 하고 `sync.sh`/`ship` 으로 carpdm-skills 에 미러한다. (과거 SSOT 였던 IA `~/Workspace/Intelligence-Auth/.claude/skills/{harness-run,…}` 사본은 글로벌 단일 SSOT 이관으로 **제거됨** — 더는 거기서 먼저 고치지 않는다.)
+- **스크립트 절대경로 + install.sh 재작성.** `dev-eval-loop.js`(Workflow scriptPath)·`validate-rubric.mjs`(eval-generate)·`score-rubric.mjs`(eval-check) 는 cwd 무관 동작을 위해 `/Users/carpdm/.claude/skills/...` 구체 절대경로를 쓴다(Workflow scriptPath 는 상대·`~` 불가). 타 머신 이식성은 `carpdm-skills/install.sh` 가 설치 시 home prefix 를 `$HOME` 으로 재작성해 해결(메인테이너 머신 no-op). 스크립트 자체는 인자 경로만 다루는 pure 로직이라 cwd 무관. `loop-harness-setup` 의 per-project 설치본은 상대경로(`.claude/skills/...`)를 유지한다.
+- **우선순위.** 프로젝트에 로컬 하니스 설치가 있으면(loop-harness-setup) 프로젝트 스킬이 글로벌보다 우선 — 이 글로벌 SSOT 는 로컬 미설치 프로젝트에서 발동한다. 충돌 없음.
 - **per-project 전제는 그대로.** 오버레이(`rules/harness-overlays/`)·eval 산물·워크트리·플랜 디렉토리는 여전히 작업 대상 프로젝트 기준(없으면 graceful). 글로벌화는 스킬 *로직*만 어디서나 부르게 할 뿐, 프로젝트 상태를 글로벌로 옮기지 않는다.
 
 ## 절대 규칙 (분리 무결성)
