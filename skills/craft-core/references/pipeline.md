@@ -47,15 +47,30 @@ orchestrated 빌드는 **sonnet** 에서 돈다 (아래 linear Phase 3 은 opus 
 ## Phase 0 — Frame & isolate
 
 - 작업유형과 한 줄 목표를 사용자에게 되짚어준다.
-- Isolation (프로젝트 룰): 6+ 파일, 아키텍처 변경, 또는 3+ 파일 리팩터
-  → 편집 전에 worktree 로 브랜치한다. 스킵한다면, 첫 응답에서 이유를 말한다.
-  1–2 파일 동일주제 변경은 현재 브랜치에 머물러도 된다.
+- **Worktree 격리 (기본 필수 — verify-or-STOP).** forge/renew/hunt 는 실질 빌드라
+  편집 전에 **새 워크트리로 격리**한다 (branch-worktree-strategy §5: 메인 워크트리는
+  trunk 유지, 새 브랜치는 worktree). 메인 트리/trunk 에서 직접 편집하지 않는다.
+  1. `git worktree add -b <type>/<topic> <dir>` — type = feat(forge)/fix(hunt)/refactor·feat(renew);
+     Linear 이슈ID 있으면 `<type>/<issue-id>-<topic>`. (`EnterWorktree` 는 deferred 도구 +
+     이미 워크트리면 거부 → `git worktree add` 1순위.)
+  2. **검증 — 직후 `git -C <dir> rev-parse --abbrev-ref HEAD` 가 기대 브랜치인지 확인.
+     아니면 STOP**(구현 시작 금지). 이 검증을 빠뜨리면 빌드가 메인트리/trunk 에서 돌아
+     격리가 붕괴한다 — "확실히 분리"의 핵심은 이 verify-or-STOP 이다.
+  - 유일 예외(§5): 이미 적절한 feature 워크트리/브랜치에 있고 **동일 토픽 1–2 파일 이어
+    커밋** — 그때만 현 트리 유지하고 첫 응답에 이유를 명시한다. 그 외엔 격리한다.
 - **Linear binding (optional, graceful).** 이 작업에 연결된 Linear 이슈가 있으면
   — 사용자가 이슈 ID/URL 을 줬거나, 이어받은 PLAN `.md` 에 deep-plan 이 적어둔
   sub-issue 가 있으면 — `~/.claude/skills/craft-core/references/linear.md` 를 읽고
   그 활성 이슈를 **In Progress 로 자동 전이**한다. Linear MCP 미설치이거나 연결된
   이슈가 없으면 **묻지 말고** Linear 없이 평소대로 진행한다 — Linear 는 워크플로를
   증강할 뿐 게이트하지 않는다. 상태 전이 실패는 빌드를 막지 않는다(경고만).
+- **세션 이름 설정 (백그라운드 잡일 때 — 워크트리 분기 직후 즉시, Phase 1 진입 전).**
+  `$CLAUDE_JOB_DIR` 가 있으면 이 세션 이름을 `[<key>] <짧은 목표>` 로 rename 한다 —
+  `<key>` = 위 Linear 바인딩이 잡혔으면 이슈ID(예 `[ADM-55] Direct Paint 직접 스타일링`),
+  아니면 worktype(예 `[forge] CSV 내보내기`). **항상 대괄호 prefix 로 통일**한다.
+  `session-rename.md` 의 검증된 atomic snippet 그대로(`state.json` `name` + `nameSource:"user"`
+  — 하니스 auto-rename 차단). 이 단계는 Phase 1 로 넘어가기 전에 실행한다 — 뒤로 미루면
+  세션이 인터뷰로 흘러 누락된다. 잡 컨텍스트 아니면 조용히 생략, 실패해도 hard gate 아님 — note 만.
 
 ## Phase 1 — Socratic 인터뷰 → 플랜
 
