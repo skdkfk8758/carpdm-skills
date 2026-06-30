@@ -1,0 +1,81 @@
+---
+name: harness-run
+description: 루프엔지니어링 하니스 오케스트레이터 — 한 이슈를 워크트리 분기 → 플랜+시안+eval rubric 생성 → G1 freeze → 자율 dev+eval 루프(재시도/단락) → pass면 G3 merge / 단락이면 G2 로 잇는다. 사람은 게이트(G0~G4)에서만 개입하고 나머지는 자동. 한 이슈를 하니스로 끝까지 굴리고 싶을 때, "이 이슈 하니스로 돌려줘"/"harness 돌려"/"이슈 자동 개발" 류에 사용. 단일 기능 빌드(forge)·버그(hunt)·플랜만(deep-plan) 에는 쓰지 말 것 — harness-run 은 그것들을 게이트로 엮는 상위 오케스트레이터다.
+---
+
+# harness-run — 하니스 오케스트레이터 (C1)
+
+메인 루프가 구동하는 오케스트레이터. 자율 dev+eval 코어만 `Workflow`(아키텍처 하이브리드).
+요구사항: `docs/specs/loop-engineering-harness/spec.md` REQ-F-001/002/003/007/008/009/010/014.
+게이트 계약 SSOT: [`references/gate-contract.md`](references/gate-contract.md).
+
+## 글로벌 변형 노트 (이 사본 한정)
+
+이 사본은 `~/.claude/skills/` 에 설치된 **글로벌 변형**이다 — 로컬 하니스 설치가 없는
+프로젝트에서도 `harness-run` 을 바로 쓰게 한다.
+
+- **SSOT 는 `~/Workspace/Intelligence-Auth/.claude/skills/{harness-run,eval-generate,eval-check,harness-heal}`** (하니스 origin). 로직 변경은 거기서 먼저 한 뒤 이 글로벌 사본에 미러. 이 사본을 손으로 분기시키지 말 것 — 경로 차이(아래)만이 의도된 델타다.
+- **유일한 의도적 델타 = 스크립트 절대경로.** 글로벌 사본은 cwd 무관하게 동작해야 해서 `dev-eval-loop.js`(Workflow scriptPath)·`validate-rubric.mjs`(eval-generate)·`score-rubric.mjs`(eval-check) 를 `/Users/carpdm/.claude/skills/...` 절대경로로 가리킨다. 스크립트는 인자로 받은 경로만 다루는 pure 로직이라 cwd 와 무관(loop-control·validate·score 전부). IA SSOT 와 `loop-harness-setup` 의 per-project 설치본은 상대경로(`.claude/skills/...`)를 유지한다.
+- **우선순위.** 프로젝트에 로컬 하니스 설치가 있으면(loop-harness-setup) 프로젝트 스킬이 글로벌보다 우선 — 이 글로벌 사본은 로컬 미설치 프로젝트에서만 발동한다. 충돌 없음.
+- **per-project 전제는 그대로.** 오버레이(`rules/harness-overlays/`)·eval 산물·워크트리·플랜 디렉토리는 여전히 작업 대상 프로젝트 기준(없으면 graceful). 글로벌화는 스킬 *로직*만 어디서나 부르게 할 뿐, 프로젝트 상태를 글로벌로 옮기지 않는다.
+
+## 절대 규칙 (분리 무결성)
+
+- **dev ≠ checker ≠ generator** — 셋 다 fresh-context 별 agent(REQ-F-007). dev 는 rubric 미열람, checker 만 frozen rubric(REQ-F-008).
+- **dev 는 forge 아님** — 자율 루프 안에서 forge(orchestrated+인터뷰 게이트)를 돌리면 자율성·중첩이 깨진다. dev = 단일 빌드 agent.
+- **게이트는 메인루프 pause** — Workflow 는 사람 입력을 못 받는다. G0~G4 는 이 스킬(메인루프)이 멈춰 처리.
+
+## 9단계 ↔ 게이트 흐름
+
+| 단계 | 누가 | 동작 |
+|---|---|---|
+| **G0** 이슈 intake | 사람 | 이슈 기술 수령(지금 수동; C3 Linear 후속). 이슈 slug 확정 |
+| 워크트리 분기 | 자동 | `feat/<slug>` 워크트리 생성(commit-isolation 격리) |
+| ② 플랜+시안+rubric | 자동 | `deep-plan`(플랜+HTML시안) → `eval-generate`(rubric, `frozen:false`) |
+| **G1** 플랜타임 리뷰 ★ | 사람 | {플랜·시안·rubric} 한 번에 검토·수정 → **승인 시 rubric `frozen:true` 로 잠금** |
+| ③④ dev+eval 루프 | 자동(Workflow) | `workflows/dev-eval-loop.js` 호출 — dev(단일 agent)→eval-check→`decideNext` 재시도/단락 |
+| **G2** 실패 인터뷰 | 사람 | (단락 시) `harness-heal` 호출 — 진범 귀속 worksheet → 최고레버리지 1건 인터뷰 → 로컬 오버레이(`rules/harness-overlays/`) 개선 |
+| **G3** merge | 사람 | (pass 시) `land` — PR→merge 승인→워크트리 정리(REQ-F-014) |
+| **G4** prod 마이그 | 사람 | (마이그 포함 시) `db-migrate` prod 절차 — psql 개별 적용 + information_schema 검증(루프 밖) |
+
+## Workflow (메인루프 실행 절차)
+
+1. **G0** — 이슈 기술 받아 slug 확정. slug 확정 직후, 백그라운드 잡으로 돌고 있으면
+   (`$CLAUDE_JOB_DIR` 존재) 이 세션 이름을 `[<issue-id>] <작업요약>`(slug 에서 이슈ID 추출,
+   예 `[ADT-183] layer mgmt`; 이슈ID 없으면 `[<slug>]`)으로 rename 한다 —
+   [`references/session-rename.md`](references/session-rename.md) 의 atomic snippet 그대로
+   (`state.json` `name` + `nameSource:"user"`). 잡 컨텍스트 아니면 조용히 생략, 실패해도 hard
+   gate 아님 — note 만 남기고 계속.
+2. **워크트리 — 자동 아님, 메인루프가 직접 수행·검증한다.** `git worktree add -b feat/<slug> ../<repo>--<slug>` 로 분기. **직후 `git worktree list | grep feat/<slug>` 로 생성 확인 — 안 보이면 STOP**(이 단계를 빠뜨리면 dev 가 메인트리서 돌아 분리무결성이 붕괴한다). 이후 모든 작업·Workflow `args.worktree` 는 이 워크트리 기준 — Workflow agent 의 cwd 는 launch 시점 메인세션 cwd 로 pin 되므로, 메인세션이 이 워크트리에 있어야 dev 가 거기서 돈다. `EnterWorktree` 는 deferred 도구(먼저 `ToolSearch` 로 로드)이고 이미 워크트리 세션이면 거부되니 — `git worktree add` 를 1순위로 쓴다.
+3. **생성** — `deep-plan` 으로 플랜+시안, `eval-generate` 로 rubric+스텁(G1 검토용으로 `<worktree>/.eval/` 에 생성, frozen:false).
+4. **G1 ★** — {플랜·시안·rubric} 을 `AskUserQuestion` 으로 제시. 승인 시 rubric 의 `"frozen": true` 로 수정(잠금). dev 가 보기 전에 freeze.
+5. **eval 산물 격리(분리무결성 — REQ-F-008/N-001) ★** — freeze 후 dev-loop 전에 `.eval/`(rubric+tests)를 **워크트리 밖** `evalDir`(예: `<worktree>/../.eval-<slug>/`)로 이동하고 워크트리에서 제거한다. dev 워크트리엔 eval 산물이 0이어야 한다(dev 가 oracle 을 읽어 게이밍하는 채널 차단 — M2 dogfood 실측). `.eval/`·`.eval-run/` 는 gitignore — 브랜치에 커밋 금지.
+6. **오버레이 주입(C4 소비경로)** — `rules/harness-overlays/{dev,deep-plan,eval-generate}.md` 존재 시 읽어둔다(메인루프는 fs 가능). deep-plan/eval-generate 호출 시 본문 주입, dev 는 `args.devOverlay` 로 전달.
+7. **dev+eval** — `Workflow({ scriptPath: '/Users/carpdm/.claude/skills/harness-run/workflows/dev-eval-loop.js', args: { worktree, planPath, mockupPath, evalDir, maxRetries: 2, devOverlay } })`. checker 만 `evalDir` 받음. 반환 `{outcome, history, attempts}`. (글로벌 변형 — scriptPath 는 cwd 무관 절대경로. §글로벌 변형 노트.)
+7. **분기** —
+   - `outcome === 'pass'` → **G3**: `land` 로 PR→merge(사람 승인)→워크트리 정리.
+   - `outcome === 'short-circuit'` → **G2**: `harness-heal` 호출(최종 verdict + 플랜 + frozen rubric 경로 전달) → 진범 귀속 → 1건 인터뷰 → 로컬 오버레이 개선 → 재진입. 같은 signature 2 heal-round 생존 시 에스컬레이트.
+7. **G4** — 변경에 마이그가 포함됐으면, merge 후 별도로 `db-migrate` prod 절차(사람 게이트).
+
+## 재시도/단락 규칙 (REQ-F-009/010)
+
+`scripts/loop-control.mjs` 가 SSOT(단위테스트). `decideNext(history)`:
+- 최신 pass → `pass` · 동일 signature 2연속 → `short-circuit`(조기) · 시도 ≥ 1+maxRetries(2) → `short-circuit`(cap) · 그 외 `retry`.
+- dev-eval-loop Workflow 는 이 로직을 inline 미러(Workflow 는 import 불가 — 동기 유지).
+
+## loop 로그 기록 (컨벤션)
+
+종료 시(pass/short-circuit) **오늘 날짜 파일** `loop/log/YYYY-MM-DD.md` 에 한 엔트리 append(없으면 H1=날짜로 생성) — 포맷은 `loop/log/README.md` 참조.
+
+- `pass` → 분류 `NOTE`, "무엇"에 outcome·attempts, "게이트" G3.
+- `short-circuit` → 분류 `ISSUE`, "무엇"에 최종 signature, "게이트" G2. (heal 라운드 결과는 `harness-heal` 이 별도 `HEAL` 엔트리로 append.)
+
+메인루프는 fs 가능 — 종료 직전 Write/Edit 로 append. 자동 hook 아님(스킬 컨벤션).
+
+## 가시화 HTML 동기 (컨벤션)
+
+하니스 **구조**(게이트 G0~G4 · 스킬 구성 · `decideNext`/역할 분리 · 컴포넌트 맵)를 바꾸면 같은 변경에서 `loop/harness-visualization.html` 도 갱신한다 — HTML 은 본 SKILL.md·gate-contract·loop-control 의 **파생 산출물**이라 안 고치면 drift 난다. SSOT 경계는 `loop/README.md` 참조.
+
+## 출력 보고
+
+종료 시 `result:` 한 줄(이슈 slug · outcome · attempts · merge/단락) + 워크트리·verdict 경로 + `loop/log/YYYY-MM-DD.md` 기록 여부.
