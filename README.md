@@ -59,7 +59,7 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 
 ### ⚙️ harness — loop / eval-게이트 자율개발 오케스트레이션
 
-> 절대경로 결합 주의: harness-run·eval-generate·eval-check 의 `SKILL.md` 는 cwd-무관 동작을 위해 워크플로/스크립트를 `/Users/carpdm/.claude/skills/...` **절대경로**로 가리킨다(글로벌 변형 정본). 다른 머신 이식 시 경로 치환 필요 — 경로 전략은 마이그레이션 진행 중.
+> 절대경로 결합 주의: harness-run·eval-generate·eval-check 의 `SKILL.md` 는 cwd-무관 동작을 위해 워크플로/스크립트를 `/Users/carpdm/.claude/skills/...` **구체 절대경로**로 가리킨다(Workflow scriptPath 는 프로젝트 cwd 가 아니라 skills 디렉토리에 resolve 돼야 하므로 상대·`~` 불가). 이식성은 **`install.sh` 가 설치 시 home prefix 를 `$HOME` 으로 재작성**해 해결한다(메인테이너 머신에선 no-op). 따라서 어느 머신이든 `bash install.sh` 면 그 머신 경로로 동작.
 
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|

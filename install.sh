@@ -29,6 +29,20 @@ for skill in "$SRC_DIR"/*/; do
 done
 
 echo
+# Re-home hardcoded harness scriptPaths to THIS machine.
+# The harness skills (harness-run/eval-generate/eval-check) pin CONCRETE absolute
+# paths because a Workflow scriptPath must resolve cwd-independently (a relative
+# '.claude/skills/...' would resolve against the project cwd, not the skills dir).
+# The repo stores them under the maintainer's $HOME, so rewrite that prefix on
+# install. No-op on the maintainer's own machine (prefix already == $HOME).
+AUTHOR_HOME="/Users/carpdm"
+if [ "$HOME" != "$AUTHOR_HOME" ]; then
+  grep -rl "$AUTHOR_HOME/.claude/skills" "$DEST_DIR" 2>/dev/null | while read -r f; do
+    sed "s#$AUTHOR_HOME/.claude/skills#$HOME/.claude/skills#g" "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+    echo "  re-homed paths in ${f#"$DEST_DIR"/}"
+  done
+fi
+
 # Derive the summary from what was actually installed - a hardcoded list drifts.
 echo "Done. Installed ${#installed[@]} skills: ${installed[*]}."
 echo "Restart Claude Code (or start a new session) to load them."
