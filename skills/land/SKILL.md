@@ -166,6 +166,14 @@ land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정�
 이 메타데이터는 머지·브랜치 삭제 뒤에도 `gh pr view <n>` 으로 읽히므로 report
 시점에 모아도 된다(머지 전 Discover 에서 미리 캐싱해 둬도 좋다).
 
+**세션 이름 설정 (백그라운드 잡일 때만).** 한 일 요약을 모은 직후, `result:` 를 내기
+전에 — 이 세션이 백그라운드 잡으로 돌고 있고(`$CLAUDE_JOB_DIR` 존재) 실제로 1건
+이상 머지됐으면 — 세션 이름을 랜딩 결과로 바꾼다(단일 `landed #451 fix(make)`,
+다수 `landed 3 PRs`). 잡 리스트에서 어떤 세션이 무엇을 배에 실었는지 한눈에 보이게
+하는 용도. atomic snippet·포맷·guard 는 [`references/session-rename.md`](references/session-rename.md)
+그대로(`state.json` `name` 갱신 + `nameSource:"user"`). 잡 아니거나 머지 0건이면
+조용히 생략 — 편의 기능이라 실패해도 보고는 계속한다.
+
 각 머지된 PR 에 대해 모은다:
 
 - **한 일 요약(1~2줄)**: `gh pr view <n> --json title,body,commits` 에서 압축한다.

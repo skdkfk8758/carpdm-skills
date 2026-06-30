@@ -51,6 +51,13 @@ critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애
 - **붙여넣은 텍스트** → fetch 없이 그대로 입력(ID 없으니 repo 는 Phase 2 에서 사용자 확인).
 - 이슈가 `## 작업 내용`/`## 수용 기준`/`## 추천`/`## 다음 작업` 구조를 가지면(=
   linear-register 산출물) 그게 경량화의 핵심 입력 — Phase 3 에서 직접 매핑한다.
+- **세션 이름 설정 (fetch 직후 즉시 — 백그라운드 잡일 때).** 티켓 ID·제목을 확보한 지금
+  바로 이 세션 이름을 `[<issue-id>] <작업요약>`(예 `[ADT-272] persona POI z-order`)으로
+  rename 한다. `references/session-rename.md` 의 atomic snippet 그대로(`state.json` `name` +
+  `nameSource:"user"`). **Phase 4(spawn)까지 미루지 않는 이유**: 세션이 확인 게이트에서
+  멈추거나 조회로 흘러도 잡 리스트에 티켓이 박혀 있어야 한다. 비mutation(로컬 메타데이터)
+  이라 확인 게이트 전에 실행해도 안전. 잡 컨텍스트 아니거나(`$CLAUDE_JOB_DIR` 없음) 붙여넣은
+  텍스트라 ID 가 없으면 생략. 실패해도 hard gate 아님 — note 만 남기고 계속.
 
 ### Phase 2 — Route & gate (repo 확정 + goal/harness 판정)
 
@@ -97,10 +104,8 @@ critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애
 
 **동기 (승인 → spawn, 순서대로·각 단계 성공 확인 후 다음):**
 
-1. **세션 이름 설정** — 백그라운드 잡으로 돌고 있으면(`$CLAUDE_JOB_DIR` 존재) 이 세션 이름을
-   `<issue-id> <작업요약>`(예 `ADT-272 persona POI z-order`)으로 rename. `references/session-rename.md`
-   의 검증된 atomic snippet 그대로 — `state.json` `name` 갱신 + `nameSource:"user"`(하니스 auto-rename
-   방지). 잡 컨텍스트 아니거나(`$CLAUDE_JOB_DIR` 없음) 티켓 ID 없으면 생략. 실패해도 hard gate 아님 — note 만 남기고 계속.
+1. **세션 이름 — Phase 1 에서 이미 설정됨.** fetch 직후 rename 했으므로 여기선 재실행하지
+   않는다(이름이 비어 있거나 placeholder 면 그때만 `references/session-rename.md` 로 보정).
 2. **Linear → In Progress** (티켓 ID 있을 때만).
 3. **worktree 분기** — `EnterWorktree` 또는 `git worktree add -b feat/<issue-id>-<topic> <dir>`
    (branch-worktree-strategy §5: 메인은 develop 유지, 새 브랜치는 worktree 격리).
@@ -151,4 +156,4 @@ critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애
 
 - `references/routing.md` — linear-repo-map 조회(repo 확정) + goal/harness rubric. Phase 2 에서 읽는다.
 - `references/goal-prompt-template.md` — Goal Prompt 7섹션 고정 템플릿 + 검증 가능성 5질문 게이트. Phase 3 에서 **스켈레톤**으로 읽는다(이슈 필드를 채워 넣는 용도 — 재작성 아님).
-- `references/session-rename.md` — 백그라운드 잡 세션 이름을 `<issue-id> <작업요약>` 으로 rename(검증된 atomic snippet). Phase 4 동기 1단계에서 읽는다.
+- `references/session-rename.md` — 백그라운드 잡 세션 이름을 `[<issue-id>] <작업요약>` 으로 rename(검증된 atomic snippet). **Phase 1(fetch 직후)에서 읽고 즉시 적용**한다.

@@ -1,7 +1,7 @@
 # 세션 이름 설정 (background job rename)
 
 linear-goal 이 티켓 착수(Phase 4 동기 블록)할 때, **백그라운드 잡으로 돌고 있으면**
-이 세션 이름을 `<issue-id> <작업요약>` 으로 바꾼다. 잡 리스트에서 어떤 티켓을 굴리는
+이 세션 이름을 `[<issue-id>] <작업요약>` 으로 바꾼다. 잡 리스트에서 어떤 티켓을 굴리는
 세션인지 한눈에 보이게 하는 용도.
 
 ## 적용 조건 (guard)
@@ -12,9 +12,10 @@ linear-goal 이 티켓 착수(Phase 4 동기 블록)할 때, **백그라운드 �
 
 ## 이름 포맷
 
-`<issue-id> <작업요약>` — 작업요약은 이슈 제목을 짧게(≈50자 이내) 줄인 것.
-- 예: `ADT-272 persona POI z-order`
-- 예: `AUT-25 비밀번호 정책 강화`
+`[<issue-id>] <작업요약>` — 작업요약은 이슈 제목을 짧게(≈50자 이내) 줄인 것. 티켓번호는
+대괄호로 묶어 잡 리스트에서 눈에 띄게 한다.
+- 예: `[ADT-272] persona POI z-order`
+- 예: `[AUT-25] 비밀번호 정책 강화`
 - 제목이 길면 핵심만 남기고 절단(말줄임표 불필요).
 
 ## 메커니즘 (검증됨 2026-06-30)
@@ -24,7 +25,7 @@ linear-goal 이 티켓 착수(Phase 4 동기 블록)할 때, **백그라운드 �
 재생성 가능). 다른 필드는 보존 — atomic write(temp → os.replace)로 동시쓰기 손상 방지.
 
 ```bash
-ISSUE_NAME="ADT-272 persona POI z-order"  # <issue-id> <작업요약> 로 치환
+ISSUE_NAME="[ADT-272] persona POI z-order"  # [<issue-id>] <작업요약> 로 치환
 python3 - "$ISSUE_NAME" <<'PY'
 import json, os, sys, tempfile
 job = os.environ.get("CLAUDE_JOB_DIR")
