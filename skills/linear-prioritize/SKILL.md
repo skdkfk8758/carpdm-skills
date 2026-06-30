@@ -1,0 +1,126 @@
+---
+name: linear-prioritize
+description: 현재 repo의 Linear 미완 이슈를 한 화면에 모아 의존·병렬 분석 + 우선순위 정렬 + 순차 EPIC 체인의 project milestone 자동 묶기까지 하는 스프린트 플래닝 워크플로. 사용자가 "남은 이슈 정리해줘", "뭐부터 해야 돼", "이슈 우선순위 매겨줘", "병렬로 뭐 돌릴 수 있어", "스프린트 짜줘", "백로그 우선순위", "다음 작업 뭐야", "이슈 로드맵", "마일스톤으로 묶어줘" 처럼 — '우선순위·정렬·병렬·다음작업·로드맵·스프린트'를 묻거나 미완 이슈를 한눈에 보고 싶어 할 때 — 'linear'·'스킬'이라는 말이 없어도 적극 트리거한다. 단순 이슈 조회(linear-dispatch 룰), 신규 이슈 등록(linear-register), 백로그 재배치·보강(linear-groom), 단일 티켓 자율실행(linear-goal)과 다르다 — 이 스킬은 이미 등록된 미완 이슈들의 "무엇을 어떤 순서로, 무엇을 동시에" 를 답하고 EPIC 체인을 마일스톤으로 시각화한다. 이슈를 새로 만들거나 코드를 구현하지 않는다.
+---
+
+# linear-prioritize
+
+현재 작업 중인 repo 의 **미완 Linear 이슈**를 한 화면에 모아, 의존 관계와 병렬 가능성을 분석하고, 착수 우선순위를 정렬하고, 순차 EPIC 체인을 project milestone 으로 묶어 진척을 시각화한다.
+
+이 스킬이 답하는 질문은 셋이다: **(1) 뭐가 남았나 (2) 무엇을 어떤 순서로 (3) 무엇을 동시에.** 코드를 짜거나 이슈를 새로 만들지 않는다 — 이미 보드에 있는 일감의 *실행 계획*만 낸다.
+
+## 왜 이 워크플로인가
+
+1인 운영 + 정기 릴리즈에서 백로그는 금세 흐른다. 이슈를 하나씩 까보며 "이거 지금 되나? 저거 막혔나?"를 매번 손으로 재구성하는 게 병목이다. 의존(parent/blockedBy)과 충돌 영역(같은 파일)을 한 번에 읽어 **지금 동시에 굴릴 수 있는 집합**을 뽑으면, 워크트리 N개로 병렬 착수가 바로 선다. 마일스톤은 그 덩어리의 진척을 한 줄로 답하게 해준다(`[[feedback-epic-chain-milestone-autobind]]`).
+
+## 워크플로
+
+### Step 1 — repo → 팀 스코프 해소
+
+전 워크스페이스를 긁지 말고 현재 repo 의 팀으로 좁힌다 (`linear-dispatch.md` 룰과 동일).
+
+1. `git rev-parse --show-toplevel` 으로 현재 repo 루트 (worktree 면 메인 repo).
+2. `~/.claude/linear-repo-map.json` 의 `teamRoutes[].repo`(없으면 `projectExceptions[].repo`)가 현재 repo 경로와 일치(prefix 매칭)하는 엔트리 → 그 `teamId`.
+3. 맵에 없으면 사용자에게 어느 팀인지 확인. 멋대로 전체 조회하지 않는다.
+
+> **team ≠ repo 혼재 주의:** 일부 팀(예 ADM)은 한 팀에 provider/consumer 두 repo 이슈가 섞인다. repo-map 의 `note` 를 읽고, 이슈 본문 내용으로 현재 repo 소속을 판별한다. 현재 repo 작업이 아닌 이슈는 리스트에 표시하되 "다른 repo(cross-team)" 로 명시 구분한다.
+
+### Step 2 — 미완 이슈 전수 수집
+
+`mcp__linear__list_issues` 를 `team=<teamId>`, `limit=100` 이상으로 호출. 미완 = `statusType` 가 `completed`/`canceled` **아닌** 것(backlog·unstarted·started·triage).
+
+**출력이 크면 토큰 한도로 잘린다.** list_issues 결과가 파일로 떨어지면(harness 가 경로 안내) `jq` 로 필요한 필드만 압축 추출한다 — 전체를 Read 하지 말 것:
+
+```bash
+jq -r '.issues[]
+  | select(.statusType=="backlog" or .statusType=="unstarted"
+        or .statusType=="started" or .statusType=="triage")
+  | [.id, .status, (.project//"NO_PROJECT"), (.parentId//"-"),
+     (.projectMilestone.name//"-"), .title] | @tsv' "$FILE" | sort
+# 페이징 확인
+jq -r '.hasNextPage' "$FILE"
+```
+
+`hasNextPage=true` 면 `cursor` 로 다음 페이지를 마저 긁어 **전수**를 확보한다. 누락된 채 분석하면 거짓 계획이 된다.
+
+의존 관계가 필요한 이슈는 `get_issue` 로 본문을 봐서 `blockedBy`/`blocks` 관계와 "선행 의존" 서술을 확인한다 (parentId 만으론 cross-team 블록을 못 잡는다 — 예: 자식이 다른 팀 이슈에 blockedBy).
+
+### Step 3 — 의존 그래프 구성
+
+세 종류의 엣지를 모은다:
+
+- **parent/child** — `parentId`. EPIC → sub-issue 계층.
+- **blockedBy/blocks** — Linear 관계. **cross-team 블록**(다른 팀 이슈가 막음)은 지금 착수 불가 신호. 본문의 "선행 의존" 서술도 같이 본다.
+- **순차 체인** — 제목/본문의 `S1~Sn`·`Step N`·`P0/P1` 같은 단계 표기. 작성(코딩)은 독립 가능해도 실행은 순차인 경우가 흔하니 둘을 구분해 적는다.
+
+### Step 4 — 병렬 가능 집합 계산
+
+두 이슈가 **동시 착수 가능**하려면: ① 서로 의존 없음, ② 막혀있지 않음(cross-team 블록·선행 미완 없음), ③ **충돌 영역 없음**(같은 파일/모듈을 둘 다 수정하지 않음 — 본문의 "건드릴 파일" 로 판단).
+
+충돌 영역이 겹치면 병렬 대신 "순서 권장"으로 분류한다(예: 두 이슈가 같은 UI 컴포넌트 공유). 워크트리 N개로 동시에 굴릴 수 있는 **충돌 없는 집합**을 명시적으로 뽑는 게 이 단계의 핵심 산출물이다.
+
+### Step 5 — 우선순위 정렬
+
+각 이슈를 세 축으로 평가해 정렬:
+
+- **착수가능성** — 지금 막힘 없이 시작 가능한가 (블록·선행 미완이면 후순위).
+- **가치** — Linear priority 필드 + 사용자 맥락.
+- **언블락 효과** — 이걸 끝내면 다른 이슈가 풀리나 (head·공유 UI 선행 등은 가산).
+
+`사용자 실행 필요`(온프레미스 배포·DB execute 등)·`외부 합의 대기` 는 별도 버킷으로 빼서 "지금 AI 가 굴릴 수 있는 것"과 섞지 않는다.
+
+### Step 6 — 순차 EPIC 체인 → milestone 자동 묶기
+
+순차 의존 체인(S1~Sn 류)을 발견하면 **project milestone 으로 묶어 진척 바를 켠다** (`[[feedback-epic-chain-milestone-autobind]]` 컨벤션의 사후 적용판).
+
+- milestone 은 **이슈가 아니라 project 에 속한다.** parent EPIC 이슈가 아니라 그 이슈의 `project` 에 `mcp__linear__save_milestone(project, name, description)` 으로 생성.
+- 기존 milestone 중복 확인: `mcp__linear__list_milestones(project)` 먼저.
+- 자식 전원 `mcp__linear__save_issue(id, milestone=<milestoneId>)` 로 편입.
+- **묶는 기준** — 1순위 순차 의존 체인, 2순위 같은 목표의 병렬 묶음(3개+). 단발 이슈·외부 대기·과거 Done 은 **묶지 않는다**(마일스톤 없는 게 기본값. 전부 묶기는 안티패턴 — 마일스톤이 프로젝트 복제가 되어 변별력 0). Done 소급 묶기는 cosmetic 이니 금지.
+- milestone 생성/편입은 mutation 이다. 2~3개 정도면 바로, 대량이면 사용자 확인 후 진행.
+
+> ⚠ milestone 은 같은 project 내로 갇힌다 — **cross-team 블록은 마일스톤에 안 잡힌다**(그건 blockedBy 관계가 담당). 마일스톤 진척과 별개로 블록은 우선순위 표에서 명시한다.
+
+## 출력 포맷
+
+ALWAYS 이 구조로 낸다 (사용자가 한눈에 "뭐부터·뭐 동시에"를 읽도록):
+
+```
+## 📋 <repo> 미완 이슈 — 우선순위 + 병렬 분석
+
+### 의존 그래프
+<ASCII — EPIC 체인·blockedBy·충돌 공유를 화살표로>
+
+### 우선순위 (착수가능성 × 가치 × 언블락효과)
+| 순위 | ID | 상태 | 근거 |
+...
+
+### 🔀 지금 동시 착수 가능 (충돌 없는 병렬 집합)
+{ ID ∥ ID ∥ ID } — <왜 충돌 없는지 1줄>
+블록: <막힌 이슈 + 막은 원인>
+
+### 🗂 마일스톤 구조 (묶은 경우)
+Project: ...
+ └ Milestone: ... ▓▓░░ N/M
+```
+
+마일스톤을 새로 묶었으면 무엇을 왜 묶었고 무엇을 의도적으로 안 묶었는지 1~2줄로 보고한다.
+
+## 경계 (이 스킬이 아닌 것)
+
+| 하려는 것 | 올바른 도구 |
+|---|---|
+| 이슈 단순 조회·검색 | `linear-dispatch.md` 룰 (현재 repo 팀 스코프) |
+| 신규 이슈 등록 | `linear-register` 스킬 |
+| 백로그 재배치·thin 이슈 보강 | `linear-groom` 스킬 |
+| 단일 티켓 자율 빌드 실행 | `linear-goal` 스킬 |
+| plan/PRD 를 다중 이슈로 분할 | `to-issues` 스킬 |
+| 실제 코드 구현 | `forge`/`hunt`/`renew`/`harness-run` |
+
+이 스킬은 **이미 등록된 미완 이슈의 실행 계획**만 낸다 — 새 이슈도, 코드도 만들지 않는다.
+
+## Related
+
+- `~/.claude/rules/linear-dispatch.md` — repo→팀 조회 스코프(Step 1 SSOT).
+- `~/.claude/linear-repo-map.json` — repo↔team 매핑 + team≠repo 혼재 note.
+- `[[feedback-epic-chain-milestone-autobind]]` — EPIC 체인 milestone 묶기 컨벤션(Step 6 근거).
