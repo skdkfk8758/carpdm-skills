@@ -23,7 +23,7 @@ Linear 이슈를 네이티브로 등록하고, 각 이슈에 **다음 행동 가
 
 ### 2. 이슈 초안 작성 (REQ-F-005/006/011)
 
-각 이슈 본문을 아래 템플릿으로. **`## 추천`** 섹션이 핵심 — 생성 규칙은 [references/recommend-section.md](references/recommend-section.md) §A 를 읽어 따른다(SSOT, linear-groom 과 공유). 요지: 글로벌 스킬/에이전트 우선(모델 판단, 시작 매핑은 anchor 금지) → 프로젝트 로컬 포인터 부차(타repo 안 읽음, REQ-N-003). 큰 plan/PRD 입력이면 `to-issues`/`to-prd` 위임을 적는다(REQ-F-007).
+각 이슈 본문을 아래 템플릿으로. **`## 추천`** 섹션이 핵심 — 생성 규칙은 [references/recommend-section.md](references/recommend-section.md) §A 를 읽어 따른다(SSOT, linear-groom 과 공유). 요지: 글로벌 스킬/에이전트 우선(모델 판단, 시작 매핑은 anchor 금지) → 프로젝트 로컬 포인터 부차(타repo 안 읽음, REQ-N-003). 큰 plan/PRD 입력이면 `to-issues`/`to-prd` 위임을 적는다(REQ-F-007). **UI/프론트엔드 이슈면** 같은 파일 §C(시안 선행 컨벤션 — 본문에 한 줄, 시안 생성은 착수 시점)도 적용한다.
 
 ### 3. 확인 게이트 — 쓰기 전 필수 (REQ-F-004, REQ-N-002)
 

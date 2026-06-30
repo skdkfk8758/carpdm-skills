@@ -33,6 +33,10 @@ critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애
   떠안는다. 판정해서 추천만 하고 멈춘다(Phase 2). 추천 섹션이 빌드 스킬을 가리켜도
   안전 판정이 상위 — `## 추천` 은 모델 판단이고 harness 게이트는 hard rule 이다.
 - **worktree 검증 실패 시 worker spawn** — 엉뚱한 트리/develop 위 자율작업 방지. hard gate.
+- **수용 기준 미충족 상태로 PR/종료** — `## 수용 기준`(=Success Criteria)이 100% 검증되지
+  않았는데 PR 을 열거나 작업을 완료(In Review)로 올리지 않는다. **PR 직전 이슈 수용 기준을
+  재확인**해 하나라도 미체크·미충족이면 PR 을 **중지하고 사용자에게 안내**한다
+  (`~/.claude/rules/acceptance-criteria-gate.md` G2). 검증이 종료를 선행한다 — hard gate.
 
 ## 워크플로 — 4 페이즈, 순서대로
 
@@ -71,6 +75,10 @@ critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애
   → `## Success Criteria` 로 1:1. 자율 루프의 종료 조건이다. `[AUTO]`/`[HUMAN]` 마커가
   있으면 보존. 관찰 가능하면 그대로 옮기고, "잘 동작" 류로 모호한 **그 항목만** 관찰
   가능하게 보정(template 의 검증 가능성 5질문). 전체 재작성·적대 critic 은 하지 않는다 — 이미 구조화됐다.
+  Goal Prompt 에 **PR 전 게이트**를 표준으로 박는다: worker 는 각 Success Criteria 를 관찰
+  가능하게 검증(테스트/런타임)한 **뒤에만** PR 을 연다. **PR 직전 이슈 수용 기준을 재확인해
+  100% 충족이 아니면 PR 을 열지 말고 `needs input:` 으로 어느 항목이 왜 미충족인지 보고하고
+  멈춘다**(검증이 종료를 선행 — `~/.claude/rules/acceptance-criteria-gate.md`).
 - 체인 `## 다음 작업` 의 kickoff 프롬프트가 있으면 Objective 시드로 활용.
 - **표준 Constraints** 박기: 지목 영역만 수정, 머지/push/배포/삭제 금지 — 변경만 두고 보고.
 - **`## Done & Report`** 에 실행기 신호 토큰(`result:`/`needs input:`/`failed:`) 글자 그대로.
@@ -89,22 +97,33 @@ critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애
 
 **동기 (승인 → spawn, 순서대로·각 단계 성공 확인 후 다음):**
 
-1. **Linear → In Progress** (티켓 ID 있을 때만).
-2. **worktree 분기** — `EnterWorktree` 또는 `git worktree add -b feat/<issue-id>-<topic> <dir>`
+1. **세션 이름 설정** — 백그라운드 잡으로 돌고 있으면(`$CLAUDE_JOB_DIR` 존재) 이 세션 이름을
+   `<issue-id> <작업요약>`(예 `ADT-272 persona POI z-order`)으로 rename. `references/session-rename.md`
+   의 검증된 atomic snippet 그대로 — `state.json` `name` 갱신 + `nameSource:"user"`(하니스 auto-rename
+   방지). 잡 컨텍스트 아니거나(`$CLAUDE_JOB_DIR` 없음) 티켓 ID 없으면 생략. 실패해도 hard gate 아님 — note 만 남기고 계속.
+2. **Linear → In Progress** (티켓 ID 있을 때만).
+3. **worktree 분기** — `EnterWorktree` 또는 `git worktree add -b feat/<issue-id>-<topic> <dir>`
    (branch-worktree-strategy §5: 메인은 develop 유지, 새 브랜치는 worktree 격리).
-3. **worktree 검증 — hard gate** — `git -C <dir> rev-parse --abbrev-ref HEAD` == 기대 브랜치.
+4. **worktree 검증 — hard gate** — `git -C <dir> rev-parse --abbrev-ref HEAD` == 기대 브랜치.
    **실패면 worker 를 절대 띄우지 않고** 중단·보고.
-4. **goal worker spawn** — worktree 안에서 Phase 3 Goal Prompt 를 task 로 하는 백그라운드 잡:
+5. **goal worker spawn** — worktree 안에서 Phase 3 Goal Prompt 를 task 로 하는 백그라운드 잡:
    `Agent` 의 `run_in_background:true`, agentType `deep-worker`(가용) 또는 general-purpose
-   (subagent-invocation R6). worker 는 자율로 돌아 **PR 까지만** 연다(머지 금지). spawn 직전
+   (subagent-invocation R6). worker 는 자율로 돌아 **PR 까지만** 연다(머지 금지) — 단
+   **PR 직전 이슈 수용 기준을 재확인해 100% 검증·충족일 때만** PR 을 열고, 미충족이면 PR 을
+   중지하고 `needs input:` 으로 미충족 항목을 보고한다(Phase 3 Goal Prompt 에 박힌 게이트). spawn 직전
    Goal Prompt `.md` 를 worktree 안으로 복사한다.
-5. **동기 종료** — `result:` 한 줄(repo + worktree + worker 잡 핸들 + Linear 상태). 백그라운드
+6. **동기 종료** — `result:` 한 줄(repo + worktree + worker 잡 핸들 + Linear 상태). 백그라운드
    잡은 완료 시 하니스가 자동 알린다(동기 폴링 금지).
 
 **비동기 (worker 완료 notification 도착 시 — 후속 턴):**
 
-6. **Linear → In Review** + PR 링크 attach. **Done 전이·머지는 하지 않는다**(머지=land/사람).
-7. 이슈에 체인 `## 다음 작업` 이 있었으면, **다음 이슈 id + kickoff 프롬프트를 사용자에게 제시**
+7. **PR 게이트 결과로 분기**:
+   - worker 가 PR 을 열었으면(수용 기준 100% 검증 통과) → **Linear → In Review** + PR 링크
+     attach + 충족된 수용 기준 체크박스 `[x]` 갱신(검증 근거 코멘트). **Done 전이·머지는 하지
+     않는다**(머지=land/사람).
+   - worker 가 수용 기준 미충족으로 PR 을 중지(`needs input:`)했으면 → **In Review 로 올리지
+     말고** 어느 항목이 왜 미충족인지 사용자에게 안내하고 멈춘다(acceptance-criteria-gate G2).
+8. 이슈에 체인 `## 다음 작업` 이 있었으면, **다음 이슈 id + kickoff 프롬프트를 사용자에게 제시**
    ("다음: <next-id> — `linear-goal <next-id>` 로 이어가기"). 자동 시작은 안 함.
 
 > PR diff 적대 리뷰가 필요하면 빌트인 `/code-review` 를 **수동**으로 돌리길 권한다 —
@@ -122,9 +141,14 @@ critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애
 - **이슈 구조 무시하고 메타프롬프트 재작성** — linear-register 이슈는 이미 `## 작업 내용`/`## 수용 기준`이 있다. 재사용이 이 리뉴얼의 핵심 — 다시 쓰지 말고 매핑하라.
 - **검증 불가 Success Criteria** — `## 수용 기준`을 그대로 옮기되 "잘 동작" 류 모호 항목만 관찰 가능하게 보정.
 - **실측 없이 Context 경로 추측** — ground-first: 경로·타입을 grep/Read 로 못박은 뒤 적어라.
-- **백그라운드 spawn 인데 PR/In Review 를 동기로 적기** — worker 완료 전엔 PR 이 없다. 6·7 은 완료 notification 때.
+- **백그라운드 spawn 인데 PR/In Review 를 동기로 적기** — worker 완료 전엔 PR 이 없다. 7·8 은 완료 notification 때.
+- **수용 기준 검증 없이 PR/In Review** — `## 수용 기준` 체크가 100% 아닌데 PR 을 열거나 In Review
+  로 올리지 마라. PR 직전 재확인해 미충족이면 중지·안내(`acceptance-criteria-gate.md` G2). SUR-26
+  은 미체크인 채 Done 돼 #3 미충족(개요 탭 누락)이 거짓 완료로 위장된 실측 사례.
+- **검증 없이 체크박스만 `[x]`** — 거짓 완료. 관찰 가능한 검증(테스트/런타임) 통과 후에만 체크.
 
 ## References
 
 - `references/routing.md` — linear-repo-map 조회(repo 확정) + goal/harness rubric. Phase 2 에서 읽는다.
 - `references/goal-prompt-template.md` — Goal Prompt 7섹션 고정 템플릿 + 검증 가능성 5질문 게이트. Phase 3 에서 **스켈레톤**으로 읽는다(이슈 필드를 채워 넣는 용도 — 재작성 아님).
+- `references/session-rename.md` — 백그라운드 잡 세션 이름을 `<issue-id> <작업요약>` 으로 rename(검증된 atomic snippet). Phase 4 동기 1단계에서 읽는다.
