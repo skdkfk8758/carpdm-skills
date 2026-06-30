@@ -166,13 +166,19 @@ land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정�
 이 메타데이터는 머지·브랜치 삭제 뒤에도 `gh pr view <n>` 으로 읽히므로 report
 시점에 모아도 된다(머지 전 Discover 에서 미리 캐싱해 둬도 좋다).
 
-**세션 이름 설정 (백그라운드 잡일 때만).** 한 일 요약을 모은 직후, `result:` 를 내기
-전에 — 이 세션이 백그라운드 잡으로 돌고 있고(`$CLAUDE_JOB_DIR` 존재) 실제로 1건
-이상 머지됐으면 — 세션 이름을 랜딩 결과로 바꾼다(단일 `landed #451 fix(make)`,
-다수 `landed 3 PRs`). 잡 리스트에서 어떤 세션이 무엇을 배에 실었는지 한눈에 보이게
-하는 용도. atomic snippet·포맷·guard 는 [`references/session-rename.md`](references/session-rename.md)
-그대로(`state.json` `name` 갱신 + `nameSource:"user"`). 잡 아니거나 머지 0건이면
-조용히 생략 — 편의 기능이라 실패해도 보고는 계속한다.
+**세션 이름 설정 — `result:` 직전 필수 선행 행동 (백그라운드 잡 + 1건 이상 머지일 때).**
+이 세션이 백그라운드 잡으로 돌고 있고(`$CLAUDE_JOB_DIR` 존재) 실제로 1건 이상 머지됐으면,
+**report 와 `result:` 를 내기 전에 먼저** 세션 이름을 랜딩 결과로 바꾼다 — 이것은 land 의
+마지막 단계이지 선택적 아사이드가 아니다. 순서를 고정한다: **① 한 일 요약 수집 → ② rename
+실행(아래) → ③ report 출력 → ④ `result:`**. rename 을 건너뛰고 곧장 report/`result:` 로
+가지 말 것 — 이 스킵이 "land 후 이름이 안 바뀐다"의 원인이다.
+
+- 실행: [`references/session-rename.md`](references/session-rename.md) 의 atomic snippet 그대로
+  (`state.json` `name` 갱신 + `nameSource:"user"` — 하니스 auto-rename 차단). 포맷: 단일
+  `landed #451 fix(make)`(연결 이슈 있으면 `landed [ADT-33] fix(make)`), 다수 `landed 3 PRs`.
+- **조용히 생략하는 경우는 둘뿐**: 잡 컨텍스트 아님(`$CLAUDE_JOB_DIR` 없음) 또는 머지 0건.
+  그 외엔 반드시 실행한다. 실행 자체가 실패하면(파일·권한) note 1줄 남기고 보고는 계속 —
+  단 "실패해도 됨"이 "안 해도 됨"은 아니다.
 
 각 머지된 PR 에 대해 모은다:
 
