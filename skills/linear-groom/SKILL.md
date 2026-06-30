@@ -87,8 +87,8 @@ node <skill>/scripts/triage-issues.mjs '<list_issues JSON>'
 ### Step 3b — 설명 보강
 
 `references/enrichment-template.md` 를 읽고 그 템플릿·근거수집 순서·tier별 깊이를 따른다.
-요지: 코드그래프→메모리→grep 순으로 근거를 모아 `## 배경 / ## 현황(실측) / ## 작업 범위 /
-## Acceptance` 를 채우고, 원본은 `## 원본 (작성자 입력)` 으로 통째 보존. 못 본 건 단언 금지.
+요지: 코드그래프→메모리→grep 순으로 근거를 모아 `## 배경 / ## 현황(실측) / ## 작업 내용 /
+## 수용 기준`(register 표준 코어 헤딩) 을 채우고, 원본은 `## 원본 (작성자 입력)` 으로 통째 보존. 못 본 건 단언 금지.
 
 **추천 + 체인(보강 대상에만).** 보강하는 이슈에는 `## 추천`(적응형 도구 추천)을 함께 넣는다 —
 규칙은 `~/.claude/skills/linear-register/references/recommend-section.md` §A(SSOT, linear-register
@@ -112,7 +112,7 @@ node <skill>/scripts/triage-issues.mjs '<list_issues JSON>'
 |---|---|---|
 
 ## 보강 (M건)
-| 이슈 | tier | 보강 요지 (배경/현황/범위/Acceptance/추천 한 줄, 연결되면 다음 작업) |
+| 이슈 | tier | 보강 요지 (배경/현황/작업 내용/수용 기준/추천 한 줄, 연결되면 다음 작업) |
 |---|---|---|
 | ADT-7 | empty | 벌크업로드 UI=AssetUploader, 다중 select+큐, Acc=N개 동시업로드, 추천=/forge |
 ```
