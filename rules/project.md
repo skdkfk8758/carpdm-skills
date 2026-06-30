@@ -111,10 +111,10 @@ craft 엔진은 **두 토폴로지**를 가진다. **linear**(기본, `pipeline.
 - **검토만, 안 고침.** 코드 한 줄 안 바꾼다(수정은 hunt/renew/forge). 산출물군 — L1 `result:` + L2 리포트 열기(`docs/reviews/…-fortify.md`) + L3 수정 라우팅(발견→hunt 보안버그/renew 인증동작변경/forge 누락보안기능, output-contract §L3 메커니즘). standalone 이지만 종료 출력은 output-contract 공유(엔진 의존 아님).
 
 ### 13. 하니스 오케스트레이션 4종 (harness-run/eval-generate/eval-check/harness-heal) — IA→글로벌 SSOT 이관 진행 중
-loop/eval-게이트 자율개발 하니스의 실행 스킬 4종. **이 레포에 새로 추적되기 시작**했다 — 종전 SSOT 는 `~/Workspace/Intelligence-Auth/.claude/skills/`(하니스 origin)였고, 글로벌 사본(`~/.claude/skills/`)을 그 미러로 두는 구조였다. 사용자 결정으로 **글로벌을 단일 SSOT** 로 수렴 중이며, 그 1단계가 글로벌 사본에 git 집(본 레포 추적 + PR/CI/history)을 주는 것이다.
+loop/eval-게이트 자율개발 하니스의 실행 스킬 4종. **SSOT 가 글로벌(본 레포 추적)로 이관 완료**됐다 — 종전 SSOT 는 `~/Workspace/Intelligence-Auth/.claude/skills/`(하니스 origin)였고 글로벌은 무버전 미러였으나, 사용자 결정으로 **글로벌 단일 SSOT** 로 수렴했다(IA 사본 제거 완료).
 - **추적 내용 = 글로벌 변형 정본(절대경로).** harness-run·eval-generate·eval-check 의 `SKILL.md`·workflow scriptPath 는 cwd-무관 동작을 위해 `/Users/carpdm/.claude/skills/...` **구체 절대경로**를 쓴다(Workflow scriptPath 는 프로젝트 cwd 가 아니라 skills 디렉토리에 resolve 돼야 함 → 상대·`~` 불가). **2단계에서 이식성 해결:** `install.sh` 가 설치 시 `/Users/carpdm/.claude/skills` → `$HOME/.claude/skills` 로 home prefix 재작성(메인테이너 머신 = no-op, 타 머신 = 그 머신 경로). 단방향이라 `sync.sh`(글로벌→repo, carpdm 머신서만 실행)는 no-op 왕복 → repo 오염 없음. 따라서 본 레포의 "어느 머신이든 동작" 불변식 충족.
 - **결합 세트.** harness-run 이 eval-generate(rubric 생성)·eval-check(채점)·harness-heal(단락 자가개선)을 호출하는 한 묶음 — 4종은 함께 추적/이동한다. 상세 하니스 구조(게이트 G0~G4·3역할 분리·decideNext·C4 heal)는 글로벌 rule `loop-visualization` + IA `loop/` 가 SSOT.
-- **이관 단계:** ①(git 집 확보)·②(경로 전략 = install.sh 재작성) 완료. **남은 단계(미완):** ③ 글로벌 단독 동작 검증(IA 사본 임시 비활성 후 harness-run 1회 완주), ④ IA `.claude/skills/{harness-run,eval-generate,eval-check,harness-heal}` 삭제 + SSOT 포인터 룰(`loop-visualization.md`·harness-run 글로벌 변형 노트) 갱신.
+- **이관 완료(①~④):** ① git 집 확보(carpdm-skills 추적) → ② 경로 전략(install.sh home-prefix 재작성) → ③ 글로벌 단독 동작 검증(4스킬 존재·Workflow scriptPath 유효·단위테스트 loop-control 9/9·attribution 5/5·IA 실행 하드의존 0) → ④ IA `.claude/skills/{harness-run,eval-generate,eval-check,harness-heal}` 삭제 + harness-run 글로벌 SSOT 노트 갱신. (`loop-visualization.md` 의 IA 참조는 IA `docs/guides/`·`loop/` 를 가리켜 삭제 무관 — 갱신 불요. 전체 harness-run 실측 완주는 실 이슈 발생 시 자연 검증.)
 
 ## Skill authoring 검증
 
