@@ -1,8 +1,8 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 스킬 배포 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + 루프 하니스 셋업 1종 + 공유 엔진 1종 + Linear 라이프사이클 3종**, 총 **스킬 21종.**
+Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 스킬 배포 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + 루프 하니스 셋업 1종 + 공유 엔진 1종 + Linear 라이프사이클 3종 + 하니스 오케스트레이션 4종**, 총 **스킬 25종.**
 
-스킬은 역할에 따라 **6개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
+스킬은 역할에 따라 **7개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
 
 ### 🔨 build-pipeline — 코드를 짓는 엄격 파이프라인
 
@@ -57,6 +57,17 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 | [`linear-goal`](skills/linear-goal) | Linear 티켓 1건을 경량 흐름으로 자율 실행 (fetch→`## 추천` 라우팅→Goal Prompt 조립→확인 게이트→worktree→worker→In Review) | "ADT-211 goal 로 돌려줘", "이 티켓 그대로 진행", "워커한테 맡겨" | Linear MCP |
 | [`linear-groom`](skills/linear-groom) | 기존 Linear 백로그 그루밍 — 고아 이슈 프로젝트 그룹핑 + 빈약 이슈 보강(+`## 추천`/체인) | "리니어 이슈 정리", "백로그 그루밍", "이슈 보강해줘" | Linear MCP |
 
+### ⚙️ harness — loop / eval-게이트 자율개발 오케스트레이션
+
+> 절대경로 결합 주의: harness-run·eval-generate·eval-check 의 `SKILL.md` 는 cwd-무관 동작을 위해 워크플로/스크립트를 `/Users/carpdm/.claude/skills/...` **절대경로**로 가리킨다(글로벌 변형 정본). 다른 머신 이식 시 경로 치환 필요 — 경로 전략은 마이그레이션 진행 중.
+
+| 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
+|---|---|---|---|
+| [`harness-run`](skills/harness-run) | 한 이슈를 워크트리 분기→플랜+시안+eval rubric→G1 freeze→자율 dev+eval 루프→pass면 merge/단락이면 heal 로 잇는 상위 오케스트레이터 (게이트 G0~G4) | "이 이슈 하니스로 돌려줘", "harness 돌려", "이슈 자동 개발" | eval-generate·eval-check·harness-heal·deep-plan |
+| [`eval-generate`](skills/eval-generate) | 플랜+시안+acceptance → eval rubric(4 카테고리 적응형 채점표 + 결정론 테스트 스텁) 생성 (채점 안 함) | "rubric 만들어줘", "eval 기준 생성", "체크리스트 뽑아줘" | 없음 (독립) |
+| [`eval-check`](skills/eval-check) | 확정 rubric 으로 산출물 채점 → pass/fail + 점수 리포트·실패 시그니처 (rubric 생성 안 함) | "eval 돌려줘", "채점해줘", "rubric 으로 검사" | 없음 (독립) |
+| [`harness-heal`](skills/harness-heal) | dev-eval 루프 단락 시 자가개선 — 진범 귀속 worksheet → 가장 레버리지 높은 실패 1건 인터뷰·수정(프로젝트 로컬 오버레이만) | harness-run 의 G2 에서 호출 | 없음 (독립) |
+
 **파이프라인 3종 공통 흐름**: 소크라테스 인터뷰 → codex 적대적 플랜 리뷰 → 동적 워크플로 TDD(sonnet) → simplify 검토 패스(forge·renew·hunt, 옵션·동작불변, `/simplify` 위임) → 보안 검증 → 빌드 후 다음 스킬 제안(push 했으면 `/land`, 잔여 정리면 `/sweep` — 추천만, 자동 시작 X).
 
 엔진은 두 실행 모드를 가진다 — **linear**(기본, 단일세션) / **orchestrated**(멀티에이전트 council, 명시 요청 시). 사용법은 [`docs/guides/craft-modes.md`](docs/guides/craft-modes.md).
@@ -77,7 +88,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-18개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
+25개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
 ### 개별 설치 (하나씩)
 
@@ -128,7 +139,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land ship preflight fortify imprint erd colocate-domain-context cicd-scaffold loop-harness-setup craft-core
+ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land ship preflight fortify imprint erd colocate-domain-context cicd-scaffold loop-harness-setup craft-core harness-run eval-generate eval-check harness-heal
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.
