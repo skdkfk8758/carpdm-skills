@@ -30,7 +30,7 @@ description: 루프엔지니어링 하니스 오케스트레이터 — 한 이�
 
 | 단계 | 누가 | 동작 |
 |---|---|---|
-| **G0** 이슈 intake | 사람 | 이슈 기술 수령(지금 수동; C3 Linear 후속). 이슈 slug 확정 |
+| **G0** 이슈 intake | 사람 | 이슈 기술 수령(intake 는 수동; C3 Linear 후속). 이슈 slug 확정 + 활성 이슈 있으면 **Linear → In Progress** 자동 전이(graceful) |
 | 워크트리 분기 | 자동 | `feat/<slug>` 워크트리 생성(commit-isolation 격리) |
 | ② 플랜+시안+rubric | 자동 | `deep-plan`(플랜+HTML시안) → `eval-generate`(rubric, `frozen:false`) |
 | **G1** 플랜타임 리뷰 ★ | 사람 | {플랜·시안·rubric} 한 번에 검토·수정 → **승인 시 rubric `frozen:true` 로 잠금** |
@@ -47,6 +47,13 @@ description: 루프엔지니어링 하니스 오케스트레이터 — 한 이�
    [`references/session-rename.md`](references/session-rename.md) 의 atomic snippet 그대로
    (`state.json` `name` + `nameSource:"user"`). 잡 컨텍스트 아니면 조용히 생략, 실패해도 hard
    gate 아님 — note 만 남기고 계속.
+   - **Linear → In Progress (optional, graceful).** slug 에서 이슈ID 가 잡혔거나 사용자가
+     이슈 ID/URL 을 줬으면, `~/.claude/skills/craft-core/references/linear.md` §3(빌드 중 상태
+     전이 SSOT)을 lazy-load 해 그 활성 이슈를 **In Progress 로 자동 전이**한다(빌드 시작 시점 =
+     G0 bind). 상태 이름은 하드코딩 말고 `list_issue_statuses` 로 조회해 매핑. Linear MCP
+     미설치이거나 이슈ID 가 없으면 **묻지 말고** 스킵 — Linear 는 증강일 뿐 게이트하지 않는다.
+     전이 실패(권한·네트워크)는 하니스를 막지 않는다(경고만). forge/hunt/renew 가 pipeline
+     Phase 0 에서 하는 것과 동일 전이를 harness-run 은 G0 에서 한다.
 2. **워크트리 — 자동 아님, 메인루프가 직접 수행·검증한다.** `git worktree add -b feat/<slug> ../<repo>--<slug>` 로 분기. **직후 `git worktree list | grep feat/<slug>` 로 생성 확인 — 안 보이면 STOP**(이 단계를 빠뜨리면 dev 가 메인트리서 돌아 분리무결성이 붕괴한다). 이후 모든 작업·Workflow `args.worktree` 는 이 워크트리 기준 — Workflow agent 의 cwd 는 launch 시점 메인세션 cwd 로 pin 되므로, 메인세션이 이 워크트리에 있어야 dev 가 거기서 돈다. `EnterWorktree` 는 deferred 도구(먼저 `ToolSearch` 로 로드)이고 이미 워크트리 세션이면 거부되니 — `git worktree add` 를 1순위로 쓴다.
 3. **생성** — `deep-plan` 으로 플랜+시안, `eval-generate` 로 rubric+스텁(G1 검토용으로 `<worktree>/.eval/` 에 생성, frozen:false).
 4. **G1 ★** — {플랜·시안·rubric} 을 `AskUserQuestion` 으로 제시. 승인 시 rubric 의 `"frozen": true` 로 수정(잠금). dev 가 보기 전에 freeze.

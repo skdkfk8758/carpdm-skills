@@ -38,11 +38,18 @@ SSOT 는 `~/.claude/linear-repo-map.json` 이다(본 파일은 그걸 조회만 
 | 2 (→harness) | `area:*` 라벨 2개 이상 (cross-cutting) | → harness |
 | 2 (→harness) | 제목/본문 regex `(?i)renew|redesign|rework|overhaul|마이그|migration|전면|research|investigate|spike|epic` | → harness |
 | 2 (→harness) | AC 없음 **且** 본문 빈약(~400자 미만, 스크린샷-only 포함) | → harness (underspecified) |
-| 3 (→goal) | AC/체크리스트 有 **且** 단일 `area:*` **且** 구체 파일/엔드포인트/함수 명시 **且** (estimate unset 또는 ≤ 2) | → **goal** |
+| 3 (→goal) | AC/체크리스트 有 **且** 단일 `area:*` **且** 대상 특정 가능(아래 ‡) **且** (estimate unset 또는 ≤ 2) | → **goal** |
 | 4 (uncertain) | 위 어디도 확정 안 됨 | → **harness** (안전 기본값) |
 
 - **estimate 조건부**: estimate 를 안 쓰는 팀이면 순위2 estimate 행·순위3 estimate
   절을 건너뛰고 area/regex/AC/본문길이로만 판정.
+- **‡ 대상 특정 가능** = 구체 파일/엔드포인트/함수가 본문에 명시됨, **또는** 범위가
+  좁고(estimate ≤2) AC 가 이분법적이라 worker 가 ground-first(grep/Read)로 대상을
+  안전하게 특정 가능. 후자는 **ID 없는 붙여넣기·파일 미명시 소형 티켓**(예: "격자 셀
+  hover 시 셀 id 툴팁")을 커버한다 — 파일 경로가 안 적혔다는 이유만으로 trivial 티켓을
+  harness 로 보내지 않기 위함. **단 가드 필수**: estimate≥3·범위 모호·AC 비이분법 중
+  하나라도면 후자 불성립 → 순위4 uncertain→harness. 즉 완화는 **좁은 범위 + 이분법
+  AC 동시 충족** 일 때만이고, 안전 비대칭(의심 시 harness)은 그대로 유지된다.
 
 ### 핵심 비대칭 — uncertain → harness (goal 아님)
 
