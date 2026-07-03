@@ -26,16 +26,26 @@ export const meta = {
 // rubric it finds elsewhere — a false short-circuit on a valid implementation.
 // Observed twice in dogfood (2026-06-12, 2026-06-15). Throw loudly instead of
 // running blind. See loop/log and harness-run SKILL §7.
+// Defensive parse: some harness paths deliver `args` as a JSON STRING even when the
+// caller passed an object (observed 2026-07-03, wf_e2dee771). Accept both shapes.
+let ARGS = args
+if (typeof ARGS === 'string') {
+  try {
+    ARGS = JSON.parse(ARGS)
+  } catch (e) {
+    throw new Error(`dev-eval-loop: args is a string but not valid JSON: ${e.message}`)
+  }
+}
 for (const k of ['worktree', 'planPath', 'evalDir']) {
-  if (!args || typeof args[k] !== 'string' || !args[k]) {
+  if (!ARGS || typeof ARGS[k] !== 'string' || !ARGS[k]) {
     throw new Error(
-      `dev-eval-loop: required arg "${k}" missing/non-string (got ${JSON.stringify(args && args[k])}). ` +
+      `dev-eval-loop: required arg "${k}" missing/non-string (got ${JSON.stringify(ARGS && ARGS[k])}). ` +
         `Pass Workflow args as a JSON OBJECT, not a stringified JSON.`,
     )
   }
 }
 
-const MAX_RETRIES = (args && args.maxRetries) ?? 2
+const MAX_RETRIES = (ARGS && ARGS.maxRetries) ?? 2
 
 // Mirror of scripts/loop-control.mjs decideNext (SSOT; Workflow scripts cannot import).
 // Keep in sync — the unit-tested version lives at scripts/loop-control.mjs.
@@ -73,8 +83,8 @@ for (let n = 0; ; n++) {
   await agent(
     overlay +
       `Implement the change for this worktree strictly per the approved plan. ` +
-      `Read the plan at ${args.planPath}` +
-      (args.mockupPath ? ` and the approved mockup at ${args.mockupPath}` : '') +
+      `Read the plan at ${ARGS.planPath}` +
+      (ARGS.mockupPath ? ` and the approved mockup at ${ARGS.mockupPath}` : '') +
       `. Build outside-in, test-first, faithful to the plan contract. ` +
       `Do not invent behavior the plan does not specify. This is attempt ${n + 1}.` +
       // SEPARATION (REQ-F-008/N-001): the eval rubric + checker tests are withheld by design and
@@ -96,21 +106,21 @@ for (let n = 0; ; n++) {
   const verdict = await agent(
     `Act as the eval-check skill (grade only; you did NOT write the code and must not see the ` +
       `dev's reasoning). The FROZEN rubric and authoritative checker tests live OUTSIDE the dev ` +
-      `worktree at ${args.evalDir} — rubric: ${args.evalDir}/rubric.json (must be frozen:true), ` +
-      `tests: ${args.evalDir}/tests/. They are withheld from the dev by design; keep them out of ` +
+      `worktree at ${ARGS.evalDir} — rubric: ${ARGS.evalDir}/rubric.json (must be frozen:true), ` +
+      `tests: ${ARGS.evalDir}/tests/. They are withheld from the dev by design; keep them out of ` +
       `the worktree except for the transient run below. ` +
-      `Use ONLY this exact rubric path — if ${args.evalDir}/rubric.json is missing or not frozen:true, ` +
+      `Use ONLY this exact rubric path — if ${ARGS.evalDir}/rubric.json is missing or not frozen:true, ` +
       `STOP and report an error. Do NOT search for, discover, or fall back to any other eval/rubric ` +
       `directory (e.g. a stale .eval-* from a prior run) — grading the wrong rubric is a false verdict.\n` +
       `To grade attempt ${n + 1}:\n` +
-      `1. Materialize the checker tests so their relative imports resolve: copy ${args.evalDir}/tests/ ` +
-      `into ${args.worktree}/.eval-run/tests/ (same depth as the original .eval/tests, so ../../src resolves).\n` +
-      `2. From ${args.worktree}: run the deterministic items (the copied checker tests under ` +
+      `1. Materialize the checker tests so their relative imports resolve: copy ${ARGS.evalDir}/tests/ ` +
+      `into ${ARGS.worktree}/.eval-run/tests/ (same depth as the original .eval/tests, so ../../src resolves).\n` +
+      `2. From ${ARGS.worktree}: run the deterministic items (the copied checker tests under ` +
       `.eval-run/tests + tsc/build for any lint item); judge the judge items by reading src against the plan. ` +
-      `Redirect noisy output to ${args.worktree}/.eval-run/run.log and read only the relevant lines.\n` +
-      `3. Write results.json, then run the eval-check score-rubric.mjs with ${args.evalDir}/rubric.json ` +
-      `to produce the verdict at ${args.evalDir}/verdict-${n + 1}.json.\n` +
-      `4. CLEAN UP (mandatory): delete ${args.worktree}/.eval-run entirely so NO eval artifact remains ` +
+      `Redirect noisy output to ${ARGS.worktree}/.eval-run/run.log and read only the relevant lines.\n` +
+      `3. Write results.json, then run the eval-check score-rubric.mjs with ${ARGS.evalDir}/rubric.json ` +
+      `to produce the verdict at ${ARGS.evalDir}/verdict-${n + 1}.json.\n` +
+      `4. CLEAN UP (mandatory): delete ${ARGS.worktree}/.eval-run entirely so NO eval artifact remains ` +
       `in the worktree for the next dev attempt. Verify it is gone before returning.\n` +
       `Return {pass, signature, total}.`,
     { label: `eval:attempt-${n + 1}`, phase: 'Eval', schema: VERDICT },
