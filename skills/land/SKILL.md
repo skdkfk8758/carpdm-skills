@@ -1,6 +1,6 @@
 ---
 name: land
-description: Land the open PRs you pushed from worktrees and bring local back in sync — 새 세션에서 머지 가능한 PR 들을 (CI 통과 후 squash 로) 머지하고, 기본 브랜치를 pull 하고, 머지된 로컬 브랜치를 삭제하고, 머지된 워크트리를 제거하고, 랜딩되지 않은 브랜치는 rebase 한다. 아직 PR 이 없는 브랜치(커밋은 쌓였는데 안 올린 상태)면 머지 전에 push + PR 생성부터 한다. 유저가 열린 PR 을 MERGE / LAND 하고 로컬 git 상태를 CLEAN UP 하려 할 때, 또는 작업한 브랜치를 PR 로 올려 머지까지 한 흐름으로 가려 할 때 사용 — "올린 PR들 머지하고 로컬 최신화해줘", "PR 다 머지하고 브랜치/워크트리 정리", "merged 브랜치 prune하고 master 당겨줘", "이 브랜치 PR 올려서 머지까지 해줘", "워크트리 개발 끝났으니 정리", "land my PRs and sync local", "push my branch as a PR and land it" 같은 표현. 특히 forge·hunt·renew·harness 같은 빌드 흐름으로 구현/수정 작업을 막 끝낸 직후 — 유저가 "다 됐어", "작업 끝났어", "구현 완료", "이제 정리하자", "마무리하자", "머지하자", "올려서 머지까지", "PR 올려줘", "브랜치 정리해줘", "ship it", "wrap up", "let's land this" 처럼 작업 마무리를 신호하면 — 명시적으로 'land'·'머지'라는 단어가 없어도 — 이 스킬을 적극적으로 떠올려라(자동 발동을 의도). 머지·브랜치 삭제 같은 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막아 주므로, 트리거는 곧 "읽기전용 상태 발견 + 플랜 제시 + 승인 대기"일 뿐이라 적극적으로 발동해도 안전하다. 단 유저가 아직 구현 중이면(코드를 더 쓰고 있거나, 테스트가 안 끝났거나, PR 을 아직 안 올렸고 올릴 의사도 없으면) 트리거하지 말 것 — 그건 forge/hunt/renew 의 영역이다. PR 이 독립적인지 stacked(한 PR 이 다른 PR 위에 쌓인 것)인지 자동 감지해 올바른 순서로 머지한다. 코드를 작성하거나, 기능을 빌드하거나(forge 사용), 버그를 고치거나(hunt 사용), 미완 작업을 재개/복원(handoff 사용)하는 데에는 사용하지 말 것 — land 는 (필요하면 PR 을 올린 뒤) 머지하고 로컬 트리를 깨끗이 하는 것이지, 그 안의 작업 자체를 다루는 게 아니다. 이 레포(carpdm-skills)의 스킬 변경 배포는 sync.sh 미러가 필요하므로 land 가 아니라 ship 을 쓴다.
+description: Land the open PRs you pushed from worktrees and bring local back in sync — 새 세션에서 머지 가능한 PR 들을 (CI 통과 후 squash 로) 머지하고, 기본 브랜치를 pull 하고, 머지된 로컬 브랜치를 삭제하고, 머지된 워크트리를 제거하고, 랜딩되지 않은 브랜치는 rebase 한다. 아직 PR 이 없는 브랜치(커밋은 쌓였는데 안 올린 상태)면 머지 전에 push + PR 생성부터 한다. 유저가 열린 PR 을 MERGE / LAND 하고 로컬 git 상태를 CLEAN UP 하려 할 때, 또는 작업한 브랜치를 PR 로 올려 머지까지 한 흐름으로 가려 할 때 사용 — "올린 PR들 머지하고 로컬 최신화해줘", "PR 다 머지하고 브랜치/워크트리 정리", "merged 브랜치 prune하고 master 당겨줘", "이 브랜치 PR 올려서 머지까지 해줘", "워크트리 개발 끝났으니 정리", "land my PRs and sync local", "push my branch as a PR and land it" 같은 표현. 특히 forge·hunt·renew·harness 같은 빌드 흐름으로 구현/수정 작업을 막 끝낸 직후 — 유저가 "다 됐어", "작업 끝났어", "구현 완료", "이제 정리하자", "마무리하자", "머지하자", "올려서 머지까지", "PR 올려줘", "브랜치 정리해줘", "ship it", "wrap up", "let's land this" 처럼 작업 마무리를 신호하면 — 명시적으로 'land'·'머지'라는 단어가 없어도 — 이 스킬을 적극적으로 떠올려라(자동 발동을 의도). 머지·브랜치 삭제 같은 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막아 주므로, 트리거는 곧 "읽기전용 상태 발견 + 플랜 제시 + 승인 대기"일 뿐이라 적극적으로 발동해도 안전하다. 단 유저가 아직 구현 중이면(코드를 더 쓰고 있거나, 테스트가 안 끝났거나, PR 을 아직 안 올렸고 올릴 의사도 없으면) 트리거하지 말 것 — 그건 forge/hunt/renew 의 영역이다. PR 이 독립적인지 stacked(한 PR 이 다른 PR 위에 쌓인 것)인지 자동 감지해 올바른 순서로 머지한다. 머지 후 리포트에는 연결된 Linear 이슈 Done 전이에 이어, 같은 팀 스코프의 다음 작업 후보(미착수 Linear 티켓, 방금 unblock 된 것 우선)와 kickoff 가이드까지 붙인다(Linear 미연동이면 조용히 생략). 코드를 작성하거나, 기능을 빌드하거나(forge 사용), 버그를 고치거나(hunt 사용), 미완 작업을 재개/복원(handoff 사용)하는 데에는 사용하지 말 것 — land 는 (필요하면 PR 을 올린 뒤) 머지하고 로컬 트리를 깨끗이 하는 것이지, 그 안의 작업 자체를 다루는 게 아니다. 이 레포(carpdm-skills)의 스킬 변경 배포는 sync.sh 미러가 필요하므로 land 가 아니라 ship 을 쓴다.
 ---
 
 # Land — push 한 PR 을 머지하고 로컬을 안전하게 재동기화
@@ -193,6 +193,25 @@ land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정�
   - 찾은 링크는 클릭 가능하게 — 레포 상대경로(예: `docs/plans/2026-06-29-x.md`)는
     마크다운 링크로, 이슈/PR 은 전체 URL 로. **없으면 생략한다 — 추측해 만들어내지 말 것.**
 
+**다음 작업 후보 수집 (Linear, graceful).** 랜딩 직후는 유저가 다음 티켓을 고르는
+자연스러운 시점이다 — report 가 "무엇이 실렸나"에서 끝나지 않고 "다음은 무엇인가"까지
+답하면 유저가 Linear 를 따로 열 필요가 없다. 조건은 5 단계 Done 전이와 같은 graceful
+정책: **Linear MCP 사용 가능 + 현재 repo 가 `~/.claude/linear-repo-map.json` 에 매핑**
+(linear-dispatch 룰의 repo→team 역매핑)일 때만 수집하고, 아니면 **묻지 말고 섹션 통째
+생략**한다 — 다음 작업 가이드는 부가 정보라 land 의 본업(머지/정리)을 막지 않는다.
+
+- **스코프**: 역매핑으로 잡은 team(projectException 매칭이면 그 project)의 **미착수
+  이슈만** 조회한다 — `list_issues` 를 state type unstarted/backlog 로. 전 워크스페이스
+  긁기 금지(linear-dispatch 룰 그대로).
+- **후보 선별(최대 3건)**: ① 이번 land 로 Done 된 이슈가 block 하고 있던 이슈 —
+  방금 풀렸으므로 최우선 ② 나머지는 priority 높은 순. 미착수 이슈가 0건이면
+  "미착수 이슈 없음" 한 줄로 답한다(섹션 생략과 다르다 — 조회는 됐고 결과가 빈 것).
+- **후보마다 kickoff 가이드 1줄**: 이슈 본문에 `## 추천` 섹션(linear-register 산출)이
+  있으면 그 라우팅을 요약해 쓰고, 없으면 기본으로 `linear-goal <ID>` 를 제안한다.
+  harness-class 신호(estimate≥5·cross-cutting·전면개편)면 대신 `harness-run` 을 언급.
+- 미착수가 많아 순서·병렬 판단 자체가 필요해 보이면 후보 나열 대신 `linear-prioritize`
+  한 줄 권고로 갈음한다 — 스프린트 플래닝을 여기서 재구현하지 않는다.
+
 포맷은 **카드형** — 맨 위 한눈 요약, 그 아래 PR 카드, 마지막에 휘발성 sync. 영속
 changelog(Landed)를 시각적으로 1순위에, 운영 정리(Local sync)를 부차로 둔다. 머지 건수에
 따라 두 형태로 graceful 하게 줄인다.
@@ -218,6 +237,10 @@ changelog(Landed)를 시각적으로 1순위에, 운영 정리(Local sync)를 �
 
 ## Local sync
 develop `→ <sha>` · 워크트리 [stoic-wu] 제거 · [refactor-auth] rebase
+
+## 다음 작업
+→ [ADT-35](이슈 전체 URL) P1 · rate-limit 대시보드 — ADT-33 Done 으로 unblock. `linear-goal ADT-35`
+→ [ADT-38](이슈 전체 URL) P2 · 감사 로그 뷰어 — 추천: forge (이슈 `## 추천` 인용)
 ```
 
 **단일 PR** — 요약 헤더·구분선·섹션 헤딩 생략, 카드 1개 + sync 1줄로 압축:
@@ -228,6 +251,7 @@ NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-por
 ↳ [plan](docs/plans/2026-06-29-makefile-next.md) · ADT-33
 
 🔧 develop `→ <sha>` · 워크트리 정리
+→ 다음: [AUT-31](이슈 전체 URL) P1 refresh token rotation — `linear-goal AUT-31`
 ```
 
 포맷 규칙:
@@ -239,7 +263,10 @@ NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-por
 - **카드 헤더** = `▸ [#N](url) · <type(scope)>` — PR 은 전체 URL 링크, type/scope 는 커밋
   제목에서. **한 일**은 헤더 아래 2칸 들여쓰기 `·` 구분 1~2줄. **설계·이슈 링크**는 `↳`
   줄로 분리(없으면 `↳` 줄 통째 생략 — 추측 금지, 위 수집 규칙 그대로).
-- **글리프 고정**: 🚢 Landed · ⏭ Skipped · 🔧 Local/Synced. 그 외 이모지 남발 금지(노이즈).
+- **글리프 고정**: 🚢 Landed · ⏭ Skipped · 🔧 Local/Synced · 다음 작업 줄은 plain `→`.
+  그 외 이모지 남발 금지(노이즈).
+- **다음 작업 줄** = `→ [ID](url) P<n> · <제목> — <kickoff 가이드>`. unblock 근거가 있으면
+  가이드 앞에 붙인다. 섹션 자체는 수집 조건 미충족 시 통째 생략(위 graceful 규칙).
 
 미완 항목(conflict 로 멈춘 rebase, 막혀서 제외된 PR)은 `## Skipped` 또는 별도 `## ⚠ 미완`
 섹션에 명시해 아무것도 조용히 빠져나가지 않게 할 것.
@@ -247,7 +274,8 @@ NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-por
 마지막 메시지는 `result:` 한 줄로 못 박는다(`~/.claude/skills/craft-core/references/output-contract.md`
 L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 머지/정리 수치를 담되 self-contained 로
 (예: `result: N개 PR 머지 — 로컬 <default> 동기화, M개 브랜치/워크트리 정리, K개 rebase`).
-산출물이 git 상태 변화라 열기 블록(L2)·다음 스킬 제안(L3)은 적용 안 한다. conflict 로
+산출물이 git 상태 변화라 열기 블록(L2)은 적용 안 하고, 다음 스킬 제안(L3)은 별도로
+내지 않는다 — `## 다음 작업` 섹션(Linear 후보 + kickoff)이 그 역할을 대신한다. conflict 로
 멈춘 rebase 가 있으면 `result:` 가 아니라 진행 상태로 보고한다(미납품).
 
 ## 이 스킬이 틀린 선택일 때
