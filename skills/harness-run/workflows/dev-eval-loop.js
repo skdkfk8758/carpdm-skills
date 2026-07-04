@@ -77,9 +77,9 @@ for (let n = 0; ; n++) {
   phase('Dev')
   // DEV — single agent. Sees plan + mockup only (NOT the rubric). forge is NOT used here
   // (it is an orchestrated, human-gated pipeline; running it would nest + break autonomy).
-  // args.devOverlay = project-local self-heal overlay (rules/harness-overlays/dev.md),
+  // ARGS.devOverlay = project-local self-heal overlay (rules/harness-overlays/dev.md),
   // read by harness-run (Workflow has no fs) and injected here so C4 improvements actually bite.
-  const overlay = args.devOverlay ? `Project dev guidance (self-heal overlay) — follow it:\n${args.devOverlay}\n\n` : ''
+  const overlay = ARGS.devOverlay ? `Project dev guidance (self-heal overlay) — follow it:\n${ARGS.devOverlay}\n\n` : ''
   await agent(
     overlay +
       `Implement the change for this worktree strictly per the approved plan. ` +
