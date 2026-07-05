@@ -71,6 +71,21 @@ description: 루프엔지니어링 하니스 오케스트레이터 — 한 이�
 - 최신 pass → `pass` · 동일 signature 2연속 → `short-circuit`(조기) · 시도 ≥ 1+maxRetries(2) → `short-circuit`(cap) · 그 외 `retry`.
 - dev-eval-loop Workflow 는 이 로직을 inline 미러(Workflow 는 import 불가 — 동기 유지).
 
+## Task 진행 체크리스트 (컨벤션)
+
+G0 에서 slug 확정 직후, 네이티브 Task 도구(`TaskCreate`)로 게이트 흐름을 페이즈
+체크리스트로 시드한다 — 사용자가 대화턴에서 진행을 따라가는 표시다. 항목은 위
+9단계 표의 행과 동형, **게이트 라벨 유지**:
+
+`G0 — 이슈 intake` · `워크트리 분기 + 검증` · `② deep-plan + eval-generate` ·
+`G1 — 플랜·시안·rubric 승인 + freeze + eval 격리` · `③④ dev+eval Workflow 루프` ·
+`분기 — G3 land / G2 heal` · (마이그 포함 시) `G4 — prod 마이그`.
+
+- 각 단계 진입 시 `TaskUpdate` `in_progress`, 완료 시 `completed` — 경계마다 빠짐없이.
+  종료 시(pass/short-circuit) 전 항목이 닫혀 있어야 한다.
+- ③④ Workflow 구간은 단일 항목을 in_progress 로 유지한다 — 내부 진행은
+  `dev-eval-loop.js` 의 `phase()`/`log()` 진행트리가 담당(메인 루프 잠듦, Task 세분 금지).
+
 ## loop 로그 기록 (컨벤션)
 
 종료 시(pass/short-circuit) **오늘 날짜 파일** `loop/log/YYYY-MM-DD.md` 에 한 엔트리 append(없으면 H1=날짜로 생성) — 포맷은 `loop/log/README.md` 참조.

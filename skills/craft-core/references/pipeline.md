@@ -44,6 +44,25 @@ team-mode + Workflow 토폴로지로 다섯 phase 를 구동한다. phase
 변하지 않는다 — 실행 구조만 다르다. 한 가지 모델 변경:
 orchestrated 빌드는 **sonnet** 에서 돈다 (아래 linear Phase 3 은 opus 에서 돈다).
 
+## Task 진행 체크리스트 (전 phase 공통 — 항상)
+
+파이프라인이 돌기 시작하면 사용자가 대화턴에서 진행을 따라갈 수 있도록, **Phase 0
+진입 직후** 네이티브 Task 도구로 페이즈 체크리스트를 시드한다. (Phase 1 의 HTML
+eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 그림이고, 이것은 세션
+진행 표시다.)
+
+- **생성** — `TaskCreate` 로 Phase 0~5 를 항목당 1페이즈로 시드한다(기본 5~10 항목,
+  세분 포함 15 미만). 항목 텍스트는 self-contained 하게(예: "Phase 2 — codex 적대
+  플랜 리뷰").
+- **전이** — 각 페이즈 진입 시 `TaskUpdate` 로 `in_progress`, 그 페이즈의 verify 가
+  닫힐 때 `completed`. 페이즈 경계마다 빠짐없이 — wrap 시점엔 전 항목 completed.
+- **긴 페이즈(Workflow 한 방 구간 — Phase 3 등)** — 내부 진행을 Task 로 세분하지
+  않는다(Workflow 실행 중 메인 루프가 잠들어 갱신 불가). 해당 페이즈 항목 하나를
+  in_progress 로 유지하고, 대신 Workflow 스크립트의 `phase()`/`log()` 를 충실히
+  작성해 진행트리가 그 구간의 라이브 표시를 담당하게 한다.
+- 10분을 넘길 것으로 예상되는 페이즈 중 **메인 루프가 경계를 직접 제어하는** 것만
+  내부 스텝 항목으로 쪼갤 수 있다.
+
 ## Phase 0 — Frame & isolate
 
 - 작업유형과 한 줄 목표를 사용자에게 되짚어준다.

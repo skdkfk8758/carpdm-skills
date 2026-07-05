@@ -40,8 +40,12 @@ critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애
 
 ## 워크플로 — 4 페이즈, 순서대로
 
-진입 시 `TodoWrite` 로 4페이즈를 시드한다(Phase 4 는 **동기 spawn** + **비동기 In Review**
-두 항목). Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤에만.
+진입 시 네이티브 Task 도구(`TaskCreate`)로 4페이즈 체크리스트를 시드한다(Phase 4 는
+**동기 spawn** + **비동기 In Review** 두 항목). 각 페이즈 진입 시 `TaskUpdate`
+`in_progress`, 완료 시 `completed` — 경계마다 빠짐없이(대화턴 진행 표시). worker
+백그라운드 구간은 "비동기 In Review" 항목 하나를 in_progress 로 유지하고 완료
+notification 턴에서 닫는다(그동안 Task 세분 금지 — 메인 루프가 갱신 못 한다).
+Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤에만.
 
 ### Phase 1 — Intake (티켓 확보)
 
