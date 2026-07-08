@@ -80,6 +80,17 @@ CI 를 따로 기다리지 않는다.
 
 ### 1. Discover — 실제 상태 파악, 가정하지 말 것
 
+**Preflight — 진행 불가 조건을 먼저 판정한다 (조용한 stall 금지).** 실측 통증:
+remote 부재·예상외 브랜치 상태로 land 가 조용히 멈춰, 완성된 작업이 로컬
+브랜치에만 남았다.
+
+- `git remote -v` 가 비어 있으면 PR 흐름 자체가 불가 — 추측·재시도 없이 **즉시
+  blocker 로 보고**하고 멈춘다(백그라운드 잡이면 `needs input:` 으로 "remote 없음
+  — origin 설정 필요"). 부분 진행(로컬 정리만) 을 임의로 대체 실행하지 않는다.
+- 메인 워크트리가 기본 브랜치 위가 아니면(다른 브랜치/detached) 그 사실을 플랜에
+  명시한다. dirty 상태이기까지 하면 5 단계 pull 이 불가하므로 멈추고 보고 —
+  절대 stash/reset 으로 임의 해소하지 말 것.
+
 다음(읽기 전용)을 실행해 무엇이든 건드리기 전에 그림을 그려라:
 
 - `gh pr list --author @me --state open --json number,title,headRefName,baseRefName,isDraft,mergeable,mergeStateStatus,statusCheckRollup`
@@ -270,6 +281,16 @@ NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-por
 
 미완 항목(conflict 로 멈춘 rebase, 막혀서 제외된 PR)은 `## Skipped` 또는 별도 `## ⚠ 미완`
 섹션에 명시해 아무것도 조용히 빠져나가지 않게 할 것.
+
+**마이그레이션 포함 PR 플래그 (해당 시 필수).** 머지된 PR 의 변경 파일
+(`gh pr view <n> --json files`)에 DB 마이그레이션(`migrations/` 경로,
+`*.up.sql`/`*.down.sql`)이 있으면 report 에 `## ⚠ 마이그레이션` 섹션을 넣는다 —
+**머지 ≠ DB 적용**이다(운영 apply 는 slow-lane 수동, `orm-stack.md` §slow-lane /
+`branch-worktree-strategy.md` §6b). 마이그 파일 목록과 함께 "prod 미적용 —
+apply 후 `information_schema` 실객체 조회로 applied 검증 필요(exit 0 은 증거
+아님, verification-safety V3)" 를 명시한다. land 가 apply 를 대신 실행하지는
+않는다(온프레미스 배포는 사용자 직접 관리). 마이그 PR 을 이 섹션 없이 조용히
+landed 로만 보고하지 말 것.
 
 마지막 메시지는 `result:` 한 줄로 못 박는다(`~/.claude/skills/craft-core/references/output-contract.md`
 L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 머지/정리 수치를 담되 self-contained 로
