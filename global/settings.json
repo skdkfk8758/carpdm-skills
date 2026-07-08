@@ -5,6 +5,8 @@
   },
   "permissions": {
     "allow": [
+      "mcp__linear__save_comment",
+      "mcp__linear__save_issue",
       "Bash(node:*)",
       "Bash(npm view:*)",
       "Bash(test:*)",
@@ -44,7 +46,22 @@
       "Bash(ssh -o ConnectTimeout=* 4090_2WAY:*)",
       "Bash(ssh -o ConnectTimeout=* 4090_4WAY:*)",
       "Bash(ssh -o ConnectTimeout=* 4090_1WAY:*)",
-      "Bash(ssh -o ConnectTimeout=* hermes:*)"
+      "Bash(ssh -o ConnectTimeout=* hermes:*)",
+      "mcp__linear-intelligence__save_issue",
+      "mcp__linear-intelligence__save_comment",
+      "mcp__linear__list_teams",
+      "mcp__linear__list_issues",
+      "mcp__linear__get_issue",
+      "mcp__linear__get_team",
+      "mcp__linear__list_issue_statuses",
+      "mcp__linear__list_comments",
+      "Read(//Users/carpdm/.claude/linear-repo-map.json)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh repo view:*)",
+      "Read(//Users/carpdm/.claude/skills/**)"
     ],
     "defaultMode": "auto"
   },
@@ -79,6 +96,26 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "mcp__linear__save_issue",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-linear-register-nudge.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -104,6 +141,26 @@
             "type": "command",
             "command": "bash ~/.claude/hooks/guards/guard-linear-state-nudge.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-acceptance-criteria-nudge.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-verify-swallow.sh",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "timeout": 10
           }
         ]
       }
@@ -116,6 +173,63 @@
             "command": "bash ~/.claude/hooks/caveman-session-start.sh",
             "timeout": 5,
             "statusMessage": "Loading caveman mode..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "timeout": 10
           }
         ]
       }
@@ -132,9 +246,9 @@
   "enabledPlugins": {
     "codex@openai-codex": true,
     "skill-creator@claude-plugins-official": true,
-    "understand-anything@understand-anything": true,
+    "understand-anything@understand-anything": false,
     "claude-md-management@claude-plugins-official": true,
-    "warp@claude-code-warp": true
+    "typescript-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "understand-anything": {
@@ -153,9 +267,18 @@
   "language": "korean",
   "effortLevel": "high",
   "tui": "default",
+  "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
   "preferredNotifChannel": "auto",
   "remoteControlAtStartup": true,
   "inputNeededNotifEnabled": true,
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "autoMode": {
+    "environment": [
+      "$defaults",
+      "Source control: github.com/Team-DrafType (private org repos)",
+      "Trusted SSH hosts (developer-owned infra): hermes, 4090_1WAY, 4090_2WAY, 4090_4WAY, gcp-nginx",
+      "Hermes ingest/analyze daemon endpoints referenced via HERMES_INGEST_URL"
+    ]
+  }
 }
