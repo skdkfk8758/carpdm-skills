@@ -10,6 +10,7 @@
 |---|---|
 | `global/rules/*.md` | `~/.claude/rules/*.md` |
 | `global/hooks/guards/*.sh` | `~/.claude/hooks/guards/*.sh` |
+| `global/scripts/*.sh` | `~/.claude/scripts/*.sh` |
 | `global/settings.json` | `~/.claude/settings.json` |
 
 ## 규칙
