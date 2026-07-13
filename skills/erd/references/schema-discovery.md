@@ -94,6 +94,45 @@ key_column_usage` 에서 `referenced_table_name IS NOT NULL` 로, ON DELETE 규�
 → `schema.prisma` 재생성 후 소스 2 로 읽기, Django `python manage.py inspectdb`,
 Rails `rails db:schema:dump` → `db/schema.rb`. introspection 결과 산출물을 소스로 다시 읽는다.
 
+### 0b. 적재량·샘플 데이터 수집 (라이브 DB 일 때 — 데이터 탭 채우기)
+
+ERD 의 데이터 탭은 테이블별 **적재량(row count)** 과 **마스킹된 샘플 rows** 를 보여준다.
+DB 접속이 안 되면 수집하지 않고 `rows:null`/`sample:null` 로 둔다(템플릿이 "적재 정보
+없음" 을 자동 표시).
+
+**적재량 — 통계 추정치가 기본.** 대형 테이블 `count(*)` 는 풀스캔이라 느리고 DB 에
+부담을 준다. 전 테이블을 쿼리 한 방으로:
+
+```sql
+-- PostgreSQL: 통계 기반 추정 (ANALYZE 이후 값 — rowsExact:false)
+SELECT c.relname AS table_name, c.reltuples::bigint AS approx_rows
+FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+WHERE n.nspname='public' AND c.relkind='r' ORDER BY c.relname;
+```
+
+- MySQL: `SELECT table_name, table_rows FROM information_schema.tables WHERE table_schema=DATABASE();` (추정).
+- SQLite: 파일 로컬이라 `SELECT count(*)` 가 안전 — `rowsExact:true`.
+- `reltuples` 가 `-1`/`0` 인데 실데이터 의심(통계 미수집)이면 그 테이블만
+  `SELECT count(*)` 폴백 — 단 대형 의심 테이블(격자·로그류 이름)은 추정 `-1`→`null` 로
+  두고 footer 에 한계 명시.
+- 정확값이 필요하고 테이블이 작다고 확인된 경우만 `count(*)` → `rowsExact:true`.
+
+**샘플 — 테이블별 `LIMIT 5`.** `SELECT * FROM <t> LIMIT 5;` (정렬 불요 — 임의 5행이면
+충분). 컬럼이 아주 많은 테이블(30+)은 대표 컬럼 ~10개로 줄여도 된다(PK·FK·도메인 핵심
+우선). 수집한 값은 **템플릿에 넣기 전에** 아래 규칙으로 가공한다:
+
+| 대상 | 처리 |
+|---|---|
+| **PII 성 컬럼** — 컬럼명이 `email`/`name`/`phone`/`tel`/`mobile`/`address`/`birth`/`ssn`/`password`/`token`/`secret`/`api_key`/`salt` 류 패턴에 걸리면 | 부분 마스킹: `carpdm@draftype.net`→`c***@d***.net`, 이름→첫 글자+`**`, 전화→`010-****-**34`. password/token/secret/key 류는 값 전체를 `<마스킹됨>` |
+| 긴 텍스트 (60자+) | 앞 57자 + `…` 로 절단 |
+| geometry/bytea/blob | `<geometry>`/`<binary>` placeholder |
+| JSON 대형 | 최상위 키만 `{a, b, …}` 요약 |
+| NULL | `null` 그대로 (템플릿이 `∅` 렌더) |
+
+마스킹은 **수집 직후, DATA 작성 전**에 한다 — Artifact 는 claude.ai 에 호스팅되므로
+원본 PII 가 산출물에 실리면 안 된다. 컬럼명 패턴으로 못 잡는 PII(자유 텍스트 안 실명
+등)가 보이면 그 값도 마스킹하고, 애매하면 마스킹 쪽으로 기운다.
+
 ### 라이브 DB 의 한계 (코드 병행 필요)
 
 introspection 은 **DB 가 강제하는 것만** 보여준다:
@@ -171,19 +210,24 @@ hier 로 시각 분리하면 그림이 읽힌다. 구분이 안 서면 전부 `f
 
 엔진은 테이블 위치를 받아 wire 만 자동으로 그린다. 위치는 손으로 정한다:
 
-- 카드 폭 228px 고정, 높이는 컬럼 수에 따라 가변. **카드 간 가로 ≥ 280px, 세로 ≥
-  150px 간격**을 둬 wire 와 라벨이 겹치지 않게.
+- 카드 폭 250px 고정, 높이는 컬럼 수에 따라 가변(카드당 최대 30컬럼 표시 — 초과분은
+  템플릿이 자동으로 접는다). **카드 간 가로 ≥ 300px, 세로 ≥ 150px 간격**을 둬 wire 와
+  라벨이 겹치지 않게.
 - **hub 를 중앙**에, 참조하는 테이블들을 주변에 그룹별로 군집. 같은 도메인 그룹
-  (lookup / entitlement / hierarchy 등)은 한 영역에 모으고 `grp-label` 한 줄을 위에 둔다.
+  (lookup / entitlement / hierarchy 등)은 한 영역에 모으고 `grp-label` 한 줄(한글)을
+  위에 둔다.
 - `.stage` 의 `{{STAGE_W}}`/`{{STAGE_H}}` 를 모든 카드를 감싸도록 설정(가장 오른쪽
-  카드 left+228+여백, 가장 아래 카드 top+높이+여백). 너무 작으면 잘리고, 너무 크면 빈
+  카드 left+250+여백, 가장 아래 카드 top+높이+여백). 너무 작으면 잘리고, 너무 크면 빈
   공간이 휑하다.
-- 테이블이 ~12개 넘어 한 화면이 빡빡하면 보조 테이블 군을 "persona_* 트리 (10 tables)"
-  처럼 **한 카드로 접어** 대표 나열한다(참고 ERD 의 `persona_tree` 패턴).
+- **전체 스키마를 그리는 게 기본**이다 — 클릭 포커스·검색이 탐색을 담당하므로 미리
+  접거나 좁히지 않는다. 컬럼이 아주 많은 테이블은 카드 30컬럼 접기가 밀도를 지켜준다.
+  40+ 테이블 초대형만 사용자와 범위(도메인 분할)를 협의한다.
 
-## 검증 (그린 뒤)
+## 검증 (그린 뒤, 게시 전)
 
-- 모든 `EDGES` 의 from/to id 가 실제 `.tbl` id(`t_<name>`)와 일치하는가 — 오타 한 글자면
-  그 wire 가 안 그려진다.
-- 브라우저로 열어 wire 가 카드를 관통하거나 라벨이 겹치면 위치를 조정(엔진 재실행 자동).
+- 모든 `DATA.edges` 의 from/to 가 `DATA.tables[].id` 와 일치하는가 — 오타 한 글자면
+  그 wire 와 포커스 이웃 판정이 조용히 빠진다. grep 등으로 기계 대조한다.
+- 샘플 데이터에 마스킹 누락 PII 가 없는가 — email/이름/전화/토큰 패턴 재확인.
+- 가능하면 게시 전 소스 파일을 브라우저로 열어 wire 가 카드를 관통하거나 라벨이 겹치면
+  위치를 조정하고, 카드 클릭→포커스·패널·탭 전환이 도는지 확인한다.
 - 추측으로 그린 컬럼/관계가 있으면 footer 에 명시. SSOT 가 운영DB 면 그 사실을 적는다.

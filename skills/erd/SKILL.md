@@ -1,23 +1,33 @@
 ---
 name: erd
-description: DB 스키마(라이브 DB 접속·마이그레이션·ORM 모델·repository 코드·산문·PLAN 문서)를 입력으로 받아, dbdiagram 풍 테이블 카드(컬럼명·데이터 타입·PK 열쇠/FK 링크/코멘트 아이콘·NN/UQ pill) + SVG 로 자동 라우팅되는 관계선(실 FK / 위계 FK / deprecated / soft 참조 4종 색 구분 + crow's foot)을 갖춘 self-contained HTML ERD(엔티티 관계도)를 그린다. 외부 asset 없이 브라우저에서 바로 열리는 단일 파일. 접속 정보(.env DATABASE_URL·docker-compose·프레임워크 설정)가 있거나 사용자가 connection string 을 주면 실제 DB 에 읽기 전용으로 붙어 information_schema 를 introspection 해 현재 운영 스키마 그대로 그린다(접속 전 확인, credential 비노출, 쓰기·DDL 금지). 사용자가 DB 스키마·테이블 관계·엔티티 관계를 그림으로 보고 싶어 하거나, ERD/관계도/스키마 다이어그램/DB 구조도를 HTML 로 그려 달라고 할 때마다 사용한다 — "이 마이그레이션으로 ERD 그려줘", "DB 스키마 관계도 HTML 로", "실제 DB 접속해서 ERD 그려줘", "운영 DB 스키마 보고 관계도", "DB 접속정보로 스키마 읽어서 그려줘", "테이블 관계 시각화", "엔티티 관계도 만들어줘", "스키마 다이어그램 뽑아줘", "DB 구조 그림으로 보여줘", "draw an ERD", "/erd" 같은 표현. 마이그레이션 디렉토리나 모델 파일을 가리키며 "이거 관계 어떻게 돼 있어 그림으로" 라고 해도 마찬가지다. 코드를 빌드/수정(use forge/renew/hunt)하거나, 추출된 디자인 시스템을 재현(use imprint)하거나, 일반 UI 를 창작(use frontend-design)하는 데는 사용하지 말 것 — erd 는 스키마를 도식으로 그릴 뿐 마이그레이션을 작성하거나 DB 를 바꾸지 않는다.
+description: DB 스키마(라이브 DB 접속·마이그레이션·ORM 모델·repository 코드·산문·PLAN 문서)를 입력으로 받아, 인터랙티브 ERD(엔티티 관계도)를 Claude Artifact(캔버스)로 게시한다. dbdiagram 풍 테이블 카드(컬럼·타입·PK/FK 아이콘·NN/UQ pill + 적재량 배지) + SVG 자동 라우팅 관계선(실 FK/위계/deprecated/soft 4종 + crow's foot)에, 테이블 클릭 시 연결된 테이블만 하이라이트하는 포커스 모드와 우측 상세 패널(구조 탭=전체 컬럼·제약·관계, 데이터 탭=적재량·마스킹된 샘플 rows), 테이블 검색까지 갖춘 단일 self-contained 페이지다. 접속 정보(.env DATABASE_URL·docker-compose·프레임워크 설정)가 있거나 사용자가 connection string 을 주면 실제 DB 에 읽기 전용으로 붙어 information_schema introspection + 테이블별 적재량·샘플(PII 마스킹)을 수집해 현재 운영 스키마 그대로 그린다(접속 전 확인, credential 비노출, 쓰기·DDL 금지). 사용자가 DB 스키마·테이블 관계·엔티티 관계를 그림으로 보고 싶어 하거나, ERD/관계도/스키마 다이어그램/DB 구조도를 그려 달라고 할 때마다 사용한다 — "이 마이그레이션으로 ERD 그려줘", "DB 스키마 관계도", "실제 DB 접속해서 ERD 그려줘", "운영 DB 스키마 보고 관계도", "테이블 관계 시각화", "엔티티 관계도 만들어줘", "스키마 다이어그램 뽑아줘", "DB 구조 그림으로 보여줘", "테이블 데이터도 같이 보여줘", "draw an ERD", "/erd" 같은 표현. 마이그레이션 디렉토리나 모델 파일을 가리키며 "이거 관계 어떻게 돼 있어 그림으로" 라고 해도 마찬가지다. 코드를 빌드/수정(use forge/renew/hunt)하거나, 추출된 디자인 시스템을 재현(use imprint)하거나, 일반 UI 를 창작(use frontend-design)하는 데는 사용하지 말 것 — erd 는 스키마를 도식으로 그릴 뿐 마이그레이션을 작성하거나 DB 를 바꾸지 않는다.
 ---
 
-# ERD — DB 스키마를 self-contained HTML 관계도로
+# ERD — DB 스키마를 인터랙티브 Artifact 관계도로
 
-DB 스키마를 받아 한 파일짜리 HTML ERD 를 그린다. 산출물은 외부 의존 없이 브라우저에서
-바로 열리는 `.html` 하나 — 테이블은 컬럼명·타입·아이콘이 달린 dbdiagram 풍 카드, 관계는
-SVG 로 자동 라우팅되는 베지어 곡선(4종 색 + crow's foot)이다. **스키마를 그리지, 스키마를
-바꾸지 않는다** — 마이그레이션 작성·DB 변경은 이 스킬의 일이 아니다.
+DB 스키마를 받아 **Claude Artifact(캔버스)로 게시되는 인터랙티브 ERD** 를 그린다.
+처음 보는 개발자가 열어서 바로 이해하는 게 품질 기준이다:
 
-핵심 자산은 `assets/erd-template.html` 이다. 토큰 CSS·아이콘(mask)·**SVG wire 엔진(베지어
-라우팅 + crow's foot 글리프)** 은 검증된 채로 들어 있어 매번 다시 짜지 않는다 — 당신이
-채우는 건 테이블 카드·`EDGES` 배열·그룹 라벨·레이아웃뿐이다. 베지어/글리프를 손으로 다시
-쓰면 미묘하게 틀어진다; 엔진은 verbatim 으로 보존한다.
+- **다이어그램** — dbdiagram 풍 테이블 카드(전 컬럼 + PK/FK 아이콘 + NN/UQ pill +
+  헤더 적재량 배지) + SVG 자동 라우팅 관계선(4종 색 + crow's foot).
+- **클릭 포커스** — 테이블 클릭 시 그 테이블·연결선·1홉 이웃만 선명, 나머지 dim.
+  배경 클릭/ESC 로 해제.
+- **상세 패널** — 클릭 시 우측 슬라이드 패널. 탭 [구조]=전체 컬럼·제약·관계 목록
+  (관계의 테이블명 클릭 → 그쪽으로 포커스 점프), [데이터]=적재량 + 마스킹된 샘플 rows.
+- **검색** — 헤더 검색창, Enter 로 매칭 테이블에 포커스 + 스크롤 이동.
+- **테마** — Artifact 뷰어의 라이트/다크를 자동 추종.
+
+**스키마를 그리지, 스키마를 바꾸지 않는다** — 마이그레이션 작성·DB 변경은 이 스킬의
+일이 아니다.
+
+핵심 자산은 `assets/erd-template.html` 이다. 토큰 CSS(라이트/다크)·아이콘·**SVG wire
+엔진 + 포커스/패널/검색 인터랙션**은 검증된 채로 들어 있어 매번 다시 짜지 않는다 —
+당신이 채우는 건 `DATA` 객체(tables/edges)·그룹 라벨·레이아웃 좌표뿐이다. 엔진 JS 를
+손으로 다시 쓰면 미묘하게 틀어진다; verbatim 으로 보존한다.
 
 ## 흐름
 
-### Step 1 — 스키마 재구성 (추측 금지)
+### Step 1 — 스키마 재구성 + 적재 데이터 수집 (추측 금지)
 
 입력 소스에서 테이블·컬럼·관계를 실제로 확인한다 — `~/.claude/skills/erd/references/schema-discovery.md`
 를 Read 해 소스별(**라이브 DB introspection** / 마이그레이션 / ORM 모델 / repository 코드
@@ -26,110 +36,126 @@ SVG 로 자동 라우팅되는 베지어 곡선(4종 색 + crow's foot)이다. *
 
 **라이브 DB 가 가능하면 그게 SSOT 다.** 코드베이스에 접속 정보(`.env` `DATABASE_URL`,
 docker-compose, 프레임워크 설정)가 있거나 사용자가 connection string 을 주면, 실제 DB 에
-붙어 `information_schema`/카탈로그를 **읽기 전용**으로 introspection 해 현재 운영 스키마
-그대로를 얻는다(마이그레이션 drift 없음). 단:
+붙어 **읽기 전용**으로 다음을 수집한다:
 
+1. **스키마** — `information_schema`/카탈로그 introspection (테이블·컬럼·PK/UQ/FK).
+2. **적재량** — 테이블별 row count. 통계 기반 추정치가 기본(대형 테이블 count(\*) 는
+   느리고 DB 에 부담), 정확/추정 여부를 `rowsExact` 로 구분해 담는다.
+3. **샘플 데이터** — 테이블별 `LIMIT 5`. **PII 성 컬럼은 수집 직후 마스킹**하고,
+   마스킹 완료된 값만 `DATA.sample` 에 넣는다 — 원본 값이 Artifact 에 실리면 안 된다.
+   수집 쿼리·마스킹 규칙은 schema-discovery.md §0b.
+
+안전 수칙 (어기면 사고):
 - **읽기 전용만** — introspection SELECT/`SHOW`/`PRAGMA`/`db pull`. 쓰기·DDL 절대 금지.
 - **접속 전 확인** — host 가 localhost 가 아니거나 이름에 `prod`/`live` 가 보이면 운영
   DB 로 간주하고 접속 전 사용자에게 명시 확인. 로컬/replica/스테이징을 우선 권한다.
 - **credential 비노출** — 비번·전체 connection string 을 출력·footer 에 찍지 않는다.
 - **한계** — introspection 은 강제된 FK 만 본다. soft 참조·deprecated 는 안 잡히므로
-  코드 소스를 병행한다. 상세 쿼리·안전수칙은 schema-discovery.md §0.
+  코드 소스를 병행한다.
 
-scope 가 큰 스키마(테이블 20+)면 사용자에게 **무엇을 중심으로** 그릴지 먼저 확인한다 —
-전부 그리면 읽히지 않는다. 중심 hub + 직접 관계 1홉이 보통 맞다.
+**DB 접속이 불가한 정적 소스(마이그레이션·ORM)만 있을 때**도 데이터 탭은 유지한다 —
+`rows: null`, `sample: null` 로 두면 템플릿이 "적재 정보 없음 — 정적 소스 기반" 안내를
+자동 표시한다. 데이터 탭을 빼거나 UI 를 바꾸지 않는다(생성물 간 일관성).
 
-### Step 2 — 템플릿 채우기
+**렌더 범위는 전체 스키마가 기본이다** — 클릭 포커스·검색이 탐색을 담당하므로 현행
+중심+1홉으로 미리 좁히지 않는다. 단 **40+ 테이블 초대형**이면 사용자에게 범위(도메인
+단위 분할 등)를 먼저 확인한다 — 좌표 손배치가 그 규모에선 품질을 잃는다.
 
-`assets/erd-template.html` 를 산출 경로로 복사한 뒤 placeholder 6개를 채운다. CSS 토큰·
-아이콘(mask)·`<script>` 엔진(베지어 라우팅 + crow's foot 글리프)은 **건드리지 않는다**.
+### Step 2 — 템플릿 채우기 (DATA 객체)
 
-placeholder 를 실제 내용으로 바꾸면서, 각 placeholder **위의 작성 안내 주석 블록**
-(`<!-- ===== TABLES — ... -->`, `<!-- ===== GROUP LABELS — ... -->`, `<!-- ===== NOTES
-... -->` 같은 가이드)은 **결과물에서 제거**한다 — 그건 작성자용 비계이지 전달물의
-일부가 아니다. 산출 ERD 에는 아래 "결과물 주석" 규칙대로 쓴 **실제 한글 섹션 주석만**
-남긴다.
+`assets/erd-template.html` 를 산출 경로로 복사한 뒤 placeholder 를 채운다. CSS 토큰·
+`<script>` 엔진(렌더·wire·포커스·패널·검색)은 **건드리지 않는다**. 카드 HTML 을 손으로
+쓰지 않는다 — 카드·패널 모두 `DATA` 객체에서 스크립트가 생성한다.
 
 | placeholder | 채울 것 |
 |---|---|
-| `{{TITLE}}` / `{{HEADER_H1}}` / `{{HEADER_SUB}}` | 문서 제목·헤더 제목(중심 테이블 `<b>` 강조)·한 줄 부제(출처 경로 포함) |
+| `{{TITLE}}` / `{{HEADER_H1}}` / `{{HEADER_SUB}}` | 문서 제목·헤더 제목(중심 테이블 `<b>` 강조)·한 줄 부제(출처 포함) |
 | `{{STAGE_W}}` / `{{STAGE_H}}` | 모든 카드를 감싸는 stage 픽셀 크기 (schema-discovery 레이아웃 기준) |
-| `{{GROUP_LABELS}}` | 도메인 그룹마다 `<div class="grp-label" style="left:..;top:..">NAME</div>` |
-| `{{TABLES}}` | 테이블당 `.tbl` 카드 하나 (분류 클래스 + 컬럼 li). 템플릿 주석에 행 구조 예시 있음 |
-| `{{EDGES}}` | `['t_from','t_to','label','kind'],` 줄들. kind ∈ `fk`/`hier`/`dep`/`soft` |
+| `{{GROUP_LABELS}}` | 도메인 그룹마다 `<div class="grp-label" style="left:..;top:..">한글 그룹명</div>` |
+| `{{DATA_TABLES}}` | 테이블당 객체 하나 — 아래 표기. 도메인 그룹별로 묶고 각 묶음 위에 한글 섹션 주석 |
+| `{{DATA_EDGES}}` | `['자식테이블','부모테이블','라벨','kind'],` 줄들. kind ∈ `fk`/`hier`/`dep`/`soft`. 종류별 묶음 + 한글 주석 |
 | `{{NOTES}}` / `{{FOOTER}}` | (선택) 결정·collapse 맥락 메모 / 비고·한계·출처 |
 
-**시각 어휘** (템플릿 CSS 에 정의됨, schema-discovery 에 판정 기준):
+**`DATA.tables` 항목** (템플릿 상단 주석에도 동일 스펙 있음):
 
-- 테이블 클래스 — `hub`(도메인 중심·녹색) / `lookup`(분류축·보라) / `dep`(deprecated·적색) / 없음(일반·슬레이트).
-- 컬럼 행(li) 구조 — 좌측 `.l`(컬럼명 `.cn` + 선택 아이콘) ⟶ 우측 `.ty`(데이터 타입 + 선택 제약 pill). dbdiagram 풍 가독성.
-  - PK 행: `<li class="pk">` (컬럼명 bold).
-  - 아이콘 `.ic` — `ic-pk`(열쇠) / `ic-fk`(링크) / `ic-soft`(링크·연보라, FK 없는 값참조) / `ic-note`(노트, `title=` 로 코멘트 툴팁). 컬럼명 바로 뒤에 인라인.
-  - 제약 pill `.pill` — 타입 우측 회색 알약 `NN`(NOT NULL) / `UQ`(UNIQUE). 복합 UQ 는 한 행에 `(a, b)`.
-  - 코멘트를 **보이게** 하려면 `.ty` 다음에 `<div class="cmt">설명</div>` (행 아래 전폭, `↳` prefix). 짧으면 `ic-note` 의 `title` 툴팁으로 갈음.
-- 관계선 — `fk` green / `hier` gray / `dep` red dashed / `soft` purple dashed. 끝점에 **crow's foot**(자식=갈래발 many / 부모=단일 바 one)이 자동으로 붙는다(`from`=자식, `to`=부모).
-- 카드 id 는 `t_<table>`; `EDGES` 가 이 id 로 참조한다. **id 오타 = 그 선 안 그려짐.**
+```js
+{ id:'users',            // 테이블명 그대로 — edges 가 이 id 로 참조 (오타 = 선·포커스 누락)
+  cls:'hub',             // ''(일반) | 'hub' | 'lookup' | 'dep' — 판정 기준은 schema-discovery
+  x:560, y:150,          // 카드 절대좌표 (레이아웃은 손으로)
+  rows:1204,             // 적재 건수. 모르면 null (정적 소스)
+  rowsExact:true,        // true=정확값 / false=추정치(통계 기반)
+  comment:'회원 계정',    // 테이블 설명 — 한글
+  columns:[
+    {n:'id', t:'bigint', pk:true},
+    {n:'brand_id', t:'bigint', fk:'brands.id', nn:true},
+    {n:'category', t:'varchar', soft:'tool_categories.slug'},
+    {n:'email', t:'varchar', uq:true, c:'로그인 식별자'},   // c = 한글 코멘트
+    {n:'a', t:'int', uq:'(a, b)'},                          // 복합 UQ 는 문자열로
+  ],
+  sample:{ cols:['id','email','created_at'],
+           rows:[[1,'k***@d***.net','2026-01-03'], ...] },  // 마스킹 완료값만. 없으면 null
+},
+```
+
+카드에는 컬럼이 30개까지 보이고 초과분은 "…외 N개" 로 접힌다(전체는 패널 구조 탭) —
+이 임계는 템플릿 `CARD_COL_LIMIT` 이 처리하므로 데이터는 늘 전 컬럼을 넣는다.
 
 #### 결과물 주석·설명은 한글로 (필수)
 
-생성된 `.html` 은 그 자체로 읽히는 도식 문서다 — 그 안의 **모든 설명적 주석과 사람이
-읽는 텍스트를 한국어로** 쓴다. 이건 스킬 산출물 정책이다(글로벌 "code comments=English"
-는 skill 소스에 적용되고, 여기 대상은 *사용자에게 전달되는 ERD 결과물*이다 — 한국어
-사용자용이고 참고 ERD 도 한글 주석·메모·footer 를 쓴다). 구체적으로:
+생성된 ERD 는 그 자체로 읽히는 도식 문서다 — 그 안의 **모든 설명적 주석과 사람이 읽는
+텍스트를 한국어로** 쓴다(글로벌 "code comments=English" 는 skill 소스에 적용되고, 여기
+대상은 *사용자에게 전달되는 ERD 결과물*이다). 구체적으로:
 
-- **그룹 섹션 주석** — `{{TABLES}}` 안에서 테이블을 도메인 그룹별로 묶고 각 묶음 위에
-  한글 섹션 주석을 단다. 영어 그룹명 금지:
-  ```html
-  <!-- ===== 허브 (도구 카탈로그) ===== -->
-  <!-- ===== 분류축 (LOOKUP) ===== -->
-  <!-- ===== 위계 (조직 계층) ===== -->
-  ```
-- **EDGES 주석** — `{{EDGES}}` 안에서 관계를 종류별(fk/hier/dep/soft)로 묶고 각 묶음
-  위에 한글 한 줄 주석으로 무엇을 뜻하는지 단다(예: `// 실 FK — 도구 카탈로그 참조`,
-  `// soft 참조 — FK 없이 slug 값 매칭`). 비자명한 관계는 그 줄 끝에 한글 꼬리 주석.
-- **`.note` 블록·`{{FOOTER}}`** — 결정·collapse·deprecation 맥락, 비고·한계·출처를
-  모두 한국어 산문으로. 추측으로 그린 부분의 한계 명시도 한글.
-- 컬럼 li 의 `.cmt` 코멘트·`title` 툴팁·보조 텍스트(`SET NULL`, `link 전용` 등)도
-  사람이 읽는 부분이므로 한글이 자연스러우면 한글(식별자·타입 키워드 `bigint`/`varchar`
-  /`CASCADE`, 제약 pill `NN`/`UQ` 등은 원문 유지).
+- **`{{DATA_TABLES}}` 그룹 주석** — 도메인 그룹별로 묶고 각 묶음 위에 한글 섹션 주석
+  (`// ===== 허브 (도구 카탈로그) =====`). 영어 그룹명 금지.
+- **`{{DATA_EDGES}}` 주석** — 관계를 종류별(fk/hier/dep/soft)로 묶고 각 묶음 위에 한글
+  한 줄 주석(예: `// 실 FK — 도구 카탈로그 참조`). 비자명한 관계는 줄 끝 한글 꼬리 주석.
+- **`comment`/`c` 필드·`.note` 블록·`{{FOOTER}}`** — 테이블/컬럼 설명, 결정·deprecation
+  맥락, 비고·한계·출처 모두 한국어 산문. 추측으로 그린 부분의 한계 명시도 한글.
+- 식별자·타입 키워드(`bigint`/`varchar`/`CASCADE`)·제약 pill(`NN`/`UQ`)은 원문 유지.
 
-엔진 `<script>` 안의 영어 기술 주석(`// perimeter point ...`)은 verbatim 보존
-대상이라 건드리지 않는다 — 한글화하지 말 것(엔진은 손대지 않는 게 원칙).
+템플릿 엔진 `<script>` 의 기존 주석은 이미 한글이다 — verbatim 보존(재작성 금지).
 
 ### Step 3 — 토큰 충실도 (DESIGN.md 가 있으면)
 
-컨텍스트에 `DESIGN.md`/추출 디자인 시스템이 있으면 `:root` 의 색·타이포 토큰을 그 값으로
-덮어쓴다(참고 ERD 가 "DESIGN.md mirror" 로 한 것처럼). 없으면 템플릿 중립 기본을 그대로
-둔다. **레이아웃·아이콘·뱃지·edge 토큰은 항상 보존** — 이건 도식 문법이지 브랜드가 아니다.
-ERD 는 리뷰용 도식이라 imprint 수준의 token-traceability 까지는 과투자다 — 색만 맞춘다.
+컨텍스트에 `DESIGN.md`/추출 디자인 시스템이 있으면 `:root` 와 `[data-theme]` 블록의
+브랜드 색 토큰을 그 값으로 덮어쓴다(라이트/다크 양쪽 모두 — 한쪽만 바꾸면 테마 전환 시
+어긋난다). 없으면 템플릿 중립 기본을 그대로 둔다. **레이아웃·아이콘·edge·인터랙션
+토큰은 항상 보존** — 이건 도식 문법이지 브랜드가 아니다.
 
-### Step 4 — 검증하고 제시
+### Step 4 — 검증하고 Artifact 로 게시
 
-schema-discovery 의 검증 절을 돈다: 모든 `EDGES` id 가 실제 카드 id 와 일치하는지,
-브라우저로 열어 wire 가 카드를 관통하거나 라벨이 겹치지 않는지(겹치면 위치 조정 — 엔진은
-load/resize 에 자동 재실행). 그 뒤 `~/.claude/skills/craft-core/references/output-contract.md`
-의 고정 블록으로 보고한다(L1 `result:` + L2 열기 블록; erd 는 L3 비적용 — 산출 단발형).
-미설치면 같은 형식을 직접 적용:
+1. **id 정합** — 모든 `DATA.edges` 의 from/to 가 `DATA.tables` 의 `id` 와 일치하는지
+   확인(오타 = 그 선·포커스 누락). grep 으로 기계 대조한다.
+2. **소스 파일 위치** — 기본은 scratchpad(`<scratchpad>/erd/<중심>-erd.html`).
+   deep-plan 이 호출했을 때는 plan 과 같은 디렉토리에 `<basename>-erd.html` 로 둬
+   재게시 소스를 남긴다.
+3. **Artifact 게시** — Artifact 도구로 publish 한다. 게시 전 `artifact-design` 스킬
+   로드 요구가 있으면 따르되, ERD 는 검증된 템플릿이 디자인 그 자체다 — 템플릿 구조를
+   재설계하지 않는다. `favicon` 은 `"🗄️"` 고정(재게시에도 동일 유지), `description` 은
+   "<중심> ERD — 테이블 N개, 관계 M건" 한 줄. 같은 ERD 갱신이면 같은 파일 경로로 재게시
+   (새 경로 = 새 URL).
+4. **보고** — `~/.claude/skills/craft-core/references/output-contract.md` 의 고정
+   블록으로 보고한다(미설치면 같은 형식 직접 적용):
 
 ```
-result: <중심 테이블> ERD 산출 — N 테이블 / M 관계, 출처 <경로>
+result: <중심 테이블> ERD 게시 — N 테이블 / M 관계, 출처 <경로 또는 live DB>
 
 산출물 — 열기:
-- ERD `<상대경로>.html`  →  `open <상대경로>.html`
-
-(`open` = macOS. Linux `xdg-open <path>`, Windows `start <path>`.)
+- ERD Artifact  →  <artifact URL>
+- (소스: <소스 파일 경로> — 갱신 시 재게시용)
 ```
-
-산출 경로 기본은 `docs/preview/<중심>-erd.html`(프로젝트가 다른 preview/diagram 위치를
-쓰면 그곳). deep-plan 이 호출했을 때는 plan 과 같은 디렉토리·basename 에 `-erd.html`.
 
 ## Anti-patterns
 
-- **SVG wire 엔진을 다시 짜기** — 템플릿 `<script>` 는 verbatim 보존. 베지어를 손으로 쓰면 틀어진다.
+- **엔진 JS 재작성** — 템플릿 `<script>`(렌더·wire·포커스·패널·검색)는 verbatim 보존. 손으로 다시 쓰면 틀어진다.
+- **카드 HTML 손작성** — 구버전 방식. 카드·패널은 `DATA` 에서 생성된다 — HTML 을 직접 넣으면 패널·포커스와 어긋난다.
 - **열어보지 않은 테이블/컬럼/관계를 그리기** — Step 1 에서 실제 소스 확인. 불확실은 footer 에 명시.
-- **자동 레이아웃(force-directed 등) 도입** — YAGNI. 위치는 손으로, 엔진은 wire 만 자동.
-- **거대 스키마를 통째로** — 20+ 테이블을 한 장에 다 넣으면 안 읽힌다. 중심 + 1홉으로 좁히거나 보조군을 한 카드로 접는다.
+- **마스킹 전 원본 샘플을 DATA 에 넣기** — Artifact 는 호스팅된다. PII 마스킹은 수집 직후, `DATA` 에는 마스킹 완료값만.
+- **대형 테이블에 count(\*)** — 수백만 행 테이블 정확 카운트는 DB 부담. 통계 추정치 + `rowsExact:false` 가 기본.
+- **자동 레이아웃(force-directed 등) 도입** — YAGNI. 위치는 손으로, 엔진은 wire·인터랙션만 자동.
+- **미리 스코프 축소** — 포커스·검색이 탐색을 담당한다. 40+ 초대형만 사용자와 범위 협의.
 - **마이그레이션/DDL 작성** — erd 는 그리기만. 스키마 변경이 필요하면 forge/renew.
-- **라이브 DB 에 쓰기·DDL 실행** — introspection(읽기 전용 SELECT/`SHOW`/`PRAGMA`)만. `INSERT`/`ALTER`/`DROP` 등 절대 금지. 운영 DB 는 접속 전 확인, credential 은 출력·footer 에 비노출.
-- **`EDGES` id 오타** — `t_<table>` 카드 id 와 정확히 일치해야 선이 그려진다. 그린 뒤 반드시 검증.
-- **결과물 주석·`.note`·footer 를 영어로** — 산출 ERD 의 설명 텍스트는 한국어가 기본(Step 2 규칙). 단 엔진 `<script>` 의 영어 기술 주석은 verbatim 보존(한글화 금지).
+- **라이브 DB 에 쓰기·DDL 실행** — introspection·SELECT(LIMIT)만. `INSERT`/`ALTER`/`DROP` 절대 금지. 운영 DB 는 접속 전 확인, credential 비노출.
+- **`edges` id 오타** — `tables[].id` 와 정확히 일치해야 선이 그려진다. 게시 전 반드시 기계 대조.
+- **결과물 주석·note·footer 를 영어로** — 산출 ERD 의 설명 텍스트는 한국어가 기본(Step 2 규칙).

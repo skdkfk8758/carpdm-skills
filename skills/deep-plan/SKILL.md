@@ -134,6 +134,13 @@ Step 2 의 Acceptance(=eval) 항목을 각 `[AUTO]`/`[HUMAN]` 태그와 함께 �
 장부의 그림이다. 규칙은 복제하지 말고 `pipeline.md` Phase 1 의 "Eval 체크리스트 패널"
 (SSOT) 을 따른다 — SSOT 는 `.md` Acceptance, 이 패널은 렌더 뷰.
 
+**그리고 — 시안을 쓴 직후 항상 — `Artifact` 도구로 publish 한다.** 사용자 리뷰
+딜리버러블은 로컬 경로가 아니라 **artifact URL** 이다. 로컬 `.html` 은 그대로
+둔다(Artifact 가 파일에서 publish 하고, harness-run G1/eval-check 가 로컬 파일을
+입력으로 읽는다). 시안 갱신 시 같은 파일 경로로 재-publish 해 URL 을 유지한다.
+`-erd.html` companion 도 동일하게 publish. 규칙 SSOT:
+`~/.claude/rules/html-mockup-artifact.md`.
+
 #### ERD companion — plan 이 DB 스키마/BE 데이터 모델을 수반하면 (위 분기와 별개·추가)
 
 plan 이 **새 테이블·컬럼·관계 또는 BE 데이터 모델 변경**을 수반하면, 위 design
@@ -175,20 +182,20 @@ companion 은 plan 렌더지만 ERD 는 여전히 실제 도식 가치를 준다
 ### Step 4 — 제시하고 정지
 
 `output-contract.md` 의 고정 블록으로 산출물을 보고한다 — `result:` 한 줄 + 각
-산출물의 상대경로와 `open` 명령. PLAN 행은 항상, `시안` 행은 UI plan 이라 `.html`
-을 만들었을 때만, `ERD` 행은 DB/BE plan 이라 `-erd.html` 을 만들었을 때만 넣는다(만들지
-않은 산출물 행은 생략 — output-contract L2 규칙). 예:
+산출물의 상대경로. PLAN 행은 항상(`open` 명령 동반), `시안`·`ERD` 행은 만들었을
+때만 넣되 **딜리버러블은 `open` 명령이 아니라 Step 3 에서 publish 한 artifact URL**
+이다(만들지 않은 산출물 행은 생략 — output-contract L2 규칙). 예:
 
 ```
 result: <topic> PLAN 산출 — N steps, scope IN <…> / OUT <…>
 
 산출물 — 열기:
 - PLAN `docs/plans/2026-06-04-<topic>.md`  →  `open docs/plans/2026-06-04-<topic>.md`
-- 시안 `docs/plans/2026-06-04-<topic>.html`  →  `open docs/plans/2026-06-04-<topic>.html`
-- ERD  `docs/plans/2026-06-04-<topic>-erd.html`  →  `open docs/plans/2026-06-04-<topic>-erd.html`
+- 시안 `docs/plans/2026-06-04-<topic>.html`  →  <artifact URL>
+- ERD  `docs/plans/2026-06-04-<topic>-erd.html`  →  <artifact URL>
 
 (`open` = macOS. Linux `xdg-open <path>`, Windows `start <path>`.
- 경로는 터미널에서 클릭으로도 열린다.)
+ 시안/ERD 는 artifact URL 이 정본 열람 경로 — 로컬 파일은 하니스 입력용.)
 ```
 
 ### Step 4.5 — Linear 작업 등록 (optional, 확인 게이트)
