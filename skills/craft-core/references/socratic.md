@@ -45,18 +45,19 @@
 
 ## 여섯 질문 유형 (gap 을 덮어라, 전부 암송하지 말 것)
 
-1. **명료화 (Clarification)** — "X 가 정확히 무슨 뜻인가요?" "원하는 입력과
-   출력의 구체적 예를 줄 수 있나요?"
-2. **가정 탐색 (Probing assumptions)** — "여기서 데이터 / 호출자 /
-   환경에 대해 무엇을 가정하나요?" "그게 항상 성립하나요?"
-3. **이유 & 증거 탐색 (Probing reasons & evidence)** — "그게 원인이라고 생각하는 근거는?"
-   "이걸 보여주는 실패 케이스나 로그가 있나요?"
-4. **대안 관점 (Alternative viewpoints)** — "이걸 통째로 피하는 더 단순한 접근이
-   있나요?" "누가 또 이걸 호출하나 — 그들이 깨지나요?"
-5. **함의 & 결과 (Implications & consequences)** — "이걸 바꾸면, 어떤 downstream
-   계약이 움직이나?" "이제 견뎌야 할 최악의 입력은?"
-6. **질문을 질문하기 (Question the question)** — "이 요청 뒤의 진짜 목표는?" "근본
-   필요를 다른 방식으로 풀면, 이 작업이 여전히 중요한가?"
+당신이 던지는 모든 질문은 여섯 고전적 Socratic 유형 중 하나다:
+
+1. **명료화 (Clarification)**
+2. **가정 탐색 (Probing assumptions)**
+3. **이유 & 증거 탐색 (Probing reasons & evidence)**
+4. **대안 관점 (Alternative viewpoints)**
+5. **함의 & 결과 (Implications & consequences)**
+6. **질문을 질문하기 (Question the question)**
+
+각 유형의 정의·예시 모음·가장 약한 차원에 맞는 선택법은 6-유형 단일 SSOT
+`~/.claude/skills/deep-interview/references/socratic-playbook.md` 에 산다 — 여기
+복제하지 않는다(개정 시 그 파일만 고친다). 매 라운드 현재 가장 약한 차원을 가장 잘
+비집어 여는 유형을 고르라.
 
 ## 작업유형 강조 (호출 스킬이 설정)
 

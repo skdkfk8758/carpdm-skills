@@ -18,7 +18,7 @@
    - 큰 교차·전면개편·research → `harness-run` 또는 `/deep-plan`
    - 자율 적합 단일 티켓 → `linear-goal`
    - 코드 이해·위치 파악 → `Explore` 에이전트 / `/deep-research`
-   - 대형 plan 분할 → `to-issues` · 대화→PRD → `to-prd`
+   - 대형 plan/spec/PRD 분할 → `to-issues`
 2. **프로젝트 로컬 포인터 부차** — 1줄: 해당 repo 의 `.claude/skills`·`.agents` 도 확인.
    **타repo 파일을 읽지 않는다**(경량 — repo/팀명 수준 포인터만).
 

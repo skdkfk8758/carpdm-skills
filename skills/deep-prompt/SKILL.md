@@ -158,17 +158,15 @@ Success Criteria / Done & Report 세 개는 절대 빼지 마라**. 그게 자�
 **통째로 건너뛰고 §4 로** 간다. 억지로 시안 만들지 말 것(비-UI 에 시안은 노이즈).
 
 UI goal 이면, goal 프롬프트와 **같은 디렉토리**에 `<slug>-mockup.html` 로 단일
-self-contained HTML 시안을 쓴다. 규칙(deep-plan 시안 규약과 동형):
+self-contained HTML 시안을 쓴다. 시안 작성 규칙(외부 asset 0·전부 인라인·핵심
+요소와 레이아웃·상태별 정적 섹션·brownfield 디자인 토큰 매칭)은 파이프라인의 HTML
+companion 규약이 SSOT 다 — `~/.claude/skills/craft-core/references/pipeline.md` Phase 1 의
+리뷰 친화적 HTML companion 섹션을 따르라(여기 복제하지 않는다). 목적만 다르다:
+pipeline/deep-plan 의 companion 이 사람 리뷰용이라면, 여기 시안은 자율 에이전트가
+*무엇을 만들지* 합의하는 시각 타겟이다(픽셀 완벽 불필요).
 
-- **외부 asset 0** — CSS/폰트/스크립트/이미지 전부 인라인. 더블클릭하면 브라우저가
-  바로 연다. CDN·import·fetch 금지.
-- 목표 화면의 **핵심 요소·레이아웃·상태**를 담는다 — 실제 데이터 흉내(플레이스홀더
-  텍스트 OK), 주요 인터랙션 상태(빈/로딩/에러/채워짐)는 정적 섹션으로 나열.
-  픽셀 완벽 불필요 — 자율 에이전트가 *무엇을 만들지* 합의하는 시각 계약이 목적.
-- brownfield 면 기존 디자인 토큰·컴포넌트를 가볍게 Read 해 색·간격·폰트를 맞춘다
-  (추측 금지). 프로젝트에 `DESIGN.md`·디자인 시스템이 있으면 그 토큰을 쓴다.
-
-그리고 **시안을 goal 프롬프트에 묶는다** — 시안은 장식이 아니라 성공 기준의 일부다:
+그리고 **시안을 goal 프롬프트에 묶는다** — 시안은 장식이 아니라 성공 기준의 일부다
+(이하 deep-prompt 고유):
 
 - **Context** 에 시안 경로를 박는다: `UI 시각 타겟: <slug>-mockup.html (이 레이아웃·요소 기준)`.
 - **Success Criteria** 에 시안 대조 항목을 1개 이상 넣는다 — 단 §4 게이트를 통과하는

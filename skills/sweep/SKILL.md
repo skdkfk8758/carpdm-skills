@@ -23,12 +23,18 @@ description: Clean up accumulated project cruft — 시점 기록 문서(오래�
 
 | 계층 | 경로 | Sweep 입장 |
 |---|---|---|
-| **절대 건드리지 않음** | `rules/`, `AGENTS.md`, `CLAUDE.md`, `MEMORY.md`, `memory/`, `.git/`, source code, config, `docs/adr/`, `docs/concepts/`, `docs/guides/`, `docs/reference/`, `docs/_index/` | 영속 knowledge + 결정 + portal. 범위 밖, 완전히. |
-| **후보** | `docs/plans/`, `docs/handoff/`, `docs/reports/`, `docs/reviews/`, `docs/runbooks/`, `docs/benchmarks/`, `docs/solutions/`, `docs/_archive/`, `logs/`, `*.bak-*`, `dist/`, `build/`, `tmp/`, `*.tmp`, 빈 디렉토리 | 시점 기록 / 휘발성. 대상 — 단 각각 사라지기 전에 *이유*가 필요하다. |
+| **절대 건드리지 않음** | `rules/`, `AGENTS.md`, `CLAUDE.md`, `MEMORY.md`, `memory/`, `.git/`, source code, config, `docs/adr/`, `docs/concepts/`, `docs/guides/`, `docs/reference/`, `docs/_index/`, `docs/specs/` (활성 계약) | 영속 knowledge + 결정 + portal + 활성 SPEC. 범위 밖, 완전히. |
+| **후보** | `docs/plans/`, `docs/handoff/`, `docs/reports/`, `docs/reviews/`, `docs/runbooks/`, `docs/benchmarks/`, `docs/solutions/`, `docs/_archive/`, `logs/`, `loop/log/`, `*.bak-*`, `dist/`, `build/`, `tmp/`, `*.tmp`, 빈 디렉토리 | 시점 기록 / 휘발성. 대상 — 단 각각 사라지기 전에 *이유*가 필요하다. |
 
 경로가 후보라는 것은 **필요조건이지 충분조건이 아니다**. 오늘 아침의 plan 도
 후보 위치이지만 명백히 살아 있다. 폴더만 보고가 아니라 *staleness 의 증거*에
 근거해 삭제한다.
+
+후보 목록은 하드코딩된 열거가 아니라 원칙이다: **휘발/시점 기록 컨벤션**(일별
+로그 `loop/log/YYYY-MM-DD.md`, gitignored scratch, 타임스탬프 아티팩트)이면
+프로젝트 고유 경로여도 후보다. 반대로 `scripts/ops/apply-*.sh` 같은 1회성 ops
+스크립트는 코드 인접이라 삭제가 아니라 *flag* 만 한다(never-touch 유지 — 유저가
+판단하게 두라).
 
 프로젝트가 `knowledge-folders` 를 따르지 않으면(`docs/` 트리 없음) 같은 원칙으로
 폴백하라: source, config, README, 그리고 git 추적되고 import 되는 것은 영속;
@@ -55,6 +61,11 @@ description: Clean up accumulated project cruft — 시점 기록 문서(오래�
 `references/detection.md` 참조. 각 히트마다 기록할 것: 경로, 카테고리, **왜
 stale 해 보이는지**(증거), 복구 계층 (tracked / untracked).
 
+후보가 임계치(예: 20개)를 넘어 직렬 Read 로 staleness 를 확인하기 느릴 때만
+카테고리별 `Explore`/`Agent` fan-out 으로 증거 수집을 병렬화하라. 소규모면 현행
+단일 패스 유지(단순성 우선). **confirm·삭제는 항상 메인 단일 지점** — 비가역
+액션을 subagent 로 분산하지 말 것.
+
 ### 2. Classify
 히트를 카테고리별로 묶는다. 이미 보이는 false positive 는 떨군다(실은 살아 있는
 spec 인 "plan", 몇 분 전 쓰인 로그, 유저가 방금 일부러 만든 `.bak`). staleness
@@ -63,7 +74,12 @@ spec 인 "plan", 몇 분 전 쓰인 로그, 유저가 방금 일부러 만든 `.
 ### 3. Propose — 항상 이 report 형태를 사용할 것
 유저는 이 report 만 보고 결정하므로, 제거와 이유가 읽기 쉽게. **report 는 한국어로
 작성한다** — 아래 예시처럼 섹션 헤더·설명을 한글로 쓰고, 경로·git 상태 라벨
-(`[tracked]` / `[untracked, NOT recoverable]`)·명령은 원문 그대로 둔다:
+(`[tracked]` / `[untracked, NOT recoverable]`)·명령은 원문 그대로 둔다.
+
+**요청 범위 존중**: 유저가 카테고리를 한정했으면(예: "*.bak 랑 tmp 만") 삭제 제안도
+그 범위로 한정한다. 스캔 중 범위 밖 후보를 발견하면 제안 목록에 섞지 말고 "범위 밖 —
+별도 요청 시 검토" 노트로만 남긴다 — 유저가 좁힌 범위를 제안이 도로 넓히면 승인
+게이트의 신호가 흐려진다:
 
 ```
 # Sweep 제안 — <repo name>
@@ -93,9 +109,17 @@ spec 인 "plan", 몇 분 전 쓰인 로그, 유저가 방금 일부러 만든 `.
 ```
 
 ### 4. Confirm
-세분성을 제공하라: **전체**, **카테고리별**, **파일별** 승인. untracked /
-복구 불가 그룹은 *별도로 명시적으로* 확인하라 — 포괄적 "yes" 에 묻어가게 하지
-말 것. 이것이 비가역 부분이다; 그렇게 취급하라.
+`AskUserQuestion` 으로 게이트를 구조화하라 — 산문 지시로 모델 규율에만 의존하지
+말 것. 세분성을 제공하라: **전체**, **카테고리별**, **파일별** 승인. tracked
+승인과 untracked·복구 불가 그룹은 *별도 질문*으로 분리하고(후자는 "복구 불가"
+라벨 명시), 카테고리별 opt-in 선택지를 준다 — 포괄적 "yes" 에 untracked 를
+묻어가게 하지 말 것. 이것이 비가역 부분이다; 그렇게 취급하라.
+
+**무인 실행 폴백.** 확인 주체가 없으면(백그라운드 잡·subagent — 사람이 응답할
+수 없는 맥락) 비가역 삭제를 무인 통과시키지 말 것. untracked·복구 불가 그룹은
+제안 리포트까지만 산출하고 정지한다. tracked 도 명시 승인이 없으면 staged 단계
+까지만(`git rm` 은 히스토리 복구 가능, commit 은 하지 않음). db-drop-preflight 의
+"live 신호 → halt" 와 동형 게이트다.
 
 ### 5. Execute
 - Tracked → `git rm <path>` (디렉토리는 `git rm -r`). 요청 없으면 commit 말고
@@ -124,3 +148,15 @@ L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 삭제/보존 수�
 - memory 나 handoff 위생 로직이 아니다 — stale handoff 는 삭제하지만 작성하지는
   않는다 (`handoff` 사용).
 - 자동이 아니다 — 스캔하고 제안할 뿐, 삭제는 항상 확인을 기다린다.
+
+## 안티패턴
+
+- **portal grep 0 히트만으로 삭제 제안** — 참조 검사를 portal 로만 한정하면
+  ADR·타 문서·코드 주석이 인용하는 살아 있는 문서를 오삭제한다. 레포 전체
+  cross-reference(`git grep -l -F`)로 확인하고, 히트하면 "flagged, not proposed"
+  로 강등하라.
+- **확인 주체 없이 untracked 삭제** — 무인 맥락(백그라운드·subagent)에서 복구
+  불가 파일을 무인 통과시키지 말 것(§4 무인 폴백).
+- **판정 grep 을 fixed-string 없이 실행** — 파일명의 `.`·`_` 가 정규식으로
+  해석돼 유사명이 오탐된다. 참조·중복 판정 grep 은 항상 `-F` 리터럴
+  (verification-safety V2 동형).

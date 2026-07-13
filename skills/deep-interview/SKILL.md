@@ -34,20 +34,20 @@ description: 측정 가능한 ambiguity 점수로 게이트되어 요구사항�
 
 ## 여섯 가지 Socratic 질문 유형 — 당신의 유일한 도구
 
-당신이 던지는 모든 질문은 이 중 하나다. 스스로에게 유형을 명명하는 것은 유도
+당신이 던지는 모든 질문은 이 여섯 중 하나다. 스스로에게 유형을 명명하는 것은 유도
 질문이나 얄팍하게 가린 제안으로 표류하는 것을 막아준다. 매 라운드, *현재 가장 약한
 차원*을 가장 잘 비집어 여는 유형을 고르라.
 
-| # | 유형 | 무엇을 비집어 여는가 | 트리거 표현 |
-|---|------|--------------------|--------------------|
-| 1 | **Clarification** | 모호한 명사/동사; 실제 IO | "What exactly do you mean by X? Give me one concrete input and the output you'd want." |
-| 2 | **Probing assumptions** | 사실로 받아들여진 진술되지 않은 전제 | "You're assuming X always holds — does it? What breaks if it doesn't?" |
-| 3 | **Probing reasons & evidence** | 근거 없는 주장 | "What makes you confident that's true? Is there a case that already shows it?" |
-| 4 | **Alternative viewpoints** | 터널 시야; 더 단순한 경로 | "Is there a simpler approach that avoids this entirely? Who would disagree with this choice?" |
-| 5 | **Implications & consequences** | 하류/엣지 영향 | "If we do that, what's the worst input it now has to survive? What contract moves?" |
-| 6 | **Question the question** | 잘못된 문제를 풀고 있음 | "What's the real goal behind this? If we solved that need another way, would this task still matter?" |
+1. **Clarification** — 모호한 명사/동사; 실제 IO
+2. **Probing assumptions** — 사실로 받아들여진 진술되지 않은 전제
+3. **Probing reasons & evidence** — 근거 없는 주장
+4. **Alternative viewpoints** — 터널 시야; 더 단순한 경로
+5. **Implications & consequences** — 하류/엣지 영향
+6. **Question the question** — 잘못된 문제를 풀고 있음
 
-깊이 있는 가이드, 유형별 예시 모음, 선택 방법 — `references/socratic-playbook.md`. 라운드 1 전에 읽으라.
+각 유형의 정의·트리거 표현·예시 모음·가장 약한 차원에 맞는 선택법은 6-유형 단일
+SSOT `references/socratic-playbook.md` 에 산다 — 여기 복제하지 않는다(개정 시 그 파일만
+고친다). **라운드 1 전에 읽으라.**
 
 ## 인터뷰, 페이즈별
 
@@ -65,6 +65,11 @@ description: 측정 가능한 ambiguity 점수로 게이트되어 요구사항�
 
 어떤 질문보다 먼저 임계값과 그 출처를 한 줄로 명시해, 사용자가 결승선을 알게
 하라: *"Target: ambiguity ≤ 0.20 (standard). 이 선을 넘으면 멈추겠습니다."*
+
+사용자가 플래그를 안 줬으면 이 세 임계값은 **이산 3택**이므로 `AskUserQuestion` 으로
+골라 제시한다(quick/standard/deep). 이건 셋업 단계라 선택 UI 가 맞다 — Phase 2 의
+라운드 인터뷰 질문과 구분하라(그건 개방형 산문 답이 메커니즘이라 `AskUserQuestion` 을
+쓰지 않는다).
 
 ### Phase 1 — Orient (greenfield 대 brownfield)
 
@@ -84,6 +89,10 @@ scoring 공식도 결정한다(`references/scoring.md` 참조).
 중요하다: 그것 없이는 실제 모호함이 컴포넌트 C 에 숨어 있는데 컴포넌트 A 를 열
 라운드 동안 완벽히 다듬느라 시간을 쓸 수 있다. 토폴로지는 당신이 가로질러 회전하는
 지도다.
+
+컴포넌트마다 active/deferred 는 **이산 태깅**이므로 `AskUserQuestion`(컴포넌트별
+active/deferred 옵션)으로 확정하면 마찰이 준다 — Phase 0 threshold 와 같은 셋업성 선택.
+단 여기까지가 선택 UI 의 범위다: 깊이 들어가는 Phase 2 라운드 질문은 개방형으로 유지한다.
 
 ### Phase 2 — 인터뷰 루프 (라운드당 한 질문)
 
@@ -162,7 +171,7 @@ greenfield/brownfield 판단 + goal), 그 성격은 특정 작업유형 스킬�
 - **valid-next 필터** 로 다음 단계가 될 수 있는 스킬만 후보로 남긴다.
 - **Tier 1**(빌드가 명백할 때의 단축: greenfield→`/forge`, brownfield 변경→`/renew`,
   고장→`/hunt`) 은 단축일 뿐 — 명백하지 않으면 **Tier 2**(available-skills 에서
-  valid-next 전체 후보, **글로벌·플러그인 포함**: `/deep-plan`·`to-issues`·`to-prd`·
+  valid-next 전체 후보, **글로벌·플러그인 포함**: `/deep-plan`·`to-issues`·
   `deep-research`·`prototype`·`understand-anything:understand` 등)를 함께 열거한다.
 - 빌드로 라우팅하면 **강도(linear/council)** 도 함께 추천한다 — 인터뷰가 측정한
   디자인 리스크를 엔진에 넘기라.

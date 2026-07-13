@@ -36,6 +36,19 @@ make_branch rate-limit-ui    ratelimit-ui   rate-limit-mw   # stacked on rate-li
 make_branch wip-dash         dashboard
 make_branch refactor-auth    auth-refactor
 make_branch experiment-x     experiment                       # survivor: no PR
+
+# --- HIDDEN STACK: both PRs base=master, but child is built on parent's commits.
+# base edge alone reads as "2 independent"; merge-base --is-ancestor exposes the
+# real parent⊂child relation. Parent also changes a lockfile (deps flag case).
+git checkout -q master
+git checkout -q -b hidden-parent
+echo '{"lockfileVersion":3}' > package-lock.json      # deps change → npm install flag
+echo parent > parent.txt
+git add -A && git commit -qm "hidden-parent: bump deps + add parent"
+git checkout -q -b hidden-child                        # built ON hidden-parent
+echo child > child.txt
+git add -A && git commit -qm "hidden-child: add child (contains parent commits)"
+
 git checkout -q master
 
 # Diverge master so survivors actually need a rebase.
@@ -50,7 +63,9 @@ cat > pr-state.json <<'JSON'
   {"number":43,"title":"add rate-limit middleware","headRefName":"rate-limit-mw","baseRefName":"master","isDraft":false,"mergeable":"MERGEABLE","mergeStateStatus":"CLEAN","statusCheckRollup":[{"name":"ci","status":"COMPLETED","conclusion":"SUCCESS"}]},
   {"number":44,"title":"rate-limit config UI","headRefName":"rate-limit-ui","baseRefName":"rate-limit-mw","isDraft":false,"mergeable":"MERGEABLE","mergeStateStatus":"BLOCKED","statusCheckRollup":[{"name":"ci","status":"COMPLETED","conclusion":"SUCCESS"}]},
   {"number":45,"title":"wip: dashboard","headRefName":"wip-dash","baseRefName":"master","isDraft":true,"mergeable":"UNKNOWN","mergeStateStatus":"DRAFT","statusCheckRollup":[]},
-  {"number":46,"title":"refactor auth","headRefName":"refactor-auth","baseRefName":"master","isDraft":false,"mergeable":"MERGEABLE","mergeStateStatus":"UNSTABLE","statusCheckRollup":[{"name":"ci","status":"COMPLETED","conclusion":"FAILURE"}]}
+  {"number":46,"title":"refactor auth","headRefName":"refactor-auth","baseRefName":"master","isDraft":false,"mergeable":"MERGEABLE","mergeStateStatus":"UNSTABLE","statusCheckRollup":[{"name":"ci","status":"COMPLETED","conclusion":"FAILURE"}]},
+  {"number":47,"title":"bump deps + parent","headRefName":"hidden-parent","baseRefName":"master","isDraft":false,"mergeable":"MERGEABLE","mergeStateStatus":"CLEAN","statusCheckRollup":[{"name":"ci","status":"COMPLETED","conclusion":"SUCCESS"}]},
+  {"number":48,"title":"child on parent","headRefName":"hidden-child","baseRefName":"master","isDraft":false,"mergeable":"MERGEABLE","mergeStateStatus":"CLEAN","statusCheckRollup":[{"name":"ci","status":"COMPLETED","conclusion":"SUCCESS"}]}
 ]
 JSON
 
@@ -71,4 +86,6 @@ TXT
 echo "fixture built at $DIR"
 echo "  branches: $(git branch --format '%(refname:short)' | tr '\n' ' ')"
 echo "  open PRs: 41(indep) 43(stack-base) 44(stacked-on-43,blocked) 45(draft) 46(ci-fail)"
+echo "            47(hidden-parent,base=master,deps) 48(hidden-child,base=master, ⊂47)"
 echo "  survivor branch (no PR): experiment-x   |   dirty worktree: wt-ratelimit-ui"
+echo "  hidden stack: 48's head contains 47's commits (both base=master) → merge 47 then re-point 48"

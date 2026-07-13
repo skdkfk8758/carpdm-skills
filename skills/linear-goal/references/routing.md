@@ -18,8 +18,9 @@ SSOT 는 `~/.claude/linear-repo-map.json` 이다(본 파일은 그걸 조회만 
    - 없으면 `teamRoutes[]` 의 `teamKey`/`teamId` 매칭 → `repo`.
 3. 예외 처리:
    - `repo: null` → **dispatch 거부** (코드 자동개발 대상 아님). 사용자 보고.
-   - 진짜 외부(`ext:engine`) 또는 운영-요청(release·배포·AWS/IAM·DB 프로비저닝 등
-     코드 산출물 없음) → **거부**, 사람에게 보고.
+   - 본문/성격상 외부팀 소유(이 repo 코드 산출물 없음 — 외부 엔진·서비스 작업) 또는
+     운영-요청(release·배포·AWS/IAM·DB 프로비저닝 등 코드 산출물 없음) → **거부**,
+     사람에게 보고. (`ext:*` 라벨은 폐기됨 — 라벨이 아니라 본문 내용으로 판정.)
    - `note`/`uncertain` 필드 有 (예 ADM 팀 = team≠repo 혼재, ad-simulator) →
      그 사유를 출력하고 **repo 확정을 사용자에게 먼저 확인**.
    - team 미매칭 → `_fallbackRepo`(ADType-Intelligence) 후보로 제시하되 **반드시

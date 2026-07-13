@@ -24,11 +24,11 @@ behavior, 엔드포인트, 함수, 또는 수정. 태스크가 "X 이유로 실�
 
 ## 각 태스크가 따라야 할 TDD 사이클
 
-1. **Red** — 테스트를 먼저 쓴다. 실패해야 하고, *올바른 이유로* 실패해야 한다
-   (behavior 가 없음), typo 나 import 에러가 아니라.
-2. **Green** — 테스트를 통과시키는 최소 구현. 투기적 extra 없음
-   (YAGNI).
-3. **Refactor** — 테스트가 green 인 채로 정리. 여기서 새 behavior 없음.
+각 태스크는 red → green → refactor 사이클을 따른다 — 실패하는 테스트 먼저(*올바른
+이유로* 실패, typo/import 에러 아님), 통과시키는 최소 구현(투기적 extra 없음, YAGNI),
+green 인 채로 정리(새 behavior 없음). red-green-refactor 와 vertical-slice tracer-bullet
+규율의 정식 정의는 `tdd` 스킬이 SSOT 다 (`~/.claude/skills/tdd/SKILL.md` — 여기 복제하지
+않는다). 아래는 파이프라인 맥락의 추가 계약이다:
 
 태스크는 자신의 테스트가 green 이고 형제를 깨지 않았을 때만 완료된다.
 

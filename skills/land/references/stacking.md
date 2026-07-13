@@ -18,6 +18,26 @@ stacked 된 것이다. 체인은 둘보다 길 수 있다 (A ← B ← C). 기�
 ```
 머지 순서: #43, 그 다음 #44.
 
+## 숨은 stack 감지 (둘 다 base=default)
+
+`baseRefName` 만으로는 못 잡는 위험한 케이스가 있다 — 실제로는 stacked 인 두
+브랜치를 **둘 다 base=default 로** 올린 경우다(실측 #430/#431). base 엣지로는
+독립 2건처럼 보이지만, 부모를 squash 머지하면 GitHub 이 자식을 **CLOSED**(머지
+아님) 처리해 작업이 소실된다.
+
+그래서 base 가 default 인 PR 이 2건 이상이면 **커밋 포함 관계**를 추가로 검사한다:
+
+```
+git merge-base --is-ancestor <headA> <headB>   # exit 0 → A 가 B 의 조상
+# 또는
+git rev-list --count <headB>..<headA>          # 0 → A 의 커밋이 전부 B 에 포함
+```
+
+A 가 B 의 조상이면(A ⊂ B) A 가 부모, B 가 자식인 **숨은 stack** 이다. 이때는 위
+`re-pointing 동작` 그대로 처리한다 — 부모(A)를 먼저 머지하고, 자식(B)의 base 를
+default 로 re-point 한 뒤 머지한다. 최소한 Confirm 플랜에 `⚠ 숨은 stack: #A ⊂ #B`
+경고를 박아 부모 단독 머지가 자식을 닫지 않게 한다.
+
 ## re-pointing 동작
 
 GitHub 은 부모 PR 이 머지될 때 자식 PR 의 base 를 자동으로 옮기지 **않는다**.

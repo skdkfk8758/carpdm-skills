@@ -12,7 +12,7 @@
 등록과 다음 행동 사이의 끊김을 없앤다.
 
 **In scope:** C1 등록 코어 · C2 적응형 추천 섹션 · C3 연결 이슈 전방 가이드 · C4 기존 스킬 경계.
-**Out of scope:** 대형 plan→다중 슬라이스 분할(to-issues 위임), 대화→PRD 합성(to-prd 위임),
+**Out of scope:** 대형 plan/spec/PRD→다중 슬라이스 분할(to-issues 위임),
 기존 백로그 재배치·보강(linear-groom), 티켓 자율빌드 실행(linear-goal). 타repo 파일시스템 읽기.
 
 ## 2. Topology
@@ -34,7 +34,7 @@
 | REQ-F-004 | 모든 Linear 쓰기 전, "X팀 / Y프로젝트 / N건" 확인을 제시하고 대기 — 단 사용자가 "바로 등록" 지시 시 스킵 | Must | 게이트 미승인 상태에서 `save_issue`(생성) 호출 0회; "바로 등록" 입력 시에만 게이트 없이 진행 | R6 |
 | REQ-F-005 | 각 생성 이슈 본문에 "## 추천" 섹션 — **글로벌 스킬/에이전트 우선**(forge/hunt/renew/linear-goal/harness-run/to-issues/deep-plan + Explore/Plan), 이슈 타입·크기에 적응한 모델 판단 추천 | Must | bug 이슈 → hunt 류 추천; 큰 교차 기능 → harness-run/to-issues 류 추천; 섹션에 글로벌 후보 ≥1 명시 | R2,R3 |
 | REQ-F-006 | "## 추천" 섹션에 프로젝트 로컬 스킬/에이전트 **경량 포인터**를 부차로 포함 — 타repo 를 읽지 않음 | Must | 섹션에 "해당 repo 의 `.claude/skills`/`.agents` 도 확인" 류 1줄; 타repo 파일 read 호출 0회 | R5 |
-| REQ-F-007 | 대형 plan 분해 / PRD 합성 입력은 직접 처리하지 않고 to-issues/to-prd 위임을 추천 | Must | "이 plan 전체를 이슈로 쪼개줘" 류 입력 → 자체 분할 대신 to-issues 추천 출력 | R4 |
+| REQ-F-007 | 대형 plan/spec/PRD 분해 입력은 직접 처리하지 않고 to-issues 위임을 추천 | Must | "이 plan 전체를 이슈로 쪼개줘" 류 입력 → 자체 분할 대신 to-issues 추천 출력 | R4 |
 | REQ-F-008 | 의존 다건(체인) 등록 시 Linear 네이티브 관계(blocks/related/parent-child) 세팅 | Must | A→B→C 등록 → Linear 상 A blocks B, B blocks C 관계 존재 | R3 |
 | REQ-F-009 | 체인의 각 이슈 본문 또는 코멘트에 다음 이슈 전방 포인터 + 붙여넣기용 kickoff 프롬프트 명시 | Must | 각 이슈에 "다음: <id>" + 시작 프롬프트 텍스트 포함 (마지막 이슈 제외) | R3 |
 | REQ-F-010 | 등록 후 사용자에게 첫(또는 다음) 실행 가능 이슈의 kickoff 프롬프트를 응답으로 제시 | Must | 등록 종료 메시지에 즉시 복사 가능한 프롬프트 1개 포함 | R3 |
@@ -44,7 +44,7 @@
 
 | ID | Category | Requirement | Acceptance criteria | Origin |
 |----|----------|-------------|---------------------|--------|
-| REQ-N-001 | Compatibility/trigger | description 을 "단건~소수 Linear 등록 + 추천 + 체인"으로 좁히고 분할→to-issues·PRD→to-prd 위임 명시 | description 에 위임 경계 문장 존재; to-issues/to-prd 와 트리거 충돌 시 이 스킬이 양보 | R4 |
+| REQ-N-001 | Compatibility/trigger | description 을 "단건~소수 Linear 등록 + 추천 + 체인"으로 좁히고 분할→to-issues 위임 명시 | description 에 위임 경계 문장 존재; to-issues 와 트리거 충돌 시 이 스킬이 양보 | R4 |
 | REQ-N-002 | Security/safety | 확인 게이트(REQ-F-004) 전 외부 쓰기 금지 | 게이트 미승인 시 Linear 쓰기 0회 | R6 |
 | REQ-N-003 | Performance | 등록 시 타repo 파일시스템 read 안 함(경량) | 등록 경로에서 타repo Read/Grep 0회 | R5 |
 | REQ-N-004 | Reuse | 라우팅을 `linear-repo-map.json` + `linear-dispatch` 역매핑 컨벤션 재사용(재구현 금지) | 팀 결정 로직이 repo-map 참조; 별도 매핑 테이블 신설 0 | R6 |
@@ -65,13 +65,13 @@
 - **Residual ambiguity:**
   - "## 추천" 섹션 정확한 헤딩/포맷 문구 — 빌드 단계 재량 (영향: REQ-F-005/006, 리스크 low)
   - 이슈 타입(bug/feature/refactor) 판별 방식 — 모델 판단에 위임, 명시 규칙 없음 (영향: REQ-F-005, 리스크 low)
-  - 라벨/우선순위 자동 설정 여부 — 기본값 "명백하면 설정, 아니면 생략" (영향: REQ-F-001, 리스크 low)
+  - 라벨 부착 — **`project` + `type` + `area:*`(9종) 필수**(area 판별 불가 시 사용자 질의), 우선순위는 명백할 때만 설정 (영향: REQ-F-001; `feedback_linear_label_on_create` 반영)
 
 ## 6. Context (brownfield)
 
-- **참고 팩(벤더, 심링크 `~/.agents/skills/`)** — `triage`(role 상태머신 + AI disclaimer 의무 + AGENT-BRIEF),
-  `to-issues`(plan→vertical slice + Blocked-by 의존순 발행), `to-prd`(대화→PRD, 인터뷰 안 함).
-  tracker-agnostic + `setup-matt-pocock-skills` per-repo 설정 의존 → REQ-N-001/C4 가 이들과 경계를 가름.
+- **참고 팩(벤더, 심링크 `~/.agents/skills/`)** — `to-issues`(plan→vertical slice + Blocked-by
+  의존순 발행; register 코어 헤딩 계약 준수). tracker-agnostic + `setup-matt-pocock-skills`
+  per-repo 설정 의존 → REQ-N-001/C4 가 이와 경계를 가름. (구 `triage`·`to-prd` 는 폐기됨.)
 - **carpdm Linear 인프라** — `~/.claude/linear-repo-map.json`(repo→team 매핑, REQ-F-002/N-004 입력),
   `~/.claude/rules/linear-dispatch.md`(현재 repo→팀 스코프 역매핑 SSOT — REQ-F-002 가 동형 적용),
   Linear MCP(`create_issue`/`save_issue`/`create_comment`/`list_projects` — REQ-F-001/003/008/009),
