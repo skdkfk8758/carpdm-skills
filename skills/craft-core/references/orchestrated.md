@@ -30,7 +30,7 @@ Phase 4 판정으로 운반); **adversary** 는 council 루프에 대해 자격�
 으로 한 번 돈다.
 
 모델: designer + adversary + 검증 judge = **opus** (`claude-opus-4-8`);
-Phase 3 빌드 = **sonnet** (`claude-sonnet-4-6`) — §3 참조.
+Phase 3 빌드 = **opus** (`claude-opus-4-8`) — linear 엔진과 동일, §3 참조.
 
 ---
 
@@ -110,13 +110,12 @@ Loop:
 
 ---
 
-## §3 — Dynamic-workflow TDD build (sonnet)
+## §3 — Dynamic-workflow TDD build (opus)
 
 red→green→refactor 규율과 "atomic task" 정의를 위해
-`~/.claude/skills/craft-core/references/dynamic-tdd.md` 를 읽어라 — 단 **그 모델
-핀을 override 하라: orchestrated 빌드는 opus 가 아니라 `sonnet` 에서 돈다**. 빌드는 test-pinned
-이고 독립적으로 검증되므로, 그것이 더 싼 tier 를 정당화한다; opus 는
-판정이 무거운 phase (설계, 적대적 리뷰, 검증) 에 예약된다.
+`~/.claude/skills/craft-core/references/dynamic-tdd.md` 를 읽어라 — **그 모델
+핀을 그대로 따른다: orchestrated 빌드도 linear 엔진과 같이 `opus` 에서 돈다**. 구현
+일관성을 위해 build/verify 를 opus 로 통일하고, sonnet 다운시프트는 쓰지 않는다.
 
 **호출 스킬이 TDD 사이클이 어디서 시작하는지 정의한다** — linear
 엔진과 정확히 같이: `forge` 는 acceptance 테스트를 태스크 1 로 쓴다; `hunt` 는 실패하는
@@ -133,8 +132,8 @@ Workflow 를 구동한다; 빌드 에이전트는 team 멤버가 아니라 무�
 ```javascript
 export const meta = {
   name: 'craft-build',
-  description: 'Split the approved plan into atomic tasks and build each test-first on sonnet',
-  phases: [{ title: 'Build', model: 'sonnet' }, { title: 'Verify', model: 'sonnet' }],
+  description: 'Split the approved plan into atomic tasks and build each test-first on opus',
+  phases: [{ title: 'Build', model: 'opus' }, { title: 'Verify', model: 'opus' }],
 }
 
 const TASKS = args.tasks
@@ -154,12 +153,12 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `build:${t.id}`, phase: 'Build', model: 'sonnet', schema: RESULT }
+    { label: `build:${t.id}`, phase: 'Build', model: 'opus', schema: RESULT }
   ),
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
     `Report testsGreen honestly — do not trust the implementer's claim.`,
-    { label: `verify:${t.id}`, phase: 'Verify', model: 'sonnet', schema: RESULT }
+    { label: `verify:${t.id}`, phase: 'Verify', model: 'opus', schema: RESULT }
   ).then(v => ({ ...impl, verified: v.testsGreen }))
 )
 
@@ -174,8 +173,8 @@ verify 가 빈 트리를 봐 false red 를 내거나 변경이 orphan 워크트�
 `testsGreen:false` 나 `verified:false` 를 반환하는 태스크는 Phase 4 전에 고친다 —
 red 태스크로 진행하지 말 것.
 
-build / verify 는 기본 워크플로 subagent 에서 돈다 — `model: 'sonnet'` 이
-orchestrated §3 tier 와 일치한다. 프롬프트가 곧 계약이다.
+build / verify 는 기본 워크플로 subagent 에서 돈다 — `model: 'opus'` 가
+orchestrated §3 tier 와 일치한다(linear 와 동일). 프롬프트가 곧 계약이다.
 
 ---
 
@@ -187,14 +186,14 @@ orchestrated §3 tier 와 일치한다. 프롬프트가 곧 계약이다.
 메인 세션이 `AskUserQuestion` 으로 **한 번 제안한다** (기본 off). 거부되거나
 정리할 게 없으면, 곧장 §4 로. 수락되면 변경된 diff 를 `/simplify` 스킬로
 정리한다 (재사용/단순화/효율/altitude, behavior 불변). `/simplify` 미설치 시
-같은 정리를 **단일 `sonnet` Workflow 에이전트**로 돌린다 (fan-out 없음 — 빌드
+같은 정리를 **단일 `opus` Workflow 에이전트**로 돌린다 (fan-out 없음 — 빌드
 diff 에 대한 한 번의 순차 pass, §3 빌드 tier 에 맞춤):
 
 ```javascript
 export const meta = {
   name: 'craft-simplify-pass',
-  description: 'Simplify the build diff, behavior-preserving, on sonnet (fallback when /simplify absent)',
-  phases: [{ title: 'Simplify', model: 'sonnet' }],
+  description: 'Simplify the build diff, behavior-preserving, on opus (fallback when /simplify absent)',
+  phases: [{ title: 'Simplify', model: 'opus' }],
 }
 const RESULT = { type: 'object', required: ['testsGreen','summary'], properties: {
   testsGreen: { type: 'boolean' },
@@ -209,7 +208,7 @@ return await agent(
   `dedup, inline, simpler expressions); run the suite after each step. ` +
   `A test goes red → that step changed behavior → revert it and stop on that axis. ` +
   `Never edit a test to make it pass. Do not hunt bugs. Report testsGreen + files changed.`,
-  { label: 'simplify:diff', phase: 'Simplify', model: 'sonnet', schema: RESULT })
+  { label: 'simplify:diff', phase: 'Simplify', model: 'opus', schema: RESULT })
 ```
 
 **designer 는 idle-alive 로 머문다** 이 phase 내내 (§4 가 여전히 필요로 한다). 
@@ -298,7 +297,7 @@ designer 가 수용할 때까지 Stage A → B → (필요하면 Phase 3) → A 
 ## Cost & failure notes
 
 - 이 토폴로지는 의도적으로 비싼 경로다: 영속 opus 에이전트 2 + 
-  sonnet 빌드 fan-out + opus verify fan-out + loop-back. 설계 리스크가
+  opus 빌드 fan-out + opus verify fan-out + loop-back. 설계 리스크가
   진짜일 때만 정당하다.
 - `codex:rescue` 부재 → adversary 가 스스로 Phase 2 공격을 한다 (수동
   폴백), linear 파이프라인과 동일.
