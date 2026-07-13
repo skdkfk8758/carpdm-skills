@@ -98,7 +98,7 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
 
 ### Phase 4 — 경량 확인 게이트 + 실행 핸드오프 (확인 뒤에만 — mutation 구간)
 
-**확인 게이트(텍스트 — HTML/시안 없음):** 다음을 한 블록으로 제시하고 대기한다:
+**확인 게이트(HTML/시안 없음):** 다음을 한 블록으로 제시하고 대기한다. **단일 승인 게이트는 `AskUserQuestion`**(승인 / 거부+피드백 선택지)으로 구조화해 응답 파싱을 견고하게 한다:
 
 > 진행 예정: **repo** `<repo>` / **worktree** `feat/<issue-id>-<topic>` /
 > **Goal Prompt** Objective 1줄 + Success Criteria N개 + worker=`deep-worker`. 진행?

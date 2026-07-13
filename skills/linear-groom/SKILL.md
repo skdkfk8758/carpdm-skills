@@ -13,7 +13,7 @@ description: >-
   "groom the backlog", "flesh out these issues", "sort issues by project" — even
   if they only mention one half (just grouping, or just enriching). Operates on
   issues that ALREADY EXIST in Linear. Do NOT use to create a brand-new single
-  issue from a request (that is triage/to-issues), to register a fresh plan as an
+  issue from a request (that is linear-register/to-issues), to register a fresh plan as an
   issue tree (deep-plan/to-issues), or to flip issue status during a build
   (the craft linear.md flow) — linear-groom reorganizes and deepens what is
   already on the board.
@@ -126,9 +126,16 @@ node <skill>/scripts/triage-issues.mjs '<list_issues JSON>'
 
 1. **새 프로젝트 먼저** — `save_project {name, summary, description, addTeams:[team]}`. 반환
    id 를 받아 그 프로젝트로 갈 이슈 배정에 쓴다.
-2. **그룹핑** — `save_issue {id, project}` (이름 또는 id). 다른 필드는 안 건드린다.
+2. **그룹핑** — `save_issue {id, project}` (이름 또는 id). 프로젝트 배정과 함께 **`area:*`
+   라벨(9종)이 비어 있으면 동반 부착**(register 라벨 표준과 동형 — team+area 스코프 조회
+   유실 방지). type 라벨도 명백하면 같이. 그 외 필드는 안 건드린다.
 3. **보강** — `save_issue {id, description}` 에 보강된 전체 마크다운(원본 보존 포함). 같은
-   이슈가 그룹핑+보강 둘 다면 한 번의 `save_issue` 로 `project`+`description` 함께 넣는다.
+   이슈가 그룹핑+보강 둘 다면 한 번의 `save_issue` 로 `project`+`description`(+라벨) 함께 넣는다.
+
+**병렬화 가드**: **의존 없는 독립 write**(순수 project 배정·라벨 부착, 관계 무관)만
+Workflow fan-out 으로 병렬 가능. **관계 세팅(blocks/blockedBy/parent)이 걸린 write 는 순차** —
+관계는 대상 이슈가 먼저 존재·확정돼야 하므로 병렬화하면 순서 의존이 깨진다. 새 프로젝트
+생성(1번)은 항상 그룹핑(2번)보다 선행(id 의존).
 
 각 write 후 성공/URL 을 요약 보고. 실패(권한/네트워크)는 그 이슈만 건너뛰고 계속 — 한
 건 실패가 전체를 멈추지 않게(나머지는 완수, 실패분만 따로 보고).

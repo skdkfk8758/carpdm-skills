@@ -1,6 +1,6 @@
 ---
 name: linear-register
-description: Register one to a few Linear issues natively (via Linear MCP), and on each issue append an adaptive "## 추천" section that points to the right global skill/agent/workflow for that work, plus — for dependency chains — set Linear relations and embed a forward pointer + ready-to-paste kickoff prompt for the next issue. Use when the user wants to file/create/register a Linear issue or a small set of linked Linear issues — "리니어에 이슈 등록", "이 작업 Linear 티켓 만들어줘", "이거 이슈로 올려줘", "연결된 이슈 몇 개 등록", "file this as a Linear issue". Do NOT use for: breaking a whole plan/spec/PRD into many vertical-slice issues (use to-issues), synthesizing a PRD from the conversation (use to-prd), running a ticket as an autonomous build (use linear-goal), or reorganizing/enriching an existing backlog (use linear-groom). When the input is a large plan or PRD, recommend those skills instead of decomposing it here.
+description: Register one to a few Linear issues natively (via Linear MCP), and on each issue append an adaptive "## 추천" section that points to the right global skill/agent/workflow for that work, plus — for dependency chains — set Linear relations and embed a forward pointer + ready-to-paste kickoff prompt for the next issue. Use when the user wants to file/create/register a Linear issue or a small set of linked Linear issues — "리니어에 이슈 등록", "이 작업 Linear 티켓 만들어줘", "이거 이슈로 올려줘", "연결된 이슈 몇 개 등록", "file this as a Linear issue". Do NOT use for: breaking a whole plan/spec/PRD into many vertical-slice issues (use to-issues), running a ticket as an autonomous build (use linear-goal), or reorganizing/enriching an existing backlog (use linear-groom). When the input is a large plan or PRD, recommend to-issues instead of decomposing it here.
 ---
 
 # linear-register
@@ -10,7 +10,7 @@ Linear 이슈를 네이티브로 등록하고, 각 이슈에 **다음 행동 가
 ## 경계 (먼저 확인)
 
 - 대형 plan/spec 을 다중 슬라이스로 **분할** → 직접 안 함, `to-issues` 추천.
-- 대화 → **PRD 합성** → `to-prd`. 티켓 **자율빌드** → `linear-goal`. 기존 백로그 **재배치/보강** → `linear-groom`.
+- 상위 plan/spec/PRD 문서를 다중 이슈로 **분할** → `to-issues`. 티켓 **자율빌드** → `linear-goal`. 기존 백로그 **재배치/보강** → `linear-groom`.
 - 이 스킬은 **단건~소수**의 Linear 이슈 등록 + 추천 + 체인 전담.
 
 ## 워크플로
@@ -23,11 +23,11 @@ Linear 이슈를 네이티브로 등록하고, 각 이슈에 **다음 행동 가
 
 ### 2. 이슈 초안 작성 (REQ-F-005/006/011)
 
-각 이슈 본문을 아래 **통합 템플릿**(register 표준 — linear-groom 도 같은 코어 헤딩 `## 작업 내용`/`## 수용 기준` 으로 수렴)으로. 수용 기준은 `[AUTO]`/`[HUMAN]` 마커를 단다(linear-goal 자율/사람 게이팅). `## 배경`·`## 범위 밖`·`> 출처:` 는 조건부(해당될 때만). **`## 추천`** 섹션이 핵심 — 생성 규칙은 [references/recommend-section.md](references/recommend-section.md) §A 를 읽어 따른다(SSOT, linear-groom 과 공유). 요지: 글로벌 스킬/에이전트 우선(모델 판단, 시작 매핑은 anchor 금지) → 프로젝트 로컬 포인터 부차(타repo 안 읽음, REQ-N-003). 큰 plan/PRD 입력이면 `to-issues`/`to-prd` 위임을 적는다(REQ-F-007). **UI/프론트엔드 이슈면** 같은 파일 §C(시안 선행 컨벤션 — 본문에 한 줄, 시안 생성은 착수 시점)도 적용한다.
+각 이슈 본문을 아래 **통합 템플릿**(register 표준 — linear-groom 도 같은 코어 헤딩 `## 작업 내용`/`## 수용 기준` 으로 수렴)으로. 수용 기준은 `[AUTO]`/`[HUMAN]` 마커를 단다(linear-goal 자율/사람 게이팅). `## 배경`·`## 범위 밖`·`> 출처:` 는 조건부(해당될 때만). **`## 추천`** 섹션이 핵심 — 생성 규칙은 [references/recommend-section.md](references/recommend-section.md) §A 를 읽어 따른다(SSOT, linear-groom 과 공유). 요지: 글로벌 스킬/에이전트 우선(모델 판단, 시작 매핑은 anchor 금지) → 프로젝트 로컬 포인터 부차(타repo 안 읽음, REQ-N-003). 큰 plan/PRD 입력이면 `to-issues` 위임을 적는다(REQ-F-007). **UI/프론트엔드 이슈면** 같은 파일 §C(시안 선행 컨벤션 — 본문에 한 줄, 시안 생성은 착수 시점)도 적용한다.
 
 ### 3. 확인 게이트 — 쓰기 전 필수 (REQ-F-004, REQ-N-002)
 
-`save_issue`(생성 = `id` 없이) **호출 전** 반드시 제시하고 대기:
+`save_issue`(생성 = `id` 없이) **호출 전** 반드시 제시하고 대기. **단일 승인 게이트는 `AskUserQuestion`**(승인 / 거부+피드백 선택지)으로 구조화해 응답 파싱을 견고하게 한다:
 
 > 등록 예정: **<팀>** / **<프로젝트>** / 이슈 **N건** — [제목 목록]. 진행?
 
@@ -35,7 +35,7 @@ Linear 이슈를 네이티브로 등록하고, 각 이슈에 **다음 행동 가
 
 ### 4. 생성 + 체인 (REQ-F-001/008/009/010)
 
-- `mcp__linear__save_issue`(**`id` 없이 = 생성**, `title`+`team` 필수) 로 생성. 라벨/우선순위(`priority` 0-4)는 이슈 타입상 **명백할 때만** 설정.
+- `mcp__linear__save_issue`(**`id` 없이 = 생성**, `title`+`team` 필수) 로 생성. **모든 생성 이슈에 `project` + `type` 라벨(bug/feature/chore 등) + `area:*` 라벨(9종) 필수 부착** — `area` 판별 불가 시 추측 말고 사용자에게 질의(`feedback_linear_label_on_create` 실측: 라벨 누락 이슈는 team+area 스코프 조회에서 유실). 우선순위(`priority` 0-4)는 이슈 타입상 명백할 때만 설정.
 - **의존 체인이면**: 같은 `save_issue` 호출의 `blocks`/`blockedBy`/`relatedTo`/`parentId`(append-only)로 Linear 네이티브 관계를 세팅하고, 각 이슈(마지막 제외)에 [references/recommend-section.md](references/recommend-section.md) §B 의 `## 다음 작업`(전방 포인터 + kickoff 프롬프트)을 심는다.
 - 종료 응답에 **첫(또는 다음) 실행 가능 이슈의 kickoff 프롬프트**를 즉시 복사 가능하게 제시.
 

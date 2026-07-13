@@ -57,7 +57,13 @@ If the plan is sound, say so plainly and return empty lists.
 codex 호출은 hang 할 수 있다(실측 ~39분, 최종 포맷 단계). 글로벌 `delegated-review-watchdog` 규칙을 여기서 구현한다:
 
 1. `codex:rescue` 호출을 background 로 돌리고 `Monitor` 로 진행을 본다 — 포그라운드 무한 대기 금지.
-2. **10분 cap** — 10분 안에 결과가 없으면 hang 으로 간주, kill 하고 부분 결과가 있으면 회수한다.
+2. **10분 cap — 결정론적 경과시간 체크.** background 잡을 시작하는 순간 시작 시각을
+   기록한다(예: `date +%s` 값을 노트에 적어 둔다). 그다음 `Monitor` 폴링마다 현재 시각 −
+   시작 시각을 계산해 **elapsed ≥ 10분이면 즉시 kill** 한다 — "10분쯤 됐나" 하는 시간
+   감각이 아니라 실제 경과 초로 판정한다(그 감각 오차가 원래 ~39분 방치 사고의 원인이었다).
+   kill 후 부분 결과가 있으면 회수한다. 환경에 10분 후 자동 wake 를 거는 스케줄 도구
+   (`CronCreate` 등)가 있으면 그것으로 타임아웃을 예약하는 편이 더 확실하다 — 단 도구
+   가용성은 환경마다 다르니, 없으면 위 폴링 경과 체크로 폴백한다(특정 도구 존재를 단정 금지).
 3. kill 후 **로컬 multi-agent 리뷰**(adversarial reviewer 역할 subagent)로 fallback — Phase 2 를 통째로 건너뛰지 않는다.
 4. codex/fallback 의 verdict 는 **권고**다 — BLOCKING 발견은 플랜에 접기 전 직접 확인(grep/build/재현)으로 독립 재검증한다.
 

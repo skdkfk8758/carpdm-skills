@@ -64,3 +64,10 @@ red → green → refactor 로 몰아가되, characterization test 는 내내 gr
 내내 green 으로 유지한 채. diff 가 사소하거나 사용자가 거절하면 건너뛴다.
 
 Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.
+
+## Anti-patterns (renew 고유 — 공유분은 pipeline.md)
+
+- **preserve/change 경계 미확정 후 편집** — 무엇이 살아남고 무엇이 바뀌는지 안 그으면
+  characterization test 로 잠글 대상이 흐려져, 보존돼야 할 동작을 조용히 깬다.
+- **개편이 죽인 옛 경로를 같은 변경에서 안 지움** — "다음 PR" 로 미루면 데드코드가
+  남는다(YAGNI 위반). 옛 경로 삭제는 같은 작업 단위에 넣는다.

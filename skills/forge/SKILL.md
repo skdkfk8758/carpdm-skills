@@ -55,3 +55,10 @@ acceptance test 가 통과하면, Phase 4 이전에 새로 작성한 diff 가 �
 건너뛴다.
 
 Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.
+
+## Anti-patterns (forge 고유 — 공유분은 pipeline.md)
+
+- **trivial 신규에 orchestrated council 과발화** — 기본 모드가 orchestrated 라 작은
+  단일 기능에도 적대 council 이 붙어 과할 수 있다. 명확·작은 신규면 `--linear` 로 떨군다.
+- **IO 계약 없이 Phase 3 진입** — acceptance test(task 1)는 Phase 1 의 정확한 IO 계약에서
+  도출된다. 계약이 흐린 채 outside-in 을 시작하면 허공을 친다 — 먼저 계약을 못 박아라.
