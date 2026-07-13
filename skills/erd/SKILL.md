@@ -1,6 +1,6 @@
 ---
 name: erd
-description: DB 스키마(라이브 DB 접속·마이그레이션·ORM 모델·repository 코드·산문·PLAN 문서)를 입력으로 받아, 인터랙티브 ERD(엔티티 관계도)를 Claude Artifact(캔버스)로 게시한다. dbdiagram 풍 테이블 카드(컬럼·타입·PK/FK 아이콘·NN/UQ pill + 적재량 배지) + SVG 자동 라우팅 관계선(실 FK/위계/deprecated/soft 4종 + crow's foot)에, 테이블 클릭 시 연결된 테이블만 하이라이트하는 포커스 모드와 우측 상세 패널(구조 탭=전체 컬럼·제약·관계, 데이터 탭=적재량·마스킹된 샘플 rows), 테이블 검색, 그리고 진단 패널(ACID 갭 분석 — FK/CHECK/UNIQUE 제약 부재·고아값 실카운트·트랜잭션 미래핑·엔진 설정 + 구조 개선 — 테이블 분할·정규화·삭제 후보, 실측 근거 기반 제안)까지 갖춘 단일 self-contained 페이지다. 접속 정보(.env DATABASE_URL·docker-compose·프레임워크 설정)가 있거나 사용자가 connection string 을 주면 실제 DB 에 읽기 전용으로 붙어 information_schema introspection + 테이블별 적재량·샘플(PII 마스킹)을 수집해 현재 운영 스키마 그대로 그린다(접속 전 확인, credential 비노출, 쓰기·DDL 금지). 사용자가 DB 스키마·테이블 관계·엔티티 관계를 그림으로 보고 싶어 하거나, ERD/관계도/스키마 다이어그램/DB 구조도를 그려 달라고 할 때마다 사용한다 — "이 마이그레이션으로 ERD 그려줘", "DB 스키마 관계도", "실제 DB 접속해서 ERD 그려줘", "운영 DB 스키마 보고 관계도", "테이블 관계 시각화", "엔티티 관계도 만들어줘", "스키마 다이어그램 뽑아줘", "DB 구조 그림으로 보여줘", "테이블 데이터도 같이 보여줘", "DB 개선점/최적화 방안도 같이", "ACID 관점에서 우리 DB 분석해줘", "테이블 정리·분할 제안해줘", "draw an ERD", "/erd" 같은 표현. 마이그레이션 디렉토리나 모델 파일을 가리키며 "이거 관계 어떻게 돼 있어 그림으로" 라고 해도 마찬가지다. 코드를 빌드/수정(use forge/renew/hunt)하거나, 추출된 디자인 시스템을 재현(use imprint)하거나, 일반 UI 를 창작(use frontend-design)하는 데는 사용하지 말 것 — erd 는 스키마를 도식으로 그릴 뿐 마이그레이션을 작성하거나 DB 를 바꾸지 않는다.
+description: DB 스키마(라이브 DB 접속·마이그레이션·ORM 모델·repository 코드·산문·PLAN 문서)를 입력으로 받아, 인터랙티브 ERD(엔티티 관계도)를 Claude Artifact(캔버스)로 게시한다. dbdiagram 풍 테이블 카드(컬럼·타입·PK/FK 아이콘·NN/UQ pill + 적재량 배지) + SVG 자동 라우팅 관계선(실 FK/위계/deprecated/soft 4종 + crow's foot)에, 테이블 클릭 시 연결된 테이블만 하이라이트하는 포커스 모드와 우측 상세 패널(구조 탭=전체 컬럼·제약·관계, 데이터 탭=적재량·마스킹된 샘플 rows), 테이블 검색, 그리고 진단 패널(ACID 갭 분석 — FK/CHECK/UNIQUE 제약 부재·고아값 실카운트·트랜잭션 미래핑·엔진 설정 + 구조 개선 — 테이블 분할·정규화·삭제 후보, 실측 근거 기반 제안)까지 갖춘 단일 self-contained 페이지다. 접속 정보(.env DATABASE_URL·docker-compose·프레임워크 설정)가 있거나 사용자가 connection string 을 주면 실제 DB 에 읽기 전용으로 붙어 information_schema introspection + 테이블·컬럼 코멘트 + 테이블별 적재량·샘플(MAX 100행, PII 마스킹)을 수집해 현재 운영 스키마 그대로 그린다(접속 전 확인, credential 비노출, 쓰기·DDL 금지 — 유일 예외로 한글 코멘트가 DB 에 없으면 COMMENT ON 백필 스크립트를 생성해 사용자 승인 게이트 후 dev 한정 적용 가능). 테이블/컬럼에 한글 주석·코멘트를 달아 달라는 요청("테이블 코멘트 정리해줘", "컬럼 설명 한글로 달아줘")도 이 스킬이다. 사용자가 DB 스키마·테이블 관계·엔티티 관계를 그림으로 보고 싶어 하거나, ERD/관계도/스키마 다이어그램/DB 구조도를 그려 달라고 할 때마다 사용한다 — "이 마이그레이션으로 ERD 그려줘", "DB 스키마 관계도", "실제 DB 접속해서 ERD 그려줘", "운영 DB 스키마 보고 관계도", "테이블 관계 시각화", "엔티티 관계도 만들어줘", "스키마 다이어그램 뽑아줘", "DB 구조 그림으로 보여줘", "테이블 데이터도 같이 보여줘", "DB 개선점/최적화 방안도 같이", "ACID 관점에서 우리 DB 분석해줘", "테이블 정리·분할 제안해줘", "draw an ERD", "/erd" 같은 표현. 마이그레이션 디렉토리나 모델 파일을 가리키며 "이거 관계 어떻게 돼 있어 그림으로" 라고 해도 마찬가지다. 코드를 빌드/수정(use forge/renew/hunt)하거나, 추출된 디자인 시스템을 재현(use imprint)하거나, 일반 UI 를 창작(use frontend-design)하는 데는 사용하지 말 것 — erd 는 스키마를 도식으로 그릴 뿐 마이그레이션을 작성하거나 DB 를 바꾸지 않는다.
 ---
 
 # ERD — DB 스키마를 인터랙티브 Artifact 관계도로
@@ -41,12 +41,15 @@ DB 스키마를 받아 **Claude Artifact(캔버스)로 게시되는 인터랙티
 docker-compose, 프레임워크 설정)가 있거나 사용자가 connection string 을 주면, 실제 DB 에
 붙어 **읽기 전용**으로 다음을 수집한다:
 
-1. **스키마** — `information_schema`/카탈로그 introspection (테이블·컬럼·PK/UQ/FK).
+1. **스키마 + 코멘트** — `information_schema`/카탈로그 introspection (테이블·컬럼·
+   PK/UQ/FK + `obj_description`/`col_description` 코멘트). **DB 코멘트가 있으면 그것이
+   설명의 SSOT** — 없으면 코드·문서 근거로 한글 코멘트를 작성해 싣고, 그 목록을
+   Step 4.5 백필 제안용으로 기억해 둔다 (schema-discovery.md §0a).
 2. **적재량** — 테이블별 row count. 통계 기반 추정치가 기본(대형 테이블 count(\*) 는
    느리고 DB 에 부담), 정확/추정 여부를 `rowsExact` 로 구분해 담는다.
-3. **샘플 데이터** — 테이블별 `LIMIT 5`. **PII 성 컬럼은 수집 직후 마스킹**하고,
-   마스킹 완료된 값만 `DATA.sample` 에 넣는다 — 원본 값이 Artifact 에 실리면 안 된다.
-   수집 쿼리·마스킹 규칙은 schema-discovery.md §0b.
+3. **샘플 데이터** — 테이블별 `LIMIT 100` (MAX 100행 — 100행 미만이면 전량).
+   **PII 성 컬럼은 수집 직후 마스킹**하고, 마스킹 완료된 값만 `DATA.sample` 에 넣는다 —
+   원본 값이 Artifact 에 실리면 안 된다. 수집 쿼리·마스킹 규칙은 schema-discovery.md §0b.
 
 안전 수칙 (어기면 사고):
 - **읽기 전용만** — introspection SELECT/`SHOW`/`PRAGMA`/`db pull`. 쓰기·DDL 절대 금지.
@@ -158,8 +161,32 @@ S=넓은 테이블 분할·삭제 후보)과 증거 쿼리(전부 읽기 전용)
    재설계하지 않는다. `favicon` 은 `"🗄️"` 고정(재게시에도 동일 유지), `description` 은
    "<중심> ERD — 테이블 N개, 관계 M건" 한 줄. 같은 ERD 갱신이면 같은 파일 경로로 재게시
    (새 경로 = 새 URL).
+### Step 4.5 — DB 코멘트 백필 제안 (선택, 확인 게이트)
+
+Step 1 에서 **DB 에 코멘트가 없어 ERD 쪽에서 새로 작성한** 테이블/컬럼이 있으면, 그
+한글 코멘트를 DB 에도 등록할지 제안한다 — ERD 와 DB 가 같은 설명을 갖게 되어 다음
+introspection 부터는 DB 가 SSOT 가 된다. `COMMENT ON` 은 데이터 무손실 메타데이터
+변경이지만 **여전히 DDL 이므로 이 스킬의 유일한 쓰기 예외**로, 아래 게이트를 전부
+거친다:
+
+1. **스크립트 먼저** — 소스 파일 옆에 `<중심>-comments.sql` 로 `COMMENT ON TABLE/
+   COLUMN … IS '…'` 문을 생성한다(전부 한글, 작은따옴표 이스케이프 `''`). 몇 건인지와
+   미리보기 몇 줄을 보여준다. 여기까지는 write 가 아니다 — 스크립트가 1차 산출물.
+2. **확인 게이트** — `AskUserQuestion` 으로 적용 여부를 묻는다(적용 / 스크립트만).
+   승인 없이 절대 실행하지 않는다.
+3. **적용은 dev/로컬 한정** — 승인 시 현재 접속 DB 가 dev/로컬일 때만 psql 로 적용하고,
+   `col_description` 재조회로 반영을 검증한다. **prod 로 판정된 DB 에는 직접 적용하지
+   않는다** — 스크립트 경로와 slow-lane 절차(개별 psql apply + 검증, `branch-worktree-strategy.md`
+   §6b)를 안내하고 끝낸다.
+4. **실패/스킵 무해** — 이 단계는 부가 단계다. 스킵·실패해도 ERD 산출은 이미 완전하다.
+   SQLite 는 코멘트 미지원이라 이 단계 자체를 생략(그 사실만 한 줄).
+
+DB 접속 없이 정적 소스로 그린 ERD 면 적용할 DB 가 없다 — 스크립트만 생성해 두거나
+(사용자가 원하면) 생략한다.
+
 4. **보고** — `~/.claude/skills/craft-core/references/output-contract.md` 의 고정
-   블록으로 보고한다(미설치면 같은 형식 직접 적용):
+   블록으로 보고한다(미설치면 같은 형식 직접 적용). 백필을 수행/생성했으면 그 행도
+   추가한다:
 
 ```
 result: <중심 테이블> ERD 게시 — N 테이블 / M 관계, 출처 <경로 또는 live DB>
@@ -181,6 +208,7 @@ result: <중심 테이블> ERD 게시 — N 테이블 / M 관계, 출처 <경로
 - **근거 없는 finding 지어내기** — 진단은 실측(쿼리 결과·스키마 사실·코드 grep)이 있는 것만. 이슈 0건 = 빈 배열이 정답.
 - **삭제 후보를 "지워도 됨" 으로 단정** — liveness 3증거 절차 없이 drop 권고 금지 (실사고 전례).
 - **마이그레이션/DDL 작성** — erd 는 그리기만. 스키마 변경이 필요하면 forge/renew.
-- **라이브 DB 에 쓰기·DDL 실행** — introspection·SELECT(LIMIT)만. `INSERT`/`ALTER`/`DROP` 절대 금지. 운영 DB 는 접속 전 확인, credential 비노출.
+- **라이브 DB 에 쓰기·DDL 실행** — introspection·SELECT(LIMIT)만. `INSERT`/`ALTER`/`DROP` 절대 금지. **유일 예외 = Step 4.5 의 `COMMENT ON` 백필**(데이터 무손실 메타데이터) — 그것도 스크립트 생성 → 명시 승인 → dev/로컬 한정 순서를 어기면 위반이다. prod 직접 적용 금지. 운영 DB 는 접속 전 확인, credential 비노출.
+- **승인 없이 COMMENT ON 실행 / prod 에 백필** — Step 4.5 게이트 위반. 스크립트는 자유, 실행은 승인 후 dev 만.
 - **`edges` id 오타** — `tables[].id` 와 정확히 일치해야 선이 그려진다. 게시 전 반드시 기계 대조.
 - **결과물 주석·note·footer 를 영어로** — 산출 ERD 의 설명 텍스트는 한국어가 기본(Step 2 규칙).

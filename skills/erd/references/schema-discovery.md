@@ -50,13 +50,18 @@ CLI 가 있으면 그걸로, 없으면 프레임워크 introspection 으로 폴�
 그 스키마명으로 바꾼다(스키마 목록: `SELECT schema_name FROM information_schema.schemata;`).
 
 ```sql
--- 테이블
-SELECT table_name FROM information_schema.tables
-WHERE table_schema='public' AND table_type='BASE TABLE' ORDER BY table_name;
--- 컬럼 (타입·nullable·default)
-SELECT table_name, column_name, data_type, is_nullable, column_default
-FROM information_schema.columns WHERE table_schema='public'
-ORDER BY table_name, ordinal_position;
+-- 테이블 (+ 코멘트)
+SELECT c.relname AS table_name, obj_description(c.oid, 'pg_class') AS table_comment
+FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+WHERE n.nspname='public' AND c.relkind='r' ORDER BY c.relname;
+-- 컬럼 (타입·nullable·default + 코멘트)
+SELECT cols.table_name, cols.column_name, cols.data_type, cols.is_nullable, cols.column_default,
+       col_description(pc.oid, cols.ordinal_position) AS column_comment
+FROM information_schema.columns cols
+JOIN pg_class pc ON pc.relname=cols.table_name
+JOIN pg_namespace pn ON pn.oid=pc.relnamespace AND pn.nspname=cols.table_schema
+WHERE cols.table_schema='public'
+ORDER BY cols.table_name, cols.ordinal_position;
 -- PK / UNIQUE
 SELECT tc.table_name, tc.constraint_type, kcu.column_name
 FROM information_schema.table_constraints tc
@@ -83,7 +88,21 @@ ORDER BY child, kcu.ordinal_position;
 **MySQL/MariaDB** (`mysql -h … -u … -e '<sql>' <db>`, 비번은 `MYSQL_PWD`): 위와 동일하되
 `table_schema=DATABASE()`(또는 대상 DB명) 로 거른다. FK 는 `information_schema.
 key_column_usage` 에서 `referenced_table_name IS NOT NULL` 로, ON DELETE 규칙은
-`referential_constraints` 에서.
+`referential_constraints` 에서. 코멘트는 `information_schema.tables.table_comment` /
+`columns.column_comment`.
+
+### 0a. 코멘트 — DB 값이 SSOT, 없으면 한글로 작성 (+백필 제안)
+
+ERD 의 모든 테이블(`comment`)·컬럼(`c`) 설명은 한글이어야 한다. 소스 우선순위:
+
+1. **DB 에 코멘트가 있으면 그대로 쓴다** (위 introspection 쿼리의 comment 컬럼).
+   영어 코멘트면 한글로 번역해 싣되 원문 유래를 유지한다.
+2. **없으면 코드·마이그레이션 주석·도메인 문서(ADR/CLAUDE.md)를 근거로 한글 코멘트를
+   작성**한다 — 근거 없는 컬럼은 이름·타입·FK 에서 유추하되 확신 낮으면 짧게(억지 설명
+   금지). 이렇게 작성한 코멘트는 DB 미등록분이다 — 테이블/컬럼 목록을 기억해 두고
+   SKILL.md Step 4.5 의 **DB 코멘트 백필 제안**에 넘긴다.
+3. SQLite 는 코멘트를 지원하지 않는다 — ERD 에만 싣고 백필 단계는 "SQLite 미지원" 으로
+   생략을 알린다.
 
 **SQLite** (`sqlite3 <file.db>`): `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';`
 (`sqlite_%` 내부 테이블 — `sqlite_sequence`/FTS shadow 등 — 제외)
@@ -117,9 +136,12 @@ WHERE n.nspname='public' AND c.relkind='r' ORDER BY c.relname;
   두고 footer 에 한계 명시.
 - 정확값이 필요하고 테이블이 작다고 확인된 경우만 `count(*)` → `rowsExact:true`.
 
-**샘플 — 테이블별 `LIMIT 5`.** `SELECT * FROM <t> LIMIT 5;` (정렬 불요 — 임의 5행이면
-충분). 컬럼이 아주 많은 테이블(30+)은 대표 컬럼 ~10개로 줄여도 된다(PK·FK·도메인 핵심
-우선). 수집한 값은 **템플릿에 넣기 전에** 아래 규칙으로 가공한다:
+**샘플 — 테이블별 `LIMIT 100` (MAX 100행).** `SELECT * FROM <t> LIMIT 100;` (정렬
+불요). 적재가 100행 미만이면 전량이 실린다 — 패널 데이터 탭은 자체 스크롤이라 100행도
+읽힌다. 컬럼이 아주 많은 테이블(30+)은 대표 컬럼 ~10개로 줄여도 된다(PK·FK·도메인 핵심
+우선). 단 100행 × 넓은 컬럼으로 산출물이 과도해지면(대략 셀 수천 개↑) 그 테이블만 행을
+줄이고 데이터 탭 하단에 "N행 중 M행 표시" 사실을 남긴다. 수집한 값은 **템플릿에 넣기
+전에** 아래 규칙으로 가공한다:
 
 | 대상 | 처리 |
 |---|---|
