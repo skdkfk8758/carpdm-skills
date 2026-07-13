@@ -220,6 +220,32 @@
   .p-sample td{padding:6px 10px;border-bottom:1px solid var(--card-row);color:var(--ink-2)}
   .p-sample tr:last-child td{border-bottom:none}
   .p-mask-note{margin:8px 0 0;font-size:10.5px;color:var(--ink-3)}
+  /* 샘플 섹션 헤더 행 — 제목 + 전체보기 버튼 */
+  .p-sec-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
+  .p-sec-row .p-sec{margin:0}
+  .btn-full{
+    flex:none;border:1px solid var(--line);background:var(--bg);color:var(--ink-2);
+    font-size:11px;font-weight:600;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:var(--ui);
+  }
+  .btn-full:hover{border-color:var(--brand);color:var(--ink)}
+
+  /* ── 샘플 전체보기 모달 ───────────────────────────────────────── */
+  .dmodal{
+    position:fixed;inset:0;z-index:200;background:#000a;
+    display:none;align-items:center;justify-content:center;padding:4vh 4vw;
+  }
+  .dmodal.open{display:flex}
+  .dmodal .m-card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    box-shadow:0 12px 48px #00000066;width:100%;max-width:1400px;max-height:88vh;
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  .m-hd{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line)}
+  .m-hd h3{margin:0;flex:none;font-family:var(--mono);font-size:15px;color:var(--ink)}
+  .m-hd .m-meta{flex:1;font-size:11.5px;color:var(--ink-3)}
+  .m-body{flex:1;overflow:auto}
+  .m-body .p-sample{width:100%}
+  .m-foot{padding:8px 18px;border-top:1px solid var(--line);font-size:10.5px;color:var(--ink-3)}
 
   /* ── 진단 패널 (좌측) — ACID 갭·구조 개선 제안 ─────────────── */
   .sev-high{--sev:var(--dep)}
@@ -336,6 +362,15 @@
   </div>
   <div class="p-body" id="p-body"></div>
 </aside>
+
+<div class="dmodal" id="dmodal" aria-hidden="true">
+  <div class="m-card">
+    <div class="m-hd"><h3 id="m-title"></h3><span class="m-meta" id="m-meta"></span>
+      <button class="p-close" id="m-close" title="닫기 (ESC)">✕</button></div>
+    <div class="m-body" id="m-body"></div>
+    <div class="m-foot">개인정보성 컬럼은 마스킹되어 있습니다. ∅ = NULL · 배경 클릭 또는 ESC 로 닫기</div>
+  </div>
+</div>
 
 <footer>{{FOOTER}}</footer>
 
@@ -592,6 +627,9 @@
       focusTable(target);
       document.getElementById('t_'+target).scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
     }));
+    // 샘플 전체보기 버튼 → 모달
+    const fullBtn = body.querySelector('#btn-sample-full');
+    if(fullBtn) fullBtn.addEventListener('click', () => openModal(id));
     body.scrollTop = 0;
   }
   function htmlCols(t){
@@ -627,14 +665,39 @@
         (t.rowsExact?'':'<span class="approx">추정치 (DB 통계 기반)</span>')+'</p>';
     if(!t.sample) return count + (t.rows!=null ? '<div class="p-empty">샘플 데이터 없음'+(t.rows===0?' — 빈 테이블':'')+'</div>' : '');
     const s = t.sample;
-    const tbl = '<div class="p-sec">샘플 데이터 '+s.rows.length+'행</div>'+
-      '<div class="p-sample-wrap"><table class="p-sample"><thead><tr>'+
-      s.cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+
-      s.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(v==null?'∅':v)+'</td>').join('')+'</tr>').join('')+
-      '</tbody></table></div>'+
+    const tbl = '<div class="p-sec-row"><div class="p-sec">샘플 데이터 '+s.rows.length+'행</div>'+
+      '<button class="btn-full" id="btn-sample-full">전체보기 ⤢</button></div>'+
+      '<div class="p-sample-wrap">'+sampleTableHtml(t)+'</div>'+
       '<p class="p-mask-note">개인정보성 컬럼(이메일·이름·연락처 등)은 마스킹되어 있습니다. ∅ = NULL.</p>';
     return count + tbl;
   }
+  // 샘플 테이블 HTML — 패널·전체보기 모달이 공유
+  function sampleTableHtml(t){
+    const s = t.sample;
+    return '<table class="p-sample"><thead><tr>'+
+      s.cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+
+      s.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(v==null?'∅':v)+'</td>').join('')+'</tr>').join('')+
+      '</tbody></table>';
+  }
+
+  /* ── 샘플 전체보기 모달 — 패널 데이터 탭의 확대 뷰 ───────────── */
+  const dmodal = document.getElementById('dmodal');
+  function openModal(id){
+    const t = byId[id];
+    if(!t || !t.sample) return;
+    document.getElementById('m-title').textContent = t.id;
+    document.getElementById('m-meta').textContent =
+      '샘플 '+t.sample.rows.length+'행 · 적재량 '+(t.rows==null?'—':t.rows.toLocaleString('ko-KR')+'건'+(t.rowsExact?'':' (추정)'));
+    document.getElementById('m-body').innerHTML = sampleTableHtml(t);
+    dmodal.classList.add('open');
+    dmodal.setAttribute('aria-hidden','false');
+  }
+  function closeModal(){
+    dmodal.classList.remove('open');
+    dmodal.setAttribute('aria-hidden','true');
+  }
+  document.getElementById('m-close').addEventListener('click', closeModal);
+  dmodal.addEventListener('click', e => { if(e.target===dmodal) closeModal(); });
   document.querySelectorAll('.p-tab').forEach(b => b.addEventListener('click', () => {
     panelTab = b.dataset.tab;
     if(focusId) renderPanel(focusId);
@@ -722,7 +785,12 @@
 
   /* ── 전역 해제 — 빈 배경 클릭 / ESC ─────────────────────────── */
   stage.addEventListener('click', clearFocus);
-  document.addEventListener('keydown', e => { if(e.key==='Escape'){ q.blur(); clearFocus(); closeDiag(); } });
+  document.addEventListener('keydown', e => {
+    if(e.key!=='Escape') return;
+    // 모달이 열려 있으면 ESC 는 모달만 닫는다 — 포커스·패널은 유지
+    if(dmodal.classList.contains('open')){ closeModal(); return; }
+    q.blur(); clearFocus(); closeDiag();
+  });
 
   renderCards();
   draw();
