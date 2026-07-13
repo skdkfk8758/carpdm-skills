@@ -41,8 +41,8 @@ stakes 신호 없는 가벼운 "build X" / "fix Y" / "refactor Z" 는
 에스컬레이트되면 `orchestrated.md` 를 읽고 아래 linear 지침 대신 그것의
 team-mode + Workflow 토폴로지로 다섯 phase 를 구동한다. phase
 *내용* 과 당신의 작업유형 Phase 1 초점 / Phase 3 TDD 진입점은
-변하지 않는다 — 실행 구조만 다르다. 한 가지 모델 변경:
-orchestrated 빌드는 **sonnet** 에서 돈다 (아래 linear Phase 3 은 opus 에서 돈다).
+변하지 않는다 — 실행 구조만 다르다. 모델 tier 도 동일:
+orchestrated 빌드도 linear Phase 3 과 같이 **opus** 에서 돈다 (linear 대비 달라지는 건 실행 구조 = team-mode council 토폴로지뿐).
 
 ## Task 진행 체크리스트 (전 phase 공통 — 항상)
 
