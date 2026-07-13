@@ -136,6 +136,18 @@ ambiguity 가 완고하면, 문제는 대개 누락된 디테일이 아니라 �
 
 ### Phase 4 — 요구사항 spec 결정화
 
+**모델 라우팅 — spec 은 fable, 폴백 opus.** spec 결정화는 이 스킬의 유일한 무거운
+산출이라 **fable(claude-fable-5)** 에서 만든다. 인터뷰 라운드 자체는 세션 모델
+그대로다(대화형). Phase 4 진입 시 한 번 판정:
+
+- 현재 세션 모델이 이미 fable → 인라인으로 그대로 작성(위임 불요).
+- 아니면 → spec 작성을 `Agent` 도구 `model: 'fable'` 서브에이전트로 위임한다.
+  프롬프트에는 대화를 붙이지 말고 압축 digest 만: 고정된 토폴로지, 라운드별 확정
+  결정(REQ 후보), 잔여 모호성, `references/spec-template.md` 경로, 저장 경로.
+  에이전트가 파일을 쓰면 메인이 Read 로 검증 후 보고한다.
+- fable 스폰이 모델 미가용으로 실패하면 같은 프롬프트로 `model: 'opus'` 재시도 —
+  폴백 사실을 result 블록에 한 줄 명시.
+
 `references/spec-template.md` 를 사용해 **시스템 요구사항 문서**를 작성하라. 각
 요구사항은 안정적 ID(`REQ-F-NNN` functional / `REQ-N-NNN` non-functional),
 MoSCoW 우선순위, 자체 acceptance criterion, 그리고 그것을 못 박은 인터뷰 라운드로

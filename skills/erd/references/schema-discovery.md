@@ -223,6 +223,55 @@ hier 로 시각 분리하면 그림이 읽힌다. 구분이 안 서면 전부 `f
   접거나 좁히지 않는다. 컬럼이 아주 많은 테이블은 카드 30컬럼 접기가 밀도를 지켜준다.
   40+ 테이블 초대형만 사용자와 범위(도메인 분할)를 협의한다.
 
+## 5. 진단 — ACID 갭 · 구조 개선 제안 (`DATA.findings`)
+
+ERD 에는 스키마 도식과 함께 **진단 패널**이 실린다 — 현 스키마가 ACID 관점에서 어디가
+새는지, 어떤 테이블을 쪼개거나 정리할 후보인지. 진단은 **실측 근거가 있는 제안**이지
+단정이 아니다 — 각 finding 에 근거(evidence)·영향(impact)·개선안(proposal)을 채우고,
+추측이면 "추정" 을 명시한다. 확인 안 된 문제를 지어내지 않는다 — **findings 0건이면
+빈 배열**로 두는 게 맞다(진단 버튼 자동 숨김).
+
+축(axis)별 휴리스틱과 증거 쿼리 (전부 읽기 전용):
+
+**C — Consistency (일관성): DB 가 규칙을 강제하는가**
+
+| 신호 | 증거 쿼리 (읽기 전용) | 심각도 |
+|---|---|---|
+| soft 참조(FK 제약 없는 값 매칭) | 고아값 실카운트: `SELECT count(*) FROM child c LEFT JOIN parent p ON c.ref=p.key WHERE c.ref IS NOT NULL AND p.key IS NULL` — 0건이면 "현재 고아 없음, 단 DB 미강제" 로 톤 낮춤(mid→info 아님, mid 유지: 강제 부재 자체가 갭) | 고아 존재=high / 0건=mid |
+| enum 성 varchar(status/type/state 류)에 CHECK 없음 | `SELECT DISTINCT <col>` 로 실제 값 종류 확인 | mid |
+| 자연키 후보(email/slug/sku)에 UNIQUE 없음 | 중복 실카운트: `SELECT <col>, count(*) FROM t GROUP BY <col> HAVING count(*)>1 LIMIT 5` | 중복 존재=high / 없음=mid |
+| FK 에 ON DELETE 규칙 미지정(기본 NO ACTION 방치) | introspection 의 delete_rule | info |
+
+**A — Atomicity (원자성): 다중 테이블 쓰기가 트랜잭션으로 묶이는가** — 코드 소스가
+있을 때만. repository/service 에서 여러 테이블을 잇달아 쓰는 흐름(주문+주문항목,
+집계 갱신)을 찾고 `BEGIN`/`transaction(`/`.transaction` 래핑 여부를 grep. 래핑 없으면
+mid("부분 실패 시 반쪽 데이터"). 코드 없이 스키마만으로는 판단 불가 — 지어내지 않는다.
+
+**I — Isolation (고립성): 동시성 제어 흔적** — 코드 소스가 있을 때만. 카운터/재고류
+컬럼(view_count·stock·balance)의 read-modify-write 패턴 + `FOR UPDATE`/원자적
+`SET x=x+1`/version 컬럼(낙관락) 부재를 grep. 부재면 info~mid("동시 갱신 유실 가능").
+
+**D — Durability (지속성): 엔진 설정** — 라이브 DB 일 때만.
+- SQLite: `PRAGMA journal_mode;` — `delete`(기본)면 info("WAL 권장 — 동시 읽기·크래시 내성"), `wal` 이면 통과.
+- PostgreSQL: `SHOW synchronous_commit; SHOW fsync;` — off 면 high.
+- MySQL: `SELECT table_name, engine FROM information_schema.tables WHERE engine='MyISAM'` — MyISAM 은 트랜잭션 자체 미지원 = high. `innodb_flush_log_at_trx_commit` ≠1 이면 mid.
+
+**S — 구조 (분할·정리)**
+
+| 신호 | 판정 | 심각도 |
+|---|---|---|
+| 넓은 테이블 — 컬럼 20+ 이고 prefix 그룹(예: `shipping_*` 6개)이 보임 | 그룹별 1:1 분리 후보. 컬럼 나열을 근거로 | mid |
+| 반복 suffix 컬럼(`tag1,tag2,tag3` 류) | 1:N 정규화 후보 | mid |
+| 고성장 로그성 테이블(적재량이 타 테이블 대비 10배+·append-only 이름 `*_logs`/`*_events`)이 트랜잭션 테이블과 같은 DB | 파티셔닝/보존정책/분리 검토 | info |
+| **삭제 후보** — 적재 0 + 들어오는 edge 0 + (코드 소스 있으면) 참조 grep 0 | "삭제 후보" 로만 제시. proposal 에 **liveness 3증거 절차**(활성 커넥션 0 · 최근 write 없음 · 앱/설정/타 repo 참조 0 — `db-drop-preflight`) 를 반드시 포함. "지워도 됨" 단정 금지 | info~mid |
+| deprecated 테이블(dep 분류)이 여전히 참조를 받음 | 대체 경로·DROP 순서를 proposal 로 | mid |
+
+`DATA.findings` 작성 규칙: `title`/`evidence`/`impact`/`proposal` 전부 한글 산문.
+evidence 에는 실측 수치를 그대로 (예: "고아값 37건 (LEFT JOIN 실카운트)"). 심각도는
+**실위험=high / 권장=mid / 참고=info** — 갭 개수를 부풀리려 info 를 남발하지 않는다.
+NoSQL/BASE 류 의도적 트레이드오프가 보이면(예: 로그 테이블 FK 생략) 그 가능성도
+proposal 에 병기한다 — 갭이 늘 결함은 아니다.
+
 ## 검증 (그린 뒤, 게시 전)
 
 - 모든 `DATA.edges` 의 from/to 가 `DATA.tables[].id` 와 일치하는가 — 오타 한 글자면

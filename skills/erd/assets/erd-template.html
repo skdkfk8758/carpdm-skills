@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>{{TITLE}}</title>
 <style>
   /* ============================================================
@@ -219,6 +220,59 @@
   .p-sample td{padding:6px 10px;border-bottom:1px solid var(--card-row);color:var(--ink-2)}
   .p-sample tr:last-child td{border-bottom:none}
   .p-mask-note{margin:8px 0 0;font-size:10.5px;color:var(--ink-3)}
+
+  /* ── 진단 패널 (좌측) — ACID 갭·구조 개선 제안 ─────────────── */
+  .sev-high{--sev:var(--dep)}
+  .sev-mid{--sev:#c07f10}
+  .sev-info{--sev:var(--ink-3)}
+  .diag-btn{
+    flex:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    padding:7px 12px;font-size:12.5px;font-weight:600;font-family:var(--ui);
+    color:var(--ink-2);background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  }
+  .diag-btn:hover{border-color:var(--brand);color:var(--ink)}
+  .diag-btn .cnt{font-family:var(--mono);font-size:11px;font-weight:700;
+    padding:1px 7px;border-radius:9px;background:color-mix(in srgb, var(--dep) 15%, transparent);color:var(--dep)}
+  .tbl .hd .warn{flex:none;font-size:11px;cursor:pointer;filter:drop-shadow(0 0 1px #0006)}
+  .dpanel{
+    position:fixed;top:0;left:0;bottom:0;width:360px;max-width:90vw;z-index:100;
+    background:var(--card);border-right:1px solid var(--line);box-shadow:8px 0 28px #0000001f;
+    transform:translateX(-105%);transition:transform .22s ease;
+    display:flex;flex-direction:column;
+  }
+  .dpanel.open{transform:translateX(0)}
+  .dpanel .d-hd{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .dpanel .d-hd h2{margin:0;flex:1;font-size:15px}
+  .dpanel .d-filter{
+    padding:8px 18px;font-size:11.5px;color:var(--ink-2);border-bottom:1px solid var(--line);
+    background:var(--bg);display:none;align-items:center;gap:8px;
+  }
+  .dpanel .d-filter.on{display:flex}
+  .dpanel .d-filter b{font-family:var(--mono)}
+  .dpanel .d-filter button{
+    margin-left:auto;border:none;background:none;cursor:pointer;font-size:11px;
+    color:var(--brand);font-family:var(--ui);font-weight:600;
+  }
+  .dpanel .d-body{flex:1;overflow:auto;padding:12px 18px 24px}
+  .d-axis{margin:14px 0 6px;font-size:10.5px;font-weight:700;letter-spacing:.8px;color:var(--ink-3);text-transform:uppercase}
+  .d-axis:first-child{margin-top:2px}
+  .finding{
+    border:1px solid var(--line);border-left:3px solid var(--sev);border-radius:8px;
+    padding:10px 12px;margin:0 0 8px;font-size:12px;line-height:1.55;
+  }
+  .finding .f-t{display:flex;align-items:baseline;gap:7px;margin-bottom:4px}
+  .finding .f-t b{flex:1;font-size:12.5px;color:var(--ink)}
+  .finding .f-sev{flex:none;font-size:9.5px;font-weight:700;letter-spacing:.4px;
+    padding:1px 6px;border-radius:4px;color:var(--sev);background:color-mix(in srgb, var(--sev) 13%, transparent)}
+  .finding .f-tbls{margin:0 0 5px;display:flex;gap:4px;flex-wrap:wrap}
+  .finding .f-tbl{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:4px;
+    background:var(--pill-bg);color:var(--pill-ink);cursor:pointer}
+  .finding .f-tbl:hover{color:var(--ink)}
+  .finding dl{margin:0}
+  .finding dt{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--ink-3);margin-top:5px}
+  .finding dd{margin:1px 0 0;color:var(--ink-2)}
+  .finding dd code{font-family:var(--mono);font-size:11px;background:var(--pill-bg);padding:0 4px;border-radius:3px}
+  .d-foot{padding:10px 18px;border-top:1px solid var(--line);font-size:10.5px;line-height:1.5;color:var(--ink-3)}
 </style>
 
 <header class="page">
@@ -227,12 +281,15 @@
       <h1>{{HEADER_H1}}</h1>
       <p>{{HEADER_SUB}}</p>
     </div>
-    <div class="search"><input id="q" type="search" placeholder="테이블 검색 — Enter 로 이동" autocomplete="off" /></div>
+    <div class="search">
+      <button class="diag-btn" id="diag-btn" style="display:none">진단 <span class="cnt" id="diag-cnt">0</span></button>
+      <input id="q" type="search" placeholder="테이블 검색 — Enter 로 이동" autocomplete="off" />
+    </div>
   </div>
   <div class="legend">
     <span><i class="swatch sw-fk"></i> 실 FK</span>
     <span><i class="swatch sw-hier"></i> 위계 FK</span>
-    <span><i class="swatch sw-dep"></i> deprecated</span>
+    <span><i class="swatch sw-dep"></i> 폐기 예정 (deprecated)</span>
     <span><i class="swatch sw-soft"></i> soft 참조 (FK 없음, 값 매칭)</span>
     <span class="hint">테이블을 클릭하면 연결 관계 강조 + 상세 패널(구조·데이터)이 열립니다 · ESC 로 해제</span>
   </div>
@@ -257,6 +314,15 @@
   {{NOTES}}
 </div>
 </div>
+
+<aside class="dpanel" id="dpanel" aria-hidden="true">
+  <div class="d-hd"><h2>진단 — ACID 갭 · 구조 개선</h2>
+    <button class="p-close" id="d-close" title="닫기">✕</button></div>
+  <div class="d-filter" id="d-filter"><span><b id="d-filter-t"></b> 관련 진단만 표시 중</span><button id="d-filter-clear">전체 보기</button></div>
+  <div class="d-body" id="d-body"></div>
+  <div class="d-foot">진단은 스키마·데이터 실측 기반 <b>제안</b>이다 — 적용 전 도메인 판단 필요.
+    삭제 후보는 drop 전 liveness 3증거(활성 커넥션 0 · 최근 write 없음 · 코드/설정 참조 0)를 반드시 확인.</div>
+</aside>
 
 <aside class="panel" id="panel" aria-hidden="true">
   <div class="p-hd">
@@ -292,6 +358,15 @@
      edges[]: [자식테이블id, 부모테이블id, 라벨(보통 FK 컬럼명), kind]
        kind ∈ 'fk'(실 FK) | 'hier'(위계 FK) | 'dep'(deprecated) | 'soft'(값 매칭)
        ※ 종류별로 묶고 각 묶음 위에 한글 한 줄 주석을 단다.
+
+     findings[]: 진단 — ACID 갭·구조 개선 제안. 없으면 빈 배열(진단 버튼 자동 숨김).
+       { axis:'A'|'C'|'I'|'D'|'S',          // A/C/I/D = ACID 축, S = 구조(분할·정리)
+         sev:'high'|'mid'|'info',           // 심각도 — high=무결성 실위험, mid=권장, info=참고
+         tables:['posts', ...],             // 관련 테이블 id (카드 ⚠ 배지가 여기서 나옴)
+         title:'한 줄 요약 (한글)',
+         evidence:'실측 근거 — 쿼리 결과·스키마 사실. 추측이면 "추정" 명시',
+         impact:'방치 시 영향',
+         proposal:'개선안 — 삭제 후보면 liveness 3증거 절차 포함' }
      ============================================================ */
   const DATA = {
     tables: [
@@ -299,6 +374,9 @@
     ],
     edges: [
       {{DATA_EDGES}}
+    ],
+    findings: [
+      {{DATA_FINDINGS}}
     ],
   };
 
@@ -309,7 +387,7 @@
   const SVGNS = 'http://www.w3.org/2000/svg';
   const EDGE_COLOR = {fk:'hub', hier:'hier', dep:'dep', soft:'soft'};   // kind → CSS 변수명
   const KIND_LABEL = {fk:'실 FK', hier:'위계', dep:'deprecated', soft:'soft'};
-  const CLS_TAG = {hub:'HUB', lookup:'LOOKUP', dep:'DEPRECATED'};
+  const CLS_TAG = {hub:'허브', lookup:'분류축', dep:'폐기 예정'};
 
   const byId = {};
   DATA.tables.forEach(t => byId[t.id] = t);
@@ -344,6 +422,10 @@
     return '<li'+(c.pk?' class="pk"':'')+'><span class="l"><span class="cn">'+esc(c.n)+'</span>'+icons.join('')+
            '</span><span class="ty">'+esc(c.t)+' '+pills.join(' ')+'</span></li>';
   }
+  // 테이블별 진단 매핑 — 카드 ⚠ 배지·패널 필터에 사용
+  const findingsOf = {};
+  (DATA.findings||[]).forEach(f => (f.tables||[]).forEach(id => (findingsOf[id] = findingsOf[id]||[]).push(f)));
+
   function renderCards(){
     DATA.tables.forEach(t => {
       const el = document.createElement('div');
@@ -352,12 +434,16 @@
       el.style.left = t.x+'px'; el.style.top = t.y+'px';
       const shown = t.columns.slice(0, CARD_COL_LIMIT);
       const rest = t.columns.length - shown.length;
+      const nDiag = (findingsOf[t.id]||[]).length;
       el.innerHTML =
         '<div class="hd"><span class="nm" title="'+esc(t.comment||t.id)+'">'+esc(t.id)+'</span>'+
         (CLS_TAG[t.cls] ? '<span class="tag">'+CLS_TAG[t.cls]+'</span>' : '')+
+        (nDiag ? '<span class="warn" title="진단 '+nDiag+'건 — 클릭해 보기">⚠</span>' : '')+
         '<span class="rows-badge" title="적재량'+(t.rows!=null&&!t.rowsExact?' (추정)':'')+'">'+fmtRows(t.rows)+'</span></div>'+
         '<ul>'+shown.map(colRow).join('')+(rest>0?'<li class="more">…외 '+rest+'개 컬럼 — 클릭해 전체 보기</li>':'')+'</ul>';
       el.addEventListener('click', e => { e.stopPropagation(); focusTable(t.id); });
+      const warn = el.querySelector('.warn');
+      if(warn) warn.addEventListener('click', e => { e.stopPropagation(); openDiag(t.id); });
       stage.appendChild(el);
     });
   }
@@ -574,9 +660,69 @@
     }
   });
 
+  /* ── 진단 패널 — ACID 갭·구조 개선 제안 목록 ─────────────────── */
+  const AXIS_LABEL = {A:'원자성 (Atomicity)', C:'일관성 (Consistency)', I:'고립성 (Isolation)',
+                      D:'지속성 (Durability)', S:'구조 — 분할·정리'};
+  const SEV_LABEL = {high:'위험', mid:'권장', info:'참고'};
+  const dpanel = document.getElementById('dpanel');
+  let diagFilter = null;   // 테이블 id 로 필터 중이면 그 id
+  function openDiag(filterId){
+    diagFilter = filterId || null;
+    renderDiag();
+    dpanel.classList.add('open');
+    dpanel.setAttribute('aria-hidden','false');
+  }
+  function closeDiag(){
+    dpanel.classList.remove('open');
+    dpanel.setAttribute('aria-hidden','true');
+  }
+  function renderDiag(){
+    const filterBar = document.getElementById('d-filter');
+    filterBar.classList.toggle('on', !!diagFilter);
+    if(diagFilter) document.getElementById('d-filter-t').textContent = diagFilter;
+    const list = (DATA.findings||[]).filter(f => !diagFilter || (f.tables||[]).includes(diagFilter));
+    const body = document.getElementById('d-body');
+    if(!list.length){ body.innerHTML = '<div class="p-empty">해당 진단 없음</div>'; return; }
+    // 축(A/C/I/D/S) 순서로 그룹핑, 축 안에서는 심각도 순
+    const sevRank = {high:0, mid:1, info:2};
+    let html = '';
+    ['A','C','I','D','S'].forEach(ax => {
+      const group = list.filter(f => f.axis===ax).sort((a,b)=>sevRank[a.sev]-sevRank[b.sev]);
+      if(!group.length) return;
+      html += '<div class="d-axis">'+AXIS_LABEL[ax]+'</div>';
+      group.forEach(f => {
+        html += '<div class="finding sev-'+f.sev+'"><div class="f-t"><b>'+esc(f.title)+'</b>'+
+          '<span class="f-sev">'+SEV_LABEL[f.sev]+'</span></div>'+
+          '<div class="f-tbls">'+(f.tables||[]).map(t=>'<span class="f-tbl" data-t="'+esc(t)+'">'+esc(t)+'</span>').join('')+'</div>'+
+          '<dl>'+
+          (f.evidence?'<dt>근거</dt><dd>'+esc(f.evidence)+'</dd>':'')+
+          (f.impact?'<dt>영향</dt><dd>'+esc(f.impact)+'</dd>':'')+
+          (f.proposal?'<dt>개선안</dt><dd>'+esc(f.proposal)+'</dd>':'')+
+          '</dl></div>';
+      });
+    });
+    body.innerHTML = html;
+    // 진단 안 테이블 칩 클릭 → 그 테이블 포커스 + 스크롤
+    body.querySelectorAll('.f-tbl').forEach(el => el.addEventListener('click', () => {
+      const id = el.dataset.t;
+      if(!byId[id]) return;
+      focusTable(id);
+      document.getElementById('t_'+id).scrollIntoView({behavior:'smooth', block:'center', inline:'center'});
+    }));
+    body.scrollTop = 0;
+  }
+  const diagBtn = document.getElementById('diag-btn');
+  if((DATA.findings||[]).length){
+    diagBtn.style.display = 'inline-flex';
+    document.getElementById('diag-cnt').textContent = DATA.findings.length;
+    diagBtn.addEventListener('click', () => dpanel.classList.contains('open') && !diagFilter ? closeDiag() : openDiag());
+  }
+  document.getElementById('d-close').addEventListener('click', closeDiag);
+  document.getElementById('d-filter-clear').addEventListener('click', () => { diagFilter=null; renderDiag(); });
+
   /* ── 전역 해제 — 빈 배경 클릭 / ESC ─────────────────────────── */
   stage.addEventListener('click', clearFocus);
-  document.addEventListener('keydown', e => { if(e.key==='Escape'){ q.blur(); clearFocus(); } });
+  document.addEventListener('keydown', e => { if(e.key==='Escape'){ q.blur(); clearFocus(); closeDiag(); } });
 
   renderCards();
   draw();
