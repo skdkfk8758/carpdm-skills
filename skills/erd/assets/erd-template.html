@@ -166,7 +166,9 @@
     text-transform:uppercase;color:var(--ink-3);
   }
   .note{
-    position:absolute;z-index:2;width:250px;font-size:10.5px;line-height:1.5;color:var(--ink-2);
+    /* z-index 3 — 카드(z2) 위. 겹침 해소(resolveOverlaps)가 카드를 노트 밖으로 밀지만,
+       레이아웃이 어긋나도 주석 텍스트가 카드 뒤로 숨지 않도록 하는 2차 안전망. */
+    position:absolute;z-index:3;width:250px;font-size:10.5px;line-height:1.5;color:var(--ink-2);
     background:var(--note-bg);border:1px dashed var(--note-line);border-radius:8px;padding:9px 11px;
   }
   footer{padding:16px 28px 40px;font-size:11.5px;color:var(--ink-3);max-width:1000px}
@@ -514,24 +516,38 @@
   /* ── 겹침 자동 해소 — 카드 실측 높이 기반 안전망 ──────────────
      수동 좌표가 카드 높이(컬럼 수 가변)를 놓치면 카드가 겹친다.
      렌더 후 실제 DOM 크기로 충돌을 검사해 아래 카드를 수직으로 밀고,
-     밀린 만큼 스테이지를 늘린다. 수동 레이아웃 의도(열 배치)는 보존. */
+     밀린 만큼 스테이지를 늘린다. 수동 레이아웃 의도(열 배치)는 보존.
+
+     노트(.note)도 충돌 검사에 포함하되 '고정 장애물'로 둔다 — 노트는 절대
+     움직이지 않고, 노트와 겹친 카드만 노트 아래로 민다. 노트가 카드 뒤로
+     숨는 사고(주석 텍스트 소실)를 카드 배치 단계에서 구조적으로 제거한다. */
   function resolveOverlaps(){
     const GAP_X = 24, GAP_Y = 36;   // 최소 간격 — 이보다 가까우면 겹침으로 간주
-    const els = DATA.tables.map(t => document.getElementById('t_'+t.id));
+    // pin=false → 이동 가능한 카드, pin=true → 고정된 노트(장애물)
+    const boxes = DATA.tables.map(t => ({el:document.getElementById('t_'+t.id), pin:false}))
+      .concat(Array.from(document.querySelectorAll('.note')).map(el => ({el, pin:true})));
     let guard = 0, moved = true;
-    while(moved && guard++ < 60){
+    while(moved && guard++ < 80){
       moved = false;
-      els.sort((a,b) => (a.offsetTop-b.offsetTop) || (a.offsetLeft-b.offsetLeft));
-      for(let i=0;i<els.length;i++) for(let j=i+1;j<els.length;j++){
-        const A=els[i], B=els[j];
-        const xo = A.offsetLeft < B.offsetLeft+B.offsetWidth+GAP_X && B.offsetLeft < A.offsetLeft+A.offsetWidth+GAP_X;
-        const yo = A.offsetTop < B.offsetTop+B.offsetHeight+GAP_Y && B.offsetTop < A.offsetTop+A.offsetHeight+GAP_Y;
-        if(xo && yo){ B.style.top = (A.offsetTop + A.offsetHeight + GAP_Y) + 'px'; moved = true; }
+      boxes.sort((a,b) => (a.el.offsetTop-b.el.offsetTop) || (a.el.offsetLeft-b.el.offsetLeft));
+      for(let i=0;i<boxes.length;i++) for(let j=i+1;j<boxes.length;j++){
+        const A=boxes[i], B=boxes[j];
+        if(A.pin && B.pin) continue;   // 노트끼리 겹침은 저자 몫 — 건드리지 않음
+        const a=A.el, b=B.el;
+        const xo = a.offsetLeft < b.offsetLeft+b.offsetWidth+GAP_X && b.offsetLeft < a.offsetLeft+a.offsetWidth+GAP_X;
+        const yo = a.offsetTop < b.offsetTop+b.offsetHeight+GAP_Y && b.offsetTop < a.offsetTop+a.offsetHeight+GAP_Y;
+        if(!(xo && yo)) continue;
+        // 미는 대상 = 이동 가능한 쪽(카드), 기준 = 상대. 노트가 끼면 카드를 노트 아래로.
+        // 둘 다 카드면 정렬상 아래(B)를 A 아래로 민다(기존 동작 보존).
+        const push = A.pin ? b : (B.pin ? a : b);
+        const base = A.pin ? a : (B.pin ? b : a);
+        push.style.top = (base.offsetTop + base.offsetHeight + GAP_Y) + 'px';
+        moved = true;
       }
     }
-    // 밀린 카드가 잘리지 않게 스테이지 확장
+    // 밀린 카드·노트가 잘리지 않게 스테이지 확장
     let maxR = 0, maxB = 0;
-    els.forEach(el => { maxR = Math.max(maxR, el.offsetLeft+el.offsetWidth); maxB = Math.max(maxB, el.offsetTop+el.offsetHeight); });
+    boxes.forEach(o => { const el=o.el; maxR = Math.max(maxR, el.offsetLeft+el.offsetWidth); maxB = Math.max(maxB, el.offsetTop+el.offsetHeight); });
     if(maxR+60 > stage.offsetWidth)  stage.style.width  = (maxR+60)+'px';
     if(maxB+60 > stage.offsetHeight) stage.style.height = (maxB+60)+'px';
   }
