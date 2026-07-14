@@ -92,6 +92,12 @@ G0 에서 slug 확정 직후, 네이티브 Task 도구(`TaskCreate`)로 게이�
 
 - `pass` → 분류 `NOTE`, "무엇"에 outcome·attempts, "게이트" G3.
 - `short-circuit` → 분류 `ISSUE`, "무엇"에 최종 signature, "게이트" G2. (heal 라운드 결과는 `harness-heal` 이 별도 `HEAL` 엔트리로 append.)
+- **타이밍 (병목 실측 — 항상 포함).** 각 단계 진입 시 `date +%s` 를 기록해 두고
+  (G0 · 워크트리 · ② 생성 · G1 · ③④ Workflow · 종료), 엔트리에 한 줄 붙인다:
+  `타이밍: ②plan+rubric Xs · G1대기 Ys(사람) · loop Zs/attempts N · total Ts`.
+  **G1 대기(사람 승인)는 자동 구간과 반드시 분리 표기** — 사람 대기를 하니스
+  병목으로 오인하지 않기 위함. Workflow 내부는 시계가 없으므로(`Date.now()` 금지)
+  loop 구간은 메인루프의 호출 전/후 시각 차로 잰다. 기록 실패는 hard gate 아님.
 
 메인루프는 fs 가능 — 종료 직전 Write/Edit 로 append. 자동 hook 아님(스킬 컨벤션).
 

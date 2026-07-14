@@ -67,11 +67,13 @@ const results = await pipeline(
     `If a target already matches the spec, report testsGreen:true and skip.`,
     { label: `tdd:${t.id}`, phase: 'Implement', model: 'opus', schema: RESULT }
   ),
-  // Stage 2: independent verify that the task's tests actually pass
+  // Stage 2: independent verify that the task's tests actually pass.
+  // No model pin — verify is a deterministic test re-run, not reasoning work;
+  // it inherits the session model (cheaper/faster than pinning opus).
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
     `Report testsGreen honestly — do not trust the implementer's claim.`,
-    { label: `verify:${t.id}`, phase: 'Verify', model: 'opus', schema: RESULT }
+    { label: `verify:${t.id}`, phase: 'Verify', effort: 'low', schema: RESULT }
   ).then(v => ({ ...impl, verified: v.testsGreen }))
 )
 
@@ -80,8 +82,11 @@ return results.filter(Boolean)
 
 골격에 대한 주석:
 
-- 모든 구현/verify 에이전트에 `model: 'opus'` — 이것이 스킬 계약상 Phase 3
-  의 필수 모델이다.
+- **구현** 에이전트에 `model: 'opus'` — 이것이 스킬 계약상 Phase 3 의 필수
+  모델이다. **verify** 에이전트는 핀하지 않는다 — 그 일은 테스트 재실행(결정론적
+  기계 체크)이라 opus 추론이 필요 없고, 핀을 떨구면 태스크당 opus 런이 2→1 로
+  줄어 Phase 3 벽시계가 절반 가까이 준다. verify 의 정직성은 모델 tier 가 아니라
+  *독립 컨텍스트*(구현자의 주장을 신뢰하지 않고 직접 실행)에서 온다.
 - 구현 / verify 는 기본 워크플로 subagent 에서 돈다 — 위 프롬프트가 곧 계약이다.
 - 기본은 per-agent 워크트리 격리 **없음** — 에이전트는 메인 세션의 작업 트리
   (Phase 0 이 이미 worktree 로 분기했을 수 있음) 를 상속한다. 그래야 Stage 2
@@ -108,8 +113,9 @@ return results.filter(Boolean)
 
 - 테스트 전에 구현 쓰기 (red 단계 없음) → 테스트가 무언가를 테스트한다는 걸
   증명할 수 없다.
-- 에이전트가 더 싼 tier 로 폴백하게 `model: 'opus'` override 를 떨구기 →
-  스킬 계약 무시.
+- **구현** 에이전트가 더 싼 tier 로 폴백하게 `model: 'opus'` override 를 떨구기 →
+  스킬 계약 무시. (verify 는 반대 — opus 로 핀하는 것이 anti-pattern: 결정론적
+  테스트 재실행에 최저속 tier 를 태워 벽시계만 태운다.)
 - 플랜 전체를 위한 하나의 거대 에이전트 호출 → 태스크별 red/green
   규율을 잃고 truncate 된다.
 - 독립 verify 단계 없이 구현자의 "green" 을 신뢰하기.
