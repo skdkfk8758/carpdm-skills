@@ -85,6 +85,14 @@ WHERE kcu.table_schema='public'
 ORDER BY child, kcu.ordinal_position;
 ```
 
+**다중 스키마 (PostgreSQL search_path 분리·MySQL 다중 DB)** — 앱이 스키마를 나눠 쓰면
+(`map_layer`/`platform` 류) `table_schema='public'` 고정 조회는 테이블을 통째로 놓친다.
+① 스키마 목록을 먼저 열거하고(시스템·확장 스키마 — `pg_*`/`information_schema`/
+`tiger*`/`topology` — 제외), ② 앱 스키마 전부를 조회 범위에 넣고, ③ 각 테이블의
+`DATA.tables[].schema` 필드에 스키마명을 기록한다(2종 이상이면 템플릿이 필터 칩·카드
+태그를 자동 노출). 동명 테이블이 스키마 간 충돌하면 id 를 `schema.table` 로 유일화하고
+edges 도 그 id 로 참조한다.
+
 **MySQL/MariaDB** (`mysql -h … -u … -e '<sql>' <db>`, 비번은 `MYSQL_PWD`): 위와 동일하되
 `table_schema=DATABASE()`(또는 대상 DB명) 로 거른다. FK 는 `information_schema.
 key_column_usage` 에서 `referenced_table_name IS NOT NULL` 로, ON DELETE 규칙은
@@ -118,6 +126,14 @@ Rails `rails db:schema:dump` → `db/schema.rb`. introspection 결과 산출물�
 ERD 의 데이터 탭은 테이블별 **적재량(row count)** 과 **마스킹된 샘플 rows** 를 보여준다.
 DB 접속이 안 되면 수집하지 않고 `rows:null`/`sample:null` 로 둔다(템플릿이 "적재 정보
 없음" 을 자동 표시).
+
+**IMPORTANT — 적재량의 출처는 "사용자의 실 DB" 만이다.** 마이그레이션을 임시 컨테이너에
+재적용해 스키마를 재현(ephemeral replay)한 경우, 그 DB 는 스키마 소스로는 최고지만
+데이터는 seed 뿐이다. 거기서 잰 count 를 `rows:0, rowsExact:true` 로 실으면 실DB 에
+데이터가 있는 사용자에게 "빈 테이블" 이라는 거짓 정보가 된다(실사고 피드백). replay DB
+로 그렸다면 **전 테이블 `rows:null`** + footer 에 "적재량 미수집 — 스키마는 마이그 재적용
+재현" 을 명시하고, seed 로 들어간 행은 샘플에만 "마이그 seed" 라벨로 싣는다. 실 DB 접속이
+막혔으면 폴백 전에 사용자에게 접속 가능한 dev/스테이징 connection 이 있는지 먼저 묻는다.
 
 **적재량 — 통계 추정치가 기본.** 대형 테이블 `count(*)` 는 풀스캔이라 느리고 DB 에
 부담을 준다. 전 테이블을 쿼리 한 방으로:
@@ -235,6 +251,13 @@ hier 로 시각 분리하면 그림이 읽힌다. 구분이 안 서면 전부 `f
 - 카드 폭 250px 고정, 높이는 컬럼 수에 따라 가변(카드당 최대 30컬럼 표시 — 초과분은
   템플릿이 자동으로 접는다). **카드 간 가로 ≥ 300px, 세로 ≥ 150px 간격**을 둬 wire 와
   라벨이 겹치지 않게.
+- **카드 높이를 계산해서 y 를 잡는다** — 대략 `높이 ≈ 48 + 28 × min(컬럼수, 30)` px
+  (+접힘 행 1줄). 예: 19컬럼 카드 ≈ 580px — 같은 열 다음 카드의 y 는 최소
+  `y + 높이 + 150` 이어야 한다. 컬럼 많은 카드 아래에 눈대중 y 를 놓는 것이 겹침
+  사고의 전형이다.
+- 템플릿에 **렌더 후 겹침 자동 해소**(실측 DOM 크기 기반, 아래 카드를 수직으로 밀고
+  스테이지 확장)가 안전망으로 들어 있다 — 단 이것은 사고 방지지 레이아웃 위임이 아니다.
+  밀린 카드는 그룹 라벨과 어긋날 수 있으니 처음부터 공식으로 배치한다.
 - **hub 를 중앙**에, 참조하는 테이블들을 주변에 그룹별로 군집. 같은 도메인 그룹
   (lookup / entitlement / hierarchy 등)은 한 영역에 모으고 `grp-label` 한 줄(한글)을
   위에 둔다.
@@ -291,6 +314,8 @@ mid("부분 실패 시 반쪽 데이터"). 코드 없이 스키마만으로는 �
 `DATA.findings` 작성 규칙: `title`/`evidence`/`impact`/`proposal` 전부 한글 산문.
 evidence 에는 실측 수치를 그대로 (예: "고아값 37건 (LEFT JOIN 실카운트)"). 심각도는
 **실위험=high / 권장=mid / 참고=info** — 갭 개수를 부풀리려 info 를 남발하지 않는다.
+**라이프사이클**: findings 는 "현재 갭" 스냅샷이다 — 이후 재게시에서 해소된 항목은
+제거한다("[해소]" 접두 보존 금지, SKILL.md Step 4.4). 해소 경위의 SSOT 는 spec/ADR.
 NoSQL/BASE 류 의도적 트레이드오프가 보이면(예: 로그 테이블 FK 생략) 그 가능성도
 proposal 에 병기한다 — 갭이 늘 결함은 아니다.
 
