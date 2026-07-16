@@ -1,6 +1,7 @@
 ---
 name: harness-run
-description: 루프엔지니어링 하니스 오케스트레이터 — 한 이슈를 워크트리 분기 → 플랜+시안+eval rubric 생성 → G1 freeze → 자율 dev+eval 루프(재시도/단락) → pass면 G3 merge / 단락이면 G2 로 잇는다. 사람은 게이트(G0~G4)에서만 개입하고 나머지는 자동. 한 이슈를 하니스로 끝까지 굴리고 싶을 때, "이 이슈 하니스로 돌려줘"/"harness 돌려"/"이슈 자동 개발" 류에 사용. 단일 기능 빌드(forge)·버그(hunt)·플랜만(deep-plan) 에는 쓰지 말 것 — harness-run 은 그것들을 게이트로 엮는 상위 오케스트레이터다.
+description: >-
+  루프엔지니어링 하니스 오케스트레이터 — 한 이슈를 워크트리 분기 → 플랜+시안+eval rubric 생성 → G1 freeze → 자율 dev+eval 루프(재시도/단락) → pass면 G3 merge / 단락이면 G2 로 잇는다. 사람은 게이트(G0~G4)에서만 개입하고 나머지는 자동. 한 이슈를 하니스로 끝까지 굴리고 싶을 때 — "이 이슈 하니스로 돌려줘", "harness 돌려", "ADM-140 하니스로", "이슈 자동 개발", "풀 파이프라인으로 돌려줘", "게이트 걸고 진행해", "끝까지 자동으로 개발해줘", "빡세게/제대로 돌려줘" 처럼 'harness-run'·'스킬' 이란 말이 없어도 — 트리거. 세션에 `Linked Linear issue: <ID>` 배너가 붙은 이슈가 harness-class(estimate≥5·cross-cutting·전면개편)인데 사용자가 "이거 진행해줘"만 해도 이 스킬이 정경로다(linear-goal 이 안전판정에서 여기로 에스컬레이션하는 것과 같은 기준). 단일 기능 빌드(forge)·버그(hunt)·플랜만(deep-plan)·경량 티켓 실행(linear-goal) 에는 쓰지 말 것 — harness-run 은 그것들을 게이트로 엮는 상위 오케스트레이터다.
 ---
 
 # harness-run — 하니스 오케스트레이터 (C1)

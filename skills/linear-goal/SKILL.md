@@ -1,6 +1,7 @@
 ---
 name: linear-goal
-description: Linear 이슈 1건(특히 linear-register 가 만든 구조화 이슈)을 가져와 가볍게 자율 실행하는 오케스트레이터 — fetch → 본문 `## 추천` 라우팅 신뢰 + harness 안전판정 → `## 작업 내용`/`## 수용 기준`(register·groom 공통 코어 헤딩, 레거시 `작업 범위`/`Acceptance` 도 수용)을 Goal Prompt 로 조립 → 경량 확인 게이트 → worktree 분기·검증 → goal worker 백그라운드 잡 → PR(In Review). 메타프롬프트·시안·적대 critic 없이 "이슈 그대로 가져와 작업"에 최적화. 사용자가 Linear 티켓을 자동개발로 굴리려 할 때 — "ADT-211 goal 로 돌려줘", "AUT-25 그대로 진행" 처럼 'linear-goal'·'스킬' 이란 말이 없어도 — 트리거. harness-class(estimate≥5·cross-cutting·전면개편)면 harness-run 추천하고 멈춤. 일반 Goal Prompt(deep-prompt), 아이디어 결정화(deep-interview), 직접 빌드/버그수정(forge/hunt), 이슈 신규 등록(linear-register), PR 머지(land)엔 쓰지 말 것.
+description: >-
+  Linear 이슈 1건(특히 linear-register 가 만든 구조화 이슈)을 가져와 가볍게 자율 실행하는 오케스트레이터 — fetch → 본문 `## 추천` 라우팅 신뢰 + harness 안전판정 → `## 작업 내용`/`## 수용 기준`(register·groom 공통 코어 헤딩, 레거시 `작업 범위`/`Acceptance` 도 수용)을 Goal Prompt 로 조립 → 경량 확인 게이트 → worktree 분기·검증 → goal worker 백그라운드 잡 → PR(In Review). 메타프롬프트·시안·적대 critic 없이 "이슈 그대로 가져와 작업"에 최적화. 사용자가 Linear 티켓을 자동개발로 굴리려 할 때 — "ADT-211 goal 로 돌려줘", "AUT-25 그대로 진행", "이 티켓 해줘", "이슈대로 구현해줘" 처럼 'linear-goal'·'스킬' 이란 말이 없어도 — 트리거. 세션에 `Linked Linear issue: <ID>` 배너가 붙어 있으면 이슈 ID 를 안 불러도 "이거 진행해줘"/"작업 시작해"/"이대로 개발해줘" 만으로 그 연결 이슈를 대상으로 트리거. harness-class(estimate≥5·cross-cutting·전면개편)면 harness-run 추천하고 멈춤. 일반 Goal Prompt(deep-prompt), 아이디어 결정화(deep-interview), 직접 빌드/버그수정(forge/hunt), 이슈 신규 등록(linear-register), PR 머지(land)엔 쓰지 말 것.
 ---
 
 # linear-goal — Linear 티켓을 경량 게이트로 묶어 자율 goal 실행
