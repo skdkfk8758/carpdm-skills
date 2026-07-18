@@ -66,6 +66,10 @@ PLAN 본문과 시안은 이 스킬에서 가장 추론 밀도가 높은 산출�
 - **fable 스폰이 모델 미가용으로 실패**하면 같은 프롬프트로 `model: 'opus'` 재시도
   — 폴백 사실을 사용자 보고에 한 줄 명시한다.
 
+> NOTE: 인터뷰 라운드까지 fable 로 돌리고 싶으면 세션 자체를 fable 로 시작하라
+> (`/model fable`) — 라운드는 대화형이라 서브에이전트 위임이 구조적으로 불가하고,
+> 세션 모델이 유일한 레버다.
+
 위임 범위 밖: Step 3 의 전문 스킬 라우팅(imprint/prototype/frontend-design — 각자
 스킬이 처리), ERD companion(erd 스킬 경로), Artifact publish·Step 4 이후(메인이 수행).
 

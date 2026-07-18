@@ -148,6 +148,10 @@ ambiguity 가 완고하면, 문제는 대개 누락된 디테일이 아니라 �
 - fable 스폰이 모델 미가용으로 실패하면 같은 프롬프트로 `model: 'opus'` 재시도 —
   폴백 사실을 result 블록에 한 줄 명시.
 
+> NOTE: 인터뷰 라운드까지 fable 로 돌리고 싶으면 세션 자체를 fable 로 시작하라
+> (`/model fable`) — 라운드는 대화형이라 서브에이전트 위임이 구조적으로 불가하고,
+> 세션 모델이 유일한 레버다.
+
 `references/spec-template.md` 를 사용해 **시스템 요구사항 문서**를 작성하라. 각
 요구사항은 안정적 ID(`REQ-F-NNN` functional / `REQ-N-NNN` non-functional),
 MoSCoW 우선순위, 자체 acceptance criterion, 그리고 그것을 못 박은 인터뷰 라운드로
