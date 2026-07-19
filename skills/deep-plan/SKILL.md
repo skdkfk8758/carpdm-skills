@@ -40,6 +40,8 @@ deep-plan 은 craft 빌드 파이프라인과 같은 검증된 엔진을 쓰되 
 - 문서 grounding(ADR/concept/guide): `~/.claude/skills/craft-core/references/context-adr.md`
 - plan 섹션 + **HTML companion 규칙**: `~/.claude/skills/craft-core/references/pipeline.md`
   의 Phase 1 (특히 `.html` companion 분기 — UI 면 결과 UI 목업, 비UI 면 plan 렌더)
+- UI 목업의 **시안 충실도**(design context 추출→4축 계약→토큰 검증):
+  `~/.claude/skills/mockup/references/design-context.md` (Step 3 에서 차용 — 복제 금지)
 - 모호할 때의 측정 게이트·여섯 Socratic 유형: `~/.claude/skills/deep-interview/references/scoring.md`
   와 `~/.claude/skills/deep-interview/references/socratic-playbook.md`
 - 종료 시 result 블록 규격(전 스킬 공통): `~/.claude/skills/craft-core/references/output-contract.md`
@@ -181,26 +183,20 @@ companion 은 plan 렌더지만 ERD 는 여전히 실제 도식 가치를 준다
 컬럼 한둘 추가뿐이면 과투자다(생략하고 plan 텍스트로 족). `erd` 가 미설치면(available-skills
 에 없음) 그 사실을 말하고 ERD 를 생략한다(design companion 은 그대로 진행).
 
-#### 시안을 누가 만드나 — inline 기본, 신호 있으면 전문 스킬로 라우팅
+#### 시안 충실도 — design-context 계약 (SSOT: `mockup` 스킬)
 
-기본은 deep-plan 이 직접 inline 으로 쓴다. companion 의 목적은 *리뷰·합의*("이렇게
-보일 거다")이지 출시 아티팩트가 아니라서, 대개 손으로 쓴 단일 스케치로 충분하다 —
-비UI plan, 그리고 방향이 하나로 정해진 슬림한 UI plan 이 여기다. 과투자하지 말 것.
+UI 목업을 그리기 전에 `~/.claude/skills/mockup/references/design-context.md` 를 읽고
+그대로 따른다 — 프로젝트 DESIGN.md·토큰·기존 화면 어휘 추출(7항목, 부재 시 코드
+스캔 폴백) → 4축 충실 계약 → 토큰 부분집합 기계 검증(`check-tokens.sh`) + 실화면
+대조 제시. 시안 즉흥 창작이 구현 괴리의 근원이라 **이 절차가 기본 경로**다(비UI
+plan 렌더 companion 은 해당 없음). companion 형식 규칙(Eval 패널·publish)은 위
+pipeline.md 규약 그대로 — 충실도와 형식은 별개 축이다.
 
-단 아래 신호가 있으면 손으로 쓰는 게 오히려 나쁘다 — 그 일을 위해 존재하는 전문
-스킬이 더 나은 시안을 만든다. 신호가 보이면 **`AskUserQuestion` 으로 한 번 제안**한다
-(inline 스케치 vs 전문 스킬). 사용자가 전문 스킬을 고르면 그 스킬에 시안 생성을 넘기고
-(결과 `.html` 은 그대로 deep-plan 의 companion 산출물로 둔다), inline 으로 충분하다 하거나
-신호가 없으면 inline 으로 쓴다. 이건 시안 *충실도* 축이라 Step 5 의 빌드 라우팅과는 다른
-축이지만, 같은 **"제안 ≠ 자동 시작"** 원칙을 따른다(무신호면 질문 없이 inline).
-
-| 신호 | 라우팅 | 왜 |
-|---|---|---|
-| `DESIGN.md` / design-extractor 추출 디자인 시스템이 컨텍스트에 있음 | **`imprint`** | 토큰 충실 재현이 핵심 — 손으로 쓰면 raw hex/px 로 토큰을 위반한다 (강한 신호) |
-| UI 방향이 안 정해져 여러 안을 비교·탐색하고 싶음 | **`prototype`** | 토글 가능한 여러 변형으로 옵션을 나란히 본다 |
-| net-new 미감 + 높은 완성도 바가 plan 의 핵심 | **`frontend-design`** | 제네릭 AI 미감을 피한 고품질 자유 창작 |
-
-매칭 스킬이 미설치면(available-skills 에 없음) 그 사실을 말하고 inline 으로 폴백한다.
+전문 스킬 라우팅은 design-context.md §6 을 따른다 — 재사용할 기존 어휘가 없는
+net-new UI 면 `frontend-design`(토큰 계약 주입), 다안 비교면 `prototype` 을
+`AskUserQuestion` 으로 제안(자동 시작 금지, 결과 `.html` 은 companion 산출물로,
+결과에도 토큰 검증). 외부 사이트에서 추출한 디자인 시스템의 재현이 목적이면
+`imprint`. 매칭 스킬 미설치면 그 사실을 말하고 inline 폴백.
 
 ### Step 4 — 제시하고 정지
 
