@@ -6,15 +6,34 @@ Phase 2 는 완성된 Phase-1 플랜을 codex 에게 적대적 리뷰어로서 �
 
 ## 어떻게 호출하는가
 
-**`codex:rescue`** 스킬을 (`Skill` 도구로) 쓴다. 당신의 프롬프트를 단일
-codex `task` 실행으로 전달한다. 두 가지가 중요하다:
+**codex-companion 을 Bash background 로 직접 호출한다** — `codex:rescue` 스킬
+경유가 아니라. 이유: rescue 서브에이전트 계약은 "stdout 만 그대로 반환, 실패
+시 아무것도 반환하지 마라"인데, companion 은 최종 결과만 stdout 에 쓰고 진행·
+중간 발견(`[codex] Assistant message captured: BLOCKING - ...`)은 전부 stderr
+로 스트림한다. 그래서 rescue 경유는 timeout kill 시 부분 결과를 통째로 버린다
+(실측 2026-07-20). 직접 호출 + stderr 파일 캡처가 그 회수 경로를 연다.
 
-1. **read-only 로 유지.** rescue 런타임은 프롬프트가 명확히 review-only 를
-   요청하지 않으면 write-capable codex 로 기본값을 둔다. 그러니 프롬프트는,
-   평이한 말로, *"Review and critique only. Do not edit, create, or delete any
-   files."* 라고 말해야 한다. 그래야 planning 중 codex 가 당신 작업 트리 밖에 머문다.
+```bash
+# 1) plugin root 해소 (버전 하드코딩 금지)
+ROOT=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1)
+# 2) background 실행 — stdout=최종 verdict, stderr=진행+부분 발견
+date +%s > /tmp/codex-review-start.txt
+CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task \
+  "<프롬프트>" > /tmp/codex-review-out.txt 2> /tmp/codex-review-err.txt
+```
+
+(경로는 세션 scratchpad 가 있으면 그쪽을 쓴다. companion 이 없으면 —
+plugin 미설치 — `codex:rescue` 스킬 경유로 폴백하되, 그 경로는 부분 결과
+회수가 안 됨을 안다.)
+
+두 가지가 중요하다:
+
+1. **read-only 로 유지.** `--write` 를 붙이지 않고, 프롬프트에도 평이한 말로
+   *"Review and critique only. Do not edit, create, or delete any files."* 라고
+   말한다. 그래야 planning 중 codex 가 당신 작업 트리 밖에 머문다.
 2. **codex 를 플랜 파일로 경로로 가리켜라** — 당신의 요약이 아니라 실제 문서를
-   읽도록.
+   읽도록. cwd 는 repo 루트로 두면 codex 가 repo 의 `.codex/config.toml`
+   (effort 등)을 로드하고 레포 실측 대조까지 한다 — 느려지지만 품질이 오른다.
 
 ## 프롬프트 형태
 
@@ -54,18 +73,26 @@ If the plan is sound, say so plainly and return empty lists.
 
 ## 시간 가드 — watchdog (필수)
 
-codex 호출은 hang 할 수 있다(실측 ~39분, 최종 포맷 단계). 글로벌 `delegated-review-watchdog` 규칙을 여기서 구현한다:
+codex 호출은 hang 할 수 있고(실측 ~39분, 최종 포맷 단계 — companion 에는 턴
+타임아웃이 없다), 동시에 **정당하게 느릴 수도 있다**(실측 2026-07-20: 20줄
+미니 플랜이 repo cwd·effort=high 에서 165초 — 실전 플랜은 10분 초과가 정상
+소요일 수 있다). 고정 cap 은 정상 실행을 죽이므로, **진행 기반 hang 판정**으로
+글로벌 `delegated-review-watchdog` 규칙을 구현한다:
 
-1. `codex:rescue` 호출을 background 로 돌리고 `Monitor` 로 진행을 본다 — 포그라운드 무한 대기 금지.
-2. **10분 cap — 결정론적 경과시간 체크.** background 잡을 시작하는 순간 시작 시각을
-   기록한다(예: `date +%s` 값을 노트에 적어 둔다). 그다음 `Monitor` 폴링마다 현재 시각 −
-   시작 시각을 계산해 **elapsed ≥ 10분이면 즉시 kill** 한다 — "10분쯤 됐나" 하는 시간
-   감각이 아니라 실제 경과 초로 판정한다(그 감각 오차가 원래 ~39분 방치 사고의 원인이었다).
-   kill 후 부분 결과가 있으면 회수한다. 환경에 10분 후 자동 wake 를 거는 스케줄 도구
-   (`CronCreate` 등)가 있으면 그것으로 타임아웃을 예약하는 편이 더 확실하다 — 단 도구
-   가용성은 환경마다 다르니, 없으면 위 폴링 경과 체크로 폴백한다(특정 도구 존재를 단정 금지).
-3. kill 후 **로컬 multi-agent 리뷰**(adversarial reviewer 역할 subagent)로 fallback — Phase 2 를 통째로 건너뛰지 않는다.
-4. codex/fallback 의 verdict 는 **권고**다 — BLOCKING 발견은 플랜에 접기 전 직접 확인(grep/build/재현)으로 독립 재검증한다.
+1. 위 direct 호출을 background 로 돌리고 폴링마다 stderr 파일을 본다 —
+   포그라운드 무한 대기 금지.
+2. **진행 기반 판정 (경과시간 감각 금지 — 파일과 `date +%s` 로만).**
+   - stderr 에 새 진행 줄(`[codex] Running command` / `Assistant message
+     captured` / `Turn started`)이 계속 붙고 있으면 → hang 아님. **hard cap
+     20분**까지 연장 허용.
+   - 마지막 진행 줄 이후 **3분+ 새 줄 없음** → hang 판정, 즉시 kill.
+   - hard cap 20분 도달 → 진행 여부 무관 kill (효용 체감 + Phase 지연 상한).
+3. **kill 후 부분 결과 회수 — 건너뛰지 마라.** stderr 의
+   `[codex] Assistant message captured:` 줄들이 부분 발견이다(truncate 되어
+   있지만 BLOCKING 항목의 존재와 방향은 읽힌다). 이것을 fallback 리뷰의 입력
+   힌트로 넘긴다.
+4. kill 후 **로컬 multi-agent 리뷰**(adversarial reviewer 역할 subagent)로 fallback — Phase 2 를 통째로 건너뛰지 않는다.
+5. codex/fallback 의 verdict 는 **권고**다 — BLOCKING 발견은 플랜에 접기 전 직접 확인(grep/build/재현)으로 독립 재검증한다.
 
 ## codex 가 응답한 후
 
