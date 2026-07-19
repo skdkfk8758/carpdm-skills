@@ -158,10 +158,11 @@ Success Criteria / Done & Report 세 개는 절대 빼지 마라**. 그게 자�
 **통째로 건너뛰고 §4 로** 간다. 억지로 시안 만들지 말 것(비-UI 에 시안은 노이즈).
 
 UI goal 이면, goal 프롬프트와 **같은 디렉토리**에 `<slug>-mockup.html` 로 단일
-self-contained HTML 시안을 쓴다. 시안 작성 규칙(외부 asset 0·전부 인라인·핵심
-요소와 레이아웃·상태별 정적 섹션·brownfield 디자인 토큰 매칭)은 파이프라인의 HTML
-companion 규약이 SSOT 다 — `~/.claude/skills/craft-core/references/pipeline.md` Phase 1 의
-리뷰 친화적 HTML companion 섹션을 따르라(여기 복제하지 않는다). 목적만 다르다:
+self-contained HTML 시안을 쓴다. SSOT 두 개를 따른다(여기 복제하지 않는다) —
+**형식 규약**(외부 asset 0·전부 인라인·핵심 요소와 레이아웃·상태별 정적 섹션)은
+`~/.claude/skills/craft-core/references/pipeline.md` Phase 1 의 리뷰 친화적 HTML
+companion 섹션, **충실도**(프로젝트 design context 추출→4축 계약→토큰 부분집합
+검증)는 `~/.claude/skills/mockup/references/design-context.md`. 목적만 다르다:
 pipeline/deep-plan 의 companion 이 사람 리뷰용이라면, 여기 시안은 자율 에이전트가
 *무엇을 만들지* 합의하는 시각 타겟이다(픽셀 완벽 불필요).
 
