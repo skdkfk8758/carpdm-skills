@@ -1,7 +1,7 @@
 ---
 name: linear-register
 description: >-
-  Register one to a few Linear issues natively (via Linear MCP), and on each issue append an adaptive "## 추천" section that points to the right global skill/agent/workflow for that work, plus — for dependency chains — set Linear relations and embed a forward pointer + ready-to-paste kickoff prompt for the next issue. Use when the user wants to file/create/register a Linear issue or a small set of linked Linear issues — "리니어에 이슈 등록", "이 작업 Linear 티켓 만들어줘", "이거 이슈로 올려줘", "연결된 이슈 몇 개 등록", "티켓 따줘", "까먹지 않게 리니어에 적어둬", "이건 나중에 하자 — 이슈로 남겨놔", "TODO 로 올려놔", "file this as a Linear issue" — including follow-up work discovered mid-conversation that the user wants captured as a ticket, even without the words 'linear-register' or 'skill'. Do NOT use for: breaking a whole plan/spec/PRD into many vertical-slice issues (use to-issues), running a ticket as an autonomous build (use linear-goal), or reorganizing/enriching an existing backlog (use linear-groom). When the input is a large plan or PRD, recommend to-issues instead of decomposing it here.
+  Linear 이슈를 단건~소수 네이티브 등록(Linear MCP)하고, 각 이슈에 적응형 `## 추천`(적합 스킬/에이전트) + 의존 체인이면 Linear 관계 세팅·전방 포인터·kickoff 프롬프트를 함께 박는다. "리니어에 이슈 등록", "티켓 만들어줘", "이거 이슈로 올려줘", "티켓 따줘", "까먹지 않게 적어둬", "이슈로 남겨놔", "TODO 로 올려놔", "file this as a Linear issue" — 대화 중 발견된 후속 작업 포함, 'linear-register' 란 말이 없어도 트리거. plan/spec/PRD 다중 분할은 to-issues, 티켓 자율 빌드는 linear-goal, 기존 백로그 재배치·보강은 linear-groom.
 ---
 
 # linear-register

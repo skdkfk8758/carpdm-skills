@@ -23,7 +23,9 @@
 | **Context** *(brownfield 전용)* | 기존 시스템과 어떻게 만나는가? | 통합 지점, 보존된 동작, blast radius 가 코드로부터 식별됐다. |
 
 토폴로지가 둘 이상이면 각 *active* 컴포넌트를 따로 점수 매기라 — 가장 약한
-컴포넌트의 가장 약한 차원이 당신의 타깃이다.
+컴포넌트의 가장 약한 차원이 당신의 타깃이다. 단 **sticky**(SKILL.md Phase 2):
+직전 라운드 컴포넌트에 머무는 쪽을 우선하고, 다른 컴포넌트가 유의미하게 더 약할
+때(차원 점수 갭 ≥ 0.15)만 옮긴다 — 지그재그는 사용자 사고 흐름을 끊는다.
 
 ## 공식들
 
@@ -68,9 +70,14 @@ ambiguity = 1 − 0.59 = 0.41  (41%)
 Round 3 · brownfield · component: ingest (active)
   goal 0.8 | constraints 0.5 | criteria 0.4 | context 0.7
   ambiguity: 41%  (target ≤ 20%)
+  locked: 충돌 시 최신-우선 병합 (R2) · 대상은 admin 계정만 (R3)
   targeting → criteria (weakest): no measurable "done" yet
   [challenge: contrarian fires next round]
 ```
+
+`locked:` 줄은 이번 라운드까지 확정된 결정의 누적 요약(최근 것 위주 1줄)이다 —
+점수는 진행의 *거리*를, locked 는 진행의 *성과*를 보여준다. 사용자가 이 줄에서
+자기 의도와 다른 요약을 발견하면 그 라운드에서 바로잡는다(조기 오해 검출).
 
 이 테이블들의 연속이 *곧* 인터뷰의 상태다. 세션이 중단되면, 마지막 테이블이 어디서
 재개할지 정확히 말해준다 — 별도의 상태 파일은 보관하지 않는다.

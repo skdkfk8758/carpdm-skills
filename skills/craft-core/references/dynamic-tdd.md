@@ -2,9 +2,11 @@
 
 Phase 3 은 승인되고 codex 리뷰를 거친 플랜을 동작하는 코드로 바꾼다.
 `Workflow` 도구로 (a) 플랜을 atomic 태스크로 쪼개고 (b) 각 태스크를
-엄격한 TDD 사이클로 구동한다. 구현은 **opus** (4.8) 에서 돈다 — test-pinned
-태스크에 대한 최고 구현 품질; 더 싼 tier 가 아니라, 태스크별 red/green
-규율과 독립 verify 단계가 워크플로를 정직하게 유지한다.
+엄격한 TDD 사이클로 구동한다. 구현은 **무핀 — 세션 모델을 상속**한다: 세션이
+최상위 티어(fable 등)면 상속이 곧 최고 품질이고, 세션이 opus 미만일 때만
+`model: 'opus'` 로 상향 핀한다(계약은 "구현 다운그레이드 금지"이지 특정
+모델명이 아니다). 태스크별 red/green 규율과 독립 verify 단계가 워크플로를
+정직하게 유지한다.
 
 여기서 `Workflow` 호출이 허가되는 것은 이 스킬의 지침이 그렇게 하라고
 말하기 때문이다 — 그것이 skill-invoked opt-in 경로다.
@@ -63,7 +65,8 @@ const RESULT = { type: 'object', required: ['task','testsGreen','summary'], prop
 
 const results = await pipeline(
   TASKS,
-  // Stage 1: TDD implement on opus
+  // Stage 1: TDD implement — no model pin (inherits the session model;
+  // pin model:'opus' ONLY if the session model is below opus)
   (t) => agent(
     `TDD task: ${t.title}\n\nSpec: ${t.spec}\nFiles in scope: ${t.files}\n\n` +
     `1) Write the failing test first; confirm it fails for the right reason.\n` +
@@ -71,15 +74,15 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `tdd:${t.id}`, phase: 'Implement', model: 'opus', schema: RESULT }
+    { label: `tdd:${t.id}`, phase: 'Implement', schema: RESULT }
   ),
-  // Stage 2: independent verify that the task's tests actually pass.
-  // No model pin — verify is a deterministic test re-run, not reasoning work;
-  // it inherits the session model (cheaper/faster than pinning opus).
+  // Stage 2: independent verify — pin the CHEAPEST tier. A deterministic test
+  // re-run needs no reasoning tier; leaving it unpinned inherits the session's
+  // top model and burns it on mechanical work.
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
     `Report testsGreen honestly — do not trust the implementer's claim.`,
-    { label: `verify:${t.id}`, phase: 'Verify', effort: 'low', schema: RESULT }
+    { label: `verify:${t.id}`, phase: 'Verify', model: 'haiku', effort: 'low', schema: RESULT }
   ).then(v => ({ ...impl, verified: v.testsGreen }))
 )
 
@@ -88,14 +91,14 @@ return results.filter(Boolean)
 
 골격에 대한 주석:
 
-- **구현** 에이전트에 `model: 'opus'` — 이것이 스킬 계약상 Phase 3 의 필수
-  모델이다. **verify** 에이전트는 핀하지 않는다 — 그 일은 테스트 재실행(결정론적
-  기계 체크)이라 opus 추론이 필요 없고, 핀을 떨구면 태스크당 opus 런이 2→1 로
-  줄어 Phase 3 벽시계가 절반 가까이 준다. verify 의 정직성은 모델 tier 가 아니라
-  *독립 컨텍스트*(구현자의 주장을 신뢰하지 않고 직접 실행)에서 온다.
-  스크립트를 작성할 때 verify 스테이지에 `model:` 키를 **아예 쓰지 마라** —
-  implement 의 opus 핀을 복붙하는 실수가 실제로 났다 (실측: verify 6개가 opus 로
-  돌아 814s, 그 런 총 벽시계의 24% 를 결정론 재실행에 태움).
+- **구현** 에이전트는 **무핀(세션 모델 상속)** — 세션이 최상위 티어면 핀이
+  오히려 다운그레이드다. 세션 모델이 opus 미만일 때만 `model: 'opus'` 상향 핀.
+  **verify** 에이전트는 반대로 **`model: 'haiku'` + `effort: 'low'` 최저가 핀** —
+  그 일은 테스트 재실행(결정론적 기계 체크)이라 추론 티어가 필요 없고, 무핀으로
+  두면 세션 최상위 모델이 상속돼 결정론 작업에 최고가를 태운다(실측 동형: 과거
+  verify 6개가 opus 로 돌아 814s, 그 런 총 벽시계의 24% 소모). verify 의 정직성은
+  모델 tier 가 아니라 *독립 컨텍스트*(구현자의 주장을 신뢰하지 않고 직접 실행)에서
+  온다.
 - 구현 / verify 는 기본 워크플로 subagent 에서 돈다 — 위 프롬프트가 곧 계약이다.
 - 기본은 per-agent 워크트리 격리 **없음** — 에이전트는 메인 세션의 작업 트리
   (Phase 0 이 이미 worktree 로 분기했을 수 있음) 를 상속한다. 그래야 Stage 2
@@ -130,9 +133,10 @@ return results.filter(Boolean)
 
 - 테스트 전에 구현 쓰기 (red 단계 없음) → 테스트가 무언가를 테스트한다는 걸
   증명할 수 없다.
-- **구현** 에이전트가 더 싼 tier 로 폴백하게 `model: 'opus'` override 를 떨구기 →
-  스킬 계약 무시. (verify 는 반대 — opus 로 핀하는 것이 anti-pattern: 결정론적
-  테스트 재실행에 최저속 tier 를 태워 벽시계만 태운다.)
+- **구현 다운그레이드 / verify 업그레이드** — 구현 에이전트를 세션보다 낮은
+  tier 로 핀하기(품질 하향), 또는 verify 를 haiku 위 tier 로 돌리기(결정론
+  재실행에 추론 모델 낭비). 방향이 반대인 두 실수: 구현은 "세션 상속, opus
+  미만이면 상향", verify 는 "항상 최저가 핀".
 - 플랜 전체를 위한 하나의 거대 에이전트 호출 → 태스크별 red/green
   규율을 잃고 truncate 된다.
 - 독립 verify 단계 없이 구현자의 "green" 을 신뢰하기.

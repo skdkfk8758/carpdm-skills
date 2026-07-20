@@ -1,7 +1,7 @@
 ---
 name: renew
 description: >-
-  엄격한 파이프라인을 통해 EXISTING 기능을 새단장하거나 개편한다 — 무엇이 바뀌어야 하고 무엇이 보존되어야 하는지 분리하는 소크라테스식 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD → 보안 검증. 사용자가 기존 기능, 플로우, 화면, 또는 API 를 CHANGE, REDESIGN, REVAMP, MODERNIZE, OVERHAUL, EXTEND, 또는 REWORK 하려 할 때마다 사용한다 — "redo the X", "rework how Y works", "modernize the Z flow", "change the behavior of W", "the old A should now also do B", "이 화면 개편해줘", "동작 바꿔줘", "리뉴얼해줘", "고도화해줘", "이 기능 손봐줘", "기존 X 를 Y 도 되게 확장해줘" 같은 표현. 특히 하위 호환성, 마이그레이션, 또는 기존 호출자를 깨지 않는 것이 중요할 때. 완전히 새로운 것을 만들거나(use forge), 버그를 고치는(use hunt) 데에는 사용하지 말 것.
+  엄격한 파이프라인을 통해 EXISTING 기능을 새단장하거나 개편한다 — 무엇이 바뀌어야 하고 무엇이 보존되어야 하는지 분리하는 소크라테스식 인터뷰 → codex 의 적대적 플랜 리뷰 → dynamic-workflow TDD → 보안 검증. 사용자가 기존 기능, 플로우, 화면, 또는 API 를 CHANGE, REDESIGN, REVAMP, MODERNIZE, OVERHAUL, EXTEND, 또는 REWORK 하려 할 때마다 사용한다 — "redo the X", "rework how Y works", "modernize the Z flow", "change the behavior of W", "the old A should now also do B", "이 화면 개편해줘", "동작 바꿔줘", "리뉴얼해줘", "고도화해줘", "이 기능 손봐줘", "기존 X 를 Y 도 되게 확장해줘" 같은 표현. 특히 하위 호환성, 마이그레이션, 또는 기존 호출자를 깨지 않는 것이 중요할 때. 완전히 새로운 것을 만들거나(use forge), 버그를 고치는(use hunt) 데에는 사용하지 말 것.
 ---
 
 # Renew — 기존 기능 개편
@@ -14,15 +14,12 @@ description: >-
 `~/.claude/skills/craft-core/references/pipeline.md` 의 공유 엔진을 실행하라
 (먼저 읽을 것). 그 안에서 다음 renew 고유 강조점을 적용한다:
 
-## 실행 모드 기본값 (toggle)
+## 실행 모드 (risk-gated)
 
-**기본 모드: orchestrated.** craft-core 의 linear-기본을 override 한다 — 기존 동작·
-호환성·호출자 보존 리스크가 커 적대적 council 검토가 기본값으로 적절하다.
-`pipeline.md` 의 "Execution mode" 진입 시 linear-기본·stakes 제안을 건너뛰고 곧장
-orchestrated (`orchestrated.md`) 로 간다.
-
-- **이번 호출만 linear**: 호출 어디든 `--linear` 가 있으면 그 호출만 linear 로 돈다.
-- **영구 토글**: 위 "기본 모드" 를 `linear` 로 바꾸면 craft-core 기본(linear)으로 복귀.
+**기본 linear** (craft-core 기본 그대로). renew 고유 에스컬레이션 문턱 — 다음 중
+하나면 Phase 1 전에 orchestrated 를 **1회 제안**한다(`pipeline.md` Execution mode
+의 제안 메커니즘): **외부 호출자가 있는 계약 변경 · DB 마이그레이션 동반**.
+`[council]`/`--council` 명시 요청은 언제나 즉시 orchestrated.
 
 ## Phase 1 — Socratic focus (see craft-core/references/socratic.md)
 
@@ -54,7 +51,7 @@ orchestrated (`orchestrated.md`) 로 간다.
 
 먼저 **보존할 동작을 고정하는 characterization test** 를 작성하라 — Phase 1 의
 "MUST survive" 목록. 그것들은 오늘의 코드에 대해 통과해야 한다; 그것들은 개편이
-남아야 할 것을 조용히 깨뜨리지 못하게 하는 안전망이다. 그다음 *바뀐* 동작을 opus 에서
+남아야 할 것을 조용히 깨뜨리지 못하게 하는 안전망이다. 그다음 *바뀐* 동작을
 red → green → refactor 로 몰아가되, characterization test 는 내내 green 으로 유지한다.
 
 ## Phase 3.5 — Simplify review pass (see craft-core/references/simplify-pass.md)

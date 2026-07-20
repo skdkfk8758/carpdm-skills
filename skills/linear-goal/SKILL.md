@@ -1,7 +1,7 @@
 ---
 name: linear-goal
 description: >-
-  Linear 이슈 1건(특히 linear-register 가 만든 구조화 이슈)을 가져와 가볍게 자율 실행하는 오케스트레이터 — fetch → 본문 `## 추천` 라우팅 신뢰 + harness 안전판정 → `## 작업 내용`/`## 수용 기준`(register·groom 공통 코어 헤딩, 레거시 `작업 범위`/`Acceptance` 도 수용)을 Goal Prompt 로 조립 → 경량 확인 게이트 → worktree 분기·검증 → goal worker 백그라운드 잡 → PR(In Review). 메타프롬프트·시안·적대 critic 없이 "이슈 그대로 가져와 작업"에 최적화. 사용자가 Linear 티켓을 자동개발로 굴리려 할 때 — "ADT-211 goal 로 돌려줘", "AUT-25 그대로 진행", "이 티켓 해줘", "이슈대로 구현해줘" 처럼 'linear-goal'·'스킬' 이란 말이 없어도 — 트리거. 세션에 `Linked Linear issue: <ID>` 배너가 붙어 있으면 이슈 ID 를 안 불러도 "이거 진행해줘"/"작업 시작해"/"이대로 개발해줘" 만으로 그 연결 이슈를 대상으로 트리거. harness-class(estimate≥5·cross-cutting·전면개편)면 harness-run 추천하고 멈춤. 일반 Goal Prompt(deep-prompt), 아이디어 결정화(deep-interview), 직접 빌드/버그수정(forge/hunt), 이슈 신규 등록(linear-register), PR 머지(land)엔 쓰지 말 것.
+  Linear 이슈 1건을 가볍게 자율 실행하는 오케스트레이터 — fetch → `## 추천` 라우팅 + harness 안전판정 → 이슈의 `## 작업 내용`/`## 수용 기준`을 Goal Prompt 로 매핑 → 확인 게이트 → worktree 분기·검증 → goal worker 백그라운드 잡 → PR(In Review 까지만). "ADT-211 goal 로 돌려줘", "이 티켓 해줘", "이슈대로 구현해줘" 처럼 'linear-goal' 이란 말이 없어도 트리거. 세션에 `Linked Linear issue: <ID>` 배너가 있으면 "이거 진행해줘"/"작업 시작해" 만으로 그 이슈 대상. harness-class(estimate≥5·cross-cutting·전면개편)면 harness-run 추천하고 멈춤. 일반 Goal Prompt 는 deep-prompt, 직접 빌드/버그수정은 forge/hunt, 이슈 등록은 linear-register, PR 머지는 land.
 ---
 
 # linear-goal — Linear 티켓을 경량 게이트로 묶어 자율 goal 실행
@@ -58,8 +58,8 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
   linear-register 산출물) 그게 경량화의 핵심 입력 — Phase 3 에서 직접 매핑한다.
 - **세션 이름 설정 (fetch 직후 즉시 — 백그라운드 잡일 때).** 티켓 ID·제목을 확보한 지금
   바로 이 세션 이름을 `[<issue-id>] <작업요약>`(예 `[ADT-272] persona POI z-order`)으로
-  rename 한다. `references/session-rename.md` 의 atomic snippet 그대로(`state.json` `name` +
-  `nameSource:"user"`). **Phase 4(spawn)까지 미루지 않는 이유**: 세션이 확인 게이트에서
+  rename 한다. `~/.claude/skills/craft-core/references/session-rename.md`(공유 SSOT)의
+  atomic snippet 그대로(`state.json` `name` + `nameSource:"user"`). **Phase 4(spawn)까지 미루지 않는 이유**: 세션이 확인 게이트에서
   멈추거나 조회로 흘러도 잡 리스트에 티켓이 박혀 있어야 한다. 비mutation(로컬 메타데이터)
   이라 확인 게이트 전에 실행해도 안전. 잡 컨텍스트 아니거나(`$CLAUDE_JOB_DIR` 없음) 붙여넣은
   텍스트라 ID 가 없으면 생략. 실패해도 hard gate 아님 — note 만 남기고 계속.
@@ -93,7 +93,9 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
   멈춘다**(검증이 종료를 선행 — `~/.claude/rules/acceptance-criteria-gate.md`).
 - 체인 `## 다음 작업` 의 kickoff 프롬프트가 있으면 Objective 시드로 활용.
 - **표준 Constraints** 박기: 지목 영역만 수정, 머지/push/배포/삭제 금지 — 변경만 두고 보고.
-- **`## Done & Report`** 에 실행기 신호 토큰(`result:`/`needs input:`/`failed:`) 글자 그대로.
+- **`## Done & Report`** — 검증 결과를 메시지 텍스트로 재진술 + 상태 신호 한 줄
+  (`result:`/`needs input:`/`failed:` — 리터럴 파싱 계약이 아니라 오독 방지 컨벤션;
+  현행 완료 판정은 평가 모델의 시맨틱 판독). 의미론 SSOT 는 template 참조.
 - brownfield 면 ground-first: Context 에 적을 파일 경로·타입은 `grep`/`Read` 로 확인한 것만
   (이름·기억 추측 금지, 글로벌 진단 룰). 추측 경로는 worker 를 헛돌게 한다.
 
@@ -110,7 +112,7 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
 **동기 (승인 → spawn, 순서대로·각 단계 성공 확인 후 다음):**
 
 1. **세션 이름 — Phase 1 에서 이미 설정됨.** fetch 직후 rename 했으므로 여기선 재실행하지
-   않는다(이름이 비어 있거나 placeholder 면 그때만 `references/session-rename.md` 로 보정).
+   않는다(이름이 비어 있거나 placeholder 면 그때만 craft-core `session-rename.md` 로 보정).
 2. **Linear → In Progress** (티켓 ID 있을 때만).
 3. **worktree 분기** — `EnterWorktree` 또는 `git worktree add -b feat/<issue-id>-<topic> <dir>`
    (branch-worktree-strategy §5: 메인은 develop 유지, 새 브랜치는 worktree 격리).
@@ -161,4 +163,4 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
 
 - `references/routing.md` — linear-repo-map 조회(repo 확정) + goal/harness rubric. Phase 2 에서 읽는다.
 - `references/goal-prompt-template.md` — Goal Prompt 7섹션 고정 템플릿 + 검증 가능성 5질문 게이트. Phase 3 에서 **스켈레톤**으로 읽는다(이슈 필드를 채워 넣는 용도 — 재작성 아님).
-- `references/session-rename.md` — 백그라운드 잡 세션 이름을 `[<issue-id>] <작업요약>` 으로 rename(검증된 atomic snippet). **Phase 1(fetch 직후)에서 읽고 즉시 적용**한다.
+- `~/.claude/skills/craft-core/references/session-rename.md` — 세션 rename 공유 SSOT(포맷 표에 linear-goal 행). **Phase 1(fetch 직후)에서 읽고 즉시 적용**한다.

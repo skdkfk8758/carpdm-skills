@@ -29,8 +29,10 @@ Phase 4 판정으로 운반); **adversary** 는 council 루프에 대해 자격�
 있다. QA / tester / correctness / security 는 **그렇지 않다** — 무상태(stateless) Workflow fan-out
 으로 한 번 돈다.
 
-모델: designer + adversary + 검증 judge = **opus** (`claude-opus-4-8`);
-Phase 3 빌드 = **opus** (`claude-opus-4-8`) — linear 엔진과 동일, §3 참조.
+모델: designer + adversary + 검증 judge + Phase 3 빌드 = **무핀(세션 모델 상속)** —
+세션이 최상위 티어면 상속이 곧 최고 품질, 세션이 opus 미만일 때만 `model: 'opus'`
+상향 핀(linear 엔진과 동일 규칙 — `dynamic-tdd.md` SSOT). 결정론 스테이지
+(§3 verify · §4 tester lane)만 `model: 'haiku'` 최저가 핀.
 
 ---
 
@@ -47,7 +49,8 @@ Phase 3 빌드 = **opus** (`claude-opus-4-8`) — linear 엔진과 동일, §3 �
    `[<key>] <짧은 목표>` 로 rename(`<key>` = Linear 이슈ID 있으면 그것, 없으면 worktype).
    `session-rename.md` snippet 그대로(`name` + `nameSource:"user"`). 잡 아니면 생략, 실패해도 note 만.
 3. `TeamCreate({ team_name: 'craft-<topic>', description: '<one-line goal>' })`.
-4. 두 council 에이전트를 Agent 도구로 spawn 한다, `team_name` 설정, `model: 'opus'`:
+4. 두 council 에이전트를 Agent 도구로 spawn 한다 (`team_name` 설정, model 무핀 —
+   세션 상속; 세션이 opus 미만일 때만 `model: 'opus'` 상향):
    - **designer** (`subagent_type: general-purpose`) — spec 과 플랜을 소유한다.
      Brief: "You are the designer on a craft council. Run the Socratic interview
      (the main session relays the user's answers to you) **applying the calling
@@ -114,8 +117,8 @@ Loop:
 
 red→green→refactor 규율과 "atomic task" 정의를 위해
 `~/.claude/skills/craft-core/references/dynamic-tdd.md` 를 읽어라 — **그 모델
-핀을 그대로 따른다: orchestrated 빌드도 linear 엔진과 같이 `opus` 에서 돈다**. 구현
-일관성을 위해 build/verify 를 opus 로 통일하고, sonnet 다운시프트는 쓰지 않는다.
+규칙을 그대로 따른다: 구현 무핀(세션 상속, 세션이 opus 미만이면 상향 핀),
+verify 는 `haiku` 최저가 핀** — orchestrated 도 linear 엔진과 동일하다.
 
 **호출 스킬이 TDD 사이클이 어디서 시작하는지 정의한다** — linear
 엔진과 정확히 같이: `forge` 는 acceptance 테스트를 태스크 1 로 쓴다; `hunt` 는 실패하는
@@ -132,8 +135,8 @@ Workflow 를 구동한다; 빌드 에이전트는 team 멤버가 아니라 무�
 ```javascript
 export const meta = {
   name: 'craft-build',
-  description: 'Split the approved plan into atomic tasks and build each test-first on opus',
-  phases: [{ title: 'Build', model: 'opus' }, { title: 'Verify', model: 'opus' }],
+  description: 'Split the approved plan into atomic tasks and build each test-first',
+  phases: [{ title: 'Build' }, { title: 'Verify', model: 'haiku' }],
 }
 
 const TASKS = args.tasks
@@ -153,12 +156,12 @@ const results = await pipeline(
     `3) Refactor with tests green.\n` +
     `Run only this task's tests. Report testsGreen + files changed. ` +
     `If a target already matches the spec, report testsGreen:true and skip.`,
-    { label: `build:${t.id}`, phase: 'Build', model: 'opus', schema: RESULT }
+    { label: `build:${t.id}`, phase: 'Build', schema: RESULT }
   ),
   (impl, t) => agent(
     `Verify task "${t.title}" is genuinely green: run its tests and confirm. ` +
     `Report testsGreen honestly — do not trust the implementer's claim.`,
-    { label: `verify:${t.id}`, phase: 'Verify', model: 'opus', schema: RESULT }
+    { label: `verify:${t.id}`, phase: 'Verify', model: 'haiku', effort: 'low', schema: RESULT }
   ).then(v => ({ ...impl, verified: v.testsGreen }))
 )
 
@@ -173,8 +176,8 @@ verify 가 빈 트리를 봐 false red 를 내거나 변경이 orphan 워크트�
 `testsGreen:false` 나 `verified:false` 를 반환하는 태스크는 Phase 4 전에 고친다 —
 red 태스크로 진행하지 말 것.
 
-build / verify 는 기본 워크플로 subagent 에서 돈다 — `model: 'opus'` 가
-orchestrated §3 tier 와 일치한다(linear 와 동일). 프롬프트가 곧 계약이다.
+build / verify 는 기본 워크플로 subagent 에서 돈다 — 모델 규칙은 위와 같다
+(linear 와 동일: 구현 상속, verify haiku). 프롬프트가 곧 계약이다.
 
 ---
 
@@ -186,14 +189,14 @@ orchestrated §3 tier 와 일치한다(linear 와 동일). 프롬프트가 곧 �
 메인 세션이 `AskUserQuestion` 으로 **한 번 제안한다** (기본 off). 거부되거나
 정리할 게 없으면, 곧장 §4 로. 수락되면 변경된 diff 를 `/simplify` 스킬로
 정리한다 (재사용/단순화/효율/altitude, behavior 불변). `/simplify` 미설치 시
-같은 정리를 **단일 `opus` Workflow 에이전트**로 돌린다 (fan-out 없음 — 빌드
-diff 에 대한 한 번의 순차 pass, §3 빌드 tier 에 맞춤):
+같은 정리를 **단일 Workflow 에이전트(무핀 — 세션 상속)**로 돌린다 (fan-out 없음 —
+빌드 diff 에 대한 한 번의 순차 pass, §3 빌드 tier 에 맞춤):
 
 ```javascript
 export const meta = {
   name: 'craft-simplify-pass',
-  description: 'Simplify the build diff, behavior-preserving, on opus (fallback when /simplify absent)',
-  phases: [{ title: 'Simplify', model: 'opus' }],
+  description: 'Simplify the build diff, behavior-preserving (fallback when /simplify absent)',
+  phases: [{ title: 'Simplify' }],
 }
 const RESULT = { type: 'object', required: ['testsGreen','summary'], properties: {
   testsGreen: { type: 'boolean' },
@@ -208,7 +211,7 @@ return await agent(
   `dedup, inline, simpler expressions); run the suite after each step. ` +
   `A test goes red → that step changed behavior → revert it and stop on that axis. ` +
   `Never edit a test to make it pass. Do not hunt bugs. Report testsGreen + files changed.`,
-  { label: 'simplify:diff', phase: 'Simplify', model: 'opus', schema: RESULT })
+  { label: 'simplify:diff', phase: 'Simplify', schema: RESULT })
 ```
 
 **designer 는 idle-alive 로 머문다** 이 phase 내내 (§4 가 여전히 필요로 한다). 
@@ -223,16 +226,17 @@ return await agent(
 두 단계. fan-out 은 결정론적 Workflow; 판정은 영속
 designer 다.
 
-**Stage A — 병렬 검증 (Workflow `parallel()`, opus).** 
+**Stage A — 병렬 검증 (Workflow `parallel()`).** 
 `~/.claude/skills/craft-core/references/security.md` 를 읽어라. diff 에 대해 네 독립
-검증자를 돌린다, 각각 **opus** 에서, correctness·security lane 의 적대적
-refute-each-finding 단계를 포함하여:
+검증자를 돌린다 — **tester lane 은 `haiku`**(결정론 게이트 재실행), 나머지
+(qa/correctness/security)는 무핀(세션 상속 — 추론 lane) — correctness·security
+lane 의 적대적 refute-each-finding 단계를 포함하여:
 
 ```javascript
 export const meta = {
   name: 'craft-verify',
-  description: 'QA + tester + correctness + security verification of the orchestrated build, on opus',
-  phases: [{ title: 'Panel', model: 'opus' }],
+  description: 'QA + tester + correctness + security verification of the orchestrated build',
+  phases: [{ title: 'Panel' }],
 }
 
 const FINDING = { type: 'object', required: ['lane','findings'], properties: {
@@ -243,22 +247,24 @@ const FINDING = { type: 'object', required: ['lane','findings'], properties: {
 
 const LANES = [
   { lane: 'qa',          prompt: 'QA the diff against the approved plan Acceptance section: does each acceptance check actually hold? Report gaps.' },
-  { lane: 'tester',      prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
+  // tester = deterministic gate re-run → cheapest tier
+  { lane: 'tester',      model: 'haiku', effort: 'low', prompt: 'Run the project verify gate (tests / typecheck / lint / build). Report every failure with evidence; redirect long output to a log and cite lines.' },
   { lane: 'correctness', prompt: 'Correctness review of the diff: hunt for bugs the tests MISS — untested branches, off-by-one, null/boundary handling, wrong conditionals/operators, resource leaks, races. Quality (reuse/simplify) and security are other lanes — focus only on correctness defects. For each finding, adversarially try to REFUTE it (is the path reachable? do existing tests already cover it? does an input constraint exclude the branch?); report only survivors with evidence.' },
   { lane: 'security',    prompt: 'Security pass over the diff per security.md. For each candidate finding, adversarially try to REFUTE it; report only those that survive, with evidence.' },
 ]
 
 return (await parallel(LANES.map(L => () =>
   agent(`${L.prompt}\n\nThe approved plan and the diff are on disk — Read them.`,
-    { label: `verify:${L.lane}`, phase: 'Panel', model: 'opus', schema: FINDING })
+    { label: `verify:${L.lane}`, phase: 'Panel', schema: FINDING,
+      ...(L.model ? { model: L.model, effort: L.effort } : {}) })
 ))).filter(Boolean)
 ```
 
-네 lane (qa / tester / correctness / security) 모두 기본 워크플로 subagent 에서 `model: 'opus'`
-로 돈다 — 프롬프트가 각 lane 의 검증 계약이다 (correctness·security lane 은 발견을
+네 lane 은 기본 워크플로 subagent 에서 돈다 — tester 만 `haiku`, 추론 lane 셋은
+세션 상속. 프롬프트가 각 lane 의 검증 계약이다 (correctness·security lane 은 발견을
 적대적으로 반박해 살아남은 것만 보고).
 
-**Stage B — intent judgment (영속 designer, opus).** 메인 세션이
+**Stage B — intent judgment (영속 designer).** 메인 세션이
 패널의 살아남은 발견을 **여전히 살아있는 designer** 에게 `SendMessage` 로
 넘긴다. **UI 빌드면** 메인이 먼저 빌드 UI 를 실제로 렌더해 chrome MCP
 (`mcp__claude-in-chrome__take_screenshot` 또는 동등 도구)로 결과 화면을 캡처하고,
@@ -296,8 +302,8 @@ designer 가 수용할 때까지 Stage A → B → (필요하면 Phase 3) → A 
 
 ## Cost & failure notes
 
-- 이 토폴로지는 의도적으로 비싼 경로다: 영속 opus 에이전트 2 + 
-  opus 빌드 fan-out + opus verify fan-out + loop-back. 설계 리스크가
+- 이 토폴로지는 의도적으로 비싼 경로다: 영속 에이전트 2(세션 티어) + 
+  빌드 fan-out + 검증 fan-out + loop-back. 설계 리스크가
   진짜일 때만 정당하다.
 - `codex:rescue` 부재 → adversary 가 스스로 Phase 2 공격을 한다 (수동
   폴백), linear 파이프라인과 동일.

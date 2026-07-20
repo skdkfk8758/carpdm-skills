@@ -1,6 +1,6 @@
 ---
 name: deep-prompt
-description: goal/백그라운드 잡 기능에 넣을 검증 가능한 Goal Prompt 를 고정 템플릿(Objective / Success Criteria / Context / Constraints / Verification / Out of Scope / Done & Report)으로 저작해 .md 파일로 저장한다. 자율 에이전트가 사람 개입 없이 루프를 끝까지 돌 수 있도록 성공 기준을 측정 가능하게 못 박는 데 초점을 둔다. 사용자가 백그라운드/자율 실행에 넣을 목표·goal 프롬프트를 WRITE 하거나 만들고 싶어 할 때 사용 — "goal 프롬프트 만들어줘", "이 작업 백그라운드로 돌릴 목표 프롬프트 써줘", "자율 실행용 goal 정리해줘", "background job 목표문 작성", "/deep-prompt" 같은 표현. 모호한 아이디어를 긴 Socratic 인터뷰로 결정화할 때(use deep-interview), 실제로 기능을 빌드/수정/디버그할 때(use forge/renew/hunt)는 트리거하지 말 것.
+description: 자율/백그라운드 실행용 Goal Prompt 를 고정 템플릿(Objective/Success Criteria/Context/Constraints/Verification/Out of Scope/Done & Report)으로 저작해 .md 로 저장한다. 핵심은 에이전트가 사람 없이 스스로 완료를 판정하고 루프를 끝낼 수 있는 측정 가능한 성공 기준. 사용자가 백그라운드/자율 실행에 넣을 goal 프롬프트를 원할 때 사용 — "goal 프롬프트 만들어줘", "백그라운드로 돌릴 목표 정리해줘", "자율 실행용 goal 써줘", "background job 목표문 작성", "/deep-prompt" 같은 표현. 모호한 대형 아이디어 결정화는 deep-interview, 실제 빌드/수정/디버그는 forge/renew/hunt.
 ---
 
 # deep-prompt — 자율 실행용 Goal Prompt 저작
@@ -42,11 +42,14 @@ goal 프롬프트는 사람이 지켜보지 않는 동안 에이전트가 가진
    수 있는, 관찰 가능한 조건. 이게 약하면 자율 실행 전체가 무너진다.
 2. **건드리면 안 되는 것** (Constraints) — 사람이 없으니 가드레일이 본문에
    있어야 한다. 특히 비가역·외부발신 작업의 경계.
-3. **완료/막힘을 실행기에 어떻게 신호하는가** (Done & Report) — 백그라운드 잡
-   분류기는 실행 에이전트의 **메시지 텍스트만** 읽어 상태를 판정한다(tool 출력·
-   subagent 보고는 안 본다). 그래서 goal 프롬프트는 실행기에게 리터럴 완료 신호
-   (`result:`)와 막힘 신호(`needs input:` / `failed:`)를 **명령**해야 한다. 이
-   토큰을 안 박으면 잡이 끝나도 "완료"로 분류되지 않아 표류한다.
+3. **완료를 평가기가 읽을 수 있게 표면화하는가** (Done & Report) — 현행 Claude
+   Code `/goal` 은 턴마다 별도 평가 모델(기본 Haiku)이 **완료 조건 + 대화 내용**을
+   읽어 yes/no 로 판정한다. 평가기는 명령을 직접 돌리거나 파일을 읽지 않는다 —
+   "Claude 가 대화에 표면화한 것"만 본다(공식 docs `/goal` § How evaluation works).
+   그래서 goal 프롬프트는 실행기에게 Verification 결과·변경 요약을 **메시지
+   텍스트로 다시 진술**하고 마지막을 한 줄 상태(`result:` / `needs input:` /
+   `failed:`)로 맺으라고 명령해야 한다 — 토큰이 리터럴 파싱되는 계약은 아니지만
+   (판정은 시맨틱), 평가기·사람·후속 세션이 오독 없이 스캔하는 신호가 된다.
 
 ## 워크플로
 
@@ -131,12 +134,13 @@ Success Criteria / Done & Report 세 개는 절대 빼지 마라**. 그게 자�
 - <예: 기존 테스트 리팩터링은 하지 않음>
 
 ## Done & Report
-이 goal 은 사람이 지켜보지 않는 백그라운드 잡으로 실행된다. 분류기는 네
-**메시지 텍스트만** 읽으니(tool 출력·subagent 보고는 안 읽힘) 검증 결과·변경 요약을
-반드시 텍스트로 다시 적어라. 신호는 아래 리터럴 토큰을 각각 한 줄로 emit 한다:
-- 완료 — 위 Success Criteria 가 **전부 참**이면, 마지막 메시지를 `result:` 로
-  시작하는 한 줄로 맺어라(달성 내용 + 핵심 수치). 이게 유일한 완료 신호다 —
-  "done"·"완료" 같은 산문은 신호로 안 잡힌다.
+이 goal 은 사람이 지켜보지 않는 자율 잡으로 실행되고, 완료는 별도 평가기가
+대화에 표면화된 내용으로 판정한다. 평가기는 명령을 돌리거나 파일을 읽지 못한다 —
+그러니 매 턴 Verification 실행 결과와 변경 요약을 **메시지 텍스트로 다시
+진술**하라(tool 출력에만 남기고 지나가면 판정 근거가 약해진다). 상태는 마지막
+메시지를 아래 한 줄로 맺어 명확히 하라:
+- 완료 — 위 Success Criteria 가 **전부 참**이면 `result:` 한 줄(달성 내용 +
+  핵심 수치 + 각 criterion 의 검증 결과).
 - 막힘 — 사람의 한 가지 행동(권한·결정·접근)이 있어야만 진행 가능하고 합리적
   추측이 불가능하면, `needs input:` 한 줄에 정확히 무엇이 필요한지.
 - 불가 — 전제가 틀렸거나 구조적으로 불가능하면(잘못된 레포·없는 바이너리 등),
@@ -145,10 +149,12 @@ Success Criteria / Done & Report 세 개는 절대 빼지 마라**. 그게 자�
 전부 참이 될 때까지 루프한다.
 ```
 
-> 위 Done & Report 블록의 세 토큰(`result:` / `needs input:` / `failed:`)은
-> **글자 그대로** 생성물에 박는다 — 실행기가 emit 할 신호이지 네가 다듬을 산문이
-> 아니다. Success Criteria 와 `result:` 의 연결("전부 참이면 result:")이 자율 루프의
-> 종료 조건을 런타임 완료 신호에 묶는 다리다.
+> 위 세 신호(`result:` / `needs input:` / `failed:`)는 그대로 생성물에 박는다 —
+> 단 평가기가 파싱하는 리터럴 계약이 아니라(현행 `/goal` 판정은 시맨틱) **상태를
+> 오독 불가능하게 만드는 컨벤션**이다. 진짜 계약은 "Verification 결과의 텍스트
+> 표면화"다. 실행을 `/goal` 로 돌릴 거면 Success Criteria 를 조건으로 그대로
+> 붙일 수 있게 쓰고(조건 상한 4,000자), 무한 루프 방지로 "or stop after N turns"
+> 류 상한 절을 조건에 포함하길 권하라.
 
 ### 3.5 산출물이 UI/화면이면 — self-contained HTML 시안 동반 (조건부)
 
@@ -234,9 +240,10 @@ result: <topic> goal prompt 산출 — 검증 가능한 성공 기준 N개 (+UI 
 - **검증 불가 성공 기준** — "잘 되면 끝"은 자율 에이전트에게 무한 루프 또는
   조기 종료를 뜻한다. 모든 기준은 명령/관찰로 판정 가능해야 한다. 이게 이
   스킬의 존재 이유다.
-- **신호 토큰 누락** — Done & Report 에 `result:`/`needs input:`/`failed:` 리터럴을
-  안 박고 "완료 시 보고" 같은 산문으로 두기. 그러면 잡이 끝나도 분류기가 완료로
-  못 잡아 표류한다. 토큰은 글자 그대로, Success Criteria 전부 참 → `result:` 로 묶어라.
+- **검증 결과를 표면화 안 함** — Verification 을 tool 출력에만 남기고 메시지
+  텍스트로 재진술하지 않기. 평가기는 명령을 못 돌린다 — 대화에 표면화된 것만
+  판정 근거다. Done & Report 의 세 신호 한 줄(`result:`/`needs input:`/`failed:`)도
+  함께 박아 상태를 오독 불가능하게 하라.
 - **과잉 인터뷰** — 가드레일·범위·스타일을 일일이 묻기. 이건 안전 기본값으로 채울
   것(§2). must-ask 는 측정 가능한 완료 조건 하나뿐. 그것도 답이 또 모호해 2~3라운드로
   번지면 멈추고 `deep-interview` 로 보내라.

@@ -1,6 +1,6 @@
 ---
 name: sweep
-description: Clean up accumulated project cruft — 시점 기록 문서(오래된 plan, 랜딩된 handoff, 대체된 report), 휘발성 로그(logs/qa, agent 로그), 고아/중복 문서, build/tmp 잔여물 — 을 scan → classify → propose → confirm → delete 파이프라인으로, git 히스토리를 안전망 삼아 정리한다. 유저가 forge/hunt/renew 를 거치며 쌓인 잔여 문서/로그/아티팩트를 명시적으로 정리/정돈/prune/sweep/비우기 요청할 때 사용 — "레거시 문서 정리해줘", "쌓인 로그/플랜 치워줘", "docs 청소해줘", "오래된 리포트 정리", "clean up old reports", "prune stale handoffs", "이 프로젝트 잡동사니 좀 치워줘" 같은 표현. 영속 knowledge sub-tree (adr / concepts / guides / reference), 모든 rule 과 코드, 아직 참조되는 것은 모두 보존한다. 프로젝트 문서/로그 컨벤션 밖의 일반 파일 삭제, 코드 재구조화/편집(forge/renew/hunt 사용), handoff 작성(handoff 사용) 에는 트리거하지 말 것.
+description: 쌓인 프로젝트 잔여물 정리 — 시점 기록 문서(오래된 plan·랜딩된 handoff·대체된 report), 휘발성 로그, 고아/중복 문서, build/tmp 를 scan→classify→propose→confirm→delete 로, git 히스토리를 안전망 삼아 치운다. "레거시 문서 정리해줘", "쌓인 로그/플랜 치워줘", "docs 청소해줘", "오래된 리포트 정리", "clean up old reports", "prune stale handoffs", "잡동사니 치워줘" 에 사용. 영속 knowledge(adr/concepts/guides/reference)·rule·코드·참조되는 것은 보존. 컨벤션 밖 일반 파일 삭제, 코드 편집(forge/renew/hunt), handoff 작성(handoff)에는 트리거하지 말 것.
 ---
 
 # Sweep — 중요한 것은 하나도 잃지 않고 프로젝트 잡동사니 제거
