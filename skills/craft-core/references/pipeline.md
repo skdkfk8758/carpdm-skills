@@ -229,8 +229,8 @@ Phase 2 전에 사용자에게 플랜 확인을 요청한다. 사용자가 보�
 ## Phase 2 — Adversarial plan review (codex)
 
 **소형·저위험 플랜은 스킵 게이트 (위임 리뷰 = 직렬 고정비 ~10–20분).** codex
-리뷰는 라운드당 최대 10분 cap × 최대 2라운드의 *직렬* 블록이다 — 소형 플랜에선
-이 고정비가 효용을 초과한다. Phase 1 플랜이 확정되면 먼저 판정한다:
+리뷰는 라운드당 hard cap 20분 × 수렴 게이트(최대 4라운드)의 *직렬* 블록이다 —
+소형 플랜에선 이 고정비가 효용을 초과한다. Phase 1 플랜이 확정되면 먼저 판정한다:
 
 - **필수 (스킵 불가)** — 다음 중 하나라도 해당하면 리뷰를 돌린다: 보안 surface
   있음 (auth / payment / 권한 경계 / 외부 입력 처리 / secret), 외부 호출자가 있는
@@ -250,9 +250,11 @@ Phase 2 전에 사용자에게 플랜 확인을 요청한다. 사용자가 보�
 리뷰를 돌리는 경우: `codex-review.md` 를 읽어라. 플랜을 codex 에게 적대적 리뷰어로서 넘긴다 —
 그 일은 무엇이 잘못됐는지 찾는 것이다: 숨은 가정, 누락된 엣지 케이스, 보안
 구멍, 더 단순한 경로, scope creep, **그리고 플랜이 ADR 가 필요한 아키텍처
-결정을 하거나 standing ADR 과 충돌하는지**. 모든 *blocking* 발견을 플랜에
-다시 접어 넣는다. codex 가 blocking 이의를 제기하지 않거나 2 라운드를
-마칠 때까지 재리뷰한다. 각 라운드의 평결을 플랜에 기록한다.
+결정을 하거나 standing ADR 과 충돌하는지**. 리뷰는 converge-gated 핑퐁이다:
+codex 의 verdict JSON(high 이슈)에 플랜 수정 + 응답 원장으로 답하고, 같은
+스레드(`--resume-last`)에서 해소 여부를 검증받는다. high 0건 수렴 또는 캡
+4라운드까지 — 상세 계약(원장·분쟁 에스컬레이션·watchdog)은 `codex-review.md`
+가 SSOT. 각 라운드의 평결을 플랜에 기록한다.
 
 ## Phase 3 — Dynamic workflow: task split + TDD (opus)
 
