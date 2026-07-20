@@ -42,6 +42,10 @@ plugin 미설치 — `codex:rescue` 스킬 경유로 폴백하되, 그 경로는
 2. **codex 를 플랜 파일로 경로로 가리켜라** — 당신의 요약이 아니라 실제 문서를
    읽도록. cwd 는 repo 루트로 두면 codex 가 repo 의 `.codex/config.toml`
    (effort 등)을 로드하고 레포 실측 대조까지 한다 — 느려지지만 품질이 오른다.
+3. **effort 게이트 (비용).** 보안 surface·외부 호출자 계약 변경·마이그 포함
+   플랜만 최대 effort 로 돌린다. 그 외 소·중형 플랜은 R1 프롬프트에 "medium
+   reasoning effort; cross-check the repo only where a finding depends on it"
+   을 명시해 라운드당 수 분을 줄인다 — 최대 비용은 리뷰 품질이 치명적인 표면에만.
 
 ## R1 프롬프트 형태
 

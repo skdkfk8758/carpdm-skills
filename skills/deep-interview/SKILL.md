@@ -1,6 +1,6 @@
 ---
 name: deep-interview
-description: 측정 가능한 ambiguity 점수로 게이트되어 요구사항이 명확해지는 정확한 시점에 — 그 이전이 아니라 — 멈추는, 한 번에 한 질문씩 진행하는 엄격한 Socratic 인터뷰를 실행해 모호한 아이디어를 검증 가능하고 빌드 준비가 된 spec 으로 끌어올린다. 사용자가 흐릿하거나 반쯤 형태만 잡힌 또는 야심 찬 아이디어를 들고 와서, 코드를 작성하기 전에 인터뷰받거나 질문받거나 "함께 생각을 정리"하고 싶어 할 때마다 사용한다 — "interview me about X", "help me think this through", "I have a rough idea for Y", "socratically question me", "pin down what I actually want", "deep dive on the requirements", "/deep-interview" 같은 표현. 여섯 가지 고전적 Socratic 질문 유형(clarification, probing assumptions, probing reasons/evidence, alternative viewpoints, implications/consequences, questioning the question)으로 대화를 이끌며, 먼저 컴포넌트 토폴로지를 고정한 뒤, spec 이 모르는 사람도 검증할 수 있을 만큼 명확해질 때까지 매 라운드 가장 약한 단일 차원을 공략한다. 아이디어가 정말로 모호하거나 클 때는 곧장 plan 으로 직행하기보다 이것을 우선한다. 작고 이미 명확한 작업, 알려진 버그 수정, 또는 빌드 파이프라인(forge/renew/hunt)이 이미 자체 요구사항 단계를 돌리고 있을 때는 사용하지 말 것.
+description: 측정 가능한 ambiguity 점수로 게이트되는 라운드당-한-질문 Socratic 인터뷰로, 모호한 아이디어를 검증 가능한 요구사항 spec(REQ ID)으로 결정화하고 빌드 스킬로 라우팅한다. 사용자가 흐릿하거나 반쯤 형태만 잡힌 아이디어를 들고 와 코드 전에 인터뷰받거나 "함께 생각을 정리"하고 싶어 할 때 사용 — "인터뷰해줘", "같이 생각 정리하자", "요구사항 못 박아줘", "interview me about X", "help me think this through", "pin down what I actually want", "/deep-interview" 같은 표현. 아이디어가 정말로 모호하거나 클 때는 plan 직행보다 이것을 우선한다. 작고 이미 명확한 작업, 알려진 버그 수정, 빌드 파이프라인(forge/renew/hunt)이 이미 자체 요구사항 단계를 돌리는 중이면 사용하지 말 것. plan 문서+UI 시안이 목적이면 deep-plan.
 ---
 
 # Deep Interview — 빌드 전 Socratic 모호성 해소
@@ -63,13 +63,13 @@ SSOT `references/socratic-playbook.md` 에 산다 — 여기 복제하지 않는
 - `--standard` / default → 0.20
 - `--deep` → 0.10 (철저함; 모든 challenge mode 발동)
 
-어떤 질문보다 먼저 임계값과 그 출처를 한 줄로 명시해, 사용자가 결승선을 알게
-하라: *"Target: ambiguity ≤ 0.20 (standard). 이 선을 넘으면 멈추겠습니다."*
-
-사용자가 플래그를 안 줬으면 이 세 임계값은 **이산 3택**이므로 `AskUserQuestion` 으로
-골라 제시한다(quick/standard/deep). 이건 셋업 단계라 선택 UI 가 맞다 — Phase 2 의
-라운드 인터뷰 질문과 구분하라(그건 개방형 산문 답이 메커니즘이라 `AskUserQuestion` 을
-쓰지 않는다).
+사용자가 플래그를 안 줬으면 **묻지 말고 standard(0.20)로 시작한다** — 셋업 질문으로
+왕복을 만들지 않는다. 대신 어떤 질문보다 먼저 임계값·예상 분량·탈출구를 한 번에
+고지해 사용자가 결승선을 알게 하라: *"Target: ambiguity ≤ 0.20 (standard —
+`--quick`=0.35 / `--deep`=0.10 으로 조정 가능). 보통 5~8 라운드면 닿고, 언제든
+'이 정도면 됐어' 하시면 그 자리에서 결정화합니다."* 숫자만 던지면 처음 쓰는
+사용자에겐 결승선이 안 보인다 — 분량 기대치와 탈출구 가시화가 이탈을 막는다.
+사용자가 도중에 바꾸자고 하면 그 라운드부터 새 임계값을 적용한다.
 
 ### Phase 1 — Orient (greenfield 대 brownfield)
 
@@ -83,31 +83,45 @@ scoring 공식도 결정한다(`references/scoring.md` 참조).
 
 ### Round 0 — 토폴로지 고정 (깊이 들어가기 전 단일 게이트)
 
-무언가를 파고들기 전에, 사용자가 **최상위 컴포넌트 목록** — 아이디어가 나뉘는
-1~6개의 큰 조각 — 을 확정하게 하라. 각각을 **active**(지금 못 박을 것) 또는
-**deferred**(인정하되 이번 인터뷰 범위 밖)로 표시하라. 이건 단일 확인 질문이고,
-중요하다: 그것 없이는 실제 모호함이 컴포넌트 C 에 숨어 있는데 컴포넌트 A 를 열
-라운드 동안 완벽히 다듬느라 시간을 쓸 수 있다. 토폴로지는 당신이 가로질러 회전하는
-지도다.
+무언가를 파고들기 전에 **최상위 컴포넌트 목록** — 아이디어가 나뉘는 1~6개의 큰
+조각 — 을 고정하라. 중요하다: 그것 없이는 실제 모호함이 컴포넌트 C 에 숨어 있는데
+컴포넌트 A 를 열 라운드 동안 완벽히 다듬느라 시간을 쓸 수 있다. 토폴로지는 당신이
+가로질러 회전하는 지도다.
 
-컴포넌트마다 active/deferred 는 **이산 태깅**이므로 `AskUserQuestion`(컴포넌트별
-active/deferred 옵션)으로 확정하면 마찰이 준다 — Phase 0 threshold 와 같은 셋업성 선택.
-단 여기까지가 선택 UI 의 범위다: 깊이 들어가는 Phase 2 라운드 질문은 개방형으로 유지한다.
+**초안은 당신이 만든다.** 사용자는 구조화가 안 돼서 온 사람이다 — 흐릿한 아이디어를
+조각으로 쪼개라는 요구는 가장 어려운 일을 맨 앞에 놓는 것이다. 초기 설명 + Phase 1
+grounding 에서 후보 토폴로지를 도출해 제시하고, 사용자에게는 **편집과 결정만**
+남기라: 각 컴포넌트를 **active**(지금 못 박을 것) / **deferred**(인정하되 범위 밖)로
+태깅. 이산 태깅이므로 `AskUserQuestion`(컴포넌트별 active/deferred 옵션)으로 확정하면
+마찰이 준다. 초안 anchoring 걱정은 scoring.md 의 entity-stability 추적 + ontologist
+mode 가 가드다 — 잘못 쪼갠 토폴로지는 라운드가 진행되며 새 근본 명사의 요동으로
+드러난다.
 
 ### Phase 2 — 인터뷰 루프 (라운드당 한 질문)
 
 ambiguity ≤ threshold 가 될 때까지 반복:
 
-1. **Score** 각 차원을 0–1 로 (goal / constraints / criteria, + brownfield 의
+1. **Credit first.** 직전 답이 조준한 차원 밖 정보까지 담았으면(사용자는 물은
+   것보다 많이 답한다) 그것도 점수에 반영하고 반영 사실을 말하라("방금 답이
+   constraints 도 0.3→0.6 올렸습니다"). **이미 답한 것을 다시 묻는 것은 금지** —
+   "안 듣는다" 신호 하나로 인터뷰 신뢰가 무너진다. 확인이 필요하면 재질문이 아니라
+   되짚기로.
+2. **Score** 각 차원을 0–1 로 (goal / constraints / criteria, + brownfield 의
    경우 context) 매기고 ambiguity 를 계산한다. 공식과 차원 정의:
    `references/scoring.md`.
-2. **Target** 가장 약한 active 컴포넌트의 가장 약한 차원. 어느 것인지와 *왜
-   그것이 현재 병목인지*를 말하라 — 사용자가 그 논리를 볼 수 있어야 한다.
-3. **Ask one question** — 절대 묶지 말 것. 그 차원을 가장 잘 공략하는 Socratic
-   유형을 고르라(예: 약한 goal → 유형 1/6; 약한 constraints → 유형 2/5; 약한
-   criteria → 유형 3/5).
-4. **Report** 간결한 라운드 테이블: 차원 점수, ambiguity %, 어느 컴포넌트, 다음에
-   무엇을 조준하는지.
+3. **Target** 가장 약한 active 컴포넌트의 가장 약한 차원 — 단 **sticky**: 직전
+   라운드와 같은 컴포넌트에 머무는 쪽을 우선하고, 다른 컴포넌트가 유의미하게 더
+   약할 때(차원 점수 갭 ≥ 0.15)만 옮긴다. 라운드마다 주제를 지그재그시키면
+   사용자의 사고 흐름이 끊긴다. 어느 것을 왜 조준하는지 말하라 — 사용자가 그
+   논리를 볼 수 있어야 한다.
+4. **Ask one question** — 절대 묶지 말 것. 그 차원을 가장 잘 공략하는 Socratic
+   유형을 고르고(약한 goal → 유형 1/6; constraints → 2/5; criteria → 3/5), **답
+   형태에 맞는 입력 UI** 를 쓰라: 답 공간이 닫힌 결정형 질문(A냐 B냐 — grounded
+   brownfield 질문 대부분)은 `AskUserQuestion` 으로, 생성형 질문(구체 예시·근거
+   요구)은 산문으로. 판정 규칙과 anchoring 가드는 `socratic-playbook.md` §답 형태.
+5. **Report** 간결한 라운드 테이블: 차원 점수, ambiguity %, 어느 컴포넌트, **이번
+   라운드 확정된 결정(`locked:` 1줄)**, 다음 조준. locked 줄이 곧 진행감이자 조기
+   오해 검출이다 — 결정 요약이 틀렸다고 하면 그 라운드에서 바로잡는다.
 
 라운드당 한 질문은 타협 불가다: 묶으면 사용자가 지금 가장 중요한 한 가지를 깊이
 생각하는 대신 전 영역에 얕게 답하게 된다.
@@ -136,21 +150,11 @@ ambiguity 가 완고하면, 문제는 대개 누락된 디테일이 아니라 �
 
 ### Phase 4 — 요구사항 spec 결정화
 
-**모델 라우팅 — spec 은 fable, 폴백 opus.** spec 결정화는 이 스킬의 유일한 무거운
-산출이라 **fable(claude-fable-5)** 에서 만든다. 인터뷰 라운드 자체는 세션 모델
-그대로다(대화형). Phase 4 진입 시 한 번 판정:
-
-- 현재 세션 모델이 이미 fable → 인라인으로 그대로 작성(위임 불요).
-- 아니면 → spec 작성을 `Agent` 도구 `model: 'fable'` 서브에이전트로 위임한다.
-  프롬프트에는 대화를 붙이지 말고 압축 digest 만: 고정된 토폴로지, 라운드별 확정
-  결정(REQ 후보), 잔여 모호성, `references/spec-template.md` 경로, 저장 경로.
-  에이전트가 파일을 쓰면 메인이 Read 로 검증 후 보고한다.
-- fable 스폰이 모델 미가용으로 실패하면 같은 프롬프트로 `model: 'opus'` 재시도 —
-  폴백 사실을 result 블록에 한 줄 명시.
-
-> NOTE: 인터뷰 라운드까지 fable 로 돌리고 싶으면 세션 자체를 fable 로 시작하라
-> (`/model fable`) — 라운드는 대화형이라 서브에이전트 위임이 구조적으로 불가하고,
-> 세션 모델이 유일한 레버다.
+> 모델 노트: spec 결정화는 이 스킬의 유일한 무거운 산출이다. 세션 모델이 최상위
+> 티어(fable/opus 급)가 아니면 `Agent`(`model: 'fable'`, 미가용 시 `'opus'` 재시도 —
+> 폴백 사실 보고) 서브에이전트로 위임한다 — 프롬프트에는 대화 대신 압축 digest 만
+> (토폴로지·확정 결정·잔여 모호성·template 경로·저장 경로), 산출은 메인이 Read 로
+> 검증. 최상위 티어면 인라인로 그대로 작성한다.
 
 `references/spec-template.md` 를 사용해 **시스템 요구사항 문서**를 작성하라. 각
 요구사항은 안정적 ID(`REQ-F-NNN` functional / `REQ-N-NNN` non-functional),
@@ -203,6 +207,11 @@ deep-interview 입력은 번호 매긴 spec 이다. 추천은 다음 스킬에�
 - **질문 묶기** — 메커니즘 전체를 무력화; 라운드당 하나.
 - **유도 질문** — "Postgres 를 써야 한다고 생각하지 않나요?"는 물음표를 단
   제안이다. 여섯 유형 안에 머물라.
+- **옵션 창작** — 결정형 질문의 `AskUserQuestion` 옵션을 사용자 발화·코드 실측
+  밖에서 지어내기. 유도 질문의 UI 판이다 — 옵션 출처가 없으면 그 질문은 생성형이니
+  산문으로 물으라.
+- **이미 답한 것 재질문** — 사용자가 앞서 말한 정보를 다시 묻기. 크레딧하고
+  넘어가라(Phase 2 step 1).
 - **Scoring theater** — 믿지도 않는 정밀해 보이는 숫자를 지어내기. 점수는 정직하게
   내린 판단이고, 그 일은 방향과 결승선을 보여주는 것이지 엄밀함을 가장하는 게
   아니다.

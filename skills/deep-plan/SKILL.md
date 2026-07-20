@@ -1,118 +1,90 @@
 ---
 name: deep-plan
-description: 모호하면 먼저 인터뷰로 보강하고, 검증 가능한 구현 PLAN 문서(`docs/plans/…md`)를 도출하며, plan 의 결과물이 UI/UX 면 그 화면을 self-contained HTML 시안(목업)으로까지 시각화한 뒤 — 빌드하지 않고 — 멈춘다. 사용자가 무언가를 어떻게 만들지 PLAN, 설계, 기획안, 제안서, 접근법, 로드맵, 또는 UI 시안을 원하되 지금 당장 구현은 원하지 않을 때마다 사용한다 — "계획 세워줘", "이거 어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안/제안서 만들어줘", "approach 정리해줘", "design doc 작성", "UI 시안 뽑아줘", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 요청이 흐릿하면 한 번에 한 질문씩 Socratic 인터뷰로 보강하고, 이미 명확하면 인터뷰를 건너뛰고 곧장 plan 으로 간다. deep-interview 와 다르다 — deep-interview 는 번호 매긴 요구사항 spec 을 만들어 빌드 파이프라인으로 라우팅하지만, deep-plan 은 바로 실행 가능한 plan 문서 + HTML 시안을 산출하고 멈춘다. 실제로 기능을 구현/빌드(use forge)·버그 수정(use hunt)·기존 동작 변경(use renew)하려 할 때는 사용하지 말 것 — deep-plan 은 코드를 쓰지 않는다, plan 만 쓴다.
+description: 모호하면 먼저 인터뷰로 보강하고, 검증 가능한 구현 PLAN 문서(`docs/plans/…md`)를 산출하며 — plan 결과물이 UI 면 결과 화면의 self-contained HTML 시안까지 — 빌드하지 않고 멈춘다. 사용자가 plan/설계/기획안/제안서/접근법/로드맵/UI 시안을 원하되 지금 구현은 원하지 않을 때 사용 — "계획 세워줘", "어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안 만들어줘", "UI 시안 뽑아줘", "design doc 작성", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 번호 매긴 요구사항 spec 결정화는 deep-interview, 실제 구현/버그수정/기존 동작 변경은 forge/hunt/renew — deep-plan 은 코드를 쓰지 않는다, plan 만 쓴다.
 ---
 
 # Deep Plan — 인터뷰로 보강된 PLAN(+UI 시안) 도출, 빌드 없음
 
 당신은 **계획을 세우지, 빌드하지 않는다.** 산출물은 두 개다: 검증 가능한 구현
-PLAN 문서(`.md`), 그리고 그 plan 이 사용자 대면 UI 를 전달한다면 그 화면을 보여주는
+PLAN 문서(`.md`), 그리고 plan 이 사용자 대면 UI 를 전달한다면 그 화면을 보여주는
 self-contained HTML 시안(`.html`). 끝나면 멈춘다 — codex 리뷰도, TDD 도, 보안
-페이즈도, 구현 코드도 없다. 그것들은 craft 빌드 파이프라인의 일이고, deep-plan 의
-일이 아니다.
+페이즈도, 구현 코드도 없다(그것들은 craft 빌드 파이프라인의 일).
 
-위험은 두 가지다: (1) 모호한 요청을 그대로 받아 흐릿한 plan 을 쓰는 것,
-(2) UI plan 의 `.html` 이 plan 텍스트를 렌더만 하고 *결과 화면* 을 안 보여주는 것.
-이 스킬의 흐름은 둘 다 막는다.
+막아야 할 실패 두 가지: (1) 모호한 요청을 그대로 받아 흐릿한 plan 을 쓰는 것,
+(2) UI plan 의 `.html` 이 plan 텍스트를 렌더만 하고 *결과 화면*을 안 보여주는 것.
 
-## 이것이 올바른 도구일 때
+## 경계
 
-사용자가 무언가를 *어떻게* 만들지 — plan, 설계, 기획안, 제안서, 접근법, UI 시안 —
-를 원하되 **지금 구현은 원하지 않을 때**. 형제 스킬과의 경계:
+- **vs `deep-interview`** — 그쪽은 번호 매긴 요구사항 **spec**(`REQ-F`/`REQ-N`)을
+  만들어 빌드 스킬로 라우팅한다. deep-plan 은 실행 가능한 **plan 문서 + 시안**을
+  산출하고 멈춘다.
+- **vs `forge`/`renew`/`hunt`** — 그쪽은 빌드한다. deep-plan 은 구현 코드를 한 줄도
+  쓰지 않는다.
 
-- **vs `deep-interview`** — deep-interview 는 번호 매긴 요구사항 **spec**(`REQ-F`/
-  `REQ-N`)을 만들어 빌드 스킬로 *라우팅* 한다. deep-plan 은 바로 실행 가능한
-  **plan 문서 + HTML 시안** 을 산출하고 *멈춘다*. 사용자가 "요구사항을 못 박고
-  싶다"면 deep-interview, "어떻게 만들지 + 화면이 어떻게 보일지 보고 싶다"면
-  deep-plan.
-- **vs `forge`/`renew`/`hunt`** — 이들은 **빌드한다**. deep-plan 은
-  구현 코드를 한 줄도 쓰지 않는다. plan 만 쓴다.
+## SSOT lazy-load — 해당 분기에 진입할 때만 읽는다
 
-빌드/수정을 *지금* 하려 하면 deep-plan 이 아니라 해당 빌드 스킬이다.
+메커니즘은 복제하지 말고 공유 소스를 읽어라(규칙이 한 곳에 살아야 drift 가 없다).
+단 **eager 하게 전부 읽지 마라** — 아래 표의 시점에 도달했을 때만 그 파일을 읽는다.
+경로 약칭: `cc` = `~/.claude/skills/craft-core/references`, `di` =
+`~/.claude/skills/deep-interview/references`.
 
-## craft-core 재사용 (Phase 0+1 만, 그다음 정지)
+| 읽는 시점 | 파일 |
+|---|---|
+| Step 0 문서 grounding 시 | `cc/context-adr.md` |
+| Step 1 인터뷰가 **발동할 때만** | `cc/socratic.md` + `di/scoring.md` + `di/socratic-playbook.md` |
+| Step 2 PLAN 작성 직전 | `cc/pipeline.md` 의 Phase 1 (plan 섹션 + HTML companion + Eval 패널 규칙) |
+| Step 3 UI 목업을 **그릴 때만** | `~/.claude/skills/mockup/references/design-context.md` |
+| Step 3 ERD 분기 **진입 시만** | `~/.claude/skills/erd/SKILL.md` + `assets/erd-template.html` + `references/schema-discovery.md` |
+| Step 4 종료 보고 직전 | `cc/output-contract.md` |
+| Step 4.5 Linear 등록 제안 시만 | `cc/linear.md` |
+| Step 5 다음 스킬 추천 직전 | `di/next-skill-routing.md` |
 
-deep-plan 은 craft 빌드 파이프라인과 같은 검증된 엔진을 쓰되 **앞의 두 페이즈만**
-차용한다. 빌드 페이즈(2~5)는 절대 진입하지 않는다. 메커니즘은 복제하지 말고
-공유 소스를 읽어라 — 그래야 규칙이 한 곳에 살고 drift 가 없다:
+파일이 없으면(해당 스킬 미설치) 그 사실을 말하고 같은 원리를 직접 적용한다.
 
-- 인터뷰 기법·grounding: `~/.claude/skills/craft-core/references/socratic.md`
-- 문서 grounding(ADR/concept/guide): `~/.claude/skills/craft-core/references/context-adr.md`
-- plan 섹션 + **HTML companion 규칙**: `~/.claude/skills/craft-core/references/pipeline.md`
-  의 Phase 1 (특히 `.html` companion 분기 — UI 면 결과 UI 목업, 비UI 면 plan 렌더)
-- UI 목업의 **시안 충실도**(design context 추출→4축 계약→토큰 검증):
-  `~/.claude/skills/mockup/references/design-context.md` (Step 3 에서 차용 — 복제 금지)
-- 모호할 때의 측정 게이트·여섯 Socratic 유형: `~/.claude/skills/deep-interview/references/scoring.md`
-  와 `~/.claude/skills/deep-interview/references/socratic-playbook.md`
-- 종료 시 result 블록 규격(전 스킬 공통): `~/.claude/skills/craft-core/references/output-contract.md`
-- 다음 스킬 추천 규격(deep-* 공통): `~/.claude/skills/deep-interview/references/next-skill-routing.md`
-- PLAN → Linear 이슈 트리 등록 + MCP 감지/스킵: `~/.claude/skills/craft-core/references/linear.md` (Step 4.5 의 Linear 분기에서 차용 — 복제 금지)
-- DB/BE plan 의 ERD 시안 생성법: `~/.claude/skills/erd/SKILL.md` + `assets/erd-template.html` + `references/schema-discovery.md` (Step 3 의 ERD 분기에서 차용 — 복제 금지)
-
-이 파일들이 없으면(craft-core/deep-interview 미설치) 같은 원리를 직접 적용하되,
-설치돼 있으면 항상 읽어서 한 소스를 따르라.
-
-## 모델 라우팅 — 산출은 fable, 폴백 opus
-
-PLAN 본문과 시안은 이 스킬에서 가장 추론 밀도가 높은 산출물이라 **fable
-(claude-fable-5) 에서 만든다**. 인터뷰·grounding·제시는 세션 모델 그대로다
-(대화형이라 모델 전환 이득이 없다). 판정은 Step 2 진입 시 한 번:
-
-- **현재 세션 모델이 이미 fable** → 아무것도 하지 않는다. Step 2·3 을 인라인으로
-  진행(위임은 컨텍스트 재직렬화 손실만 남긴다).
-- **아니면** → Step 2 의 PLAN 작성 + Step 3 의 *기본 inline* companion 작성을
-  `Agent` 도구 `model: 'fable'` 서브에이전트 하나로 위임한다. 프롬프트에는 본문을
-  붙이지 말고 경로와 요약만: 한 줄 goal, 인터뷰에서 고정된 결정 목록(간결 digest),
-  ground 된 파일 경로들, 참조할 SSOT 경로(`pipeline.md` Phase 1), 산출 경로
-  (`docs/plans/...md`/`.html`). 에이전트가 파일을 쓰면 메인이 Read 로 검증한다.
-- **fable 스폰이 모델 미가용으로 실패**하면 같은 프롬프트로 `model: 'opus'` 재시도
-  — 폴백 사실을 사용자 보고에 한 줄 명시한다.
-
-> NOTE: 인터뷰 라운드까지 fable 로 돌리고 싶으면 세션 자체를 fable 로 시작하라
-> (`/model fable`) — 라운드는 대화형이라 서브에이전트 위임이 구조적으로 불가하고,
-> 세션 모델이 유일한 레버다.
-
-위임 범위 밖: Step 3 의 전문 스킬 라우팅(imprint/prototype/frontend-design — 각자
-스킬이 처리), ERD companion(erd 스킬 경로), Artifact publish·Step 4 이후(메인이 수행).
+> 모델 노트: PLAN 본문·시안은 이 스킬에서 추론 밀도가 가장 높은 산출물이다. 세션
+> 모델이 최상위 티어(fable/opus 급)가 아니면 Step 2+3 을 `Agent`(`model: 'fable'`,
+> 미가용 시 `'opus'` 재시도 — 폴백 사실 보고) 서브에이전트 하나로 위임한다. 프롬프트에는
+> 본문 대신 경로와 결정 digest 만 싣고, 에이전트 산출을 메인이 Read 로 검증한다.
+> 최상위 티어면 인라인로 그대로 작성한다(위임은 재직렬화 손실만 남긴다).
 
 ## 흐름
 
-### Step 0 — Frame & ground (craft Phase 0)
+### Step 0 — Frame & ground
 
 - 작업유형과 한 줄 목표를 사용자에게 되짚는다.
-- **Ground first.** plan 이 건드릴 코드(가능하면 code-graph/LSP, 아니면 영향
-  반경에 한정한 Read/Grep)와 관련 기존 문서(ADR/concept/guide — `context-adr.md`)를
-  scope-read 한다. plan 은 standing 결정을 재론하지 않고 존중해야 하고, 파일/계약을
-  추측이 아니라 실제로 anchor 해야 한다.
+- **Ground first.** plan 이 건드릴 코드(가능하면 code-graph/LSP, 아니면 영향 반경에
+  한정한 Read/Grep — 절대 레포 전체 아님)와 관련 기존 문서(ADR/concept/guide —
+  `context-adr.md`)를 scope-read 한다. plan 은 standing 결정을 존중하고, 파일/계약을
+  추측이 아니라 실제로 anchor 한다.
 - worktree 는 만들지 않는다 — deep-plan 은 코드를 편집하지 않는다.
 
-### Step 1 — 적응형 보강 게이트 ("보강이 필요하다면")
+### Step 1 — 적응형 보강 게이트
 
 요청이 이미 다음을 *모두* 명확히 진술하는지 판정한다: 검증 가능한 **goal**,
-**scope IN/OUT**, **성공 기준**, 그리고 (UI 라면) 어떤 화면/플로우인지.
+**scope IN/OUT**, **성공 기준**, (UI 라면) 어떤 화면/플로우인지.
 
-- **이미 crisp** → 인터뷰를 **건너뛴다.** 왜 건너뛰는지 한 줄로 말하고(예:
-  "goal·scope·criteria 가 이미 명확 — 인터뷰 생략하고 plan 으로 갑니다") Step 2 로.
+- **이미 crisp** → 인터뷰를 **건너뛴다.** 왜 건너뛰는지 한 줄로 말하고 Step 2 로.
   이미 명확한 요청을 인터뷰하는 것은 마찰이다.
-- **모호** → **측정 게이트 인터뷰** 를 돈다. `socratic.md` 기법 + deep-interview 의
-  `scoring.md`/`socratic-playbook.md` 를 차용:
+- **모호** → **측정 게이트 인터뷰**를 돈다(위 표의 인터뷰 SSOT 3개를 이때 읽는다):
+  - threshold 는 **묻지 않는다** — 기본 0.20 으로 시작하고, 첫 고지 줄에 명시한다:
+    *"Target: ambiguity ≤ 0.20 (`--quick`=0.35 / `--deep`=0.10 으로 조정 가능)."*
   - 먼저 토폴로지(1~6개 큰 조각, active/deferred)를 한 번 고정한다.
-  - **라운드당 한 질문** — 절대 묶지 말 것. 매 라운드 가장 약한 차원을 점수로
-    찾아 여섯 Socratic 유형 중 맞는 하나로 공략하고, 짧은 라운드 테이블(차원 점수,
-    ambiguity %, 다음 조준)을 보고한다.
-  - **ambiguity ≤ threshold** 에서 멈춘다. 기본 0.20; `--quick`=0.35 / `--deep`=0.10.
-    어떤 질문보다 먼저 threshold 를 한 줄로 명시해 결승선을 보인다.
-  - 사용자가 "그만 / plan 짜 / 이 정도면 돼" 하면 따른다 — 현재 ambiguity 와
-    미해결을 명시한 뒤 결정화.
+  - **라운드당 한 질문** — 절대 묶지 말 것. 매 라운드 가장 약한 차원을 점수로 찾아
+    여섯 Socratic 유형 중 맞는 하나로 공략하고, 짧은 라운드 테이블(차원 점수,
+    ambiguity %, `locked:` 확정 결정, 다음 조준)을 보고한다. 결정형 질문(닫힌 답
+    공간)은 `AskUserQuestion`, 생성형은 산문 — 규칙은 playbook §답 형태.
+  - **ambiguity ≤ threshold** 에서 멈춘다. 사용자가 "그만 / plan 짜 / 이 정도면 돼"
+    하면 따른다 — 현재 ambiguity 와 미해결을 명시한 뒤 결정화.
 
-판정이 애매하면(crisp 인지 모호인지) 모호 쪽으로 기운다 — 흐릿한 plan 보다
-질문 한두 개가 싸다.
+판정이 애매하면(crisp 인지 모호인지) 모호 쪽으로 기운다 — 흐릿한 plan 보다 질문
+한두 개가 싸다.
 
-### Step 2 — PLAN 문서 작성 (craft Phase 1 의 plan, 빌드 제외)
+### Step 2 — PLAN 문서 작성
 
-`docs/plans/YYYY-MM-DD-<topic>.md` (프로젝트가 다른 plan 위치를 쓰면 그곳)에
-쓴다. craft Phase 1 섹션을 그대로 따르되, deep-plan 은 빌드하지 않으므로 Steps 와
-Acceptance 는 *실행* 이 아니라 *무엇을 할지/무엇이 done 인지의 계획* 으로 남는다:
+`docs/plans/YYYY-MM-DD-<topic>.md` (프로젝트가 다른 plan 위치를 쓰면 그곳)에 쓴다.
+craft Phase 1 섹션(`pipeline.md` — 이때 읽는다)을 따르되, deep-plan 은 빌드하지
+않으므로 Steps 와 Acceptance 는 *실행*이 아니라 *무엇을 할지/무엇이 done 인지의
+계획*으로 남는다:
 
 ```
 # <topic>
@@ -128,82 +100,54 @@ Acceptance 는 *실행* 이 아니라 *무엇을 할지/무엇이 done 인지의
 
 열어보지 않은 파일/심볼을 거명하는 것은 실패다. Files 는 실제로 확인한다.
 
-**Acceptance 항목이 곧 eval 항목이다** — 빌드 스킬(forge/renew/hunt)이 구현을
-끝낸 뒤 Phase 4 에서 *하나씩 검증해 닫을* 체크리스트다. 그래서 각 항목에
-`[AUTO]`/`[HUMAN]` 태그를 붙인다 (`[AUTO]`=결정론·회귀·보안·계약 — 자동 테스트로
-잠금; `[HUMAN]`=시각·UX 의도·주관 — 빌드 후 사람과 walk). 태그 규칙·예시는 복제하지
-말고 `~/.claude/skills/craft-core/references/pipeline.md` Phase 1 (SSOT) 을 따른다.
-별도 "eval" 개념을 새로 만들지 말 것 — Acceptance 가 그 자리다.
+**Acceptance 항목이 곧 eval 항목이다** — 빌드 스킬(forge/renew/hunt)이 구현 후
+Phase 4 에서 하나씩 검증해 닫을 체크리스트. `[AUTO]`=결정론·회귀·보안·계약(자동
+테스트로 잠금), `[HUMAN]`=시각·UX 의도·주관(빌드 후 사람과 walk). 태그 규칙 SSOT 는
+`pipeline.md` Phase 1. 별도 "eval" 개념을 새로 만들지 말 것 — Acceptance 가 그 자리다.
 
-### Step 3 — HTML 시안 (정적 시각 목업)
+### Step 3 — HTML 시안 (조건부)
 
-같은 경로에 `.html` 확장자로 self-contained companion 을 쓴다(inline `<style>`,
-외부 asset 없음, 브라우저에서 바로 열림). 무엇을 보여주는지는 **plan 이 사용자
-대면 UI 를 전달하는지** 에 달렸다 — `pipeline.md` Phase 1 의 companion 분기를 따른다:
+**UI 판정 먼저.** plan 이 사용자 대면 UI(화면·컴포넌트·페이지·플로우·보이는 UX
+변경)를 전달하는가?
 
-- **UI / 프론트엔드 plan**(화면·컴포넌트·페이지·플로우·보이는 UX 변경) → plan 이
-  구현된 후 사용자가 **보게 될 결과 UI 의 목업.** 실제 인터페이스(chrome, pane,
-  컨트롤, 상태)를 배치하고, UX 를 명확히 하는 곳은 inline `<script>` 로 가볍게
-  인터랙티브하게 만들어 핵심 인터랙션을 *시연* 한다(텍스트 기술이 아니라). 출시
-  제품으로 오인되지 않게 "mockup" 을 눈에 띄게 표식한다. plan 의 표는 `.md` 에
-  남는다; `.html` 은 결과의 그림이다.
-- **비 UI plan**(리팩터·백엔드·DB·API/계약·인프라) → "결과 UI" 가 없으므로
-  companion 은 **plan 의 렌더링**: 새 내용 없이 섹션을 heading+블록으로, Scope IN/OUT
-  과 Steps→verify 를 표로, 파일 경로는 코드 스타일로 시각화.
-- **혼합**(백엔드 작업이 있는 UI 변경) → UI 는 목업, 그 아래 비UI 섹션은 plan 렌더.
+- **UI / 혼합 plan** → plan 과 같은 경로에 `.html` 확장자로 self-contained
+  companion(inline `<style>`, 외부 asset 0)을 쓴다. 내용은 plan 이 구현된 후
+  사용자가 **보게 될 결과 UI 의 목업** — 실제 인터페이스(chrome, pane, 컨트롤,
+  상태)를 배치하고, UX 를 명확히 하는 곳은 inline `<script>` 로 핵심 인터랙션을
+  *시연*한다. "mockup" 표식 눈에 띄게. 혼합 plan 이면 UI 는 목업, 그 아래 비UI
+  섹션은 plan 렌더. companion 형식·Eval 체크리스트 패널 규칙 SSOT 는 `pipeline.md`
+  Phase 1(이미 Step 2 에서 읽음).
+  - **충실도** — 목업을 그리기 전에 `design-context.md`(이때 읽는다)를 따라
+    프로젝트 DESIGN.md·토큰·기존 화면 어휘를 추출하고 토큰 검증한다. 시안 즉흥
+    창작이 구현 괴리의 근원. 전문 스킬 라우팅(§6: net-new UI → `frontend-design`,
+    다안 비교 → `prototype`, 추출 디자인 재현 → `imprint`)은 `AskUserQuestion`
+    제안만 — 자동 시작 금지, 미설치면 inline 폴백.
+  - **Eval 패널** — Step 2 의 Acceptance 항목을 `[AUTO]`/`[HUMAN]` 태그와 함께
+    체크리스트로 렌더한다. SSOT 는 `.md` Acceptance, 패널은 렌더 뷰.
+  - **Artifact publish** — 시안을 쓴 직후 `Artifact` 도구로 publish 한다. 사용자
+    리뷰 딜리버러블은 **artifact URL**(로컬 `.html` 은 유지 — 하니스 입력).
+    갱신 시 같은 파일 경로로 재-publish 해 URL 유지. 규칙 SSOT:
+    `~/.claude/rules/html-mockup-artifact.md`.
+- **비UI plan**(리팩터·백엔드·DB·API/계약·인프라) → **companion 기본 생략**
+  (deep-plan 정책 — `pipeline.md` 의 plan-render 분기는 사용자가 시각 렌더를
+  원할 때만). Step 4 보고에 "원하면 plan 렌더 HTML 도 생성 가능" 한 줄만 남긴다.
+  `.md` 를 heading/표로 다시 그린 렌더는 기본 경로에서 비용 대비 가치가 없다.
 
-**그리고 — companion 타입과 무관하게 항상 — `.html` 에 Eval 체크리스트 패널을 넣는다.**
-Step 2 의 Acceptance(=eval) 항목을 각 `[AUTO]`/`[HUMAN]` 태그와 함께 체크리스트로
-렌더해, 사용자가 시안을 리뷰할 때 "이렇게 보일 것"과 "끝나면 무엇으로 done 을 측정할
-것"을 나란히 보게 한다. 이게 사용자가 빌드 후 forge/renew 가 하나씩 닫아줄 바로 그
-장부의 그림이다. 규칙은 복제하지 말고 `pipeline.md` Phase 1 의 "Eval 체크리스트 패널"
-(SSOT) 을 따른다 — SSOT 는 `.md` Acceptance, 이 패널은 렌더 뷰.
+#### ERD companion — plan 이 DB 스키마/BE 데이터 모델을 수반하면 (UI 판정과 별개)
 
-**그리고 — 시안을 쓴 직후 항상 — `Artifact` 도구로 publish 한다.** 사용자 리뷰
-딜리버러블은 로컬 경로가 아니라 **artifact URL** 이다. 로컬 `.html` 은 그대로
-둔다(Artifact 가 파일에서 publish 하고, harness-run G1/eval-check 가 로컬 파일을
-입력으로 읽는다). 시안 갱신 시 같은 파일 경로로 재-publish 해 URL 을 유지한다.
-`-erd.html` companion 도 동일하게 publish. 규칙 SSOT:
-`~/.claude/rules/html-mockup-artifact.md`.
-
-#### ERD companion — plan 이 DB 스키마/BE 데이터 모델을 수반하면 (위 분기와 별개·추가)
-
-plan 이 **새 테이블·컬럼·관계 또는 BE 데이터 모델 변경**을 수반하면, 위 design
-companion 과 **별개로** ERD 도 HTML 로 생성한다(둘 다 산출 — design 시안이 "어떻게
-보일지"라면 ERD 는 "데이터가 어떻게 엮일지"다). 순수 비UI plan(리팩터·DB·API)이면 design
-companion 은 plan 렌더지만 ERD 는 여전히 실제 도식 가치를 준다.
-
-생성 방법은 복제하지 말고 `erd` 스킬을 한 소스로 읽어 그대로 따른다(drift 차단):
-`~/.claude/skills/erd/SKILL.md` + `assets/erd-template.html` + `references/schema-discovery.md`.
-스키마는 Step 0 grounding 에서 이미 Read 한 마이그레이션/모델/repository 에서
-재구성한다(추측 금지 — 못 본 테이블/관계는 그리지 않고 footer 에 한계 명시). 산출은 plan
-과 같은 디렉토리·basename 에 `-erd.html`(예: `docs/plans/2026-06-04-<topic>-erd.html`).
-
-판정이 애매하면(이 plan 에 ERD 가 의미 있나) 스키마/관계가 plan 의 핵심이면 그린다 —
-컬럼 한둘 추가뿐이면 과투자다(생략하고 plan 텍스트로 족). `erd` 가 미설치면(available-skills
-에 없음) 그 사실을 말하고 ERD 를 생략한다(design companion 은 그대로 진행).
-
-#### 시안 충실도 — design-context 계약 (SSOT: `mockup` 스킬)
-
-UI 목업을 그리기 전에 `~/.claude/skills/mockup/references/design-context.md` 를 읽고
-그대로 따른다 — 프로젝트 DESIGN.md·토큰·기존 화면 어휘 추출(7항목, 부재 시 코드
-스캔 폴백) → 4축 충실 계약 → 토큰 부분집합 기계 검증(`check-tokens.sh`) + 실화면
-대조 제시. 시안 즉흥 창작이 구현 괴리의 근원이라 **이 절차가 기본 경로**다(비UI
-plan 렌더 companion 은 해당 없음). companion 형식 규칙(Eval 패널·publish)은 위
-pipeline.md 규약 그대로 — 충실도와 형식은 별개 축이다.
-
-전문 스킬 라우팅은 design-context.md §6 을 따른다 — 재사용할 기존 어휘가 없는
-net-new UI 면 `frontend-design`(토큰 계약 주입), 다안 비교면 `prototype` 을
-`AskUserQuestion` 으로 제안(자동 시작 금지, 결과 `.html` 은 companion 산출물로,
-결과에도 토큰 검증). 외부 사이트에서 추출한 디자인 시스템의 재현이 목적이면
-`imprint`. 매칭 스킬 미설치면 그 사실을 말하고 inline 폴백.
+plan 이 **새 테이블·컬럼·관계 또는 BE 데이터 모델 변경**을 수반하면 ERD 를 HTML 로
+생성한다 — 비UI plan 이라도 ERD 는 실제 도식 가치를 준다("데이터가 어떻게 엮일지").
+생성 방법은 `erd` 스킬 3파일(이때 읽는다)을 그대로 따른다. 스키마는 Step 0 에서
+Read 한 마이그레이션/모델에서 재구성한다(못 본 테이블/관계는 그리지 않고 footer 에
+한계 명시). 산출은 plan 과 같은 디렉토리·basename 에 `-erd.html`, 역시 Artifact
+publish. 판정: 스키마/관계가 plan 의 핵심이면 그린다 — 컬럼 한둘 추가뿐이면
+과투자(생략, plan 텍스트로 족). `erd` 미설치면 그 사실을 말하고 생략.
 
 ### Step 4 — 제시하고 정지
 
-`output-contract.md` 의 고정 블록으로 산출물을 보고한다 — `result:` 한 줄 + 각
+`output-contract.md`(이때 읽는다)의 고정 블록으로 보고한다 — `result:` 한 줄 + 각
 산출물의 상대경로. PLAN 행은 항상(`open` 명령 동반), `시안`·`ERD` 행은 만들었을
-때만 넣되 **딜리버러블은 `open` 명령이 아니라 Step 3 에서 publish 한 artifact URL**
-이다(만들지 않은 산출물 행은 생략 — output-contract L2 규칙). 예:
+때만 넣되 딜리버러블은 Step 3 에서 publish 한 **artifact URL** 이다. 예:
 
 ```
 result: <topic> PLAN 산출 — N steps, scope IN <…> / OUT <…>
@@ -211,75 +155,47 @@ result: <topic> PLAN 산출 — N steps, scope IN <…> / OUT <…>
 산출물 — 열기:
 - PLAN `docs/plans/2026-06-04-<topic>.md`  →  `open docs/plans/2026-06-04-<topic>.md`
 - 시안 `docs/plans/2026-06-04-<topic>.html`  →  <artifact URL>
-- ERD  `docs/plans/2026-06-04-<topic>-erd.html`  →  <artifact URL>
 
-(`open` = macOS. Linux `xdg-open <path>`, Windows `start <path>`.
- 시안/ERD 는 artifact URL 이 정본 열람 경로 — 로컬 파일은 하니스 입력용.)
+(`open` = macOS. Linux `xdg-open <path>`, Windows `start <path>`.)
 ```
 
 ### Step 4.5 — Linear 작업 등록 (optional, 확인 게이트)
 
-PLAN 을 제시한 뒤, 이를 **Linear 작업 트리로 등록할지 제안**한다. 이것이
-"작업단위로 쪼개 추적·실행 가능하게" 만드는 다리다 — parent issue 1개 +
-PLAN Step 하나당 sub-issue 하나로 쪼개고, 각 sub-issue 의 ID/URL 을 PLAN `.md` 에
-적어 두면 빌드 스킬(forge/renew/hunt)이 그 이슈를 집어 작업하며 상태를 자동 전이한다.
-
-메커니즘은 복제하지 말고 **`~/.claude/skills/craft-core/references/linear.md` 를 읽어
-그대로 따른다**(SSOT — drift 차단). 그 파일이 정의하는 순서:
-
-1. **MCP 감지** (linear.md §1). Linear MCP 미설치면 설치 가이드를 한 번 보이고
-   **스킵을 제안**한다 — 막지 않는다. 사용자가 스킵하면 PLAN 산출은 그대로 두고
-   Step 5 로 간다(Linear 없이도 plan 은 완전한 산출물).
-2. **등록 제안 → 확인 게이트** (linear.md §2). 만들 트리(parent 제목 + sub 제목
-   목록)를 미리보기로 보이고 동의받은 **뒤에만** 생성한다. 이슈 생성은 외부
-   write 라 자동 등록 금지 — deep-plan 의 "제안 ≠ 자동 시작" 원칙과 같은 정신.
-3. 생성 후 parent/sub URL 을 반환하고 sub-issue ID/URL 을 PLAN `.md` 에 적는다.
-
-**판정:** Linear MCP 가 있고 PLAN 이 2개 이상 Step 으로 쪼개졌으면 등록을 제안할
-가치가 있다. Step 1개의 사소한 plan 이면 단일 이슈로(또는 등록 생략). Linear 가
-없으면 §1a 가이드 한 번 + 스킵. 어느 쪽이든 **PLAN 자체는 이미 완성된 산출물**이라
-Linear 등록은 부가 단계다 — 등록 실패/스킵이 deep-plan 의 성공을 깎지 않는다.
+PLAN 제시 후, Linear 작업 트리(parent 1 + PLAN Step 당 sub-issue 1)로 등록할지
+**제안**한다. 메커니즘은 `cc/linear.md`(이때 읽는다) 그대로: ① MCP 감지 — 미설치면
+가이드 한 번 + 스킵 제안(막지 않음) ② 만들 트리 미리보기 → 동의받은 **뒤에만**
+생성(외부 write 라 자동 등록 금지) ③ 생성 후 sub-issue ID/URL 을 PLAN `.md` 에
+기록. 판정: PLAN 이 2+ Step 이면 제안 가치 있음, 1 Step 사소 plan 이면 단일
+이슈 또는 생략. 등록 실패/스킵이 deep-plan 의 성공을 깎지 않는다 — PLAN 자체가
+이미 완성된 산출물이다.
 
 ### Step 5 — 다음 단계 제안 (제안만, 시작 안 함)
 
-산출물을 제시한 뒤, 사용자가 *다음에* 무엇으로 이어가면 좋을지 한 번 추천한다.
-deep-plan 은 "순수 산출" 도구라 **빌드로 자동 라우팅하지 않는다** — 이건 다음
-스킬을 **시작하는 게 아니라 제안하는** 것이고, 시작 여부는 항상 사용자가 정한다.
-
-규칙은 `next-skill-routing.md`(deep-interview 와 공유 — 복제 금지)에 산다. **추천을
-만들기 전에 반드시 그 파일을 Read 하라** — 기억으로 추천하면 Tier 1 로컬 스킬로
-편향돼 글로벌·플러그인 후보를 빠뜨린다. deep-plan 특이사항만:
+`next-skill-routing.md`(이때 읽는다 — 기억으로 추천 금지, 기억은 로컬 스킬로
+편향된다)를 따라 한 번 추천한다. 요점:
 
 - **설치 스킬을 Bash 로 스캔하지 마라** — available-skills 목록이 이미 컨텍스트에
-  있다. 추천 전 그 목록을 실제로 훑어 valid-next 후보를 재선정한다(예시 이름에
-  anchor 되지 말 것 — 글로벌·플러그인 `plugin:skill` 포함).
-- 입력은 방금 만든 **PLAN 문서**다. 빌드가 명백하면 Tier 1 단축(greenfield→`/forge`,
-  변경→`/renew`, 고장→`/hunt`), 아니면 Tier 2 전체 후보(`to-issues`·`deep-research`·
-  `understand-anything:understand` 등)를 함께 본다. `deep-plan` 자신은 제외(이미 만들었다).
+  있다. 그 목록에서 valid-next 후보를 재선정한다(글로벌·플러그인 포함, 예시 이름에
+  anchor 금지). `deep-plan` 자신은 제외.
+- 빌드가 명백하면 Tier 1 단축(greenfield→`/forge`, 변경→`/renew`, 고장→`/hunt`),
+  아니면 Tier 2 전체 후보(`to-issues`·`deep-research` 등)를 함께 본다.
 - 빌드로 제안하면 plan 을 **이미 완료된 Phase-1 결과물**로 취급해 다시 인터뷰하지
-  말라고 프레이밍한다(이중 인터뷰 회피). plan 의 **Acceptance(=eval) 항목이 그
-  빌드가 Phase 4 에서 하나씩 검증해 닫을 체크리스트**이고, UI 면 곁의 `.html` 시안이
-  승인된 visual 계약임을 함께 짚는다 — 빌드 스킬이 그대로 이어받는다.
+  말라고 프레이밍한다(이중 인터뷰 회피). Acceptance(=eval) 항목이 그 빌드가 Phase 4
+  에서 닫을 체크리스트이고, UI 면 `.html` 시안이 승인된 visual 계약임을 함께 짚는다.
 - **`AskUserQuestion` 으로 제안만** 한다.
 
-그리고 **여기서 멈춘다.** codex 리뷰·TDD·보안·구현 없음, 다음 스킬 자동 시작 없음 —
-deep-plan 은 plan 과 시안을 산출하고 다음 단계를 *제안*하는 도구다. 무엇을 할지는
-사용자가 정한다.
+그리고 **여기서 멈춘다.** 다음 스킬 자동 시작 없음 — 무엇을 할지는 사용자가 정한다.
 
 ## Anti-patterns
 
-- **구현 코드를 쓰기** — deep-plan 은 계획만 한다. 한 줄도 빌드하지 말 것.
-- **Phase 2~5 진입**(codex 리뷰·TDD·보안) — 그건 craft 빌드 페이즈다; deep-plan 은
-  Phase 1 에서 멈춘다.
-- **이미 crisp 한 요청을 인터뷰** — 적응형 게이트의 핵심은 *건너뛸 줄 아는 것*.
-- **HTML companion 규칙을 복제** — `pipeline.md` 의 한 소스를 읽어라(중복 = drift).
+- **구현 코드를 쓰기 / craft Phase 2~5 진입** — deep-plan 은 Phase 1 에서 멈춘다.
+- **SSOT eager 일괄 읽기** — 위 표의 시점 전에 reference 를 몰아 읽는 것은 토큰
+  낭비다. 분기에 진입할 때만 읽는다.
+- **이미 crisp 한 요청을 인터뷰 / 인터뷰 발동 시 질문 묶기.**
 - **UI plan 인데 `.html` 이 plan 표만 렌더** — UI 면 결과 화면 목업이어야 한다.
-- **DB/BE plan 인데 ERD 미생성** — 스키마/관계가 plan 핵심이면 `erd` 로 `-erd.html` 도 만든다. 반대로 컬럼 한둘 추가에 ERD 까지 그리는 건 과투자(plan 텍스트로 족).
-- **DESIGN.md 가 있는데 손으로 mockup** — 토큰을 위반한다; `imprint` 로 시안을 넘겨라.
-  반대로 슬림·단일 방향 UI 에 `frontend-design`/`prototype` 까지 끌어오는 것도 과투자 —
-  inline 스케치로 족하다. 신호가 라우팅을 정한다(위 Step 3 표).
+- **비UI plan 에 companion 자동 생성** — 기본 생략이 정책. 반대로 DB/BE plan 인데
+  스키마가 핵심인 경우 ERD 미생성도 실패.
+- **DESIGN.md 가 있는데 손으로 mockup**(토큰 위반 — design-context 절차로) /
+  슬림 UI 에 `frontend-design`/`prototype` 과투자(inline 스케치로 족).
 - **파일/계약을 Read/Grep 없이 거명** — Files 섹션은 검증된 것만.
-- **질문 묶기** — 인터뷰가 발동하면 라운드당 한 질문.
-- **다음 스킬 자동 시작** — Step 5 는 `AskUserQuestion` 제안까지다. forge/renew/hunt
-  등을 직접 호출하지 말 것(제안 ≠ 시작).
-- **설치 스킬 Bash 스캔** — available-skills 가 이미 컨텍스트에 있다. `ls`/캐시 긁기 금지.
+- **다음 스킬 자동 시작 / 설치 스킬 Bash 스캔.**

@@ -1,6 +1,6 @@
 ---
 name: land
-description: Land the open PRs you pushed from worktrees and bring local back in sync — CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 로컬 브랜치·워크트리 제거 → 랜딩 안 된 브랜치 rebase, PR 이 아직 없는 브랜치면 push+PR 생성부터. **트리거**: 유저가 열린 PR 을 MERGE/LAND 하고 로컬 git 을 CLEAN UP 하려 하거나, forge·hunt·renew·harness 로 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지'라는 말이 없어도 적극 발동 — "올린 PR들 머지하고 로컬 최신화해줘", "PR 다 머지하고 브랜치/워크트리 정리", "merged 브랜치 prune하고 master 당겨줘", "이 브랜치 PR 올려서 머지까지 해줘", "워크트리 개발 끝났으니 정리", "다 됐어", "작업 끝났어", "이제 정리하자", "마무리하자", "ship it", "wrap up", "land my PRs and sync local", "push my branch as a PR and land it". **비트리거**: 유저가 아직 구현 중(코드를 더 쓰거나·테스트 미완·PR 올릴 의사 없음)이면 forge/hunt/renew; 미완 작업 재개·복원은 handoff; 이 레포(carpdm-skills)의 스킬 변경 배포는 sync.sh 미러가 선행돼야 하므로 land 가 아니라 ship. **안전 근거**: 비가역 동작(머지·브랜치 삭제)은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거는 곧 "읽기전용 상태 발견 + 플랜 제시 + 승인 대기"일 뿐 — 적극 발동해도 안전하다. 독립 PR 과 stacked PR 을 자동 감지해 순서대로 머지하고, 리포트에 연결 Linear 이슈 Done 전이 + 다음 작업 후보(방금 unblock 된 것 우선)와 kickoff 가이드를 붙인다(Linear 미연동이면 조용히 생략).
+description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치·워크트리 제거 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 다음 작업 후보. 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "브랜치/워크트리 정리", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
 ---
 
 # Land — push 한 PR 을 머지하고 로컬을 안전하게 재동기화
@@ -215,9 +215,10 @@ land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정�
 실행(아래) → ③ report 출력 → ④ `result:`**. rename 을 건너뛰고 곧장 report/`result:` 로
 가지 말 것 — 이 스킵이 "land 후 이름이 안 바뀐다"의 원인이다.
 
-- 실행: [`references/session-rename.md`](references/session-rename.md) 의 atomic snippet 그대로
-  (`state.json` `name` 갱신 + `nameSource:"user"` — 하니스 auto-rename 차단). 포맷: 단일
-  `landed #451 fix(make)`(연결 이슈 있으면 `landed [ADT-33] fix(make)`), 다수 `landed 3 PRs`.
+- 실행: `~/.claude/skills/craft-core/references/session-rename.md`(공유 SSOT — 포맷 표의
+  land 행)의 atomic snippet 그대로(`state.json` `name` 갱신 + `nameSource:"user"` — 하니스
+  auto-rename 차단). 포맷: 단일 `landed #451 fix(make)`(연결 이슈 있으면
+  `landed [ADT-33] fix(make)`), 다수 `landed 3 PRs`.
 - **조용히 생략하는 경우는 둘뿐**: 잡 컨텍스트 아님(`$CLAUDE_JOB_DIR` 없음) 또는 머지 0건.
   그 외엔 반드시 실행한다. 실행 자체가 실패하면(파일·권한) note 1줄 남기고 보고는 계속 —
   단 "실패해도 됨"이 "안 해도 됨"은 아니다.
@@ -254,61 +255,10 @@ land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정�
 - 미착수가 많아 순서·병렬 판단 자체가 필요해 보이면 후보 나열 대신 `linear-prioritize`
   한 줄 권고로 갈음한다 — 스프린트 플래닝을 여기서 재구현하지 않는다.
 
-포맷은 **카드형** — 맨 위 한눈 요약, 그 아래 PR 카드, 마지막에 휘발성 sync. 영속
-changelog(Landed)를 시각적으로 1순위에, 운영 정리(Local sync)를 부차로 둔다. 머지 건수에
-따라 두 형태로 graceful 하게 줄인다.
-
-**다수 PR (2건+):**
-
-```
-🚢 Landed N · ⏭ Skipped M · 🔧 Synced
-────────────────────────
-
-## Landed
-
-▸ [#451](PR 전체 URL) · fix(make)
-  NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-port.sh 삭제
-  ↳ [plan](docs/plans/2026-06-29-makefile-next.md) · ADT-33
-
-▸ [#450](PR 전체 URL) · feat(api)
-  …한 일 1~2줄, `·` 구분…
-  ↳ [spec](docs/specs/…md) · ADT-31
-
-## Skipped
-⏭ [#46](PR 전체 URL) refactor auth — CI 실패 (재시도 후 다시 land)
-
-## Local sync
-develop `→ <sha>` · 워크트리 [stoic-wu] 제거 · [refactor-auth] rebase
-
-## 다음 작업
-→ [ADT-35](이슈 전체 URL) P1 · rate-limit 대시보드 — ADT-33 Done 으로 unblock. `linear-goal ADT-35`
-→ [ADT-38](이슈 전체 URL) P2 · 감사 로그 뷰어 — 추천: forge (이슈 `## 추천` 인용)
-```
-
-**단일 PR** — 요약 헤더·구분선·섹션 헤딩 생략, 카드 1개 + sync 1줄로 압축:
-
-```
-🚢 Landed [#451](PR 전체 URL) · fix(make)
-NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-port.sh 삭제
-↳ [plan](docs/plans/2026-06-29-makefile-next.md) · ADT-33
-
-🔧 develop `→ <sha>` · 워크트리 정리
-→ 다음: [AUT-31](이슈 전체 URL) P1 refresh token rotation — `linear-goal AUT-31`
-```
-
-포맷 규칙:
-
-- **요약 헤더**(`🚢 Landed N · ⏭ Skipped M · 🔧 Synced`)는 **2건+ 일 때만**. 스크롤 없이
-  카운트 한눈에. 단일 PR 은 생략.
-- **구분선** = box-drawing `─` 반복. markdown `---` **금지** — 바로 위 요약줄을 setext
-  H2 헤딩으로 오인 렌더한다. 단일 PR 은 구분선 자체를 생략.
-- **카드 헤더** = `▸ [#N](url) · <type(scope)>` — PR 은 전체 URL 링크, type/scope 는 커밋
-  제목에서. **한 일**은 헤더 아래 2칸 들여쓰기 `·` 구분 1~2줄. **설계·이슈 링크**는 `↳`
-  줄로 분리(없으면 `↳` 줄 통째 생략 — 추측 금지, 위 수집 규칙 그대로).
-- **글리프 고정**: 🚢 Landed · ⏭ Skipped · 🔧 Local/Synced · 다음 작업 줄은 plain `→`.
-  그 외 이모지 남발 금지(노이즈).
-- **다음 작업 줄** = `→ [ID](url) P<n> · <제목> — <kickoff 가이드>`. unblock 근거가 있으면
-  가이드 앞에 붙인다. 섹션 자체는 수집 조건 미충족 시 통째 생략(위 graceful 규칙).
+**리포트 렌더는 `references/report-format.md` 를 이 시점에 읽어 그대로 따른다**
+(카드형 — 다수 PR/단일 PR 두 형태, 글리프·구분선·링크 규칙 포함. lazy-read —
+Step 6 전에 미리 읽지 않는다). 요지: 영속 changelog(Landed 카드)가 1순위, 운영
+정리(Local sync)는 부차, 머지 건수에 따라 graceful 축소.
 
 미완 항목(conflict 로 멈춘 rebase, 막혀서 제외된 PR)은 `## Skipped` 또는 별도 `## ⚠ 미완`
 섹션에 명시해 아무것도 조용히 빠져나가지 않게 할 것.

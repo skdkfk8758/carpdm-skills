@@ -82,6 +82,25 @@ eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 
 - 이 로그가 튜닝(모델 tier · phase 게이트) 의 유일한 근거 데이터다 — 계측 없는
   "느린 것 같다" 튜닝 금지.
 
+## Pipeline state 기록 (전 phase 공통 — 세션 밖 재개 가능성)
+
+Task 체크리스트(세션 UI — 다른 세션에선 안 보임)와 별개로, **plan `.md` 끝에
+`## Pipeline state` 섹션**을 두고 **phase 경계마다 갱신**한다 (`.planning/` 컨벤션
+레포면 그쪽 STATE.md 우선):
+
+```
+## Pipeline state
+- phase: 3 (in progress) · mode: linear
+- tasks: 3/5 green (t4 red — <사유>)
+- workflow runId: wf_xxx        ← Phase 3 Workflow 시작 시 기록
+- updated: <ISO 시각>
+```
+
+세션이 중간에 죽어도(컨텍스트 고갈·크래시) 다른 세션이 plan 문서만 읽고 정확한
+지점에서 이어받는다 — Workflow 는 `resumeFromRunId` 로 완료 태스크를 캐시
+재사용하므로 **runId 기록이 곧 재개 비용 절감**이다. 갱신 비용은 phase 당 Edit
+1회. wrap 에서 마지막으로 `phase: 5 (done)` 으로 닫는다.
+
 ## Phase 0 — Frame & isolate
 
 - 작업유형과 한 줄 목표를 사용자에게 되짚어준다.
@@ -199,16 +218,17 @@ self-contained 하게 만든다 (inline `<style>`, 외부 asset 없음). compani
   읽지 않고 즉흥 창작되는 것이 시안↔구현 괴리의 근원이다(여기 절차를 복제하지
   말 것 — 그 파일이 정본).
 - **비 UI 플랜** (리팩터, 백엔드, DB 마이그레이션, API/계약 변경, 인프라):
-  "결과 UI" 가 존재하지 않으므로, companion 은 **플랜의 렌더링**
-  이다 — 새 내용 없이, 그냥 리뷰용으로 Markdown 을 시각화: 각 섹션을
-  heading + 블록으로, Scope IN/OUT 과 Steps→verify 쌍을 테이블로, 파일 경로는
-  코드 스타일로.
+  "결과 UI" 가 없으므로 **companion 을 기본 생략**한다 — `.md` 를 heading/표로
+  다시 그린 렌더는 빌드 중 리뷰에서 비용 대비 가치가 없다(사용자는 플랜 확인
+  게이트에서 `.md` 를 본다). 플랜 확인 요청에 "원하면 plan 렌더 HTML 생성 가능"
+  한 줄만 남기고, 사용자가 원할 때만 Markdown 시각화(섹션 heading+블록,
+  Steps→verify 표, 파일 경로 코드 스타일)로 만든다.
 
 플랜이 혼합이면 (백엔드 작업이 있는 UI 변경), UI 는 목업으로 만들고 그 아래
 비 UI 섹션은 플랜 렌더링으로 둔다. Phase 2 에서 codex 평결이 `.md` 에
 들어오면, 둘이 동기 유지되도록 `.html` 을 갱신한다.
 
-**Eval 체크리스트 패널 (companion 타입과 무관 — 항상).** companion 종류가
+**Eval 체크리스트 패널 (companion 을 만들 때는 항상).** companion 종류가
 무엇이든, `.html` 은 플랜의 **Acceptance(=eval) 항목** 을 체크리스트 패널로 렌더한다 —
 각 항목을 그 `[AUTO]`/`[HUMAN]` 태그와 함께 보여, 리뷰어가 "구현이 끝나면 무엇으로
 done 을 측정하는지" 를 시안·플랜과 **나란히** 본다. UI companion 이면 목업 옆/아래
@@ -216,7 +236,7 @@ done 을 측정하는지" 를 시안·플랜과 **나란히** 본다. UI compani
 패널은 그 렌더 뷰다 (`.md` 가 바뀌면 패널도 갱신 — 위 동기 규칙과 같다). 이 패널이
 빌드 스킬 Phase 4 가 항목별로 닫을 바로 그 eval 장부의 사람용 그림이다.
 
-**Artifact publish (companion 타입과 무관 — 항상 의무).** `.html` companion 을
+**Artifact publish (companion 을 만들었으면 항상 의무).** `.html` companion 을
 쓴 직후 `Artifact` 도구로 publish 하고, 사용자에게는 로컬 경로 대신 **artifact
 URL 을 리뷰 딜리버러블로 제시**한다. 로컬 `.html` 은 삭제하지 않는다 — Artifact
 는 파일에서 publish 되고, 하니스 eval(D 시안충실도)·Phase 3/4 가 로컬 파일을
@@ -260,7 +280,8 @@ codex 의 verdict JSON(high 이슈)에 플랜 수정 + 응답 원장으로 답�
 
 `dynamic-tdd.md` 를 읽어라. `Workflow` 도구로 승인된 플랜을 atomic
 태스크로 쪼개고 각각을 엄격한 TDD 사이클 — **red → green →
-refactor** — 로 구동하되 구현 에이전트는 `model: 'opus'` 로 핀한다. 태스크들을
+refactor** — 로 구동한다. 모델 규칙은 `dynamic-tdd.md` 가 SSOT: 구현은 무핀
+(세션 상속, 세션이 opus 미만일 때만 상향 핀), verify 는 `haiku` 최저가 핀. 태스크들을
 pipeline 하고; 태스크는 자신의 테스트가 green 일 때만 완료된다. 플랜이
 계약이다: 각 구현 에이전트는 코드를 쓰기 전에 승인된 플랜 (`.md`) 과
 관련 프로젝트 guide (`docs/guides/`) 를 다시 읽고, 플랜에 없는 것은 Phase 1 로
@@ -302,7 +323,9 @@ Phase 4 로 스킵.
 ## Phase 4 — Secure verify & intent conformance
 
 `security.md` 를 읽어라. 프로젝트 검증 게이트 (tests / typecheck / lint /
-build), diff 에 대한 **correctness 리뷰** (`/code-review` — 테스트가 못 잡은 버그만,
+build — 단 Phase 3 최종 형제 게이트 이후 diff 무변경이면(simplify 스킵 등)
+수트/typecheck 재실행은 생략하고 그 green 을 인용하며, 아직 안 돈 게이트만
+돌린다), diff 에 대한 **correctness 리뷰** (`/code-review` — 테스트가 못 잡은 버그만,
 effort 는 실행 모드를 따름; 발견은 바로 고치지 말고 회귀 테스트 먼저), 그리고
 diff 에 대한 **보안 pass** 를 돌린다. correctness·보안 발견 모두 진짜로 보고하기
 전에 적대적으로 검증한다 (반박을 시도). 아무것도 red 로 출시하지 않는다.
@@ -321,6 +344,11 @@ diff 에 대한 **보안 pass** 를 돌린다. correctness·보안 발견 모두
 eval 장부가 닫히는 조건: **모든 `[AUTO]` 항목 green AND 모든 `[HUMAN]` 항목이
 사용자와 walk 되어 pass 또는 명시 수용**. 보안 불변식은 `[HUMAN]`-only 금지라 항상
 `[AUTO]` 로 자동 잠긴다 (Phase 1 규칙).
+
+**닫은 항목은 plan `.md` 에 사실로 기록한다** — 항목을 닫을 때마다 해당 Acceptance
+줄에 `✓` + 검증 증거 1줄(테스트명/명령 결과/walk 합의)을 덧붙인다
+(acceptance-criteria-gate G3: 체크는 검증 후 사실 기록). 문서만 봐도 무엇이
+어떻게 검증됐는지 남는다 — 세션 밖 감사·재개의 근거.
 
 ### Intent & conformance 판정 — loop-back 게이트
 
@@ -373,7 +401,9 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
 ## Phase 5 — Wrap
 
 - 요약: 무엇이 바뀌었는지, 추가된 테스트, 보안 평결, intent-conformance 평결(해소한
-  confirmed gap / 남은 시각 `[HUMAN]` 잔여 리스크), 잔여 리스크.
+  confirmed gap / 남은 시각 `[HUMAN]` 잔여 리스크), 잔여 리스크 — 그리고 **phase 별
+  elapsed 1줄 테이블**(위 타이밍 기록 실측 — jsonl 에만 쌓지 말고 매 런이 자기
+  병목을 사용자에게 보고한다).
 - 영속적 결정/지식 기록 (`context-adr.md`): 작업이 **ADR 감** 결정을
   했다면, `docs/adr/NNN-slug.md` 를 쓰고 registry 를 갱신한다;
   **재사용 가능한 context** 를 확립했다면, `docs/concepts/` 페이지를 쓰거나 갱신한다.
@@ -411,5 +441,7 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
 - "플랜이 괜찮아 보여서" codex 리뷰 스킵 — 플랜이 괜찮아 보일 때가
   바로 적대자가 가장 유용한 때다. 스킵은 Phase 2 의 소형·저위험 게이트 +
   사용자 승인 경유만 (보안 surface · 계약 변경 · 마이그 포함이면 스킵 불가).
-- Phase 3 에이전트가 `model: 'opus'` 대신 더 싼 tier 로 폴백하게 두기.
+- Phase 3 구현 에이전트를 세션보다 낮은 tier 로 다운그레이드 핀하기, 또는
+  verify/tester 결정론 스테이지를 haiku 위 tier 로 돌리기 (모델 규칙 SSOT:
+  `dynamic-tdd.md`).
 - 보안 pass 를 돌리지 않고 테스트 green 을 보고하기.

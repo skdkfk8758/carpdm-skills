@@ -1,22 +1,13 @@
 ---
 name: linear-groom
 description: >-
-  Groom an EXISTING Linear backlog — group orphan (project-less) issues into the
-  right projects (creating a new project only when nothing fits) AND enrich thin
-  issues (screenshot-only, blank, or one-liner descriptions) into build-ready
-  specs by reading the actual codebase and project memory. Always proposes the
-  full change set as an approval table before writing anything back to Linear.
-  Use this WHENEVER the user wants to tidy, organize, sort, clean up, or refine
-  their Linear issues/backlog — "리니어 이슈 정리해줘", "이슈들 프로젝트 단위로
-  묶어줘", "이슈 내용 더 자세하게 보강해줘", "백로그 그루밍", "스크린샷만 있는 이슈
-  살 붙여줘", "프로젝트별로 분류해줘", "organize my Linear issues into projects",
-  "groom the backlog", "flesh out these issues", "sort issues by project" — even
-  if they only mention one half (just grouping, or just enriching). Operates on
-  issues that ALREADY EXIST in Linear. Do NOT use to create a brand-new single
-  issue from a request (that is linear-register/to-issues), to register a fresh plan as an
-  issue tree (deep-plan/to-issues), or to flip issue status during a build
-  (the craft linear.md flow) — linear-groom reorganizes and deepens what is
-  already on the board.
+  기존 Linear 백로그를 그루밍 — 고아(프로젝트 없는) 이슈를 알맞은 프로젝트로 묶고,
+  빈약한(스크린샷-only/빈칸/한 줄) 이슈를 코드·메모리 근거로 빌드 가능한 spec 으로
+  보강한다. 모든 변경은 승인 표 제시 후에만 Linear 에 반영. "리니어 이슈 정리해줘",
+  "프로젝트 단위로 묶어줘", "이슈 살 붙여줘", "백로그 그루밍", "프로젝트별로 분류해줘",
+  "groom the backlog", "organize my Linear issues", "flesh out these issues" 에 사용 —
+  한쪽(그룹핑만/보강만)만 말해도 트리거. 이미 존재하는 이슈 대상 — 신규 등록은
+  linear-register, plan 분할은 to-issues, 빌드 중 상태 전이는 craft linear.md.
 ---
 
 # Linear Groom — 기존 백로그를 프로젝트로 묶고 설명을 보강
@@ -53,9 +44,11 @@ description: >-
 - `list_teams` → 팀이 하나면 그걸 쓰고, 여럿이면 어느 팀을 그루밍할지 한 번 확인.
 - `list_projects {team}` → 기존 프로젝트의 `name`/`summary`/`description` 을 확보(그룹핑
   매핑의 기준이 된다).
-- `list_issues {team, limit:250}` → 전체 이슈. `enrichTier` 판정에는 list 의 description
-  으로 충분하지만, **보강 대상으로 확정된** 이슈는 `get_issue {id}` 로 잘리지 않은 전체
-  본문을 다시 받아 원본 보존이 정확하게 되도록 한다.
+- `list_issues {team, limit:250}` → 전체 이슈. **`hasNextPage=true` 면 `cursor` 로
+  다음 페이지를 마저 긁어 전수를 확보한다**(linear-prioritize Step 2 와 동형) — 잘린
+  채 그루밍하면 남은 고아·빈약 이슈가 조용히 빠진다. `enrichTier` 판정에는 list 의
+  description 으로 충분하지만, **보강 대상으로 확정된** 이슈는 `get_issue {id}` 로
+  잘리지 않은 전체 본문을 다시 받아 원본 보존이 정확하게 되도록 한다.
 
 ### Step 2 — 결정론 분류 (스크립트)
 

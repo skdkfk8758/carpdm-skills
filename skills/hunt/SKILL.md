@@ -1,7 +1,7 @@
 ---
 name: hunt
 description: >-
-  재현 우선, 회귀 잠금 파이프라인으로 BUG 를 고친다 — 정확한 재현과 근본 원인을 고정하는 소크라테스식 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD(실패하는 회귀 테스트 먼저) → 보안 검증. 사용자가 무언가 BROKEN, 실패, 에러, 크래시, throw, 잘못된 결과 반환, 멈춤, 또는 예기치 않게 동작한다고 보고하며 고치고 싶어 할 때마다 사용한다 — "X is broken", "Y throws on Z", "why does this return null", "the page crashes when…", "this used to work and now…", "getting a 500 from…", "이거 왜 안 돼", "버그 고쳐줘", "에러 나", "500 떠", "화면 깨졌어", "갑자기 안 되네", "예전엔 됐는데 지금 안 돼" 같은 표현. 새 기능을 만들거나(use forge), 동작하는 기능을 의도적으로 변경하는(use renew) 데에는 사용하지 말 것.
+  재현 우선, 회귀 잠금 파이프라인으로 BUG 를 고친다 — 정확한 재현과 근본 원인을 고정하는 소크라테스식 인터뷰 → codex 의 적대적 플랜 리뷰 → dynamic-workflow TDD(실패하는 회귀 테스트 먼저) → 보안 검증. 사용자가 무언가 BROKEN, 실패, 에러, 크래시, throw, 잘못된 결과 반환, 멈춤, 또는 예기치 않게 동작한다고 보고하며 고치고 싶어 할 때마다 사용한다 — "X is broken", "Y throws on Z", "why does this return null", "the page crashes when…", "this used to work and now…", "getting a 500 from…", "이거 왜 안 돼", "버그 고쳐줘", "에러 나", "500 떠", "화면 깨졌어", "갑자기 안 되네", "예전엔 됐는데 지금 안 돼" 같은 표현. 새 기능을 만들거나(use forge), 동작하는 기능을 의도적으로 변경하는(use renew) 데에는 사용하지 말 것.
 ---
 
 # Hunt — 버그 수정
@@ -14,15 +14,12 @@ description: >-
 `~/.claude/skills/craft-core/references/pipeline.md` 의 공유 엔진을 실행하라
 (먼저 읽을 것). 그 안에서 다음 hunt 고유 강조점을 적용한다:
 
-## 실행 모드 기본값 (toggle)
+## 실행 모드 (linear 고정)
 
-**기본 모드: orchestrated.** craft-core 의 linear-기본을 override 한다 — 버그는
-재현·근본원인·회귀 리스크가 커 적대적 council 검토가 기본값으로 적절하다.
-`pipeline.md` 의 "Execution mode" 진입 시 linear-기본·stakes 제안을 건너뛰고 곧장
-orchestrated (`orchestrated.md`) 로 간다.
-
-- **이번 호출만 linear**: 호출 어디든 `--linear` 가 있으면 그 호출만 linear 로 돈다.
-- **영구 토글**: 위 "기본 모드" 를 `linear` 로 바꾸면 craft-core 기본(linear)으로 복귀.
+**linear 고정** — 버그 수정에 council 은 대부분 과투자다. hard bug 의 정답은
+council 이 아니라 아래 `diagnose` 선행·병렬 가설 fan-out 이다(둘 다 이 스킬에
+이미 있다). `[council]`/`--council` 명시 요청 시에만 orchestrated
+(`pipeline.md` Execution mode).
 
 ## Phase 1 — Socratic focus (see craft-core/references/socratic.md)
 
@@ -68,7 +65,7 @@ fan-out 이지 peer team 이 아니다; 독립성이 가치의 전부다.
 ## Phase 3 — TDD entry point (see craft-core/references/dynamic-tdd.md)
 
 Task 1 은 **버그를 재현하는 실패하는 회귀 테스트**다 — 현재 코드에 대해 정확히
-보고된 이유로 실패한다. 그다음에야 그 테스트가 green 이 될 때까지 opus 에서 수정을
+보고된 이유로 실패한다. 그다음에야 그 테스트가 green 이 될 때까지 수정을
 구현하고, 다른 어떤 테스트도 회귀하지 않았음을 확인하라. 회귀 테스트가 스위트에
 남아 있는 것이 버그의 재발을 막는다.
 

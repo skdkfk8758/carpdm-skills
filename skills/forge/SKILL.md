@@ -1,28 +1,26 @@
 ---
 name: forge
 description: >-
-  엄격한 파이프라인을 통해 NEW 기능을 end-to-end 로 구축한다 — 소크라테스식 요구사항 인터뷰 → codex 의 적대적 플랜 리뷰 → opus 기반 dynamic-workflow TDD 구현 → 보안 검증. 사용자가 아직 존재하지 않는 기능, 엔드포인트, 컴포넌트, 페이지, 명령, 능력을 ADD, BUILD, IMPLEMENT, 또는 CREATE 하려 할 때마다 사용한다 — "add X", "build me Y", "I need a Z", "can you make it do W", "이 기능 추가해줘", "X 만들어줘", "붙여줘", "구현해줘", "이런 거 되게 해줘" 처럼 캐주얼하게 표현하더라도, 프로세스나 테스트를 전혀 언급하지 않더라도 마찬가지다. 사소하지 않은 신규 기능이라면 즉흥적 코딩보다 forge 를 우선하라. 깨진 동작을 고치거나(use hunt), 기존 기능을 변경하거나(use renew), Linear 이슈를 그대로 자율 실행하는(use linear-goal/harness-run) 경우에는 사용하지 말 것.
+  엄격한 파이프라인을 통해 NEW 기능을 end-to-end 로 구축한다 — 소크라테스식 요구사항 인터뷰 → codex 의 적대적 플랜 리뷰 → dynamic-workflow TDD 구현 → 보안 검증. 사용자가 아직 존재하지 않는 기능, 엔드포인트, 컴포넌트, 페이지, 명령, 능력을 ADD, BUILD, IMPLEMENT, 또는 CREATE 하려 할 때마다 사용한다 — "add X", "build me Y", "I need a Z", "can you make it do W", "이 기능 추가해줘", "X 만들어줘", "붙여줘", "구현해줘", "이런 거 되게 해줘" 처럼 캐주얼하게 표현하더라도, 프로세스나 테스트를 전혀 언급하지 않더라도 마찬가지다. 사소하지 않은 신규 기능이라면 즉흥적 코딩보다 forge 를 우선하라. 깨진 동작을 고치거나(use hunt), 기존 기능을 변경하거나(use renew), Linear 이슈를 그대로 자율 실행하는(use linear-goal/harness-run) 경우에는 사용하지 말 것.
 ---
 
 # Forge — 새 기능 구축
 
 당신은 아직 존재하지 않는 무언가를 만들고 있다. 위험은 잘못된 것을 만들거나,
 올바른 것을 만들었지만 동작한다는 증거가 없는 것이다. 파이프라인은 둘 다 제거한다:
-spec 은 소크라테스식 인터뷰로 고정하고, codex 가 공격하며, 그다음 opus 에서
+spec 은 소크라테스식 인터뷰로 고정하고, codex 가 공격하며, 그다음
 outside-in test-first 로 구현하고, 이어 검증과 보안 점검을 거친다.
 
 `~/.claude/skills/craft-core/references/pipeline.md` 의 공유 엔진을 실행하라
 (먼저 읽을 것). 그 안에서 다음 forge 고유 강조점을 적용한다:
 
-## 실행 모드 기본값 (toggle)
+## 실행 모드 (risk-gated)
 
-**기본 모드: orchestrated.** craft-core 의 linear-기본을 override 한다 — 새 기능은
-설계 리스크가 커 적대적 council 검토가 기본값으로 적절하다. `pipeline.md` 의
-"Execution mode" 진입 시 linear-기본·stakes 제안을 건너뛰고 곧장 orchestrated
-(`orchestrated.md`) 로 간다.
-
-- **이번 호출만 linear**: 호출 어디든 `--linear` 가 있으면 그 호출만 linear 로 돈다.
-- **영구 토글**: 위 "기본 모드" 를 `linear` 로 바꾸면 craft-core 기본(linear)으로 복귀.
+**기본 linear** (craft-core 기본 그대로). forge 고유 에스컬레이션 문턱 — 다음 중
+하나면 Phase 1 전에 orchestrated 를 **1회 제안**한다(`pipeline.md` Execution mode
+의 제안 메커니즘): **신규 아키텍처 패턴/의존성 도입 · 6+ 파일 · auth/payment
+surface**. 보안 surface 는 제안을 강권 톤으로. `[council]`/`--council` 명시 요청은
+언제나 즉시 orchestrated.
 
 ## Phase 1 — Socratic focus (see craft-core/references/socratic.md)
 
@@ -44,7 +42,7 @@ outside-in test-first 로 구현하고, 이어 검증과 보안 점검을 거친
 
 **outside-in** 으로 구축하라: task 1 은 IO contract 에서 곧바로 도출한 acceptance
 test 다 (실패한다 — 기능이 부재하므로). 그다음 각 후속 task 는 acceptance test 가
-통과할 때까지 opus 에서 red → green → refactor 로 몰아가는 unit slice 다.
+통과할 때까지 red → green → refactor 로 몰아가는 unit slice 다.
 acceptance scenario 가 요구하지 않는 인프라는 만들지 말 것.
 
 ## Phase 3.5 — Simplify review pass (see craft-core/references/simplify-pass.md)
@@ -59,7 +57,7 @@ Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.
 
 ## Anti-patterns (forge 고유 — 공유분은 pipeline.md)
 
-- **trivial 신규에 orchestrated council 과발화** — 기본 모드가 orchestrated 라 작은
-  단일 기능에도 적대 council 이 붙어 과할 수 있다. 명확·작은 신규면 `--linear` 로 떨군다.
+- **문턱 미달 작업에 council 에스컬레이션** — 명확·작은 신규에 orchestrated 를
+  제안하는 것 자체가 과투자다. 문턱(신규 아키텍처·6+ 파일·보안 surface)에 걸릴 때만.
 - **IO 계약 없이 Phase 3 진입** — acceptance test(task 1)는 Phase 1 의 정확한 IO 계약에서
   도출된다. 계약이 흐린 채 outside-in 을 시작하면 허공을 친다 — 먼저 계약을 못 박아라.
