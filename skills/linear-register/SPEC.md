@@ -2,9 +2,14 @@
 
 > Crystallized from a deep-interview on 2026-06-30. Final ambiguity: 18% (target ≤ 20%).
 > Type: brownfield. Rounds: 7. Status: draft.
-> **개정 2026-07-21** — 구 분할 전용 스킬 흡수(분할 모드), 기본 state=Triage, dedup+그루핑 게이트
+> **개정 2026-07-21** — 구 분할 전용 스킬 흡수(분할 모드), 기본 state, dedup+그루핑 게이트
 > 추가. deep-plan 인터뷰 6라운드, ambiguity 16%. PLAN:
 > `carpdm-skills/docs/plans/2026-07-21-linear-register-unify.md`. REQ-F-007 개정, F-012~015 신설.
+> **재개정 2026-07-21** — REQ-F-012 기본 state `Triage` → `Backlog`. 근거: Linear Triage 는
+> 백로그·보드 뷰와 분리된 인수 대기열이라 수락 전까지 계획에 안 잡히는데, 이 워크스페이스는
+> 1인 운영(전 이슈 createdBy·assignee 동일)이라 수신 팀이 곧 등록자다 — 인수 판단이 중복이고,
+> 실제로 SSO 팀 Triage 에 AI 등록분 4건(SSO-68·69·70·71)이 방치돼 있었다. 다인 운영으로
+> 전환되면 되돌린다.
 
 ## 1. Goal & scope
 
@@ -41,7 +46,7 @@
 | REQ-F-005 | 각 생성 이슈 본문에 "## 추천" 섹션 — **글로벌 스킬/에이전트 우선**(forge/hunt/renew/linear-goal/harness-run/deep-plan + Explore/Plan), 이슈 타입·크기에 적응한 모델 판단 추천 | Must | bug 이슈 → hunt 류 추천; 큰 교차 기능 → harness-run/deep-plan 류 추천; 섹션에 글로벌 후보 ≥1 명시 | R2,R3 |
 | REQ-F-006 | "## 추천" 섹션에 프로젝트 로컬 스킬/에이전트 **경량 포인터**를 부차로 포함 — 타repo 를 읽지 않음 | Must | 섹션에 "해당 repo 의 `.claude/skills`/`.agents` 도 확인" 류 1줄; 타repo 파일 read 호출 0회 | R5 |
 | REQ-F-007 *(개정)* | 대형 plan/spec/PRD 분해 입력은 **내부 분할 모드**(plan-split.md — vertical slice 초안 + 분해 quiz + 의존순 발행)로 처리 | Must | "이 plan 전체를 이슈로 쪼개줘" 류 입력 → 분할 모드 진입, quiz 승인 후 의존순 발행 | 2026-07-21 R5 |
-| REQ-F-012 | 모든 생성 이슈 기본 `state: "Triage"` (양 모드) — Triage 미활성 팀은 팀 기본 state 폴백 + 보고 명시; 게이트에서 사용자 지정 state 우선 | Must | 생성 이슈 state=Triage; 미활성 팀 → 폴백 + 보고 문구 존재 | 2026-07-21 R4 |
+| REQ-F-012 *(개정)* | 모든 생성 이슈 기본 `state: "Backlog"` (양 모드) — Backlog 미활성 팀은 팀 기본 state 폴백 + 보고 명시; 게이트에서 사용자 지정 state 우선 | Must | 생성 이슈 state=Backlog; 미활성 팀 → 폴백 + 보고 문구 존재 | 2026-07-21 R4 / 개정 2026-07-21 |
 | REQ-F-013 | 등록 전 팀 미완 이슈(최근 갱신순 ≤100건, Done·Canceled 제외) 대조 — 이슈별 유사 후보 ≤3건을 확인 게이트에 병합 표시, 이슈별 4택(등록/스킵/기존 보강/relatedTo 연결) | Must | 유사 존재 시 게이트에 후보+4택 표시; 자동 스킵/자동 연결 0회 | 2026-07-21 R1/R2/R6 |
 | REQ-F-014 | 유사 이슈들의 project·`area:*` 분포 근거로 배치 제안(근거 이슈 ID 병기); 근거 없으면 기존 질의 규칙 유지 | Must | 게이트에 배치 제안 + 근거 ID; 근거 없는 추측 라벨 0회 | 2026-07-21 R1/R3 |
 | REQ-F-015 | 신규 이슈 응집(상호 유사 ≥3건) + 기존 적합 프로젝트/라벨 없음 → 신설 제안; `save_project`/`create_issue_label` 은 승인 후에만 호출 | Must | 승인 전 신설 write 0회 | 2026-07-21 R3 |

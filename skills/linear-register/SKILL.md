@@ -3,7 +3,7 @@ name: linear-register
 description: >-
   Linear 이슈 등록의 단일 진입점 — 단건~소수 네이티브 등록(Linear MCP)과 plan/spec/PRD
   다중 슬라이스 분할 등록(구 to-issues 흡수)을 모드 분기로 처리한다. 등록 전 기존 백로그와
-  dedup·그루핑 대조(유사 이슈 게이트 표시 + project/라벨 배치 제안), 기본 state=Triage 등록,
+  dedup·그루핑 대조(유사 이슈 게이트 표시 + project/라벨 배치 제안), 기본 state=Backlog 등록,
   각 이슈에 적응형 `## 추천`(적합 스킬/에이전트) + 의존 체인이면 Linear 관계 세팅·전방
   포인터·kickoff 프롬프트를 함께 박는다. "리니어에 이슈 등록", "티켓 만들어줘", "이거 이슈로
   올려줘", "티켓 따줘", "까먹지 않게 적어둬", "이슈로 남겨놔", "TODO 로 올려놔", "file this as
@@ -57,13 +57,14 @@ Linear 이슈 등록의 **단일 진입점**. 단건 등록과 plan 분할 등�
 
 `save_issue`(생성 = `id` 없이) **호출 전** 반드시 제시하고 대기. **단일 승인 게이트는 `AskUserQuestion`**(승인 / 거부+피드백 선택지)으로 구조화해 응답 파싱을 견고하게 한다. 게이트에는 dedup 후보·배치 제안·state 를 병합 표시한다(포맷: dedup-grouping.md §4):
 
-> 등록 예정: **<팀>** / **<프로젝트>** / **state=Triage** / 이슈 **N건** — [제목 + 유사·배치 표시]. 진행?
+> 등록 예정: **<팀>** / **<프로젝트>** / **state=Backlog** / 이슈 **N건** — [제목 + 유사·배치 표시]. 진행?
 
 사용자가 "바로 등록"이라 명시했으면 게이트 스킵(dedup 후보가 있으면 그 사실만 한 줄 보고). 그 외엔 승인 없이 쓰기 금지. 프로젝트/라벨 **신설** 제안이 승인에 포함될 때만 `save_project`/`create_issue_label` 호출.
 
 ### 4. 생성 + 체인 (REQ-F-001/008/009/010)
 
-- `mcp__linear__save_issue`(**`id` 없이 = 생성**, `title`+`team` 필수) 로 생성. **기본 `state: "Triage"`** — 양 모드 동일. 팀에 Triage 미활성(`list_issue_statuses` 에 type `triage` 부재 또는 생성 에러)이면 `state` 생략(팀 기본)으로 폴백하고 그 사실을 보고에 명시. 사용자가 게이트에서 다른 state 를 지정하면 그것이 우선.
+- `mcp__linear__save_issue`(**`id` 없이 = 생성**, `title`+`team` 필수) 로 생성. **기본 `state: "Backlog"`** — 양 모드 동일. 팀에 Backlog 미활성(`list_issue_statuses` 에 type `backlog` 부재 또는 생성 에러)이면 `state` 생략(팀 기본)으로 폴백하고 그 사실을 보고에 명시. 사용자가 게이트에서 다른 state 를 지정하면 그것이 우선.
+  - **왜 Triage 가 아닌가** (2026-07-21 변경): Linear 의 Triage 는 일반 백로그·보드 뷰와 분리된 **인수 대기열**이라, 수락 전까지 백로그 목록·사이클 계획에 안 잡힌다. 이 워크스페이스는 **1인 운영**(전 이슈 createdBy·assignee 동일)이라 수신 팀이 곧 등록자다 — Triage 는 판단을 추가하지 않고 단계만 하나 더 만들고, 실제로 SSO 팀 Triage 에 AI 등록분 4건(SSO-68·69·70·71)이 아무도 비우지 않은 채 쌓였다(실측 2026-07-21). 이 스킬은 등록 게이트에서 팀·프로젝트·라벨·dedup 을 이미 확정하므로 Triage 의 인수 판단은 중복이다. **다인 운영 워크스페이스로 바뀌면 이 결정을 되돌린다** — 그때는 Triage 가 실제 인수 게이트로 기능한다.
 - **모든 생성 이슈에 `project` + type 성격 라벨 + (보유 팀이면) `area:*` 라벨 부착** — 단 라벨은 **팀 라벨셋 실측 어휘 내에서만**(dedup-grouping.md §1.5 — 팀마다 어휘가 다르고, 없는 라벨명은 라벨셋을 오염시킨다). 배치는 Step 2.5 제안이 1차 근거, 근거 없고 판별 불가면 추측 말고 사용자에게 질의(`feedback_linear_label_on_create` 실측: 라벨 누락 이슈는 team+area 스코프 조회에서 유실). 우선순위(`priority` 0-4)는 이슈 타입상 명백할 때만 설정.
 - **의존 체인이면**: 같은 `save_issue` 호출의 `blocks`/`blockedBy`/`relatedTo`/`parentId`(append-only)로 Linear 네이티브 관계를 세팅하고, 각 이슈(마지막 제외)에 [references/recommend-section.md](references/recommend-section.md) §B 의 `## 다음 작업`(전방 포인터 + kickoff 프롬프트)을 심는다. 분할 모드는 blocker 먼저 의존순 발행(plan-split.md §5).
 - Step 2.5 에서 "기존 보강" 선택된 이슈는 신규 생성 대신 `save_issue`(id=기존)로 병합, "연결 등록" 은 생성 + `relatedTo` 세팅.
@@ -109,4 +110,4 @@ Linear 이슈 등록의 **단일 진입점**. 단건 등록과 plan 분할 등�
 
 ## 검증
 
-- 게이트 승인 전 `save_issue`(생성)·`save_project`·`create_issue_label` 호출 0회 · 생성 이슈마다 `## 추천` + disclaimer 존재 · 기본 state=Triage(미활성 팀은 폴백 보고) · dedup 대조 수행(상한 초과 시 "최근 100건 기준" 명시) · 체인이면 Linear 관계 세팅됨 + 각 이슈 전방 포인터 · 종료 응답에 kickoff 프롬프트 1개.
+- 게이트 승인 전 `save_issue`(생성)·`save_project`·`create_issue_label` 호출 0회 · 생성 이슈마다 `## 추천` + disclaimer 존재 · 기본 state=Backlog(미활성 팀은 폴백 보고) · dedup 대조 수행(상한 초과 시 "최근 100건 기준" 명시) · 체인이면 Linear 관계 세팅됨 + 각 이슈 전방 포인터 · 종료 응답에 kickoff 프롬프트 1개.
