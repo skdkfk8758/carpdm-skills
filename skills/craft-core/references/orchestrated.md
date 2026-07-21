@@ -130,6 +130,11 @@ regression 테스트를 먼저 쓴다; `renew` 는 어떤 태스크가 코드를
 설계 의도가 Phase 4 를 위해 여전히 context 에 있도록. 메인 세션이
 Workflow 를 구동한다; 빌드 에이전트는 team 멤버가 아니라 무상태 Workflow 에이전트다.
 
+(opt-in — `--codex-build` 또는 명시 요청 시: 빌드 레인의 green 스텝을 codex 로
+위임하는 cross-model 구현. Phase 2 의 cross-model 리뷰와 대칭이며, red·verify·intent
+judgment 는 여전히 Claude 가 쥔다. 계약·limit 래더 SSOT `codex-build.md`. 미발동이면
+아래 표준 Workflow 빌드 그대로 — floor.)
+
 승인된 플랜의 Steps 를 `args.tasks` (`{ id, title, spec, files }`) 로 넘긴다.
 
 ```javascript

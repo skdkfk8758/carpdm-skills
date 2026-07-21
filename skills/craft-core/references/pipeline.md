@@ -281,7 +281,9 @@ codex 의 verdict JSON(high 이슈)에 플랜 수정 + 응답 원장으로 답�
 `dynamic-tdd.md` 를 읽어라. `Workflow` 도구로 승인된 플랜을 atomic
 태스크로 쪼개고 각각을 엄격한 TDD 사이클 — **red → green →
 refactor** — 로 구동한다. 모델 규칙은 `dynamic-tdd.md` 가 SSOT: 구현은 무핀
-(세션 상속, 세션이 opus 미만일 때만 상향 핀), verify 는 `haiku` 최저가 핀. 태스크들을
+(세션 상속, 세션이 opus 미만일 때만 상향 핀), verify 는 `haiku` 최저가 핀.
+(opt-in: `--codex-build` 플래그 발동 시 green 스텝을 codex 로 위임하는 cross-model
+빌드 레인 — SSOT `codex-build.md`. 기본 off, 미발동이면 위 표준 그대로.) 태스크들을
 pipeline 하고; 태스크는 자신의 테스트가 green 일 때만 완료된다. 플랜이
 계약이다: 각 구현 에이전트는 코드를 쓰기 전에 승인된 플랜 (`.md`) 과
 관련 프로젝트 guide (`docs/guides/`) 를 다시 읽고, 플랜에 없는 것은 Phase 1 로

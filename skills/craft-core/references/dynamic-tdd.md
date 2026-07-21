@@ -116,6 +116,17 @@ return results.filter(Boolean)
 - 각 에이전트의 command 를 붙여넣은 코드가 아니라 *경로와 플랜* 으로 가리켜라 —
   에이전트는 Read 가 있다.
 
+## Opt-in: cross-model build lane (`--codex-build`)
+
+기본 Stage 1(위)은 Claude subagent 가 red+green+refactor 를 통째로 한다 — 이게
+표준이며 세션이 최상위 티어면 그걸로 충분하다. **`--codex-build` 플래그(또는
+orchestrated 모드 명시 요청) 발동 시에만** Stage 1 을 red(Claude)→green(codex)→
+verify(Claude haiku)로 분해해 codex 를 cross-model 구현자로 참여시킨다. 계약·Orca
+드라이버·codex limit 처리 래더의 SSOT 는 `codex-build.md` — 여기 복제하지 않는다.
+핵심 불변식만: **Claude Workflow 구현이 floor, codex 는 증강** — codex 가 limit/hang/
+red diff 로 못 내면 claudeFallback(=기본 Stage 1)으로 degrade한다. red 테스트가
+진짜 oracle 이고, verify·형제 게이트·Phase 4 는 codex 무엇을 짜든 Claude 가 그대로 돈다.
+
 ## 워크플로가 반환된 후
 
 - `testsGreen:false` 또는 `verified:false` 인 태스크 → 고친다 (그 태스크를
