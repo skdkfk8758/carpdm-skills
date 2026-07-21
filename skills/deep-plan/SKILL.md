@@ -40,7 +40,7 @@ codex 는 여기서 **메타프롬프터**로만 쓴다 — craft 빌드 파이�
 | 읽는 시점 | 파일 |
 |---|---|
 | Step 0 문서 grounding 시 | `cc/context-adr.md` |
-| Step 1 codex 호출 직전 (첫 1회) | `cc/codex-review.md` 의 "어떻게 호출하는가" 절 + `~/.claude/skills/deep-prompt/SKILL.md` §3·§4 |
+| Step 1 codex 호출 직전 (첫 1회) | `cc/codex-review.md` 의 "어떻게 호출하는가" 절 + `~/.claude/skills/deep-prompt/SKILL.md` 의 "고정 템플릿 채우기"·"검증 가능성 게이트" 절 |
 | Step 4 PLAN 작성 직전 | `cc/pipeline.md` 의 Phase 1 (plan 섹션 + HTML companion + Eval 패널 규칙) |
 | Step 5 UI 목업을 **그릴 때만** | `~/.claude/skills/mockup/references/design-context.md` |
 | Step 5 ERD 분기 **진입 시만** | `~/.claude/skills/erd/SKILL.md` + `assets/erd-template.html` + `references/schema-discovery.md` |
@@ -88,6 +88,9 @@ CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --effor
 
 - **read-only 로 유지** — `--write` 를 붙이지 않고, 프롬프트에도 평이한 말로
   *"Do not edit, create, or delete any files."* 라고 쓴다.
+- **마스킹 (송신 전 필수)** — codex 는 외부 모델이다. `<repo-context>` 에
+  secret·credential·내부 호스트·PII 를 넣지 않는다 — 경로·계약 형태·standing 결정
+  요약만. Step 6.5 Linear 첨부의 마스킹 게이트와 동형이다.
 - **effort 는 medium 기본.** 보안 경계·외부 계약·마이그를 수반하는 요청만 상향.
 - **watchdog** — background + 진행 감시. 마지막 진행 후 3분 무소식이면 kill, hard
   cap 20분. kill 시 stderr 파일에서 부분 결과를 회수한다. SSOT:
@@ -103,7 +106,7 @@ build agent, and list what context is missing. Review and write only in your
 answer — do NOT edit, create, or delete any files.
 </task>
 <raw-request>…사용자 요청문 원문…</raw-request>
-<repo-context>…Step 0 에서 실제로 읽은 파일·계약·standing 결정 요약…</repo-context>
+<repo-context>…Step 0 요약 — secret·credential·내부 호스트 제외(위 마스킹)…</repo-context>
 <target-format>
 7 sections: Objective / Success Criteria / Context / Constraints / Verification /
 Out of Scope / Done & Report. The consumer is an autonomous agent with no human
@@ -111,9 +114,9 @@ present: Success Criteria must let it decide "done" alone and exit the loop.
 </target-format>
 <output>
 1) DRAFT PROMPT — the 7-section draft, best effort with what is known.
-2) GAPS — numbered. Each gap = ONE missing fact that would change the prompt,
-   phrased as a question, ranked by impact. Tag [CODE] if reading the repo could
-   answer it, [HUMAN] if only the requester can.
+2) GAPS — numbered, AT MOST 7, ranked by impact (highest first). Each gap = ONE
+   missing fact that would change the prompt, phrased as a question. Tag [CODE]
+   if reading the repo could answer it, [HUMAN] if only the requester can.
 </output>
 ```
 
@@ -145,6 +148,8 @@ R1 갭 목록이 인터뷰의 유일한 의제다. 별도 모호성 점수·임�
    오해 검출이다.
 5. **탈출구** — 사용자가 "그만 / 이 정도면 돼" 하면 따른다. 남은 갭은 최종 프롬프트의
    Constraints 에 *assumption* 으로, PLAN 의 Risks 에 잔여 리스크로 명시한다.
+6. **상한 방어** — codex 가 상한(7)을 넘겨 갭을 내면 상위 7개만 의제로 삼고,
+   나머지는 assumption 승격을 제안한다. 인터뷰가 갭 개수에 볼모잡히지 않게 한다.
 
 갭이 처음부터 0개면 인터뷰를 통째로 건너뛰고 그 사실을 한 줄로 말한다.
 
@@ -158,8 +163,14 @@ Step 3 으로 간다. 산출물 보고에 *"자율 컨텍스트 — [HUMAN] 갭 
 
 ### Step 3 — codex R2: 최종 프롬프트 확정 (같은 스레드 재개)
 
-인터뷰 답변을 원장으로 묶어 **같은 스레드에 되돌린다.** codex 는 이전 라운드
-컨텍스트를 유지하므로 델타만 넘기면 된다:
+**스킵 게이트 — 접을 델타가 없으면 R2 를 돌리지 않는다.** 갭이 0개였거나(인터뷰
+미발동) 인터뷰 답변·`[CODE]` 보정이 아무것도 바꾸지 않았으면 **R1 초안이 곧 최종
+프롬프트다** — 델타 없는 `--resume-last` 는 수 분짜리 낭비다. 스킵 사실을 한 줄
+보고하고 Step 4 로 간다. crisp 한 요청의 빠른 경로가 이것이다.
+
+델타가 있으면: 인터뷰 답변을 원장으로 묶어 **같은 스레드에 되돌린다.** codex 는
+이전 라운드 컨텍스트를 유지하므로 델타만 넘기면 된다. 원장은 갭 번호 대응으로:
+`GAP 3 → 답: …` 한 줄씩 + `[CODE]` 갭은 `GAP 1 → 코드 실측: …` 로.
 
 ```bash
 CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --resume-last \
@@ -170,9 +181,12 @@ R2 가 낼 것 둘: ① 갭이 반영된 **최종 프롬프트**(같은 7섹션)
 닫혔는지 항목별 verdict**. 두 번째가 핵심이다 — 자기가 물은 것을 자기가 채점하게
 해야 "답을 받았는데 프롬프트에 안 들어간" 누락이 잡힌다.
 
-**codex 패스는 정확히 2회다.** 수렴 핑퐁으로 늘리지 않는다. R2 verdict 에 미해소
-갭이 남으면 세 번째 호출 대신 — 그 갭을 프롬프트 Constraints 의 assumption + PLAN
-Risks 로 승격시키고 진행한다. 남은 것을 숨기지 말고 이름을 붙여 앞으로 들고 간다.
+**codex 패스는 최대 2회다**(스킵 게이트로 1회가 될 수 있다). 수렴 핑퐁으로 늘리지
+않는다. R2 verdict 에 미해소 갭이 남으면 세 번째 호출 대신 — 그 갭을 프롬프트
+Constraints 의 assumption + PLAN Risks 로 승격시키고 진행한다. 남은 것을 숨기지
+말고 이름을 붙여 앞으로 들고 간다. **R2 이후 프롬프트를 손봐야 하면**(Step 4 PLAN
+작성이 드러낸 어긋남 등) 3차 호출 없이 Claude 가 직접 수정하고 수정 사실을 보고에
+남긴다 — codex 의 자기 갭 검증은 R2 시점 산출까지만 커버한다는 것을 안다.
 
 ### Step 4 — PLAN 문서 작성
 
@@ -196,8 +210,12 @@ craft Phase 1 섹션(`pipeline.md` — 이때 읽는다)을 따르되, deep-plan
 열어보지 않은 파일/심볼을 거명하는 것은 실패다. Files 는 실제로 확인한다.
 
 프롬프트와 PLAN 의 역할 분담: **프롬프트가 실행 계약**(자율 에이전트가 받는 것),
-**PLAN 이 설계 근거**(사람이 검토하는 것). 둘의 Goal 은 같은 것을 가리켜야 한다 —
-어긋나면 프롬프트 쪽을 고친다.
+**PLAN 이 설계 근거**(사람이 검토하는 것). "done" 의 **SSOT 는 PLAN 의 Acceptance**
+다 — 프롬프트의 Success Criteria/Verification 은 Acceptance 의 `[AUTO]` 항목을
+재서술한 것이어야 하며(`[HUMAN]` 항목은 자율 에이전트가 스스로 검증 못 하므로 제외),
+항목 수·내용이 어긋나면 프롬프트 쪽을 고친다(Step 3 규칙 — Claude 직접 수정, 3차
+codex 호출 아님). 두 소비자가 같은 장부를 봐야 한다: 자율 에이전트=프롬프트,
+빌드 스킬 Phase 4=Acceptance.
 
 **Acceptance 항목이 곧 eval 항목이다** — 빌드 스킬(forge/renew/hunt)이 구현 후
 Phase 4 에서 하나씩 검증해 닫을 체크리스트. `[AUTO]`=결정론·회귀·보안·계약(자동
@@ -313,8 +331,13 @@ codex 폴백이 발동했으면 그 사실을 `result:` 아래 한 줄로 반드
 - **구현 코드를 쓰기 / craft Phase 2~5 진입** — deep-plan 은 Phase 1 에서 멈춘다.
 - **codex 를 적대적 플랜 리뷰어로 쓰기** — 여기서 codex 의 일은 메타프롬프팅
   뿐이다. 플랜 리뷰는 forge/renew/hunt 의 Phase 2 소관.
-- **codex 패스를 3회 이상 늘리기** — 2회 고정. 미해소 갭은 세 번째 호출이 아니라
-  assumption·Risks 승격으로 처리한다.
+- **codex 패스를 3회 이상 늘리기 / 델타 0 인데 R2 돌리기** — 최대 2회, 접을 델타가
+  없으면 1회에서 끝낸다. 미해소 갭은 세 번째 호출이 아니라 assumption·Risks 승격으로
+  처리한다.
+- **`<repo-context>` 에 secret·credential·내부 호스트 포함** — codex 는 외부 모델,
+  송신 전 마스킹 필수.
+- **프롬프트 Success Criteria 와 PLAN Acceptance 를 따로 진화시키기** — SSOT 는
+  Acceptance, 어긋나면 프롬프트를 고친다.
 - **갭 목록 없이 인터뷰 시작** — 의제 없는 인터뷰가 표류의 정의다.
 - **`[CODE]` 갭을 사용자에게 묻기** — 먼저 읽고, 코드가 대신 못 하는 결정만 물으라.
 - **갭 질문 묶기 / 창작한 옵션으로 결정형 질문** — 라운드당 하나, 옵션은 실측에서만.
