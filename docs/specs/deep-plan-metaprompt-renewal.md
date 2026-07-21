@@ -3,6 +3,18 @@
 > Crystallized from a deep-interview on 2026-07-21. Final ambiguity: 17% (target ≤ 20%).
 > Type: brownfield. Rounds: 5. Status: draft.
 
+## Amendment 2 (2026-07-21) — fable×codex debate 전환
+
+같은 날 후속 인터뷰(G1~G5, 5라운드)로 codex 단독 2패스를 **교차모델 debate** 로 개정:
+
+- **G1** 저자 = 항상 fable 서브에이전트(`dp-author`, 메인 겸직 금지 — 독립성 우선, 비용 수용) / codex = 적대 비평자.
+- **G2** 비평 반영 기준 = `[BLOCKING]`(소비자 계약 위반 — 의무 반영) / `[SUGGESTION]`(저자 재량 + 기각 사유 1줄). 무태그 = SUGGESTION 강등. 취향 진동 차단.
+- **G3** 델타 판정 게이트 — BLOCKING 0 + 인터뷰 무변경이면 반영·verdict 스킵(4→2비트). 왕복 상한 고정 2회, 수렴 루프 금지, 미해소 BLOCKING 은 assumption 승격.
+- **G4** codex 불가 폴백 = 두 번째 fable 비평자 승계(구 "Claude 단독" 폐기). 강등 명시 보고.
+- **G5** codex effort = medium 기본 + 보안·계약·마이그 시 high (현행 계승).
+- 갭 인터뷰 의제 = 양측 갭 **union·dedup** (상한 7 유지). Step 재번호 0~8.
+- REQ-F-002/004(구 R1/R2 계약)는 본 개정으로 대체됨 — Step 1(fable 초안)/Step 2(codex 비평)/Step 4(반영+verdict)가 승계.
+
 ## 1. Goal & scope
 
 deep-plan 을 "요청문을 그대로 받아 PLAN 을 쓰는 스킬"에서 "요청문을 **codex 로 두 번
