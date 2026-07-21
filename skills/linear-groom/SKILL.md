@@ -72,10 +72,21 @@ node <skill>/scripts/triage-issues.mjs '<list_issues JSON>'
 각 고아 이슈를 **가장 맞는 기존 프로젝트**에 매핑한다. 추측이 아니라 근거로:
 
 - 이슈 제목/본문 키워드를 프로젝트의 `summary`/`description` 에 적힌 도메인·경로와 대조.
+- **유사 이슈 분포 근거 병용** — `linear-register/references/dedup-grouping.md` §3
+  (그루핑 SSOT, register 와 공유): 이 이슈와 유사한 기존 이슈들이 이미 속한
+  project·라벨 분포를 배치 근거로 쓰고, 근거 이슈 ID 를 표에 병기한다.
 - 모호하면 코드그래프(`semantic_search_nodes`)로 이슈가 가리키는 실제 모듈을 찾아 그
   모듈이 속한 도메인의 프로젝트로 보낸다.
 - **어디에도 안 맞으면** 새 프로젝트를 *제안*한다(자동 생성 금지) — 이름·summary 초안을
   표에 넣고, 같은 갭의 다른 이슈도 묶어 묶음을 정당화한다(이슈 1개용 새 프로젝트는 과투자).
+
+### Step 3c — 백로그 내부 중복 감지
+
+Step 1 전수를 훑으며 **서로 사실상 같은 작업**인 OPEN 이슈 쌍을 찾는다(모델 판단 —
+register 의 신규↔기존 dedup 과 달리 여기는 기존↔기존). 발견하면 자동 처리하지 말고
+Step 4 표에 별도 블록으로 제안한다: 남길 이슈(더 충실한 쪽) + 접을 이슈 +
+처리 방식(`duplicateOf` 마킹 권장 / 내용 상호보완이면 한쪽 병합 후 duplicateOf).
+확신 없는 쌍은 `relatedTo` 제안으로 낮춘다 — 오탐으로 이슈를 접는 비용이 크다.
 
 ### Step 3b — 설명 보강
 
@@ -104,6 +115,11 @@ node <skill>/scripts/triage-issues.mjs '<list_issues JSON>'
 | 이름 | summary | 묶을 이슈 |
 |---|---|---|
 
+### 중복 제안 (있으면 — Step 3c)
+| 남김 | 접음 | 방식 | 근거 |
+|---|---|---|---|
+| ADT-12 | ADT-31 | duplicateOf | 같은 rollup 인덱스 작업, ADT-12 가 AC 보유 |
+
 ## 보강 (M건)
 | 이슈 | tier | 보강 요지 (배경/현황/작업 내용/수용 기준/추천 한 줄, 연결되면 다음 작업) |
 |---|---|---|
@@ -119,9 +135,12 @@ node <skill>/scripts/triage-issues.mjs '<list_issues JSON>'
 
 1. **새 프로젝트 먼저** — `save_project {name, summary, description, addTeams:[team]}`. 반환
    id 를 받아 그 프로젝트로 갈 이슈 배정에 쓴다.
-2. **그룹핑** — `save_issue {id, project}` (이름 또는 id). 프로젝트 배정과 함께 **`area:*`
-   라벨(9종)이 비어 있으면 동반 부착**(register 라벨 표준과 동형 — team+area 스코프 조회
-   유실 방지). type 라벨도 명백하면 같이. 그 외 필드는 안 건드린다.
+2. **그룹핑** — `save_issue {id, project}` (이름 또는 id). 프로젝트 배정과 함께 라벨이
+   비어 있으면 동반 부착하되, **팀 라벨셋 실측 어휘 내에서만**
+   (`linear-register/references/dedup-grouping.md` §1.5 — `list_issue_labels` 선행,
+   `area:*` 는 보유 팀만, 없는 라벨명 부착 금지). 그 외 필드는 안 건드린다.
+2.5. **중복 반영** — 승인된 중복 쌍만 `save_issue {id, duplicateOf}` (또는 relatedTo).
+   접는 이슈의 본문에 보완할 내용이 있으면 남기는 이슈에 먼저 병합한 뒤 마킹.
 3. **보강** — `save_issue {id, description}` 에 보강된 전체 마크다운(원본 보존 포함). 같은
    이슈가 그룹핑+보강 둘 다면 한 번의 `save_issue` 로 `project`+`description`(+라벨) 함께 넣는다.
 

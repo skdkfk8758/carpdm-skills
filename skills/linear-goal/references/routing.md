@@ -44,6 +44,10 @@ SSOT 는 `~/.claude/linear-repo-map.json` 이다(본 파일은 그걸 조회만 
 
 - **estimate 조건부**: estimate 를 안 쓰는 팀이면 순위2 estimate 행·순위3 estimate
   절을 건너뛰고 area/regex/AC/본문길이로만 판정.
+- **area 조건부**: `area:*` 라벨을 안 쓰는 팀(실측: SSO 는 Improvement/Bug/Feature
+  3종만)이면 순위2 area 행·순위3 "단일 `area:*`" 절을 건너뛰고 regex/AC/대상특정/
+  estimate 로만 판정한다. area 부재를 cross-cutting 또는 uncertain 신호로 오독하지
+  말 것 — 그러면 그 팀의 모든 trivial 티켓이 harness 로 과라우팅된다.
 - **‡ 대상 특정 가능** = 구체 파일/엔드포인트/함수가 본문에 명시됨, **또는** 범위가
   좁고(estimate ≤2) AC 가 이분법적이라 worker 가 ground-first(grep/Read)로 대상을
   안전하게 특정 가능. 후자는 **ID 없는 붙여넣기·파일 미명시 소형 티켓**(예: "격자 셀
