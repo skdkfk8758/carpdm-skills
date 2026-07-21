@@ -12,6 +12,35 @@
   신규는 dup 이 아니라 재발/후속일 가능성이 높다).
 - **상한 100건, 최근 갱신순.** 초과 백로그는 최근 100건만 대조하고, 게이트에
   "최근 100건 기준" 을 명시한다 (조회 폭주 방지 — 침묵 truncation 금지).
+- **대형 응답은 파일로 오프로드된다**(실측: 66건 ≈ 89KB → 토큰 한도 초과). 전체를
+  Read 하지 말고 추출한다. 응답은 **null 필드의 키를 통째 생략**하므로(`project`
+  없는 이슈엔 키 자체가 없음) 기본값 처리 필수:
+
+```bash
+python3 -c '
+import json,sys
+d = json.load(open(sys.argv[1])); 
+for i in d["issues"]:
+    if i.get("statusType") not in {"triage","backlog","unstarted","started"}: continue
+    labels = [l.get("name",l) if isinstance(l,dict) else l for l in i.get("labels",[])]
+    print(i["id"], "|", i.get("statusType"), "|", i.get("project","-"), "|", labels, "|", i["title"])
+    print("  ", (i.get("description") or "").replace("\n"," ")[:200])
+' "$FILE"
+```
+
+## 1.5. 라벨 어휘 실측 (부착 전 필수)
+
+**팀마다 라벨셋이 다르다** — 실측: SSO 팀은 `Improvement`/`Bug`/`Feature` 3종만이고
+`area:*` 9종·`type:bug` 류는 존재하지 않는다(그건 타 팀 어휘). `save_issue` 의
+`labels` 는 이름을 받으므로 없는 라벨명을 넘기면 팀 라벨셋 오염 또는 에러다.
+
+- 부착 전 `mcp__linear__list_issue_labels {team}` 로 그 팀의 실제 라벨셋을 확보한다
+  (1.의 조회와 같은 턴에 병렬 호출 가능).
+- **존재하는 어휘 내에서만** 부착: type 성격 라벨은 그 팀의 실제 이름으로
+  (예: SSO 는 `Bug`/`Feature`/`Improvement`), `area:*` 는 **보유 팀에만** 적용 —
+  없는 팀은 생략하고 게이트에 "이 팀은 area 라벨 미사용" 한 줄 명시.
+- 새 라벨이 정말 필요하면 §3 신설 제안과 동일하게 **게이트 승인 후에만**
+  `create_issue_label`. 부착 편의로 조용히 라벨을 만들지 않는다.
 
 ## 2. Dedup 판정
 

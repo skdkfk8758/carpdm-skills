@@ -64,7 +64,7 @@ Linear 이슈 등록의 **단일 진입점**. 단건 등록과 plan 분할 등�
 ### 4. 생성 + 체인 (REQ-F-001/008/009/010)
 
 - `mcp__linear__save_issue`(**`id` 없이 = 생성**, `title`+`team` 필수) 로 생성. **기본 `state: "Triage"`** — 양 모드 동일. 팀에 Triage 미활성(`list_issue_statuses` 에 type `triage` 부재 또는 생성 에러)이면 `state` 생략(팀 기본)으로 폴백하고 그 사실을 보고에 명시. 사용자가 게이트에서 다른 state 를 지정하면 그것이 우선.
-- **모든 생성 이슈에 `project` + `type` 라벨(bug/feature/chore 등) + `area:*` 라벨(9종) 필수 부착** — 배치는 Step 2.5 제안이 1차 근거, 근거 없고 `area` 판별 불가면 추측 말고 사용자에게 질의(`feedback_linear_label_on_create` 실측: 라벨 누락 이슈는 team+area 스코프 조회에서 유실). 우선순위(`priority` 0-4)는 이슈 타입상 명백할 때만 설정.
+- **모든 생성 이슈에 `project` + type 성격 라벨 + (보유 팀이면) `area:*` 라벨 부착** — 단 라벨은 **팀 라벨셋 실측 어휘 내에서만**(dedup-grouping.md §1.5 — 팀마다 어휘가 다르고, 없는 라벨명은 라벨셋을 오염시킨다). 배치는 Step 2.5 제안이 1차 근거, 근거 없고 판별 불가면 추측 말고 사용자에게 질의(`feedback_linear_label_on_create` 실측: 라벨 누락 이슈는 team+area 스코프 조회에서 유실). 우선순위(`priority` 0-4)는 이슈 타입상 명백할 때만 설정.
 - **의존 체인이면**: 같은 `save_issue` 호출의 `blocks`/`blockedBy`/`relatedTo`/`parentId`(append-only)로 Linear 네이티브 관계를 세팅하고, 각 이슈(마지막 제외)에 [references/recommend-section.md](references/recommend-section.md) §B 의 `## 다음 작업`(전방 포인터 + kickoff 프롬프트)을 심는다. 분할 모드는 blocker 먼저 의존순 발행(plan-split.md §5).
 - Step 2.5 에서 "기존 보강" 선택된 이슈는 신규 생성 대신 `save_issue`(id=기존)로 병합, "연결 등록" 은 생성 + `relatedTo` 세팅.
 - 종료 응답에 **첫(또는 다음) 실행 가능 이슈의 kickoff 프롬프트**를 즉시 복사 가능하게 제시.
