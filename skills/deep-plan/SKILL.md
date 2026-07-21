@@ -178,7 +178,7 @@ PLAN 제시 후, Linear 작업 트리(parent 1 + PLAN Step 당 sub-issue 1)로 �
   있다. 그 목록에서 valid-next 후보를 재선정한다(글로벌·플러그인 포함, 예시 이름에
   anchor 금지). `deep-plan` 자신은 제외.
 - 빌드가 명백하면 Tier 1 단축(greenfield→`/forge`, 변경→`/renew`, 고장→`/hunt`),
-  아니면 Tier 2 전체 후보(`to-issues`·`deep-research` 등)를 함께 본다.
+  아니면 Tier 2 전체 후보(`linear-register` 분할 모드·`deep-research` 등)를 함께 본다.
 - 빌드로 제안하면 plan 을 **이미 완료된 Phase-1 결과물**로 취급해 다시 인터뷰하지
   말라고 프레이밍한다(이중 인터뷰 회피). Acceptance(=eval) 항목이 그 빌드가 Phase 4
   에서 닫을 체크리스트이고, UI 면 `.html` 시안이 승인된 visual 계약임을 함께 짚는다.

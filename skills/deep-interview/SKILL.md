@@ -191,7 +191,7 @@ greenfield/brownfield 판단 + goal), 그 성격은 특정 작업유형 스킬�
 - **valid-next 필터** 로 다음 단계가 될 수 있는 스킬만 후보로 남긴다.
 - **Tier 1**(빌드가 명백할 때의 단축: greenfield→`/forge`, brownfield 변경→`/renew`,
   고장→`/hunt`) 은 단축일 뿐 — 명백하지 않으면 **Tier 2**(available-skills 에서
-  valid-next 전체 후보, **글로벌·플러그인 포함**: `/deep-plan`·`to-issues`·
+  valid-next 전체 후보, **글로벌·플러그인 포함**: `/deep-plan`·`linear-register`(분할 모드)·
   `deep-research`·`prototype`·`understand-anything:understand` 등)를 함께 열거한다.
 - 빌드로 라우팅하면 **강도(linear/council)** 도 함께 추천한다 — 인터뷰가 측정한
   디자인 리스크를 엔진에 넘기라.

@@ -18,7 +18,7 @@
    - 큰 교차·전면개편·research → `harness-run` 또는 `/deep-plan`
    - 자율 적합 단일 티켓 → `linear-goal`
    - 코드 이해·위치 파악 → `Explore` 에이전트 / `/deep-research`
-   - 대형 plan/spec/PRD 분할 → `to-issues`
+   - 대형 plan/spec/PRD 분할 → `linear-register` 분할 모드 (plan-split.md)
 2. **프로젝트 로컬 포인터 부차** — 1줄: 해당 repo 의 `.claude/skills`·`.agents` 도 확인.
    **타repo 파일을 읽지 않는다**(경량 — repo/팀명 수준 포인터만).
 
@@ -71,7 +71,7 @@ Phase 1-2 가 `.html` companion 생성)·deep-plan 이 맡는다.
 
 > 왜 등록 시 시안을 안 만드나: 미착수 백로그 이슈의 시안은 낭비(YAGNI), Linear 는 HTML
 > 시안을 렌더하지 못한다(첨부 제약). "시안+이슈를 같이" 가 꼭 필요한 큰 UI 작업은
-> `deep-plan`(HTML 시안 산출) → `to-issues`(분할) 경로를 쓴다.
+> `deep-plan`(HTML 시안 산출) → `linear-register` 분할 모드 경로를 쓴다.
 
 ## 적용처별 차이
 

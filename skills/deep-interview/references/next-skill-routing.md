@@ -30,7 +30,7 @@ available-skills 는 40+ 개일 수 있다. 대부분은 이 산출물의 *다�
 다음만 후보로 남기고 나머지는 자동 배제한다:
 
 - **후보 가능** — 이 spec/plan 을 *입력으로 받아 전진*시키는 스킬: 빌드
-  (`forge`/`renew`/`hunt`), plan 화(`deep-plan`), 이슈 분해(`to-issues`),
+  (`forge`/`renew`/`hunt`), plan 화(`deep-plan`), 이슈 분해(`linear-register` 분할 모드),
   조사(`deep-research`), UI 탐색(`prototype`/`frontend-design`/`imprint`),
   빌드 전 **plan 압박 검증**(`grill-with-docs`) 등. (검증은 산출물을 입력으로
   받아 *더 단단하게* 전진시키므로 후보다 — 빌드처럼 코드를 내지 않을 뿐.)
@@ -65,7 +65,7 @@ Tier 1 단축이 명백하더라도, 컨텍스트의 available-skills 목록에�
 
 | 산출물/다음 의도… | 라우팅 |
 |---|---|
-| plan 을 독립적으로 grab 가능한 **이슈로 분해** | `to-issues` |
+| plan 을 독립적으로 grab 가능한 **이슈로 분해** | `linear-register` (분할 모드) |
 | 빌드 전 plan/design 을 **적대 압박테스트·결정트리 추궁** | `grill-with-docs` |
 | 빌드 전 **사실 조사·다출처 검증** 이 먼저 필요 | `deep-research` |
 | 커밋 전 **버릴 프로토타입**으로 설계 검증 | `prototype` |
@@ -128,4 +128,4 @@ Phase 1). 순진하게 핸드오프하면 사용자가 두 번 인터뷰받는�
 - **deep-plan** — 입력 = **PLAN 문서**(+UI 시안). deep-plan 은 "순수 산출" 도구라
   자동 라우팅하지 않는다 — 이 추천은 **제안일 뿐 시작이 아니다**. `deep-plan` 자신은
   후보에서 제외(이미 만들었다). plan 을 받아 빌드(Tier 1)하거나 이슈로 분해
-  (`to-issues`)하는 것이 가장 흔한 다음 단계다.
+  (`linear-register` 분할 모드)하는 것이 가장 흔한 다음 단계다.
