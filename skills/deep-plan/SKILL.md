@@ -128,6 +128,13 @@ Adversarially critique the draft Goal Prompt below. It was written by another
 model for an autonomous build agent. Find what is WRONG or MISSING. Review and
 write only in your answer — do NOT edit, create, or delete any files.
 </task>
+<contract>
+The deliverable is a Goal Prompt for a FUTURE autonomous build agent that runs
+AFTER a separate PLAN document is approved. Any "do not implement" phrasing in
+the raw request applies to the current planning session only, NOT to the
+prompt's consumer — implementation-oriented Objective/Verification is the
+intended contract. Do not flag that as goal inversion.
+</contract>
 <raw-request>…요청문 원문…</raw-request>
 <draft-prompt>…fable 초안 전문…</draft-prompt>
 <repo-context>…Step 0 digest — secret·내부 호스트 제외(마스킹)…</repo-context>
@@ -142,7 +149,10 @@ write only in your answer — do NOT edit, create, or delete any files.
 ```
 
 태그 없는 비평 항목이 오면 SUGGESTION 으로 강등 처리한다(의무 반영은 명시적
-BLOCKING 만 — 취향 진동 차단).
+BLOCKING 만 — 취향 진동 차단). `<contract>` 블록은 생략 금지 — 실측(2026-07-21
+첫 debate 런): 이 블록 없이 보내자 codex 가 "구현하지 마"를 소비자 계약으로 오독해
+BLOCKING 9건 중 6건이 거짓 goal-inversion 이었다. 계약을 처음부터 실으면 그 노이즈가
+안 생긴다.
 
 **폴백.** codex 미설치·호출 실패·watchdog kill 로 비평을 못 얻으면 **두 번째
 fable 서브에이전트가 비평자 좌석을 승계**한다(skeptic 프레이밍 + 동일
