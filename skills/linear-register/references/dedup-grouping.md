@@ -69,7 +69,7 @@ for i in d["issues"]:
 Step 3 확인 게이트에 이슈별로 병합 표시:
 
 ```
-등록 예정: <팀> / state=Triage / N건 (최근 100건 대조)
+등록 예정: <팀> / state=Backlog / N건 (최근 100건 대조)
 1. <제목>
    ⚠ 유사: SSO-42 "..." (Backlog) — <한 줄 근거>
    배치 제안: project=<X> · area:<y>  (근거: SSO-40, SSO-42)

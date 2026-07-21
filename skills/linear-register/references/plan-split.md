@@ -2,7 +2,7 @@
 
 > 입력이 **다단계 plan/spec/PRD 문서**(deep-plan 산출, 설계 문서, PRD)일 때
 > linear-register 가 이 모드로 진입한다. 구 분할 전용 스킬(2026-07-21 흡수)의 이관본 —
-> 단건 경로와 같은 코어 헤딩 계약·팀 라우팅·확인 게이트·Triage 기본을 공유하고, 분할
+> 단건 경로와 같은 코어 헤딩 계약·팀 라우팅·확인 게이트·Backlog 기본을 공유하고, 분할
 > 규칙만 다르다.
 
 ## 1. 입력 수집
@@ -49,8 +49,8 @@ plan 을 **tracer bullet** 이슈들로 쪼갠다. 각 이슈는 한 레이어�
 
 승인된 슬라이스마다 이슈를 발행한다. **blocker 먼저**(의존순) — "Blocked by" 에
 실제 issue identifier 를 참조할 수 있게. 관계는 `save_issue` 의
-`blocks`/`blockedBy`/`parentId` 로 네이티브 세팅. **전건 기본 `state: "Triage"`**
-(SKILL.md Step 4 와 동일 — 미활성 팀 폴백 포함).
+`blocks`/`blockedBy`/`parentId` 로 네이티브 세팅. **전건 기본 `state: "Backlog"`**
+(SKILL.md Step 4 와 동일 — 미활성 팀 폴백 + 변경 사유 포함).
 
 본문 템플릿 = SKILL.md 통합 템플릿 + 이 모드 전용 확장 헤딩:
 
