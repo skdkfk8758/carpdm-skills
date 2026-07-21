@@ -2,6 +2,9 @@
 
 > Crystallized from a deep-interview on 2026-06-30. Final ambiguity: 18% (target ≤ 20%).
 > Type: brownfield. Rounds: 7. Status: draft.
+> **개정 2026-07-21** — 구 분할 전용 스킬 흡수(분할 모드), 기본 state=Triage, dedup+그루핑 게이트
+> 추가. deep-plan 인터뷰 6라운드, ambiguity 16%. PLAN:
+> `carpdm-skills/docs/plans/2026-07-21-linear-register-unify.md`. REQ-F-007 개정, F-012~015 신설.
 
 ## 1. Goal & scope
 
@@ -11,9 +14,10 @@
 근본 필요: "이슈를 등록한 뒤 *무엇으로 어떻게 이어가야 하나*"를 등록 시점에 함께 박아,
 등록과 다음 행동 사이의 끊김을 없앤다.
 
-**In scope:** C1 등록 코어 · C2 적응형 추천 섹션 · C3 연결 이슈 전방 가이드 · C4 기존 스킬 경계.
-**Out of scope:** 대형 plan/spec/PRD→다중 슬라이스 분할(to-issues 위임),
-기존 백로그 재배치·보강(linear-groom), 티켓 자율빌드 실행(linear-goal). 타repo 파일시스템 읽기.
+**In scope:** C1 등록 코어 · C2 적응형 추천 섹션 · C3 연결 이슈 전방 가이드 · C4 기존 스킬 경계
+· C5 분할 모드(구 분할 스킬 흡수) · C6 dedup+그루핑 게이트.
+**Out of scope:** 기존 백로그 재배치·보강(linear-groom), 티켓 자율빌드 실행(linear-goal).
+타repo 파일시스템 읽기.
 
 ## 2. Topology
 
@@ -22,7 +26,9 @@
 | C1 등록 코어 | active | Linear MCP 로 이슈 생성 — 팀/프로젝트 라우팅, 본문/라벨/우선순위 |
 | C2 적응형 추천 | active | 등록 이슈에 적합한 글로벌 스킬/에이전트 우선 추천 + 프로젝트 로컬 포인터(부차) |
 | C3 체인 전방 가이드 | active | 의존 체인 등록 시 Linear 관계 세팅 + 다음 작업 포인터/프롬프트 심기 |
-| C4 기존 스킬 경계 | active | a-메커니즘(Linear 독립 등록) + c-경계(니치 description, 분할/PRD 위임) |
+| C4 기존 스킬 경계 | active | a-메커니즘(Linear 독립 등록) + c-경계(자율빌드·그루밍 위임) |
+| C5 분할 모드 | active | plan/spec/PRD → tracer-bullet vertical slice 발행 (references/plan-split.md) |
+| C6 dedup+그루핑 | active | 등록 전 팀 미완 백로그 대조 — 유사 게이트 표시 + 배치 제안 (references/dedup-grouping.md) |
 
 ## 3. Functional requirements
 
@@ -32,9 +38,13 @@
 | REQ-F-002 | 타깃 팀을 현재 repo → `linear-repo-map.json` 역매핑으로 추론; 맵에 없으면 사용자에게 질의 | Must | 맵에 있는 repo 에서 호출 → 해당 teamId 자동 선택; 없는 repo → "어느 팀?" 질문 | R6 |
 | REQ-F-003 | 프로젝트를 그 팀의 `list_projects` 에서 고르거나 사용자 확인 | Must | 생성 전 프로젝트가 결정/확인됨 (projectId 또는 명시적 "프로젝트 없음") | R6 |
 | REQ-F-004 | 모든 Linear 쓰기 전, "X팀 / Y프로젝트 / N건" 확인을 제시하고 대기 — 단 사용자가 "바로 등록" 지시 시 스킵 | Must | 게이트 미승인 상태에서 `save_issue`(생성) 호출 0회; "바로 등록" 입력 시에만 게이트 없이 진행 | R6 |
-| REQ-F-005 | 각 생성 이슈 본문에 "## 추천" 섹션 — **글로벌 스킬/에이전트 우선**(forge/hunt/renew/linear-goal/harness-run/to-issues/deep-plan + Explore/Plan), 이슈 타입·크기에 적응한 모델 판단 추천 | Must | bug 이슈 → hunt 류 추천; 큰 교차 기능 → harness-run/to-issues 류 추천; 섹션에 글로벌 후보 ≥1 명시 | R2,R3 |
+| REQ-F-005 | 각 생성 이슈 본문에 "## 추천" 섹션 — **글로벌 스킬/에이전트 우선**(forge/hunt/renew/linear-goal/harness-run/deep-plan + Explore/Plan), 이슈 타입·크기에 적응한 모델 판단 추천 | Must | bug 이슈 → hunt 류 추천; 큰 교차 기능 → harness-run/deep-plan 류 추천; 섹션에 글로벌 후보 ≥1 명시 | R2,R3 |
 | REQ-F-006 | "## 추천" 섹션에 프로젝트 로컬 스킬/에이전트 **경량 포인터**를 부차로 포함 — 타repo 를 읽지 않음 | Must | 섹션에 "해당 repo 의 `.claude/skills`/`.agents` 도 확인" 류 1줄; 타repo 파일 read 호출 0회 | R5 |
-| REQ-F-007 | 대형 plan/spec/PRD 분해 입력은 직접 처리하지 않고 to-issues 위임을 추천 | Must | "이 plan 전체를 이슈로 쪼개줘" 류 입력 → 자체 분할 대신 to-issues 추천 출력 | R4 |
+| REQ-F-007 *(개정)* | 대형 plan/spec/PRD 분해 입력은 **내부 분할 모드**(plan-split.md — vertical slice 초안 + 분해 quiz + 의존순 발행)로 처리 | Must | "이 plan 전체를 이슈로 쪼개줘" 류 입력 → 분할 모드 진입, quiz 승인 후 의존순 발행 | 2026-07-21 R5 |
+| REQ-F-012 | 모든 생성 이슈 기본 `state: "Triage"` (양 모드) — Triage 미활성 팀은 팀 기본 state 폴백 + 보고 명시; 게이트에서 사용자 지정 state 우선 | Must | 생성 이슈 state=Triage; 미활성 팀 → 폴백 + 보고 문구 존재 | 2026-07-21 R4 |
+| REQ-F-013 | 등록 전 팀 미완 이슈(최근 갱신순 ≤100건, Done·Canceled 제외) 대조 — 이슈별 유사 후보 ≤3건을 확인 게이트에 병합 표시, 이슈별 4택(등록/스킵/기존 보강/relatedTo 연결) | Must | 유사 존재 시 게이트에 후보+4택 표시; 자동 스킵/자동 연결 0회 | 2026-07-21 R1/R2/R6 |
+| REQ-F-014 | 유사 이슈들의 project·`area:*` 분포 근거로 배치 제안(근거 이슈 ID 병기); 근거 없으면 기존 질의 규칙 유지 | Must | 게이트에 배치 제안 + 근거 ID; 근거 없는 추측 라벨 0회 | 2026-07-21 R1/R3 |
+| REQ-F-015 | 신규 이슈 응집(상호 유사 ≥3건) + 기존 적합 프로젝트/라벨 없음 → 신설 제안; `save_project`/`create_issue_label` 은 승인 후에만 호출 | Must | 승인 전 신설 write 0회 | 2026-07-21 R3 |
 | REQ-F-008 | 의존 다건(체인) 등록 시 Linear 네이티브 관계(blocks/related/parent-child) 세팅 | Must | A→B→C 등록 → Linear 상 A blocks B, B blocks C 관계 존재 | R3 |
 | REQ-F-009 | 체인의 각 이슈 본문 또는 코멘트에 다음 이슈 전방 포인터 + 붙여넣기용 kickoff 프롬프트 명시 | Must | 각 이슈에 "다음: <id>" + 시작 프롬프트 텍스트 포함 (마지막 이슈 제외) | R3 |
 | REQ-F-010 | 등록 후 사용자에게 첫(또는 다음) 실행 가능 이슈의 kickoff 프롬프트를 응답으로 제시 | Must | 등록 종료 메시지에 즉시 복사 가능한 프롬프트 1개 포함 | R3 |
@@ -44,7 +54,7 @@
 
 | ID | Category | Requirement | Acceptance criteria | Origin |
 |----|----------|-------------|---------------------|--------|
-| REQ-N-001 | Compatibility/trigger | description 을 "단건~소수 Linear 등록 + 추천 + 체인"으로 좁히고 분할→to-issues 위임 명시 | description 에 위임 경계 문장 존재; to-issues 와 트리거 충돌 시 이 스킬이 양보 | R4 |
+| REQ-N-001 *(개정)* | Compatibility/trigger | description 이 단건 등록 + 분할 등록 양쪽 트리거를 모두 커버(단일 진입점); linear-goal/linear-groom 경계 명시 | description 에 양 모드 트리거 문구 + 경계 문장 존재 | 2026-07-21 R5 |
 | REQ-N-002 | Security/safety | 확인 게이트(REQ-F-004) 전 외부 쓰기 금지 | 게이트 미승인 시 Linear 쓰기 0회 | R6 |
 | REQ-N-003 | Performance | 등록 시 타repo 파일시스템 read 안 함(경량) | 등록 경로에서 타repo Read/Grep 0회 | R5 |
 | REQ-N-004 | Reuse | 라우팅을 `linear-repo-map.json` + `linear-dispatch` 역매핑 컨벤션 재사용(재구현 금지) | 팀 결정 로직이 repo-map 참조; 별도 매핑 테이블 신설 0 | R6 |
@@ -69,9 +79,10 @@
 
 ## 6. Context (brownfield)
 
-- **참고 팩(벤더, 심링크 `~/.agents/skills/`)** — `to-issues`(plan→vertical slice + Blocked-by
-  의존순 발행; register 코어 헤딩 계약 준수). tracker-agnostic + `setup-matt-pocock-skills`
-  per-repo 설정 의존 → REQ-N-001/C4 가 이와 경계를 가름. (구 `triage`·`to-prd` 는 폐기됨.)
+- **분할 모드 계보** — 구 분할 전용 스킬(2026-07-21 흡수·삭제)의 vertical slice +
+  Blocked-by 의존순 발행 규칙을 `references/plan-split.md` 로 이관. 원본의
+  tracker-agnostic·`setup-matt-pocock-skills` 의존은 이관하지 않음(Linear-native).
+  (구 `triage`·`to-prd` 는 폐기됨.)
 - **carpdm Linear 인프라** — `~/.claude/linear-repo-map.json`(repo→team 매핑, REQ-F-002/N-004 입력),
   `~/.claude/rules/linear-dispatch.md`(현재 repo→팀 스코프 역매핑 SSOT — REQ-F-002 가 동형 적용),
   Linear MCP(`create_issue`/`save_issue`/`create_comment`/`list_projects` — REQ-F-001/003/008/009),

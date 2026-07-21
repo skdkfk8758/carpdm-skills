@@ -7,7 +7,7 @@ description: >-
   "프로젝트 단위로 묶어줘", "이슈 살 붙여줘", "백로그 그루밍", "프로젝트별로 분류해줘",
   "groom the backlog", "organize my Linear issues", "flesh out these issues" 에 사용 —
   한쪽(그룹핑만/보강만)만 말해도 트리거. 이미 존재하는 이슈 대상 — 신규 등록은
-  linear-register, plan 분할은 to-issues, 빌드 중 상태 전이는 craft linear.md.
+  linear-register(분할도 그 스킬의 분할 모드), 빌드 중 상태 전이는 craft linear.md.
 ---
 
 # Linear Groom — 기존 백로그를 프로젝트로 묶고 설명을 보강
