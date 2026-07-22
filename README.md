@@ -1,6 +1,6 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 스킬 배포 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + 루프 하니스 셋업 1종 + 공유 엔진 1종 + Linear 라이프사이클 3종 + 하니스 오케스트레이션 4종**, 총 **스킬 25종.**
+Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 스킬 배포 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + 프로젝트 충실 UI 시안 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + 루프 하니스 셋업 1종 + 공유 엔진 1종 + Linear 라이프사이클 4종 + 하니스 오케스트레이션 4종**, 총 **스킬 27종.**
 
 스킬은 역할에 따라 **7개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
 
@@ -28,6 +28,7 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
 | [`imprint`](skills/imprint) | DESIGN.md(design-extractor 추출) → React+Tailwind 테마·컴포넌트·HTML 시안 충실 재현 (token-traceability) | "이 DESIGN.md 로 컴포넌트 만들어줘", "추출한 디자인대로 Tailwind 테마", "/imprint" | 없음 (독립) |
+| [`mockup`](skills/mockup) | 기존 프로젝트의 디자인 토큰·화면 어휘 추출 → 충실한 self-contained HTML 시안 + 토큰 기계검증·실화면 대조 후 Artifact publish | "이 화면 시안 만들어줘", "목업 떠줘", "UI 미리보기", "/mockup" | 없음 (독립) |
 | [`erd`](skills/erd) | DB 스키마(마이그/ORM/repo) → self-contained HTML ERD (테이블 카드 + SVG 관계선 4종 색) | "이 마이그레이션으로 ERD 그려줘", "DB 관계도 HTML 로", "스키마 다이어그램", "/erd" | 없음 (독립) |
 
 ### 🏗 project scaffold & context — 프로젝트 인프라·컨텍스트 셋업/생성
@@ -56,6 +57,7 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 | [`linear-register`](skills/linear-register) | Linear 이슈 단건~소수 등록 + 적응형 `## 추천`(적합 스킬/에이전트/워크플로우) + 의존 체인 전방 가이드(다음 작업 포인터·kickoff) | "리니어에 이슈 등록", "이거 티켓으로 올려줘", "연결된 이슈 등록" | Linear MCP |
 | [`linear-goal`](skills/linear-goal) | Linear 티켓 1건을 경량 흐름으로 자율 실행 (fetch→`## 추천` 라우팅→Goal Prompt 조립→확인 게이트→worktree→worker→In Review) | "ADT-211 goal 로 돌려줘", "이 티켓 그대로 진행", "워커한테 맡겨" | Linear MCP |
 | [`linear-groom`](skills/linear-groom) | 기존 Linear 백로그 그루밍 — 고아 이슈 프로젝트 그룹핑 + 빈약 이슈 보강(+`## 추천`/체인) | "리니어 이슈 정리", "백로그 그루밍", "이슈 보강해줘" | Linear MCP |
+| [`linear-prioritize`](skills/linear-prioritize) | 현재 repo 미완 이슈 스프린트 플래닝 — 의존·병렬 분석 + 우선순위 정렬 + 순차 EPIC 체인 milestone 묶기 (이슈 생성·구현 X) | "뭐부터 해야 돼", "병렬로 뭐 돌릴 수 있어", "스프린트 짜줘", "남은 이슈 정리" | Linear MCP |
 
 ### ⚙️ harness — loop / eval-게이트 자율개발 오케스트레이션
 
@@ -88,7 +90,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-25개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
+27개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
 ### 개별 설치 (하나씩)
 
@@ -100,7 +102,7 @@ cp -R skills/handoff ~/.claude/skills/
 cp -R skills/forge skills/craft-core ~/.claude/skills/
 ```
 
-> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / deep-prompt / imprint / erd / colocate-domain-context / cicd-scaffold / loop-harness-setup 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
+> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / deep-prompt / imprint / mockup / erd / colocate-domain-context / cicd-scaffold / loop-harness-setup 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
 
 ---
 
@@ -139,7 +141,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land ship preflight fortify imprint erd colocate-domain-context cicd-scaffold loop-harness-setup craft-core harness-run eval-generate eval-check harness-heal
+ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land ship preflight fortify imprint mockup erd colocate-domain-context cicd-scaffold loop-harness-setup craft-core linear-register linear-goal linear-groom linear-prioritize harness-run eval-generate eval-check harness-heal
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.

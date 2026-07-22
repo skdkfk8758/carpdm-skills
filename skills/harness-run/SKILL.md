@@ -86,6 +86,11 @@ G0 에서 slug 확정 직후, 네이티브 Task 도구(`TaskCreate`)로 게이�
   종료 시(pass/short-circuit) 전 항목이 닫혀 있어야 한다.
 - ③④ Workflow 구간은 단일 항목을 in_progress 로 유지한다 — 내부 진행은
   `dev-eval-loop.js` 의 `phase()`/`log()` 진행트리가 담당(메인 루프 잠듦, Task 세분 금지).
+- **게이트 레일 스냅샷 (progress.md P2).** 게이트 통과 시점마다 레일 1줄을 턴에
+  재출력해 "지금 어느 게이트 앞인가"를 항상 답한다
+  (`rail: G0─wt─②─G1★─③④─G3─G4` + 현 위치 표시). attempt 결과 log 는 점수 포함
+  (`PASS 93` / `FAIL 76 <signature>`) — 포맷은
+  `~/.claude/skills/craft-core/references/progress.md` §P2 를 읽어 따른다(복제 금지).
 
 ## loop 로그 기록 (컨벤션)
 
@@ -108,4 +113,13 @@ G0 에서 slug 확정 직후, 네이티브 Task 도구(`TaskCreate`)로 게이�
 
 ## 출력 보고
 
-종료 시 `result:` 한 줄(이슈 slug · outcome · attempts · merge/단락) + 워크트리·verdict 경로 + `loop/log/YYYY-MM-DD.md` 기록 여부.
+종료 시(pass/short-circuit 공통) **결과 보드**(`~/.claude/skills/craft-core/references/output-contract.md`
+§R — 복제 금지)를 emit 한다. harness 정체성 행: `outcome`(pass/short-circuit + attempts
+점수 궤적, 예 `FAIL 76 → PASS 93`) · `게이트`(G0~G4 체크 현황 + 다음 사람 게이트) ·
+`a<N> 감점`(실패 attempt 의 카테고리·사유·verdict 경로). 공통 행: 변경(워크트리·files) ·
+증거(verdict 경로·rubric frozen 유지·eval 산물 격리 확인) · 기록(loop 로그 append 여부) ·
+타이밍(② · G1대기(사람) · loop/attempts · total).
+
+보드 아래 L1 `result:` 한 줄(이슈 slug · outcome · attempts · 다음 게이트). **활성
+Linear 이슈가 있으면 같은 보드를 이슈 코멘트로 남긴다**(`linear.md` §3b — 자동·마스킹·
+실패 보드도 동일). 다음 → pass 면 `/land`(G3), short-circuit 이면 `harness-heal`(G2).
