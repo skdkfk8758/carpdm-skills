@@ -111,6 +111,12 @@ Loop:
 
 > 종료는 이 두 게이트다 — 느낌으로 "최적까지" loop 하는 것은 없다.
 
+**라운드 배너 (progress.md P1).** council 은 자동 진행 트리가 없으므로, 메인
+세션이 **라운드 경계마다** 수렴 스코어보드 1블록을 턴에 찍는다 — 공격 건수 +
+대표 이의 1구절만, 메시지 본문 중계 금지. 포맷은
+`~/.claude/skills/craft-core/references/progress.md` §P1 을 읽어 따른다(복제 금지).
+공격 카운트의 감소가 사용자에게 보이는 수렴 게이지다.
+
 ---
 
 ## §3 — Dynamic-workflow TDD build (opus)

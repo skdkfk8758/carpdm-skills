@@ -124,8 +124,16 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
    **PR 직전 이슈 수용 기준을 재확인해 100% 검증·충족일 때만** PR 을 열고, 미충족이면 PR 을
    중지하고 `needs input:` 으로 미충족 항목을 보고한다(Phase 3 Goal Prompt 에 박힌 게이트). spawn 직전
    Goal Prompt `.md` 를 worktree 안으로 복사한다.
-6. **동기 종료** — `result:` 한 줄(repo + worktree + worker 잡 핸들 + Linear 상태). 백그라운드
-   잡은 완료 시 하니스가 자동 알린다(동기 폴링 금지).
+   - **STATUS_LOG 기본 주입 (progress.md P3)** — worker 프롬프트 헤더에
+     `STATUS_LOG=<worktree>/logs/agents/goal-<issue-id>-<ts>.status.log` 를 넣는다
+     (subagent-invocation R8 을 opt-in 아닌 기본으로). append 규율은 R8 그대로 —
+     ≤20 스텝 줄 + 종료 `[DONE]`/`[FAIL]` 마커 1회. 상세는
+     `~/.claude/skills/craft-core/references/progress.md` §P3(복제 금지).
+6. **동기 종료** — `result:` 한 줄(repo + worktree + worker 잡 핸들 + Linear 상태) +
+   **관전 명령 1줄**(`tail -f <status.log 경로>` — progress.md P3). 백그라운드
+   잡은 완료 시 하니스가 자동 알린다(동기 폴링 금지). 사용자가 도중에 진행을 물으면
+   status log 꼬리(최근 ~5줄)를 읽어와 요약한다 — 완료 판정은 아님(R9: idle ≠ 완료,
+   `[DONE]` + git diff·verify 재실행으로만 판정).
 
 **비동기 (worker 완료 notification 도착 시 — 후속 턴):**
 

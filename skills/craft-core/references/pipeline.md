@@ -71,8 +71,17 @@ eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 
 `~/.claude/logs/craft-timing.jsonl` 에 한 줄 append 한다:
 
 ```json
-{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p35":<sec>,"p4":<sec>},"total":<sec>,"tasks":<Phase3 태스크 수>}
+{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p35":<sec>,"p4":<sec>},"humanWait":<sec>,"total":<sec>,"tasks":<Phase3 태스크 수>}
 ```
+
+- **스키마 필수 준수** — `phases.p1~p5` 초와 `humanWait` 는 note 로 대체하지 않고
+  숫자로 기록한다. 이 로그가 ETA 스냅샷(아래)의 원료라, 스키마를 벗어난 행은
+  ETA 계산에서 버려진다(과거 행의 note-only drift 가 실측 교훈).
+- **ETA 스냅샷 (progress.md P4)** — 각 phase 진입 시 이 jsonl 에서 같은
+  `(skill, mode)` 의 phase 별 median 을 조회해 Task 항목 텍스트에 `est ~Xm` 부기
+  + 경계 배너 1줄(`elapsed Xm · remaining ~Ym`). 표본 `n<3` 이면 표시하지 않는다.
+  규칙 상세는 `~/.claude/skills/craft-core/references/progress.md` §P4 를 읽어
+  따른다(복제 금지).
 
 - **사람 대기는 기계 시간과 분리** — Phase 1 말미의 플랜 확인 대기, Phase 4 의
   `[HUMAN]` walk 대기처럼 사용자 응답을 기다린 구간은 그 phase 의 elapsed 에서

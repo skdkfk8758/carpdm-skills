@@ -127,7 +127,9 @@ for (let n = 0; ; n++) {
   )
 
   history.push({ pass: !!(verdict && verdict.pass), signature: (verdict && verdict.signature) ?? null })
-  log(`attempt ${n + 1}: ${history[n].pass ? 'PASS' : `FAIL ${history[n].signature}`}`)
+  // progress.md P2 — surface the score so a human reads direction before any G2 interview
+  const score = verdict && typeof verdict.total === 'number' ? ` ${verdict.total}` : ''
+  log(`attempt ${n + 1}: ${history[n].pass ? `PASS${score}` : `FAIL${score} ${history[n].signature}`}`)
 
   const decision = decideNext(history, MAX_RETRIES)
   if (decision !== 'retry') return { outcome: decision, history, attempts }

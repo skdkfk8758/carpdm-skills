@@ -86,6 +86,11 @@ G0 에서 slug 확정 직후, 네이티브 Task 도구(`TaskCreate`)로 게이�
   종료 시(pass/short-circuit) 전 항목이 닫혀 있어야 한다.
 - ③④ Workflow 구간은 단일 항목을 in_progress 로 유지한다 — 내부 진행은
   `dev-eval-loop.js` 의 `phase()`/`log()` 진행트리가 담당(메인 루프 잠듦, Task 세분 금지).
+- **게이트 레일 스냅샷 (progress.md P2).** 게이트 통과 시점마다 레일 1줄을 턴에
+  재출력해 "지금 어느 게이트 앞인가"를 항상 답한다
+  (`rail: G0─wt─②─G1★─③④─G3─G4` + 현 위치 표시). attempt 결과 log 는 점수 포함
+  (`PASS 93` / `FAIL 76 <signature>`) — 포맷은
+  `~/.claude/skills/craft-core/references/progress.md` §P2 를 읽어 따른다(복제 금지).
 
 ## loop 로그 기록 (컨벤션)
 
