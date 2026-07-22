@@ -132,7 +132,28 @@ Acceptance 는 sub-issue body 에 참조로 들어간다). Step 이 곧 atomic �
 이미 말하는 것의 반복("Done 으로 옮김"), 코드에서 자명한 내용. 빈 코멘트는 마찰만 는다.
 
 코멘트도 전이처럼 **실패해도 빌드를 막지 않는다**(경고 후 계속). `land` 의 Done 전이가
-이 정책의 1차 소비처다 — 머지 후 코드 밖 후속이 남으면 Done + 후속 코멘트가 짝이다.
+이 정책의 1차 소비처다 — 머지 후 코드 밖 후속이 남으면 Done 후속 코멘트가 짝이다.
+
+### 3b. 결과 보드 코멘트 — 구현 스킬 wrap 시 (In Review 행 대체)
+
+코드를 바꾼 스킬(forge/hunt/renew · harness-run · linear-goal)이 작업을 끝낼 때,
+활성 이슈가 있으면 **결과 보드**(`output-contract.md` §R)의 markdown 을 그 이슈에
+코멘트로 남긴다 — **In Review 전이(§3)와 같은 wrap 시점, 같은 활성 이슈**의 원자 쌍.
+§3a 표의 "→ In Review" 행은 이 보드 코멘트가 **대체**한다(검증 방식·범위 밖·잔여를
+보드가 이미 구조화해 담으므로 별도 산문 코멘트를 또 쓰지 않는다). In Progress·Done
+전이는 §3a 그대로.
+
+- **본문 = 보드 그대로.** 턴 출력의 R 보드 markdown 을 재사용한다 — 코멘트용
+  재작성 금지(이중 SSOT 방지, output-contract R 규칙 6). 헤더 1줄
+  (`## 빌드 완료 보고 — <skill> · <브랜치> · <커밋 range>`) + 말미 AI disclaimer 1줄
+  (`— AI 생성 보고 (Claude Code · <skill>). 머지는 별도 승인.`)만 덧붙인다.
+- **전이와 동급 자동.** 저위험 write 라 매번 묻지 않는다(생성 게이트 §2 와 위험 등급
+  구분). 실패해도 wrap 을 막지 않는다(경고만).
+- **마스킹 의무** (acceptance-criteria-gate G3) — 토큰·PII·내부 URL·DB dump 는 코멘트
+  전 마스킹. 검증 커맨드 행의 credential 인자도 대상 — 외부 서비스 캐시에 영속 노출된다.
+- **실패도 남긴다.** short-circuit(harness) · needs input(linear-goal) 의 실패 보드도
+  동일하게 코멘트 — 실패 기록이 다음 시도의 컨텍스트다.
+- graceful 불변식은 §1a/§3 그대로 — MCP 없거나 활성 이슈 없으면 묻지 말고 스킵.
 
 ## Anti-patterns
 

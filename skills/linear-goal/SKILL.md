@@ -137,12 +137,18 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
 
 **비동기 (worker 완료 notification 도착 시 — 후속 턴):**
 
-7. **PR 게이트 결과로 분기**:
+7. **결과 보드 + PR 게이트 분기.** 먼저 **결과 보드**(output-contract §R — 복제 금지)를
+   emit 한다. linear-goal 정체성 행: `worker`([DONE]/[FAIL] 자가보고 · status log 스텝 수 ·
+   자가보고 테스트 수) · `메인 재검증`(git diff 파일 일치 · verify 명령 재실행 실측 —
+   R9: 자가보고만으론 완료 불인정). 공통 행: Acceptance(N/N + 검증 근거) · 납품(PR ·
+   Linear 상태) · 잔여(머지=사람 · critic 없음) · 체인(다음 이슈). 그 다음 분기:
    - worker 가 PR 을 열었으면(수용 기준 100% 검증 통과) → **Linear → In Review** + PR 링크
-     attach + 충족된 수용 기준 체크박스 `[x]` 갱신(검증 근거 코멘트). **Done 전이·머지는 하지
-     않는다**(머지=land/사람).
+     attach + 충족된 수용 기준 체크박스 `[x]` 갱신 + **결과 보드를 이슈 코멘트로**
+     (`linear.md` §3b — 검증 근거 코멘트를 보드가 흡수, 별도 산문 재작성 금지·마스킹).
+     **Done 전이·머지는 하지 않는다**(머지=land/사람).
    - worker 가 수용 기준 미충족으로 PR 을 중지(`needs input:`)했으면 → **In Review 로 올리지
-     말고** 어느 항목이 왜 미충족인지 사용자에게 안내하고 멈춘다(acceptance-criteria-gate G2).
+     말고** 미충족 보드(어느 항목이 왜)를 사용자에게 안내 + 같은 실패 보드를 이슈 코멘트로
+     남기고 멈춘다(acceptance-criteria-gate G2 · §3b 실패 기록).
 8. 이슈에 체인 `## 다음 작업` 이 있었으면, **다음 이슈 id + kickoff 프롬프트를 사용자에게 제시**
    ("다음: <next-id> — `linear-goal <next-id>` 로 이어가기"). 자동 시작은 안 함.
 

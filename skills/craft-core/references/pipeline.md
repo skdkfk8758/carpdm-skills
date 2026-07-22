@@ -411,19 +411,25 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
 
 ## Phase 5 — Wrap
 
-- 요약: 무엇이 바뀌었는지, 추가된 테스트, 보안 평결, intent-conformance 평결(해소한
-  confirmed gap / 남은 시각 `[HUMAN]` 잔여 리스크), 잔여 리스크 — 그리고 **phase 별
-  elapsed 1줄 테이블**(위 타이밍 기록 실측 — jsonl 에만 쌓지 말고 매 런이 자기
-  병목을 사용자에게 보고한다).
+- **결과 보드 (output-contract §R — 고정 행 셋).** 산문 요약 대신
+  `~/.claude/skills/craft-core/references/output-contract.md` §R 의 보드를 emit 한다
+  (복제 금지 — 행 셋·6규칙은 거기가 SSOT): 변경 파일별 목록 · 커밋 · 정체성 행
+  (forge=신규 표면 / hunt=재현→회귀 잠금 / renew=보존 계약) · 테스트 · 검증 커맨드
+  (실행 명령+실제 출력 수치) · 결정(트레이드오프·ADR 여부) · 평결(보안·intent) ·
+  Acceptance · **타이밍(phase 별 elapsed, est 대비 — 위 타이밍 기록 실측, jsonl 에만
+  쌓지 말고 매 런이 자기 병목을 보고한다)** · 잔여(`[HUMAN]` 몫). 보드는 L1 `result:`
+  바로 위, wrap 시점 1회.
 - 영속적 결정/지식 기록 (`context-adr.md`): 작업이 **ADR 감** 결정을
   했다면, `docs/adr/NNN-slug.md` 를 쓰고 registry 를 갱신한다;
   **재사용 가능한 context** 를 확립했다면, `docs/concepts/` 페이지를 쓰거나 갱신한다.
   진짜로 가치 있을 때만 — 일상적 작업에 문서를 제조하지 말 것.
 - 사용자가 요청하지 않으면 commit 이나 push 하지 말 것.
-- **Linear 상태 전이 (활성 이슈가 있을 때만).** Phase 0 에서 In Progress 로 옮긴
-  활성 이슈가 있으면, verify 가 green 이고 Acceptance 장부가 닫힌 지금
-  `linear.md` 의 전이 맵대로 **In Review 로 자동 전이**한다(Done 은 머지 시점 —
-  `land` 가 처리). Linear 없거나 이슈 없으면 생략. 전이 실패는 wrap 을 막지 않는다.
+- **Linear 상태 전이 + 결과 코멘트 (활성 이슈가 있을 때만).** Phase 0 에서 In Progress
+  로 옮긴 활성 이슈가 있으면, verify 가 green 이고 Acceptance 장부가 닫힌 지금
+  `linear.md` 의 전이 맵대로 **In Review 로 자동 전이**하고, **같은 시점에 위 결과
+  보드를 그 이슈 코멘트로 남긴다**(`linear.md` §3b — 보드 재사용·마스킹·AI disclaimer,
+  재작성 금지). Done 은 머지 시점 — `land` 가 처리. Linear 없거나 이슈 없으면 생략.
+  전이·코멘트 실패는 wrap 을 막지 않는다.
 - **완료 신호 (`result:` — 전 스킬 공통, `~/.claude/skills/craft-core/references/output-contract.md` L1):**
   마지막 메시지를 `result:` 한 줄로 못 박는다 — 무엇이 바뀌었는지 + 추가 테스트 +
   보안 평결(예: `result: <기능> 구현 — N 테스트 통과, 보안 pass`). 빌드형이라 산출물은

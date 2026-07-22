@@ -113,4 +113,13 @@ G0 에서 slug 확정 직후, 네이티브 Task 도구(`TaskCreate`)로 게이�
 
 ## 출력 보고
 
-종료 시 `result:` 한 줄(이슈 slug · outcome · attempts · merge/단락) + 워크트리·verdict 경로 + `loop/log/YYYY-MM-DD.md` 기록 여부.
+종료 시(pass/short-circuit 공통) **결과 보드**(`~/.claude/skills/craft-core/references/output-contract.md`
+§R — 복제 금지)를 emit 한다. harness 정체성 행: `outcome`(pass/short-circuit + attempts
+점수 궤적, 예 `FAIL 76 → PASS 93`) · `게이트`(G0~G4 체크 현황 + 다음 사람 게이트) ·
+`a<N> 감점`(실패 attempt 의 카테고리·사유·verdict 경로). 공통 행: 변경(워크트리·files) ·
+증거(verdict 경로·rubric frozen 유지·eval 산물 격리 확인) · 기록(loop 로그 append 여부) ·
+타이밍(② · G1대기(사람) · loop/attempts · total).
+
+보드 아래 L1 `result:` 한 줄(이슈 slug · outcome · attempts · 다음 게이트). **활성
+Linear 이슈가 있으면 같은 보드를 이슈 코멘트로 남긴다**(`linear.md` §3b — 자동·마스킹·
+실패 보드도 동일). 다음 → pass 면 `/land`(G3), short-circuit 이면 `harness-heal`(G2).
