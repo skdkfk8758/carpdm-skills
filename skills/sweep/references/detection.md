@@ -120,7 +120,7 @@ git status --porcelain --ignored | grep '^!!'    # ignored build/tmp output
 
 ## Related
 
-- `~/.claude/rules/db-drop-preflight.md` — 비가역 삭제 전 liveness 3증거 halt
+- `~/.claude/rules-ondemand/db-drop-preflight.md` — 비가역 삭제 전 liveness 3증거 halt
   (§1 landed 판정 3증거의 동형 근거).
 - `~/.claude/rules/verification-safety.md` V2 — 판정 grep 의 fixed-string 이스케이프
   근거(§3 orphan/dup grep).

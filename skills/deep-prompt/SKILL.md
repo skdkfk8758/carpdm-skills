@@ -174,7 +174,7 @@ pipeline/deep-plan 의 companion 이 사람 리뷰용이라면, 여기 시안은
 
 시안을 쓴 직후 **`Artifact` 도구로 publish** 하고 사용자에게 artifact URL 을
 제시한다 — 사용자가 goal 승인 전 시각 타겟을 링크로 리뷰한다. 로컬 파일은 유지
-(에이전트 입력). 규칙 SSOT: `~/.claude/rules/html-mockup-artifact.md`.
+(에이전트 입력). 규칙 SSOT: `~/.claude/rules-ondemand/html-mockup-artifact.md`.
 
 그리고 **시안을 goal 프롬프트에 묶는다** — 시안은 장식이 아니라 성공 기준의 일부다
 (이하 deep-prompt 고유):

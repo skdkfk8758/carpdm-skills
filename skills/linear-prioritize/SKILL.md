@@ -77,7 +77,8 @@ jq -r '.hasNextPage' "$FILE"
 - 기존 milestone 중복 확인: `mcp__linear__list_milestones(project)` 먼저.
 - 자식 전원 `mcp__linear__save_issue(id, milestone=<milestoneId>)` 로 편입.
 - **묶는 기준** — 1순위 순차 의존 체인, 2순위 같은 목표의 병렬 묶음(3개+). 단발 이슈·외부 대기·과거 Done 은 **묶지 않는다**(마일스톤 없는 게 기본값. 전부 묶기는 안티패턴 — 마일스톤이 프로젝트 복제가 되어 변별력 0). Done 소급 묶기는 cosmetic 이니 금지.
-- milestone 생성/편입은 mutation 이다. 2~3개 정도면 바로, 대량이면 사용자 확인 후 진행.
+- **기존 milestone 재편(신규 묶기 전에).** `list_milestones` 결과와 각 이슈의 현재 `projectMilestone` 을 위 기준에 대조해 어긋난 구조를 먼저 바로잡는다 — 체인과 무관한 이슈가 편입돼 있으면 해제(`save_issue(id, milestone=null)`), 한 체인이 여러 milestone 에 분산돼 있으면 하나로 모으고, 소속이 0이 된 milestone 은 `save_milestone` 으로 이름/설명을 재정의해 재활용한다(**milestone 삭제 도구는 MCP 에 없다** — 비워두고 수동 삭제를 안내). 어긋난 구조 위에 신규 묶기를 얹으면 변별력이 죽는다.
+- milestone 생성/편입/재편은 mutation 이다. 2~3개 정도면 바로, 대량이면 사용자 확인 후 진행. **해제·이동은 기존 구조를 바꾸는 것이라 건수 무관 표로 제안 후 진행**(사용자가 의도적으로 묶었을 수 있다 — 조용히 풀지 않는다).
 
 > ⚠ milestone 은 같은 project 내로 갇힌다 — **cross-team 블록은 마일스톤에 안 잡힌다**(그건 blockedBy 관계가 담당). 마일스톤 진척과 별개로 블록은 우선순위 표에서 명시한다.
 
@@ -108,7 +109,7 @@ Project: ...
  └ Milestone: ... ▓▓░░ N/M
 ```
 
-마일스톤을 새로 묶었으면 무엇을 왜 묶었고 무엇을 의도적으로 안 묶었는지 1~2줄로 보고한다.
+마일스톤을 새로 묶었거나 기존 구조를 재편(해제/이동/재정의)했으면 무엇을 왜 바꿨고 무엇을 의도적으로 안 건드렸는지 1~2줄로 보고한다.
 
 ## 경계 (이 스킬이 아닌 것)
 
@@ -125,6 +126,6 @@ Project: ...
 
 ## Related
 
-- `~/.claude/rules/linear-dispatch.md` — repo→팀 조회 스코프(Step 1 SSOT).
+- `~/.claude/rules-ondemand/linear-dispatch.md` — repo→팀 조회 스코프(Step 1 SSOT).
 - `~/.claude/linear-repo-map.json` — repo↔team 매핑 + team≠repo 혼재 note.
 - `[[feedback-epic-chain-milestone-autobind]]` — EPIC 체인 milestone 묶기 컨벤션(Step 6 근거).

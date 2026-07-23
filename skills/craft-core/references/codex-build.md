@@ -191,5 +191,5 @@ Phase 3 형제 회귀 최종 게이트 + Phase 4 secure verify + intent conforma
 
 - `dynamic-tdd.md` — Phase 3 모델 규칙·Stage 골격 SSOT (이 파일이 그 위 opt-in 델타).
 - `codex-review.md` — Phase 2 cross-model *리뷰*(read-only). 이 파일은 cross-model *구현*.
-- `~/.claude/rules/delegated-review-watchdog.md` — limit/hang 래더의 상위 규칙.
+- `~/.claude/rules-ondemand/delegated-review-watchdog.md` — limit/hang 래더의 상위 규칙.
 - `~/.claude/skills/orca-cli/SKILL.md` — Orca 워크트리/터미널 드라이버 SSOT.

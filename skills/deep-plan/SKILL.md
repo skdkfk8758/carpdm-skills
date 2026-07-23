@@ -117,7 +117,7 @@ CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --effor
 - **effort 는 medium 기본.** 보안 경계·외부 계약·마이그를 수반하는 요청만 상향.
 - **watchdog** — background + 진행 감시. 마지막 진행 후 3분 무소식이면 kill, hard
   cap 20분. kill 시 stderr 파일에서 부분 결과를 회수한다. SSOT:
-  `~/.claude/rules/delegated-review-watchdog.md`.
+  `~/.claude/rules-ondemand/delegated-review-watchdog.md`.
 
 비평 프롬프트는 compact 한 XML-태그 operator 형태 — fable 초안 전문 + 원 요청문 +
 repo-context 를 싣고, 산출 계약을 강제한다:
@@ -295,7 +295,7 @@ inline 폴백.
 **Artifact publish (의무).** `.html` 을 쓴 직후 `Artifact` 도구로 publish 한다.
 사용자 리뷰 딜리버러블은 **artifact URL**(로컬 `.html` 은 유지 — 하니스 입력).
 갱신 시 같은 파일 경로로 재-publish 해 URL 을 유지한다. 규칙 SSOT:
-`~/.claude/rules/html-mockup-artifact.md`.
+`~/.claude/rules-ondemand/html-mockup-artifact.md`.
 
 #### ERD companion — plan 이 DB 스키마/BE 데이터 모델을 수반하면 (UI 판정과 별개)
 

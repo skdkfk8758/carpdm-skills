@@ -80,6 +80,10 @@ export function triage(issues) {
       id: i?.id,
       title: i?.title,
       project: i?.project ?? null,
+      // Current milestone name (list_issues nests it under projectMilestone).
+      // Placement review (Step 3a-2) reads this to spot stale/mismatched
+      // milestones — fit itself is a model judgment, not a bucket here.
+      milestone: i?.projectMilestone?.name ?? null,
       proseLength: Number.isFinite(prose) ? prose : null, // null = long body, not measured
       needsGrouping: needsGrouping(i),
       enrichTier: tier,                                    // 'empty' | 'shallow' | null

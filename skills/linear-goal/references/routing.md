@@ -5,7 +5,7 @@ repo 에서 작업할지(Step 0)와 이 티켓이 goal 로 굴려도 되는 cris
 보낼 어려운 것인지(Step 1)의 로직 본체가 여기 있다. 단 repo↔team 매핑 **데이터**의
 SSOT 는 `~/.claude/linear-repo-map.json` 이다(본 파일은 그걸 조회만 함).
 
-> `~/.claude/rules/linear-dispatch.md` 는 **별개 관심사**다 — 거기 `Step L` 은 이슈
+> `~/.claude/rules-ondemand/linear-dispatch.md` 는 **별개 관심사**다 — 거기 `Step L` 은 이슈
 > *조회·리스트업* 스코프(현재 repo 팀으로 좁히기)만 다루며 dispatch 라우팅을 정의하지
 > 않는다. 둘은 같은 `linear-repo-map.json` 을 공유할 뿐, 서로의 단계를 흡수하지 않는다.
 

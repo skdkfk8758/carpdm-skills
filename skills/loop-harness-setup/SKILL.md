@@ -74,4 +74,4 @@ green = 재시도/단락·진범귀속 "이빨" 정상 이식. **red 면 멈추�
 
 ## Related
 - 원본 가이드(SSOT): `$SRC/docs/guides/setup-loop-harness-oneshot.md` · `port-loop-engineering-harness.md` · `setup-loop-visualization.md`.
-- 글로벌 룰 포인터: `~/.claude/rules/loop-visualization.md`.
+- 글로벌 룰 포인터: `~/.claude/rules-ondemand/loop-visualization.md`.

@@ -250,7 +250,7 @@ done 을 측정하는지" 를 시안·플랜과 **나란히** 본다. UI compani
 URL 을 리뷰 딜리버러블로 제시**한다. 로컬 `.html` 은 삭제하지 않는다 — Artifact
 는 파일에서 publish 되고, 하니스 eval(D 시안충실도)·Phase 3/4 가 로컬 파일을
 입력으로 읽는다. `.md` 변경으로 `.html` 을 갱신하면 **같은 파일 경로로 재-publish**
-해 URL 을 유지한다. 규칙 SSOT: `~/.claude/rules/html-mockup-artifact.md`.
+해 URL 을 유지한다. 규칙 SSOT: `~/.claude/rules-ondemand/html-mockup-artifact.md`.
 
 Phase 2 전에 사용자에게 플랜 확인을 요청한다. 사용자가 보지 못한 플랜은
 플랜이 아니다.
