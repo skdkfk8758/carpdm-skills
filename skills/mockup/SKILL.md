@@ -55,7 +55,7 @@ design-context.md §5 대로:
 
 시안을 쓴 직후 `Artifact` 도구로 publish 하고 artifact URL 을 딜리버러블로
 제시한다. 로컬 파일은 유지(하니스·빌드 스킬 입력). 갱신 시 같은 경로로 재-publish.
-규칙 SSOT: `~/.claude/rules/html-mockup-artifact.md`.
+규칙 SSOT: `~/.claude/rules-ondemand/html-mockup-artifact.md`.
 
 ## Anti-patterns
 

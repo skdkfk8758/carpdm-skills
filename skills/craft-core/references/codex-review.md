@@ -72,6 +72,9 @@ Review and critique only — do NOT edit, create, or delete any files.
 <grounding_rules>
 Cite the specific plan section for every finding. If something is a hypothesis,
 say so. Do not invent problems to seem thorough.
+Bias toward approval: surface only findings that would materially change the
+implementation outcome. Style preferences and scope expansions beyond the
+stated goal are not findings.
 </grounding_rules>
 
 <structured_output_contract>
@@ -108,11 +111,16 @@ verdict JSON 으로 기계 판정한다 — 산문 해석 금지:
    | id | 판정 | 근거 |
    | B1 | FIXED | plan §3 재작성 — <무엇을 어떻게> |
    | B2 | REJECTED | <grep/build/재현 증거로 반박> |
+   | B3 | DEFERRED | <정당 사유 + 행선지 — 후속 이슈 URL/plan 후속 섹션> |
    ```
 
    **REJECTED 는 반드시 직접 검증 증거(grep/build/재현)를 동반한다** — 증거
    없는 reject 금지. codex verdict 를 그대로 믿지 않는 독립 재검증이 이
    원장 작성 행위 자체다.
+   **DEFERRED 는 med/low 전용** — high 는 defer 불가(FIXED 또는 증거 있는
+   REJECTED 만). defer 는 사유와 행선지(후속 이슈·plan 섹션)를 반드시 명명 —
+   행선지 없는 defer 는 조용한 무시와 같다. 이 3선택지(fix/defer/push-back)가
+   리뷰어의 범위 확장 압박에 대한 author 의 수렴 장치다.
 3. **codex 에 `--resume-last` 로 원장 검증 요청:**
 
    ```

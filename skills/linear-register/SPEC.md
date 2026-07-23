@@ -89,7 +89,7 @@
   tracker-agnostic·`setup-matt-pocock-skills` 의존은 이관하지 않음(Linear-native).
   (구 `triage`·`to-prd` 는 폐기됨.)
 - **carpdm Linear 인프라** — `~/.claude/linear-repo-map.json`(repo→team 매핑, REQ-F-002/N-004 입력),
-  `~/.claude/rules/linear-dispatch.md`(현재 repo→팀 스코프 역매핑 SSOT — REQ-F-002 가 동형 적용),
+  `~/.claude/rules-ondemand/linear-dispatch.md`(현재 repo→팀 스코프 역매핑 SSOT — REQ-F-002 가 동형 적용),
   Linear MCP(`create_issue`/`save_issue`/`create_comment`/`list_projects` — REQ-F-001/003/008/009),
   기존 `linear-goal`(티켓 자율빌드)·`linear-groom`(백로그 재배치) — Out of scope 로 경계.
 - **Blast radius:** 신규 스킬 — 기존 스킬 코드 변경 없음. 유일 충돌면 = description 트리거(REQ-N-001 로 양보).
