@@ -43,6 +43,7 @@ codex 가 다른 가중치로 그것을 공격하며 갭을 보태고(적대 비
 
 | 읽는 시점 | 파일 |
 |---|---|
+| Step 0 입력이 Linear 이슈 참조일 때 | `~/.claude/skills/linear-goal/references/routing.md` §goal-ready |
 | Step 0 문서 grounding 시 | `cc/context-adr.md` |
 | Step 2 codex 호출 직전 (첫 1회) | `cc/codex-review.md` 의 "어떻게 호출하는가" 절 |
 | Step 5 PLAN 작성 직전 | `cc/pipeline.md` 의 Phase 1 (plan 섹션 + HTML companion + Eval 패널 규칙) |
@@ -72,6 +73,14 @@ fable 저자에게는 `dp/SKILL.md` 의 "고정 템플릿 채우기"·"검증 �
 ### Step 0 — Frame & ground
 
 - 작업유형과 한 줄 목표를 사용자에게 되짚는다.
+- **Linear 이슈 입력이면 readiness 게이트 먼저.** 입력이 Linear 이슈(ID 언급 또는
+  세션 `Linked Linear issue` 배너)면 fetch 후 `routing.md` §goal-ready(이때 읽는다)로
+  판정한다. **goal-ready**(실측 증거 + 측정가능 AC + 범위 밖 + 해석 단일 — 4개 전부)
+  면 재플래닝은 중복이다 — plan 을 만들지 말고 `linear-goal`(또는 이슈 `## 추천` 의
+  실행 스킬) 직행을 `AskUserQuestion` 으로 제안하고 멈춘다. 사용자가 명시적으로
+  plan 을 원하면(override) 계속. 4개 미달이면 평소 플로우 — 이슈 본문을 요청문
+  입력으로 삼는다. Linear MCP 부재·routing.md 미설치면 게이트 생략(같은 원리 직접
+  판단, 그 사실 한 줄 보고).
 - **Ground first.** plan 이 건드릴 코드(가능하면 code-graph/LSP, 아니면 영향 반경에
   한정한 Read/Grep — 절대 레포 전체 아님)와 관련 기존 문서(ADR/concept/guide —
   `context-adr.md`)를 scope-read 한다. plan 은 standing 결정을 존중하고, 파일/계약을
@@ -375,6 +384,9 @@ PLAN `.md` 에 기록.
 ## Anti-patterns
 
 - **구현 코드를 쓰기 / craft Phase 2~5 진입** — deep-plan 은 Phase 1 에서 멈춘다.
+- **goal-ready Linear 이슈 재플래닝** — 실측 증거·측정가능 AC·범위 밖·단일 해석을
+  다 갖춘 이슈에 plan 재생성은 중복(Step 0 readiness 게이트 — routing.md §goal-ready).
+  제안 없이 debate 로 직행하지 말 것.
 - **codex 를 수렴 핑퐁 플랜 리뷰어로 쓰기** — 여기서 codex 의 일은 고정 비트
   메타프롬프팅 비평뿐이다. 수렴 게이트 플랜 리뷰는 forge/renew/hunt Phase 2 소관.
 - **왕복 3회 이상 / 델타 0 인데 반영·verdict 비트 실행** — 상한 고정 2왕복(4비트),

@@ -71,8 +71,10 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
 1. **repo 확정** — `team.key`(또는 projectExceptions 의 `project.id`)로
    `~/.claude/linear-repo-map.json` 조회. `repo:null`·uncertain·외부/운영-요청이면
    거부 또는 사용자 확인.
-2. **goal/harness 판정** — routing.md rubric 을 위에서 아래로. **harness-class**면
-   **여기서 멈추고** "이 티켓은 goal 부적합 — `harness-run` 권장 (사유: …)" 출력. goal 강행 금지.
+2. **goal/harness/spec-thin 판정** — routing.md rubric 을 위에서 아래로. **harness-class**면
+   **여기서 멈추고** "이 티켓은 goal 부적합 — `harness-run` 권장 (사유: …)" 출력.
+   **spec-thin**(AC 없음 + 본문 빈약)이면 역시 멈추고 `linear-groom` 보강 또는
+   `deep-plan` 을 권장한다(보강 후 재판정이 정경로). goal 강행 금지.
 3. 이슈에 `## 추천` 이 있으면 그 라우팅을 **참고 신호**로 본다(예: 추천이 `/hunt` →
    worker 가 버그수정 모드). 단 위 harness 판정이 상위 — 추천이 빌드를 가리켜도
    estimate≥5/cross-cutting 이면 harness 로 멈춘다.
