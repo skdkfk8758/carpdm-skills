@@ -23,7 +23,7 @@ description: Land the open PRs you pushed from worktrees and bring local back in
 | Action | 입장 |
 |---|---|
 | **절대 안 함** | 공유 브랜치에 `git push --force`, draft / CI 실패 / mergeable 아닌 PR 머지, PR 이 아직 열려 있는 브랜치 삭제, 기본 브랜치에 직접 커밋, 추측으로 conflict 해결 |
-| **한 번 확인 후 실행** | 자기 feature 브랜치 push + `gh pr create`(Step 0), PR 머지, 머지된 로컬 브랜치 삭제, 머지된 자기 feature 브랜치의 remote 잔존 삭제(`git push origin --delete`), `git worktree remove`, 살아남은 브랜치 rebase |
+| **한 번 확인 후 실행** | 자기 feature 브랜치 push + `gh pr create`(Step 0), PR 머지, 머지된 로컬 브랜치 삭제, 머지된 자기 feature 브랜치의 remote 잔존 삭제(`git push origin --delete`), `git worktree remove`(**워크트리별 AskUserQuestion 인터뷰 승인 필수** — 5 단계, `guard-worktree-remove` 훅 강제), 살아남은 브랜치 rebase |
 | **자유롭게 실행** | `gh pr list`, `git worktree list`, `git fetch`, `git rev-list --count`, `git ls-remote --heads`, `git merge-base --is-ancestor`, CI 상태 읽기, `git checkout <default>` + `git pull` (fast-forward) |
 
 > 공유 브랜치 force-push 금지·squash-only·trunk 직접 push 금지의 SSOT = `~/.claude/rules/branch-worktree-strategy.md` §3. 프로젝트별 override 판단 시 그 규칙을 따른다.
@@ -152,7 +152,10 @@ After merge, locally:
 Proceed?
 ```
 
-승인을 기다린다. 이것이 유일한 게이트다 — 그 후에는 무언가 중단되지 않는 한 추가 프롬프트 없이 실행한다.
+승인을 기다린다. 이 승인 후에는 무언가 중단되지 않는 한 추가 프롬프트 없이 실행한다 —
+**단 하나의 예외는 워크트리 제거**다: `guard-worktree-remove` 훅이 삭제 대상 선택을
+별도 인터뷰(5 단계)로 강제한다. Confirm 의 "remove worktrees […]" 는 예고일 뿐이고,
+실제 제거 대상은 5 단계 인터뷰에서 확정된다.
 
 **대화형 세션에서는 승인을 AskUserQuestion 으로 구조화한다** — 자유 텍스트 "Proceed?"
 는 유저가 일부만 승인(특정 PR 제외)하려 할 때 프롬프트를 왕복하게 만든다. 위 플랜을
@@ -184,7 +187,13 @@ Proceed?
 머지가 끝나면:
 
 1. **기본 브랜치 Pull**: `git checkout <default> && git pull --ff-only`. (여기서 절대 커밋하지 말 것 — branch-protection 가드가 직접 작업을 막고, `--ff-only` 가 깨끗하게 유지한다.) **pull 전후 SHA 를 잡아, pulled range 에 lockfile 변경이 있으면 플래그한다** — pull 직전 `git rev-parse HEAD` 를 기억하고, pull 후 `git diff --name-only <before>..HEAD` 에 `package-lock.json`/`pnpm-lock.yaml` 이 있으면 deps 가 바뀐 것이다. worktree 별 `node_modules` 는 분리라 이 경우 main repo 에 `.bin` 미생성 → `make dev` 부팅 실패(`tsx: command not found`) 재발 위험(`branch-worktree-strategy.md` §5a). Report 에 `## ⚠ deps 변경` 섹션으로 lockfile 목록 + `npm install` 제안을 남긴다(마이그 플래그와 동형). 승인 하에 `npm install` 을 실행해도 되지만 임의 실행은 하지 않는다.
-2. **머지된 워크트리를 먼저 제거하고, 그 다음 브랜치 삭제** — 순서가 중요하다: 워크트리에 체크아웃된 브랜치는 삭제할 수 없다. 랜딩된 브랜치를 가진 각 워크트리에 대해, **제거 전 `git -C <path> status --porcelain` 으로 깨끗한지 확인하라** — 비어 있지 않으면(커밋 안 된 작업) 멈추고 물어볼 것, 절대 `worktree remove --force` 로 밀지 말 것(stack 여부와 무관하게 항상 적용 — `references/stacking.md` "Dirty 워크트리 가드"는 이 규칙의 rebase 케이스 포함 상세본). 깨끗하면 `git worktree remove <path>` 한 뒤 브랜치를 삭제한다. 안전망으로 `git branch -d <branch>` (소문자)를 선호하라 — git 은 그 브랜치가 기본 브랜치의 조상이 아니면 거부한다. **하지만 squash 머지는 이 체크를 깬다**: squash 는 브랜치를 기본 브랜치 위의 하나의 새 커밋으로 접어 버려서, 원래 브랜치 커밋들은 조상이 *아니게* 되고 PR 이 정말로 머지됐어도 `-d` 가 거부한다. 그러므로: `-d` 가 거부하면 작업이 랜딩 안 됐다고 단정하지 말 것 — PR 에 대해 확인하라(`gh pr view <n> --json state` 가 `MERGED` 를 보여준다). 머지됐다면 `git branch -D <branch>` 가 안전하다; 그 삭제는 로컬 조상이 아니라 머지가 뒷받침한다. PR 이 머지되지 *않았는데* `-d` 가 여전히 거부할 때만 조사할 것(절대 `-D` 금지) — 그게 진짜 "이건 랜딩 안 됐다" 신호다.
+2. **워크트리 정리 인터뷰 → 제거 → 그 다음 브랜치 삭제** — 순서가 중요하다: 워크트리에 체크아웃된 브랜치는 삭제할 수 없다. 그리고 `git worktree remove` 는 `guard-worktree-remove` 훅이 차단한다 — 삭제 대상은 반드시 사용자 인터뷰로 확정한다("머지됨 + clean" 은 브랜치 수명 판정일 뿐, 다른 라이브 세션의 cwd 일 수 있어 "사용 중 아님"을 보장하지 않는다 — 실사고로 훅이 생긴 이유다).
+   - **후보 수집**: `git worktree list` 로 잔여 워크트리를 전수 수집한다 — 랜딩된 브랜치의 워크트리뿐 아니라 **살아남은 브랜치·고아 워크트리도 후보에 올린다**(작업이 끝난 시점이 정리의 자연스러운 때다). 메인 워크트리는 후보 아님.
+   - **dirty 검사**: 각 후보를 `git -C <path> status --porcelain` 으로 확인 — 비어 있지 않으면(커밋 안 된 작업) 후보에서 제외하고 Report 에 플래그한다. 절대 `worktree remove --force` 로 밀지 말 것(stack 여부와 무관하게 항상 적용 — `references/stacking.md` "Dirty 워크트리 가드"는 이 규칙의 rebase 케이스 포함 상세본).
+   - **인터뷰**: 후보를 `AskUserQuestion`(multiSelect) 으로 제시 — 워크트리별 한 옵션, 라벨 = 경로, description = 브랜치 + 상태(머지됨/미머지, clean). 랜딩된 브랜치의 워크트리는 "(Recommended)" 로 표시한다. Step 3 Confirm 승인은 이 인터뷰를 **대체하지 않는다** — 훅이 워크트리별 선택을 별도로 요구한다.
+   - **제거**: 사용자가 선택한 대상만 `GUARD_WORKTREE_OK=1 git worktree remove <path>` 로 제거한다. 마커는 인터뷰 승인 후에만 붙인다 — 인터뷰 없이 선부착 금지. 선택 해제된 워크트리는 건드리지 않고 Report 에 잔여로 남긴다.
+   - **백그라운드 잡(`$CLAUDE_JOB_DIR` 존재)이면 인터뷰 불가** → 워크트리 제거를 통째로 생략하고, Report 에 잔여 워크트리 목록 + "다음 대화형 세션에서 정리 필요" 를 남긴다(머지·pull·remote 정리는 그대로 진행 — 워크트리만 보류).
+   - 제거가 끝난 랜딩 브랜치는 이어서 삭제한다. 안전망으로 `git branch -d <branch>` (소문자)를 선호하라 — git 은 그 브랜치가 기본 브랜치의 조상이 아니면 거부한다. **하지만 squash 머지는 이 체크를 깬다**: squash 는 브랜치를 기본 브랜치 위의 하나의 새 커밋으로 접어 버려서, 원래 브랜치 커밋들은 조상이 *아니게* 되고 PR 이 정말로 머지됐어도 `-d` 가 거부한다. 그러므로: `-d` 가 거부하면 작업이 랜딩 안 됐다고 단정하지 말 것 — PR 에 대해 확인하라(`gh pr view <n> --json state` 가 `MERGED` 를 보여준다). 머지됐다면 `git branch -D <branch>` 가 안전하다; 그 삭제는 로컬 조상이 아니라 머지가 뒷받침한다. PR 이 머지되지 *않았는데* `-d` 가 여전히 거부할 때만 조사할 것(절대 `-D` 금지) — 그게 진짜 "이건 랜딩 안 됐다" 신호다.
 3. **remote-tracking prune + remote 잔존 검사**: `git fetch --prune` / `--delete-branch` 가 이미 처리했다; 마지막 `git remote prune origin` 이 남은 것을 정리한다. 단 `--delete-branch` 는 head 브랜치가 워크트리/메인에 점유돼 있으면 remote 삭제를 **조용히 스킵**한다(실측: ADT-265 #458) — "옵션 줬으니 지워졌을 것"은 green 위장(verification-safety V1). 그러므로 머지된 각 PR 의 head 에 대해 `git ls-remote --heads origin <branch>` 로 검증하고, 비어 있지 않으면(=remote 에 잔존) `git push origin --delete <branch>`(자기 feature 브랜치 한정, force 아님)로 마저 지운다.
 4. **살아남은 것 rebase**: 랜딩되지 않은 각 로컬 브랜치에 대해 `git rebase <default>`. conflict 시 멈추고 그 브랜치를 보고하라(유저가 해결하거나 요청 시 당신이 해결할 수 있게 rebase 를 진행 중으로 남겨 둘 것) — 복구 형태는 `references/stacking.md` 참조.
 5. **Linear 이슈 Done 전이 (연결된 이슈가 있을 때만, graceful).** 머지된 PR 에
