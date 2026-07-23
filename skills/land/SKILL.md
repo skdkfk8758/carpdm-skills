@@ -1,6 +1,6 @@
 ---
 name: land
-description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치·워크트리 제거 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 다음 작업 후보. 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "브랜치/워크트리 정리", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
+description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치·워크트리 제거 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 다음 작업 후보. 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 머지할 PR 없이 워크트리만 치우는 건 wt-sweep(land 의 sweep 모드 전용 진입점), 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
 ---
 
 # Land — push 한 PR 을 머지하고 로컬을 안전하게 재동기화
@@ -37,6 +37,14 @@ CI 가 실패하거나, 머지가 막히거나, rebase 가 conflict 를 만나�
 중단하고, 복구 가능한 상태로 남기고, 보고하고, 아직 안전한 것으로 넘어갈 것.**
 막힌 PR 하나 때문에 전체 실행을 중단하지 말고, 유저 없이 `rebase --abort` 하거나
 conflict 를 버리지 말 것 — 유저가 해결하고 싶어 할 수 있다.
+
+## Sweep 모드 — 머지할 것 없이 워크트리만 치울 때
+
+머지할 PR 이 없고(Discover 에서 열린 PR 0건 + raise 후보 0건) 잔여/세션 워크트리만
+있으면, 또는 유저 요청 자체가 정리뿐이면, Step 0~4 를 건너뛰고
+`references/sweep-mode.md` 를 읽어 그대로 수행한다. `wt-sweep` 스킬이 이 경로의
+전용 진입점이다 — 정리 규율(인터뷰 게이트·dirty 제외·미머지 보존+라우팅)은 그
+한 장이 SSOT 다(여기 재기술 금지).
 
 ## 파이프라인
 
@@ -291,6 +299,8 @@ L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 머지/정리 수�
 
 ## 이 스킬이 틀린 선택일 때
 
+- 머지할 PR 없이 워크트리만 치우려 할 때 → `wt-sweep` (land 의 sweep 모드 전용
+  진입점 — land 로 들어와도 Sweep 모드로 자동 분기하므로 실패는 아니다).
 - 유저가 변경을 *작성*하려는 것이지 머지하려는 게 아닐 때 → `forge` / `hunt` / `renew`.
 - 유저가 미완 작업을 재개하거나 어디까지 했는지 떠올리려 할 때 → `handoff`.
 - 유저가 git 브랜치가 아니라 오래된 문서/로그를 치우려 할 때 → `sweep`.
