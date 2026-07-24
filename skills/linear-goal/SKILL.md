@@ -94,6 +94,15 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
   100% 충족이 아니면 PR 을 열지 말고 `needs input:` 으로 어느 항목이 왜 미충족인지 보고하고
   멈춘다**(검증이 종료를 선행 — `~/.claude/rules/acceptance-criteria-gate.md`).
 - 체인 `## 다음 작업` 의 kickoff 프롬프트가 있으면 Objective 시드로 활용.
+- **UI 작업이면 인수 검증을 Verification 에 박는다 (hard gate).** 이슈가 사용자 대면 UI
+  표면(화면·컴포넌트·폼·버튼)을 만들거나 바꾸면, worker 의 `## Verification` 에 다음을
+  명시 지시로 넣는다: "`~/.claude/skills/craft-core/references/ui-verify.md` 를 읽고 그
+  절차대로 인터랙션 인벤토리 → chrome MCP 실구동 → (승인 시안이 있으면) 시안 갭 표를
+  수행하라. 구동 `fail` 또는 미처리 `gap` 이 남으면 PR 을 열지 말고 `needs input:` 으로
+  보고하라. `blocked` 항목은 검증 체크리스트의 사용자 직접 확인 필요로 이관하라."
+  절차는 그 파일이 SSOT — 프롬프트에 절차를 복제하지 말고 경로로 지시한다. worker 는
+  백그라운드라 `[HUMAN]` walk 이 불가하므로 이 자동 구동이 유일한 동작 검증 표면이다.
+  비 UI 이슈면 생략.
 - **표준 Constraints** 박기: 지목 영역만 수정, 머지/push/배포/삭제 금지 — 변경만 두고 보고.
 - **`## Done & Report`** — 검증 결과를 메시지 텍스트로 재진술 + 상태 신호 한 줄
   (`result:`/`needs input:`/`failed:` — 리터럴 파싱 계약이 아니라 오독 방지 컨벤션;

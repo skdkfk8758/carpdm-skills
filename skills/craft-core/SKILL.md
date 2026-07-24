@@ -21,6 +21,7 @@ Socratic 초점과 TDD 진입점을 얹은 뒤 이 엔진을 돌린다.
 - `references/dynamic-tdd.md` — `Workflow` 도구 기반 태스크 분할 + TDD (모델 규칙 SSOT).
 - `references/simplify-pass.md` — Phase 3.5 선택적 정리 패스 (`/simplify` 위임).
 - `references/security.md` — 보안 검증 (Phase 4).
+- `references/ui-verify.md` — UI 인수 검증: 인터랙션 실구동 + 시안 갭 분석 (Phase 4, UI 빌드만).
 - `references/context-adr.md` — grounding 을 위한 ADR/concept/guide 읽기 (Phase 1),
   영속적 결정을 위한 ADR & concept 문서 작성/관리 (Phase 5).
 

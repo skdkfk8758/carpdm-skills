@@ -277,12 +277,14 @@ return (await parallel(LANES.map(L => () =>
 
 **Stage B — intent judgment (영속 designer).** 메인 세션이
 패널의 살아남은 발견을 **여전히 살아있는 designer** 에게 `SendMessage` 로
-넘긴다. **UI 빌드면** 메인이 먼저 빌드 UI 를 실제로 렌더해 chrome MCP
-(`mcp__claude-in-chrome__take_screenshot` 또는 동등 도구)로 결과 화면을 캡처하고,
-그 스크린샷(또는 경로)을 승인 mockup `.html` 과 함께 `SendMessage` 에 실어 designer 가
-코드가 아니라 *실제 렌더* 를 자기 시안 의도에 대조하게 한다 — 시안과의 시각적 어긋남도
-designer 가 confirmed gap 으로 잡을 수 있다(chrome MCP 미설치·헤드리스 불가면 코드/렌더
-텍스트 대조로 폴백). designer — 원래 의도를 보유 — 가 각각을 분류한다:
+넘긴다. **UI 빌드면** 메인이 먼저
+`~/.claude/skills/craft-core/references/ui-verify.md` 를 읽어 그 절차대로 **인터랙션
+인벤토리(Part A) → chrome MCP 실구동(Part B) → 시안 갭 표(Part C)** 를 수행하고, 그
+산출(구동 판정 목록 + 갭 표 + 스크린샷 경로)을 승인 mockup `.html` 과 함께 `SendMessage`
+에 실어 designer 가 코드가 아니라 *실제로 눌린 결과* 를 자기 시안 의도에 대조하게 한다 —
+정적 렌더 대조만으론 안 잡히는 동작 결함(버튼 무반응·에러 상태 부재)과 상태별 시안
+어긋남을 designer 가 confirmed gap 으로 잡을 수 있다. 절차·도구명·폴백 사다리는 그 파일이
+SSOT 다(여기 복제 금지). designer — 원래 의도를 보유 — 가 각각을 분류한다:
 
 - **Confirmed gap** — 플랜의 Goal/Acceptance 로부터의 진짜 deviation → 새 atomic
   태스크로 Phase 3 으로 돌아간다 (그 태스크들만으로 빌드 워크플로 재실행).
