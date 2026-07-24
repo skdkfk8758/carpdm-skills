@@ -1,0 +1,201 @@
+<!--
+  인터랙티브 [사용자 직접 확인 필요] 체크리스트 템플릿 (ui-verify.md §4 소비).
+  Artifact 로 publish 하는 self-contained 페이지 — <html>/<head>/<body> 태그 없이 본문만
+  (Artifact 가 skeleton 으로 감싼다). 인라인 CSS/JS 만, 외부 fetch/폰트/CDN 금지(CSP).
+
+  치환 규칙 (이 템플릿을 그대로 복사한 뒤 채운다):
+    {{TITLE}}       — 페이지 제목 (예: "UX 검증 체크리스트 — 캠페인·리포트 관리")
+    {{EYEBROW}}     — 상단 라벨 (예: "QA 개선 라운드 · 2026-07-24" 또는 이슈/PR 묶음명)
+    {{LEDE}}        — 1~2문장 안내. dev URL 을 <code> 로. 무엇이 남았는지(사람 실렌더 확인).
+    {{DEV_ORIGIN}}  — 로컬 서버 origin. **ui-verify §5.1 로 실제 띄운 뒤 스크립트가 찍은
+                      값만** 쓴다(관례값 :3000 가정 금지 — 메인 체크아웃의 다른 브랜치를
+                      가리키면 변경 없는 화면을 검증하게 된다). 서버가 안 떴으면 링크를
+                      만들지 말고 라우트 경로만 텍스트로 둔다.
+    {{SERVER}}      — 서버 상태 블록(아래 SERVER 블록). 기동됐으면 origin·정지 명령,
+                      안 됐으면 기동 명령·실패 사유. 생략 금지.
+    {{SECTIONS}}    — 아래 SECTION 블록을 항목 단위(이슈/화면/기능)로 반복.
+    {{NOTES}}       — 확인 필요/완료 후 안내 노트. 없으면 통째 삭제.
+    {{STORAGE_KEY}} — localStorage 키 (작업마다 고유. 예: "adt-qa-checklist-v1").
+
+  SERVER 블록 (header 바로 아래 — 사람이 첫 링크를 누르기 전에 읽는 자리):
+    <div class="server" data-up="{{true|false}}">
+      <div class="server-dot"></div>
+      <div class="server-body">
+        <div class="server-line">{{떠 있음: "dev 서버 실행 중 · <origin>" / 안 뜸: "dev 서버가 떠 있지 않다"}}</div>
+        <div class="server-cmd">{{떠 있음: 정지 명령 / 안 뜸: 기동 명령}}</div>
+      </div>
+    </div>
+    기동/정지 명령 SSOT = dev-server-daemon:
+      python ~/.claude/skills/dev-server-daemon/scripts/devserverctl.py start|stop --cwd <워크트리>
+    daemon 은 세션이 끝나도 살아 있다 — 체크를 다 채운 뒤 사람이 내리는 게 정상 수명이다.
+
+  SECTION 블록 (단위마다 반복 — 이슈ID/화면/기능 하나 = 카드 하나):
+    <section class="issue" data-issue="{{ID}}">
+      <div class="issue-head">
+        <div class="issue-top">
+          <span class="badge">{{ID}}</span>
+          <span class="area">{{AREA}}</span>            영역·화면명 (예: "area:campaign · 캠페인관리 목록")
+          <span class="issue-done-pill">0/{{N}}</span>  N = 이 카드의 항목 수
+        </div>
+        <div class="issue-title">{{SECTION_TITLE}}</div>
+        <a class="route" href="{{DEV_ORIGIN}}{{ROUTE}}" target="_blank" rel="noopener">
+          {{ROUTE}} <span class="arrow">↗</span>         확인할 라우트. 진입 스텝이 있으면 뒤에 덧붙임
+        </a>
+      </div>
+      <ul class="checks">
+        각 [사용자 직접 확인 필요] 항목 = <li> 하나. check-text = 관찰 가능한 성공 신호(§ui-verify),
+        check-hint = 분기·예외·보존 대상 등 보조 관찰(선택).
+        <li class="check"><span class="box"><svg viewBox="0 0 14 14"><path d="M2 7l3.5 3.5L12 3"/></svg></span>
+          <div class="check-body"><div class="check-text">{{ITEM}}</div>
+          <div class="check-hint">{{HINT — 선택, 없으면 이 줄 삭제}}</div></div></li>
+      </ul>
+    </section>
+
+  항목 도출: ui-verify Part A 인벤토리 중 `blocked` + 미검증 `[HUMAN]`(백그라운드라 walk 불가
+  포함)만 싣는다 — agent 가 이미 pass 시킨 `[직접 테스트 완료]` 는 넣지 않는다(사람이 다시
+  누를 필요 없음). 각 항목은 "동작함" 금지, 관찰 가능한 신호로(verification-safety V1).
+-->
+<title>{{TITLE}}</title>
+<style>
+  :root {
+    --bg: #f6f7f8; --surface: #ffffff; --surface-soft: #f0f2f4; --border: #e2e5e9;
+    --border-strong: #cfd4da; --text: #1a1d21; --text-2: #545b64; --text-3: #8a929c;
+    --accent: #eb5e00; --accent-soft: #fdece0; --ok: #1f9d63; --ok-soft: #e3f5ec; --pending: #b8802a;
+    --mono: ui-monospace, "SF Mono", "IBM Plex Mono", Menlo, monospace;
+    --sans: -apple-system, "Pretendard", "Apple SD Gothic Neo", "Segoe UI", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a; --surface: #1c1f24; --surface-soft: #24282e; --border: #2c3138;
+      --border-strong: #3a4048; --text: #eceef1; --text-2: #a7aeb8; --text-3: #6d747e;
+      --accent: #ff7a2e; --accent-soft: #38220f; --ok: #3ec281; --ok-soft: #16281f; --pending: #d9a441;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f7f8; --surface: #ffffff; --surface-soft: #f0f2f4; --border: #e2e5e9;
+    --border-strong: #cfd4da; --text: #1a1d21; --text-2: #545b64; --text-3: #8a929c;
+    --accent: #eb5e00; --accent-soft: #fdece0; --ok: #1f9d63; --ok-soft: #e3f5ec; --pending: #b8802a;
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161a; --surface: #1c1f24; --surface-soft: #24282e; --border: #2c3138;
+    --border-strong: #3a4048; --text: #eceef1; --text-2: #a7aeb8; --text-3: #6d747e;
+    --accent: #ff7a2e; --accent-soft: #38220f; --ok: #3ec281; --ok-soft: #16281f; --pending: #d9a441;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.55; }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 40px 24px 96px; }
+  header { margin-bottom: 32px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-size: 26px; line-height: 1.25; margin: 8px 0 6px; letter-spacing: -0.01em; text-wrap: balance; }
+  .lede { color: var(--text-2); font-size: 15px; margin: 0; }
+  .lede code { font-family: var(--mono); font-size: 13px; background: var(--surface-soft); padding: 2px 6px; border-radius: 5px; color: var(--text); }
+  .progress-card { margin-top: 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px; display: flex; align-items: center; gap: 16px; }
+  .progress-num { font-family: var(--mono); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .progress-num small { color: var(--text-3); font-weight: 500; }
+  .bar { flex: 1; height: 8px; background: var(--surface-soft); border-radius: 99px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .35s ease; }
+  .bar.done > span { background: var(--ok); }
+  .progress-label { font-size: 13px; color: var(--text-2); white-space: nowrap; }
+  .server { margin-top: 12px; display: flex; gap: 11px; align-items: flex-start; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .server-dot { flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 99px; background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); }
+  .server[data-up="false"] .server-dot { background: var(--pending); box-shadow: 0 0 0 3px transparent; }
+  .server-body { min-width: 0; }
+  .server-line { font-size: 13.5px; color: var(--text-2); }
+  .server-line b { color: var(--text); font-weight: 600; }
+  .server-cmd { font-family: var(--mono); font-size: 11.5px; color: var(--text-3); margin-top: 4px; overflow-x: auto; white-space: nowrap; }
+  .issue { margin-top: 22px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .issue-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); }
+  .issue-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .badge { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; padding: 3px 8px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); }
+  .area { font-family: var(--mono); font-size: 11.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .issue-done-pill { margin-left: auto; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: var(--surface-soft); color: var(--text-3); transition: all .2s; }
+  .issue.complete .issue-done-pill { background: var(--ok-soft); color: var(--ok); }
+  .issue-title { font-size: 16px; font-weight: 650; margin: 0 0 10px; letter-spacing: -0.005em; }
+  .route { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 12.5px; text-decoration: none; color: var(--text-2); background: var(--surface-soft); border: 1px solid var(--border); padding: 5px 10px; border-radius: 7px; transition: border-color .15s, color .15s; }
+  .route:hover { border-color: var(--accent); color: var(--accent); }
+  .route .arrow { opacity: .5; }
+  ul.checks { list-style: none; margin: 0; padding: 6px 8px 10px; }
+  li.check { display: flex; gap: 12px; padding: 11px 12px; border-radius: 9px; cursor: pointer; align-items: flex-start; transition: background .12s; }
+  li.check:hover { background: var(--surface-soft); }
+  .box { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 6px; border: 2px solid var(--border-strong); background: var(--surface); display: grid; place-items: center; transition: all .15s; }
+  .box svg { width: 12px; height: 12px; stroke: #fff; stroke-width: 3.2; fill: none; opacity: 0; transform: scale(.5); transition: all .15s; }
+  li.check.on .box { background: var(--ok); border-color: var(--ok); }
+  li.check.on .box svg { opacity: 1; transform: scale(1); }
+  .check-body { min-width: 0; }
+  .check-text { font-size: 14.5px; color: var(--text); transition: color .15s; }
+  li.check.on .check-text { color: var(--text-3); text-decoration: line-through; text-decoration-color: var(--border-strong); }
+  .check-hint { font-size: 12.5px; color: var(--text-3); margin-top: 3px; }
+  .check-hint b { color: var(--text-2); font-weight: 600; }
+  kbd { font-family: var(--mono); font-size: 11.5px; background: var(--surface-soft); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; color: var(--text-2); }
+  .note { margin-top: 26px; border: 1px solid var(--border); border-left: 3px solid var(--pending); border-radius: 10px; background: var(--surface); padding: 16px 18px; }
+  .note h3 { margin: 0 0 6px; font-size: 14px; color: var(--pending); }
+  .note p { margin: 0 0 8px; font-size: 13.5px; color: var(--text-2); }
+  .note p:last-child { margin-bottom: 0; }
+  .note a { color: var(--accent); }
+  .toolbar { display: flex; gap: 10px; margin-top: 28px; align-items: center; }
+  .btn { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--text-2); background: var(--surface); border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 14px; cursor: pointer; transition: all .15s; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .foot { margin-top: 40px; font-size: 12px; color: var(--text-3); font-family: var(--mono); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">{{EYEBROW}}</div>
+    <h1>{{TITLE}}</h1>
+    <p class="lede">{{LEDE}}</p>
+    <div class="progress-card">
+      <div class="progress-num"><span id="pdone">0</span><small>/<span id="ptotal">0</span></small></div>
+      <div class="bar" id="bar"><span></span></div>
+      <div class="progress-label" id="plabel">시작 전</div>
+    </div>
+    {{SERVER}}
+  </header>
+
+  {{SECTIONS}}
+
+  {{NOTES}}
+
+  <div class="toolbar"><button class="btn" id="reset">체크 초기화</button></div>
+  <div class="foot">{{FOOT — 예: dev 서버 origin · 로컬 저장(localStorage)}}</div>
+</div>
+
+<script>
+  (function () {
+    var KEY = "{{STORAGE_KEY}}";
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { saved = {}; }
+    var checks = Array.prototype.slice.call(document.querySelectorAll("li.check"));
+    checks.forEach(function (li, i) {
+      li.dataset.id = "c" + i;
+      if (saved["c" + i]) li.classList.add("on");
+      li.addEventListener("click", function () { li.classList.toggle("on"); persist(); render(); });
+    });
+    function persist() {
+      var out = {};
+      checks.forEach(function (li) { if (li.classList.contains("on")) out[li.dataset.id] = 1; });
+      try { localStorage.setItem(KEY, JSON.stringify(out)); } catch (e) {}
+    }
+    function render() {
+      var total = checks.length;
+      var done = checks.filter(function (li) { return li.classList.contains("on"); }).length;
+      document.getElementById("pdone").textContent = done;
+      document.getElementById("ptotal").textContent = total;
+      var pct = total ? Math.round((done / total) * 100) : 0;
+      var bar = document.getElementById("bar");
+      bar.querySelector("span").style.width = pct + "%";
+      bar.classList.toggle("done", done === total && total > 0);
+      document.getElementById("plabel").textContent = done === 0 ? "시작 전" : (done === total ? "전부 확인됨" : pct + "% 확인됨");
+      document.querySelectorAll("section.issue").forEach(function (sec) {
+        var items = Array.prototype.slice.call(sec.querySelectorAll("li.check"));
+        var d = items.filter(function (li) { return li.classList.contains("on"); }).length;
+        sec.querySelector(".issue-done-pill").textContent = d + "/" + items.length;
+        sec.classList.toggle("complete", d === items.length && items.length > 0);
+      });
+    }
+    document.getElementById("reset").addEventListener("click", function () {
+      checks.forEach(function (li) { li.classList.remove("on"); }); persist(); render();
+    });
+    render();
+  })();
+</script>
