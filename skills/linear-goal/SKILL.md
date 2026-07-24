@@ -143,7 +143,11 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
    emit 한다. linear-goal 정체성 행: `worker`([DONE]/[FAIL] 자가보고 · status log 스텝 수 ·
    자가보고 테스트 수) · `메인 재검증`(git diff 파일 일치 · verify 명령 재실행 실측 —
    R9: 자가보고만으론 완료 불인정). 공통 행: Acceptance(N/N + 검증 근거) · 납품(PR ·
-   Linear 상태). 잔여(머지=사람 · critic 없음)·체인(다음 이슈)은 보드 행이 아니라
+   Linear 상태). 보드와 §N 사이에 **검증 체크리스트**(output-contract §V — 복제 금지)를
+   emit 한다 — worker 는 백그라운드라 `[HUMAN]` walk 이 없었으므로 미검증 `[HUMAN]`
+   항목은 전부 `[사용자 직접 확인 필요]` 체크박스(`- [ ]` + 확인 방법 1구절)로 싣고,
+   이슈 코멘트에도 보드와 함께 실린다(§3b). 잔여(머지=사람 · critic 없음)·체인(다음
+   이슈)은 보드 행이 아니라
    보드 아래 **다음 단계 블록**(output-contract §N — 고정 3행, 항상 emit, 복제 금지)으로:
    잔여 = 메인 재검증 실패 항목·AC 미체크(없으면 "없음 — ✅ 모든 작업 완료"), 필수 =
    PR 머지 → `/land`(이 스킬은 In Review 까지만), 권장 = 체인 다음 이슈
