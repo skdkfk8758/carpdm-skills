@@ -143,7 +143,11 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
    emit 한다. linear-goal 정체성 행: `worker`([DONE]/[FAIL] 자가보고 · status log 스텝 수 ·
    자가보고 테스트 수) · `메인 재검증`(git diff 파일 일치 · verify 명령 재실행 실측 —
    R9: 자가보고만으론 완료 불인정). 공통 행: Acceptance(N/N + 검증 근거) · 납품(PR ·
-   Linear 상태) · 잔여(머지=사람 · critic 없음) · 체인(다음 이슈). 그 다음 분기:
+   Linear 상태). 잔여(머지=사람 · critic 없음)·체인(다음 이슈)은 보드 행이 아니라
+   보드 아래 **다음 단계 블록**(output-contract §N — 고정 3행, 항상 emit, 복제 금지)으로:
+   잔여 = 메인 재검증 실패 항목·AC 미체크(없으면 "없음 — ✅ 모든 작업 완료"), 필수 =
+   PR 머지 → `/land`(이 스킬은 In Review 까지만), 권장 = 체인 다음 이슈
+   `linear-goal <next-id>`. 그 다음 분기:
    - worker 가 PR 을 열었으면(수용 기준 100% 검증 통과) → **Linear → In Review** + PR 링크
      attach + 충족된 수용 기준 체크박스 `[x]` 갱신 + **결과 보드를 이슈 코멘트로**
      (`linear.md` §3b — 검증 근거 코멘트를 보드가 흡수, 별도 산문 재작성 금지·마스킹).
@@ -158,7 +162,9 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
 > 경량 흐름이라 자동 critic 은 기본 드롭(필요 시 opt-in).
 
 각 보고는 `~/.claude/skills/craft-core/references/output-contract.md` 의 종료 블록을 따른다:
-`result:` 한 줄 + 산출물(Goal Prompt `.md`, 비동기 턴이면 PR 링크) 열기 행.
+다음 단계 블록(§N) → `result:` 한 줄 + 산출물(Goal Prompt `.md`, 비동기 턴이면 PR 링크)
+열기 행. 8번의 다음 이슈 제시는 §N 권장 행과 같은 내용이어야 한다(§N 규칙 5 — 이중
+SSOT 금지).
 
 ## Anti-patterns
 

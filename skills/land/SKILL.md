@@ -1,6 +1,6 @@
 ---
 name: land
-description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치 삭제 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 다음 작업 후보. 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 워크트리·세션 기록 정리는 wt-sweep(land 는 워크트리를 건드리지 않는다), 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
+description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치 삭제 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 잔여 작업 판정(git·Linear·handoff — 모두 완료면 완료 선언 + wt-sweep 안내) + 다음 작업 후보. 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 워크트리·세션 기록 정리는 wt-sweep(land 는 워크트리를 건드리지 않는다), 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
 ---
 
 # Land — push 한 PR 을 머지하고 로컬을 안전하게 재동기화
@@ -245,6 +245,36 @@ land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정�
   - 찾은 링크는 클릭 가능하게 — 레포 상대경로(예: `docs/plans/2026-06-29-x.md`)는
     마크다운 링크로, 이슈/PR 은 전체 URL 로. **없으면 생략한다 — 추측해 만들어내지 말 것.**
 
+**잔여 작업 판정 — "모두 끝났는가"에 명시적으로 답한다 (다음 작업 후보와 별개).**
+랜딩이 끝났다고 작업이 다 끝난 건 아니다 — report 는 무엇이 실렸는지에 더해 무엇이
+남았는지를 판정해 두 갈래 중 하나로 답한다. 세 소스를 스캔한다:
+
+- **이번 실행 잔여 (git, 항상)**: Skipped/미완 PR, conflict 로 멈춘 rebase, 워크트리
+  점유로 삭제 보류된 브랜치, 기본 브랜치보다 ahead 인데 머지 안 된 로컬 브랜치
+  (`git rev-list --count <default>..<branch>` > 0), dirty 워크트리.
+- **Linear 연결 이슈 잔여 (graceful — 5 단계 Done 전이와 같은 조건)**: 이번 land 의
+  연결 이슈 중 Done 못 간 것(AC 미체크로 In Review 잔류 포함), 그 parent 이슈의
+  다른 미완 sub-issue. Linear MCP 미설치이거나 연결 이슈가 없으면 이 소스는 조용히 생략.
+- **세션 히스토리 잔여 (graceful)**: `docs/handoff/` 에 이번 랜딩 작업과 같은 스레드의
+  handoff 문서가 있으면 그 "남은 작업" 섹션을 대조한다 — 랜딩으로 소진됐으면 잔여
+  아님(소진 사실만 언급, 삭제는 handoff/sweep 의 일), 미완 항목이 남았으면 잔여다.
+  디렉터리가 없으면 생략.
+
+스캔 결과는 **다음 단계 블록**(`~/.claude/skills/craft-core/references/output-contract.md`
+§N — 고정 3행 `잔여/필수/권장`, 블록 생략 금지, 규칙은 거기가 SSOT — 복제 금지)으로
+emit 한다. 위치: report 본문(카드·Local sync·다음 작업) 아래, `result:` 바로 위. land
+의 행 매핑:
+
+- **잔여** = 3-소스 스캔 결과 그대로 — 항목마다 출처(git/Linear/handoff) + 라우팅
+  1줄(미머지 브랜치 → 이어서 작업 후 다시 land, 미완 이슈 → `linear-goal <ID>`,
+  handoff 잔여 → handoff 로 재개). 잔여 0건일 때만 `없음 — ✅ 모든 작업 완료`.
+- **필수** = 이번 land 가 만든, 안 하면 미완/위험으로 남는 후속만 — conflict 로 멈춘
+  rebase 해소, `## ⚠ 마이그레이션` prod apply, deps 변경 시 `npm install`. 없으면 "없음".
+- **권장** = 잔여 0건(완료 선언)일 때만 잔여 워크트리 `wt-sweep` 안내 — 모두 랜딩됐으니
+  지금이 치워도 안전한 시점이다. **잔여가 있으면 wt-sweep 을 권하지 않는다**(미머지
+  작업이 남은 워크트리 정리 유도 금지 — 워크트리는 Local sync 에 목록만). 새 작업
+  후보는 이 행이 아니라 `## 다음 작업` 섹션이 담당 — 중복 금지.
+
 **다음 작업 후보 수집 (Linear, graceful).** 랜딩 직후는 유저가 다음 티켓을 고르는
 자연스러운 시점이다 — report 가 "무엇이 실렸나"에서 끝나지 않고 "다음은 무엇인가"까지
 답하면 유저가 Linear 를 따로 열 필요가 없다. 조건은 5 단계 Done 전이와 같은 graceful
@@ -286,7 +316,9 @@ landed 로만 보고하지 말 것.
 L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 머지/정리 수치를 담되 self-contained 로
 (예: `result: N개 PR 머지 — 로컬 <default> 동기화, M개 브랜치 정리, K개 rebase`).
 산출물이 git 상태 변화라 열기 블록(L2)은 적용 안 하고, 다음 스킬 제안(L3)은 별도로
-내지 않는다 — `## 다음 작업` 섹션(Linear 후보 + kickoff)이 그 역할을 대신한다. conflict 로
+내지 않는다 — `## 다음 작업` 섹션(Linear 후보 + kickoff)이 그 역할을 대신한다.
+`result:` 는 다음 단계 블록(§N) 아래 마지막 줄이다(순서: report 본문 → `▶ 다음 단계`
+→ `result:`). conflict 로
 멈춘 rebase 가 있으면 `result:` 가 아니라 진행 상태로 보고한다(미납품).
 
 ## 이 스킬이 틀린 선택일 때
