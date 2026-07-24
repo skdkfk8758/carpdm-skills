@@ -294,8 +294,13 @@ SSOT 다(여기 복제 금지). designer — 원래 의도를 보유 — 가 각
   짧은 Phase 1 micro-round, 그다음 delta 를 위한 Phase 3.
 
 designer 가 수용할 때까지 Stage A → B → (필요하면 Phase 3) → A 를 loop 한다: 게이트는
-**verify 게이트 green AND designer 가 confirmed gap 을 제기하지 않음**. 아무것도 red 로
-출시하지 않는다.
+**verify 게이트 green AND designer 가 confirmed gap 을 제기하지 않음 AND (UI 빌드면)
+ui-verify §4 게이트 통과**. 아무것도 red 로 출시하지 않는다.
+
+세 번째 절이 §5·§5.1 을 끌고 온다 — designer 가 수용해도 **남은 `[사용자 직접 확인 필요]`
+가 2건 이상이면 체크리스트 아티팩트를 publish 하고 dev 서버를 띄운 채 넘겨야** 출시다.
+Part A~C 결과를 designer 에게 넘기는 데까지만 신경 쓰고 인계를 흘리는 게 실측된 누락
+형태다(ADT-406) — 여기 메인은 designer 에게 *보고*하는 주체이자 사람에게 *인계*하는 주체다.
 
 ---
 
