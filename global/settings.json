@@ -82,6 +82,11 @@
           },
           {
             "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-worktree-remove.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "bash ~/.claude/hooks/guards/guard-branch-linear-naming.sh",
             "timeout": 5
           }
@@ -112,7 +117,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -130,6 +135,16 @@
           {
             "type": "command",
             "command": "bash ~/.claude/hooks/guards/guard-claude-md-size.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-html-mockup-artifact-nudge.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-human-checklist-nudge.sh",
             "timeout": 5
           }
         ]
@@ -159,7 +174,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -182,7 +197,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "bash ~/.claude/hooks/linear-banner-autostart.sh",
+            "timeout": 10,
+            "statusMessage": "Linear auto-start check..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -193,7 +218,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -204,7 +229,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -216,7 +241,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
@@ -228,7 +253,40 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; fi",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
             "timeout": 10
           }
         ]
