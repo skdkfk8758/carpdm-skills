@@ -371,6 +371,9 @@ eval 장부가 닫히는 조건: **모든 `[AUTO]` 항목 green AND 모든 `[HUM
   상태코드+응답 확인. dev 환경 한정 — prod 호출 금지.
 - **UI** — 실제 렌더를 띄워 화면 확인(스크린샷). 승인 시안이 있으면 아래 시안 충실도
   게이트와 같은 렌더를 재사용한다(이중 구동 불요); **시안 없는 UI 도 렌더 확인은 한다**.
+  **인터랙티브 요소(버튼·form·input·라우팅 트리거)가 이번 diff 에 1개라도 있으면 렌더
+  확인에서 멈추지 말고 아래 UI 인수 검증 게이트로 간다** — 렌더는 "그려진다"이지
+  "눌러진다"가 아니다.
 - **CLI/스크립트** — 대표 커맨드 1회 실행 → 실제 출력 확인.
 - **라이브러리 전용** — 별도 구동면이 없으면 수트 green 이 곧 스모크 — 생략하고 그
   사실을 기록.
@@ -401,26 +404,31 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
   이 판정은 추가 에이전트 없이 메인 세션이 한다 — 이미 plan·diff 컨텍스트를 보유해
   싸다.
 
-- **시안 충실도 게이트 (승인 mockup 이 있는 UI 작업만).** Phase 3 가 충실 구현
-  하라고 지시한 승인 mockup(deep-plan companion `.html` / 이전 시안)이 있으면, 결과를
-  그것에 직접 대조한다 — mockup 과 구현 코드/렌더를 비교해 레이아웃·간격·색·컴포넌트
-  구조가 시안과 *일치*하는지 본다(미감 점수가 아니라 시안과의 일치; 시안이 곧 visual
-  계약 — Phase 3 SSOT). 벗어난 부분은 confirmed gap 으로 친다. 이는 위 `[HUMAN]`
-  not-run 과 구분된다 — 시안과의 *구조적 일치*는 메인이 객관 판정할 수 있어 게이트로
-  치고, 순수 미감·UX 질감만 `[HUMAN]` 잔여 리스크로 남긴다. mockup 없는 net-new
-  UI·비 UI 빌드엔 비적용.
+- **UI 인수 검증 게이트 — 인터랙션 실구동 + 시안 갭 분석 (hard gate).** 이번 diff 가
+  인터랙티브 UI 표면(버튼·form·input·라우팅 트리거)을 만들었거나 승인 mockup(deep-plan
+  companion `.html` / 이전 시안)이 있으면,
+  `~/.claude/skills/craft-core/references/ui-verify.md` 를 **읽고 그대로 따른다**
+  (절차 SSOT — 여기 복제 금지). 그 파일이 하는 일 셋:
+  - **Part A 인터랙션 인벤토리** — diff 에서 버튼/form/input 을 뽑아 `요소 · 기대 동작 ·
+    관찰 가능한 성공 신호` 목록으로. 이게 검증 장부다(목록 없이 몇 개 눌러본 것은 검증 아님).
+  - **Part B 실구동** — chrome MCP 로 dev 렌더를 열어 인벤토리를 하나씩 실제로 누르고
+    입력하며, DOM 변화·네트워크 요청·콘솔 에러로 결과를 관찰한다. 에러/로딩 상태도 유발해
+    본다. 파괴적·다이얼로그 컨트롤은 누르지 않고 수동 확인으로 이관.
+  - **Part C 시안 갭 분석** — 승인 mockup 이 있으면 Part B 의 그 렌더를 재사용해 구조·
+    레이아웃·스타일·상태 4축으로 대조하고 발견을 **갭 표**로 못 박는다(gap / out of scope /
+    plan defect). 시안이 곧 visual 계약 — 미감 점수가 아니라 일치 판정이다. 순수 미감·UX
+    질감만 `[HUMAN]` 잔여 리스크로 남긴다.
 
-  **대조 방법 — 실제 렌더 우선(vision).** 코드를 읽는 데 그치지 말고, 가능하면
-  빌드 UI 를 실제로 띄워 *시각적으로* 대조한다: dev 서버 또는 정적 파일을 열고
-  chrome MCP(`mcp__claude-in-chrome__take_screenshot` 또는 동등 도구)로 결과 화면을
-  캡처해 승인 mockup `.html` 과 나란히 본다 — 레이아웃·간격·색·컴포넌트 구조의 어긋남은
-  코드만 읽어선 놓치기 쉽다. 캡처한 스크린샷과 mockup 을 직접 비교해 deviation 을
-  confirmed gap 으로 분류한다. chrome MCP 미설치·헤드리스 불가·렌더 불가 경로면
-  코드/렌더 텍스트 대조로 폴백한다(게이트는 유지, 대조 방법만 격하한다).
+  판정은 위 의도 일치 판정과 같은 어휘로 흐른다 — 구동 `fail` 과 갭 표의 `gap` 은
+  **confirmed gap**, `blocked`(파괴적·브라우저 불가·env 부재)는 출시를 막지 않되 검증
+  체크리스트(§V) `[사용자 직접 확인 필요]` 로 **반드시** 이관한다. mockup 없는 net-new UI 도
+  Part A/B 는 돈다(Part C 만 생략). 인터랙티브 요소 0인 정적 변경·비 UI 빌드엔 비적용 —
+  위 런타임 스모크로 충분.
 
-- **게이트.** **verify green AND confirmed gap 없음**일 때만 출시한다. confirmed gap
-  이 있으면 Phase 3(또는 plan defect 면 Phase 1 micro-round)으로 돌아가 delta 를 짓고
-  Phase 4 를 다시 돈다 — orchestrated 의 Stage A→B→Phase 3→A loop 의 linear 대응이다.
+- **게이트.** **verify green AND confirmed gap 없음 AND (해당하면) UI 인수 검증 통과**일
+  때만 출시한다. confirmed gap 이 있으면 Phase 3(또는 plan defect 면 Phase 1 micro-round)
+  으로 돌아가 delta 를 짓고 Phase 4 를 다시 돈다 — orchestrated 의 Stage A→B→Phase 3→A
+  loop 의 linear 대응이다.
 
 - **한계 (정직히).** linear 엔 영속 designer 가 없어 **메인 세션이 designer 겸
   빌더**다 — 자기 빌드를 자기가 판정하는 self-judgment 라 독립성이 낮다(자기 구현을
