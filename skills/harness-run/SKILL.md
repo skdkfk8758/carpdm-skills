@@ -120,6 +120,9 @@ G0 에서 slug 확정 직후, 네이티브 Task 도구(`TaskCreate`)로 게이�
 증거(verdict 경로·rubric frozen 유지·eval 산물 격리 확인) · 기록(loop 로그 append 여부) ·
 타이밍(② · G1대기(사람) · loop/attempts · total).
 
-보드 아래 L1 `result:` 한 줄(이슈 slug · outcome · attempts · 다음 게이트). **활성
+보드 아래에 **다음 단계 블록**(output-contract §N — 고정 3행 잔여/필수/권장, 항상
+emit, 복제 금지)을 붙인다 — 잔여 = 미통과 게이트·short-circuit 사유(없으면 "없음 —
+✅ 모든 작업 완료"), 필수 = pass 면 `/land`(G3), short-circuit 이면 `harness-heal`(G2).
+그 아래 L1 `result:` 한 줄(이슈 slug · outcome · attempts · 다음 게이트). **활성
 Linear 이슈가 있으면 같은 보드를 이슈 코멘트로 남긴다**(`linear.md` §3b — 자동·마스킹·
-실패 보드도 동일). 다음 → pass 면 `/land`(G3), short-circuit 이면 `harness-heal`(G2).
+실패 보드도 동일).

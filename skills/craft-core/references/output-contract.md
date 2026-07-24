@@ -25,20 +25,22 @@ PR 보고)은 본질적으로 다르고, 본문 구조를 억지 통일하면 �
 
 | 레이어 | 적용 | 비적용 |
 |---|---|---|
-| **R — 결과 보드** (본문 마지막 블록, L1 바로 위) | **코드를 바꾼 스킬** (forge/hunt/renew · harness-run · linear-goal) | 산출물·운영 스킬 (아래 §R 비적용 근거) |
+| **R — 결과 보드** (본문 마지막 블록, N 위) | **코드를 바꾼 스킬** (forge/hunt/renew · harness-run · linear-goal) | 산출물·운영 스킬 (아래 §R 비적용 근거) |
+| **N — 다음 단계 블록** (R/본문 아래, L1 바로 위) | **작업 완료형** (forge/hunt/renew · harness-run · linear-goal · land) | 산출물 스킬(deep-* — L3 이 그 역할) · handoff/sweep |
 | **L1 — `result:` 1줄** (완료 신호) | **전 스킬 의무** | 없음 |
 | **L2 — 산출물 열기 블록** (`open` 경로) | 파일을 산출하는 스킬 | commit/삭제/머지 보고형 |
 | **L3 — 다음 스킬 제안** (`AskUserQuestion`) | 산출물을 *전진*시키는 스킬 | 운영/정리 스킬 |
 
 스킬군별 적용:
 
-| 스킬군 | 스킬 | L1 | L2 | L3 |
-|---|---|---|---|---|
-| 빌드 | forge / hunt / renew | ✓ | — (commit 참조) | ✓ (pipeline Phase 5) |
-| 설계·산출 | deep-interview / deep-plan | ✓ | ✓ | ✓ |
-| 산출(단발) | deep-prompt / imprint / erd | ✓ | ✓ | — |
-| 리뷰·판정 | preflight | ✓ | ✓ (docs/reviews) | ✓ (수정 라우팅) |
-| 운영 | handoff / sweep / land | ✓ | handoff 만 ✓ | — |
+| 스킬군 | 스킬 | L1 | L2 | L3 | N |
+|---|---|---|---|---|---|
+| 빌드 | forge / hunt / renew | ✓ | — (commit 참조) | ✓ (pipeline Phase 5) | ✓ |
+| 하니스·worker | harness-run / linear-goal | ✓ | — | — | ✓ |
+| 설계·산출 | deep-interview / deep-plan | ✓ | ✓ | ✓ | — |
+| 산출(단발) | deep-prompt / imprint / erd | ✓ | ✓ | — | — |
+| 리뷰·판정 | preflight | ✓ | ✓ (docs/reviews) | ✓ (수정 라우팅) | — |
+| 운영 | handoff / sweep / land | ✓ | handoff 만 ✓ | — | land 만 ✓ |
 
 L3 비적용 근거: `next-skill-routing.md` 가 sweep/land/handoff 를 "다음 후보 아님"으로
 명시 배제한다 — 이들은 산출물을 전진시키는 스킬이 아니라 종착 운영이다.
@@ -119,8 +121,10 @@ result: <L1 한 줄>
 ## R — 결과 보드 (코드를 바꾼 스킬 전용)
 
 작업을 끝낸 시점(빌드 wrap · 하니스 종료 · worker 완료 턴)에 결과를 **고정 행 셋**으로
-정리하는 반고정 블록. **본문 마지막 = L1 바로 위**에 선다 — L1~L3 은 불변이고 보드가
-그 위에 얹힌다(`result:` 는 여전히 보드 아래 마지막 줄 — classifier 파싱 순서 불변식).
+정리하는 반고정 블록. **본문 마지막 = §N 다음 단계 블록 바로 위**에 선다 — 순서는
+본문 → 보드 → N 블록 → L1 고정(`result:` 는 여전히 마지막 줄 — classifier 파싱 순서
+불변식). 보드는 *무엇을 했나*, N 블록은 *이후 뭐가 필요한가* — 관점 분담이라 겹치지
+않는다.
 
 **적용**: forge/hunt/renew(pipeline Phase 5 가 주입) · harness-run · linear-goal.
 **비적용**: 산출물 스킬(deep-* 등 — L2 열기 블록이 그 역할) · 운영 스킬(land 등 —
@@ -144,9 +148,12 @@ result: <L1 한 줄>
  평결        보안 <verdict> (근거 1구절) · intent <verdict>
  Acceptance  N/N [AUTO x · HUMAN y — 처리 방식]
  타이밍      phase 별 elapsed (est 대비) · total · 사람대기 분리   ← progress.md P4 와 같은 소스
- 잔여        [HUMAN] 남은 수동 확인 · 코드 밖 후속
 └─────────────────────────────────────────────
 ```
+
+> 잔여 행은 §N 다음 단계 블록으로 이관됐다(2026-07-24) — 보드에 중복 기재하지
+> 않는다. 글로벌 `turn-result-board.md` 축약판의 잔여 행은 그대로다(플레인 턴엔
+> N 블록이 없어 그 행이 유일한 잔여 표면 — 의도된 비대칭).
 
 | 스킬 | 정체성 행 |
 |---|---|
@@ -163,12 +170,66 @@ result: <L1 한 줄>
    (verification-safety V1: 이 명령이 실패했다면 지금 출력이 달랐을 것인가).
 3. **타이밍은 est 대비 실측.** progress.md P4 와 같은 jsonl 소스 — 보드가 매 런의
    병목 보고를 겸한다(사람 대기 분리 표기).
-4. **사람 몫은 명시적으로 남긴다.** [HUMAN] 잔여·머지 승인·수동 확인 — 보드가 "전부
-   끝남"으로 위장하지 않는다. fail/미충족(short-circuit·needs input)도 같은 보드로
-   정리한다(성공 전용 포맷 아님).
-5. **L1 은 보드 아래 마지막 줄.** 순서 불변식 — 보드 도입이 `result:` 파싱을 깨면 안 된다.
+4. **사람 몫은 §N 잔여 행으로 명시한다.** [HUMAN] 몫·머지 승인·수동 확인은 보드가
+   아니라 다음 단계 블록의 잔여 행에 남긴다 — 종료 출력이 "전부 끝남"으로 위장하지
+   않는다. fail/미충족(short-circuit·needs input)도 같은 보드로 정리한다(성공 전용
+   포맷 아님).
+5. **L1 은 마지막 줄.** 순서 불변식(본문→보드→N→L1) — 보드 도입이 `result:` 파싱을
+   깨면 안 된다.
 6. **한 번 쓰고 재사용.** 턴 출력과 Linear 이슈 코멘트(`linear.md` §3b)가 **같은 본문** —
    채널별 재작성 금지(이중 SSOT 는 반드시 drift 난다).
+
+## N — 다음 단계 블록 (작업 완료형 스킬 전용)
+
+작업이 끝난 시점에 "이후 무엇이 필요한가"를 **고정 3행**으로 답하는 블록. 본문
+(R 보드 또는 land report)이 *무엇을 했나*를 답하고, 이 블록이 *이후 뭐가 필요한가*를
+항상 같은 자리·같은 형태로 답한다 — 종료 메시지마다 후속 가이드가 있다가 없다가
+하는 비일관을 없애는 게 존재 이유다.
+
+**적용**: forge/hunt/renew(pipeline Phase 5 주입) · harness-run · linear-goal · land.
+**비적용**: 산출물 스킬(deep-* — L3 다음 스킬 제안이 그 역할) · handoff/sweep(종착
+운영, next-skill-routing 배제 근거와 동일).
+
+**위치**: 본문(보드/report) 아래, **L1 `result:` 바로 위**. 순서 불변식:
+본문 → [R 보드] → N 블록 → L1.
+
+### 고정 형태
+
+```
+▶ 다음 단계
+ 잔여   <이 작업 스레드에서 아직 안 끝난 것 — 없으면 "없음 — ✅ 모든 작업 완료">
+ 필수   <안 하면 결과가 미완/위험으로 남는 후속 행동 — 없으면 "없음">
+ 권장   <하면 좋은 정리·검증 — 없으면 행 생략>
+```
+
+### 블록 6규칙
+
+1. **블록은 항상 emit.** 내용이 없어도 블록을 생략하지 않는다 — 잔여·필수는 "없음"을
+   명시 행으로 쓴다(없음 명시와 행 누락은 다른 신호다). 권장만 없을 때 생략 가능한
+   유일한 행.
+2. **잔여** = 이번 작업 자체의 미완 — [HUMAN] 수동 확인, conflict 로 멈춘 rebase,
+   Skipped PR, AC 미체크, 미머지 브랜치. 잔여 0건일 때만 `없음 — ✅ 모든 작업 완료`
+   로 완료를 선언한다 — 잔여가 있는데 완료 선언 금지.
+3. **필수** = 작업은 끝났지만 안 하면 결과가 미완/위험으로 남는 후속 — 열린 PR 머지
+   (→ `/land`), prod 마이그 apply, deps 변경 후 `npm install`, 사람 승인 대기.
+4. **권장** = 해도 되고 안 해도 되는 정리·검증 — `wt-sweep`(모두 랜딩됐을 때만),
+   `/sweep`, `/code-review`, 다음 티켓 kickoff. 항목 포맷은 세 행 공통:
+   `<대상/행동> — <이유 1구절>`. 여러 항목이면 줄바꿈 + 들여쓰기.
+5. **AskUserQuestion 제안과 정합.** 상호작용 제안(L3/post-build routing)을 내는 스킬은
+   그 후보를 이 블록의 필수·권장 행에서 뽑는다 — 블록에 없는 후보를 제안하거나,
+   제안한 것을 블록에서 빠뜨리지 말 것(같은 턴 안 이중 SSOT 는 반드시 drift 난다).
+6. **"없음"도 증거다.** 스캔·검증 없이 "없음"을 쓰지 말 것 — 각 스킬의 잔여 판정
+   절차(빌드=Acceptance 장부, land=Step 6 3-소스 스캔, linear-goal=R9 재검증)를 돌린
+   결과만 적는다(verification-safety V1 동형).
+
+### 스킬별 소스 매핑
+
+| 스킬 | 잔여 소스 | 필수 전형 | 권장 전형 |
+|---|---|---|---|
+| forge/hunt/renew | Acceptance 장부 [HUMAN]·미검증 항목 | push 된 열린 PR → `/land` · 마이그 apply | `/code-review` · `/sweep` |
+| harness-run | 미통과 게이트·short-circuit 사유 | pass→`/land`(G3) · short-circuit→`harness-heal`(G2) | — |
+| linear-goal | 메인 재검증 실패 항목·AC 미체크 | PR 머지 → `/land`(In Review 까지만이므로) | 체인 다음 이슈 → `linear-goal <next-id>` |
+| land | Step 6 3-소스 스캔(git/Linear/handoff) | conflict rebase 해소 · 마이그 apply · `npm install` | 완료 시 잔여 워크트리 → `wt-sweep` |
 
 ## 적용 체크 (스킬 저작 시)
 
@@ -177,8 +238,10 @@ result: <L1 한 줄>
 1. 마지막 메시지가 `result:` 로 시작하는 한 줄을 내는가? (L1 — 전부 의무)
 2. 파일을 산출했다면 열기 블록을 붙였는가? (L2 — 파일 산출 스킬)
 3. 산출물이 전진형이면 next-skill-routing 으로 제안하는가? (L3 — 전진형만)
-4. 코드를 바꿨다면 L1 바로 위에 결과 보드를 붙였는가? (R — 빌드/하니스/worker 스킬만.
+4. 코드를 바꿨다면 본문 마지막에 결과 보드를 붙였는가? (R — 빌드/하니스/worker 스킬만.
    활성 Linear 이슈가 있으면 같은 보드를 코멘트로도 — `linear.md` §3b)
+5. 작업 완료형이면 L1 바로 위에 다음 단계 블록을 붙였는가? (N — 잔여·필수 "없음"
+   명시 포함, 블록 생략 금지)
 
 비적용 레이어는 명시적으로 비운다 — 억지로 채우지 말 것(운영 스킬에 다음 제안 강제
 금지).
