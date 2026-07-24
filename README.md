@@ -49,6 +49,7 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
 | [`wt-sweep`](skills/wt-sweep) | PR 없이 잔여·세션 워크트리만 정리 | "워크트리 정리해줘", "세션 워크트리 치워줘" | 자체 references/sweep-mode.md 가 절차 SSOT |
 | [`ship`](skills/ship) | (레포 전용) 스킬 변경 PR→CI→머지→로컬정리 한 흐름 | "PR 올리고 land 까지", "ship 해줘", "CI 통과하면 머지" | 없음 (독립, carpdm-skills 전용) |
+| [`dev-server-daemon`](skills/dev-server-daemon) | dev 서버를 daemon(double-fork)으로 띄워 세션 종료 후에도 살려둠 — 사람이 브라우저로 직접 확인하도록 인계 | "개발서버 백그라운드로 띄워줘", "dev 서버 올려둬 내가 확인할게", "올려놔" | 없음 (독립, craft-core `ui-verify §5.1` 이 이 스킬을 호출) |
 | [`preflight`](skills/preflight) | 배포 직전 앱 전체 최종 검토 → 10차원 + 기술부채 점검, 고정 포맷 리포트 + GO/조건부GO/NO-GO 판정 | "배포 전에 검토해줘", "최종 점검", "출시 전 전체 봐줘", "배포 가능한지", "/preflight" | 없음 (독립) |
 | [`fortify`](skills/fortify) | 배포 전 보안 한 축만 5 카테고리(앱/인증/데이터·통신/인프라/로깅) 감사 → PASS/FAIL/확인필요 + 라이브 probe(헤더·TLS·audit), 배포 보안 판정 | "배포 전 보안 검사", "보안 점검해줘", "OWASP 체크리스트로 감사", "/fortify" | 없음 (독립) |
 
@@ -104,7 +105,7 @@ cp -R skills/handoff ~/.claude/skills/
 cp -R skills/forge skills/craft-core ~/.claude/skills/
 ```
 
-> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / deep-prompt / imprint / mockup / erd / colocate-domain-context / cicd-scaffold / loop-harness-setup 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
+> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / deep-prompt / imprint / mockup / erd / colocate-domain-context / cicd-scaffold / loop-harness-setup / dev-server-daemon 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
 
 ---
 
@@ -143,7 +144,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land wt-sweep ship preflight fortify imprint mockup erd colocate-domain-context cicd-scaffold loop-harness-setup craft-core linear-register linear-goal linear-groom linear-prioritize harness-run eval-generate eval-check harness-heal
+ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land wt-sweep ship preflight fortify imprint mockup erd colocate-domain-context cicd-scaffold loop-harness-setup craft-core linear-register linear-goal linear-groom linear-prioritize harness-run eval-generate eval-check harness-heal dev-server-daemon
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.
