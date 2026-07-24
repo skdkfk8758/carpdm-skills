@@ -47,7 +47,7 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 | [`handoff`](skills/handoff) | 세션 인계 (저장/복원) | "여기까지 하자 이어서", "어디까지 했지" | 없음 (독립) |
 | [`sweep`](skills/sweep) | 프로젝트 잡동사니 정리 (문서/로그) | "쌓인 로그/플랜 치워줘", "docs 청소" | 없음 (독립) |
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
-| [`wt-sweep`](skills/wt-sweep) | PR 없이 잔여·세션 워크트리만 정리 | "워크트리 정리해줘", "세션 워크트리 치워줘" | `land` 의 sweep-mode.md 참조 (미설치 시 원리 직접 적용) |
+| [`wt-sweep`](skills/wt-sweep) | PR 없이 잔여·세션 워크트리만 정리 | "워크트리 정리해줘", "세션 워크트리 치워줘" | 자체 references/sweep-mode.md 가 절차 SSOT |
 | [`ship`](skills/ship) | (레포 전용) 스킬 변경 PR→CI→머지→로컬정리 한 흐름 | "PR 올리고 land 까지", "ship 해줘", "CI 통과하면 머지" | 없음 (독립, carpdm-skills 전용) |
 | [`preflight`](skills/preflight) | 배포 직전 앱 전체 최종 검토 → 10차원 + 기술부채 점검, 고정 포맷 리포트 + GO/조건부GO/NO-GO 판정 | "배포 전에 검토해줘", "최종 점검", "출시 전 전체 봐줘", "배포 가능한지", "/preflight" | 없음 (독립) |
 | [`fortify`](skills/fortify) | 배포 전 보안 한 축만 5 카테고리(앱/인증/데이터·통신/인프라/로깅) 감사 → PASS/FAIL/확인필요 + 라이브 probe(헤더·TLS·audit), 배포 보안 판정 | "배포 전 보안 검사", "보안 점검해줘", "OWASP 체크리스트로 감사", "/fortify" | 없음 (독립) |

@@ -1,29 +1,34 @@
 ---
 name: land
-description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치·워크트리 제거 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 다음 작업 후보. 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 머지할 PR 없이 워크트리만 치우는 건 wt-sweep(land 의 sweep 모드 전용 진입점), 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
+description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치 삭제 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 다음 작업 후보. 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 워크트리·세션 기록 정리는 wt-sweep(land 는 워크트리를 건드리지 않는다), 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
 ---
 
 # Land — push 한 PR 을 머지하고 로컬을 안전하게 재동기화
 
 당신은 워크트리 브랜치에서 개발하고, PR 을 줄줄이 push 한 다음 — 보통은 어느
 브랜치가 무엇이었는지 기억이 없는 새 세션에서 — 그것들을 머지하고 로컬 트리를
-정리하길 원한다: 기본 브랜치는 최신, 머지된 브랜치와 워크트리는 제거, 살아남은
+정리하길 원한다: 기본 브랜치는 최신, 머지된 브랜치는 삭제, 살아남은
 브랜치는 새 베이스 위로 rebase. 손으로 하면 까다롭고 틀리기 쉽다: stacked PR 을
 순서를 어겨 머지하면 엉망이 되고, 실제로 랜딩되지 않은 브랜치를 삭제하면 작업을
 잃는다. 가끔은 머지할 PR 이 아직 없다 — 브랜치에 커밋은 쌓였는데 안 올린 상태다.
 그땐 머지 전에 PR 부터 올린다(Step 0).
 
 이 스킬은 그 일을 절제된 파이프라인으로 수행한다. 작업 대부분이 **거의
-비가역적**(머지, 브랜치 삭제, 워크트리 제거, rebase)이므로 계약은 이렇다:
+비가역적**(머지, 브랜치 삭제, rebase)이므로 계약은 이렇다:
 실제 상태를 발견하고, 안전한 순서를 정하고, **플랜을 보여주고 한 번의 승인을
 받은 뒤**, 실행하고 보고한다. 절대 추측하지 말고, 절대 force 하지 말 것.
+
+**워크트리는 건드리지 않는다.** 워크트리 제거·Claude Code 세션 기록 정리는
+`wt-sweep` 스킬의 일이다 — land 는 머지·브랜치·rebase 까지만 하고, 잔여
+워크트리는 Report 에 목록으로 남겨 wt-sweep 을 안내한다.
 
 ## 안전 경계 — 무엇이든 하기 전에 읽을 것
 
 | Action | 입장 |
 |---|---|
 | **절대 안 함** | 공유 브랜치에 `git push --force`, draft / CI 실패 / mergeable 아닌 PR 머지, PR 이 아직 열려 있는 브랜치 삭제, 기본 브랜치에 직접 커밋, 추측으로 conflict 해결 |
-| **한 번 확인 후 실행** | 자기 feature 브랜치 push + `gh pr create`(Step 0), PR 머지, 머지된 로컬 브랜치 삭제, 머지된 자기 feature 브랜치의 remote 잔존 삭제(`git push origin --delete`), `git worktree remove`(**워크트리별 AskUserQuestion 인터뷰 승인 필수** — 5 단계, `guard-worktree-remove` 훅 강제), 살아남은 브랜치 rebase |
+| **한 번 확인 후 실행** | 자기 feature 브랜치 push + `gh pr create`(Step 0), PR 머지, 머지된 로컬 브랜치 삭제, 머지된 자기 feature 브랜치의 remote 잔존 삭제(`git push origin --delete`), 살아남은 브랜치 rebase |
+| **하지 않음 (wt-sweep 의 일)** | `git worktree remove`, Claude Code 세션 기록 삭제 — 잔여 워크트리는 Report 에 목록만 남기고 wt-sweep 안내 |
 | **자유롭게 실행** | `gh pr list`, `git worktree list`, `git fetch`, `git rev-list --count`, `git ls-remote --heads`, `git merge-base --is-ancestor`, CI 상태 읽기, `git checkout <default>` + `git pull` (fast-forward) |
 
 > 공유 브랜치 force-push 금지·squash-only·trunk 직접 push 금지의 SSOT = `~/.claude/rules/branch-worktree-strategy.md` §3. 프로젝트별 override 판단 시 그 규칙을 따른다.
@@ -38,13 +43,8 @@ CI 가 실패하거나, 머지가 막히거나, rebase 가 conflict 를 만나�
 막힌 PR 하나 때문에 전체 실행을 중단하지 말고, 유저 없이 `rebase --abort` 하거나
 conflict 를 버리지 말 것 — 유저가 해결하고 싶어 할 수 있다.
 
-## Sweep 모드 — 머지할 것 없이 워크트리만 치울 때
-
-머지할 PR 이 없고(Discover 에서 열린 PR 0건 + raise 후보 0건) 잔여/세션 워크트리만
-있으면, 또는 유저 요청 자체가 정리뿐이면, Step 0~4 를 건너뛰고
-`references/sweep-mode.md` 를 읽어 그대로 수행한다. `wt-sweep` 스킬이 이 경로의
-전용 진입점이다 — 정리 규율(인터뷰 게이트·dirty 제외·미머지 보존+라우팅)은 그
-한 장이 SSOT 다(여기 재기술 금지).
+머지할 PR 이 없으면(Discover 에서 열린 PR 0건 + raise 후보 0건) 할 일이 없다 —
+그 사실을 보고하고, 잔여 워크트리가 보이면 `wt-sweep` 을 안내하고 멈춘다.
 
 ## 파이프라인
 
@@ -156,14 +156,11 @@ Skipping:
   #46 refactor auth             (CI failing)
 After merge, locally:
   pull <default>, delete merged branches [fix-login, rate-limit-mw, rate-limit-ui],
-  remove worktrees [../wt-login, ../wt-ratelimit], rebase surviving [refactor-auth] onto <default>
+  rebase surviving [refactor-auth] onto <default>
 Proceed?
 ```
 
-승인을 기다린다. 이 승인 후에는 무언가 중단되지 않는 한 추가 프롬프트 없이 실행한다 —
-**단 하나의 예외는 워크트리 제거**다: `guard-worktree-remove` 훅이 삭제 대상 선택을
-별도 인터뷰(5 단계)로 강제한다. Confirm 의 "remove worktrees […]" 는 예고일 뿐이고,
-실제 제거 대상은 5 단계 인터뷰에서 확정된다.
+승인을 기다린다. 이 승인 후에는 무언가 중단되지 않는 한 추가 프롬프트 없이 실행한다.
 
 **대화형 세션에서는 승인을 AskUserQuestion 으로 구조화한다** — 자유 텍스트 "Proceed?"
 는 유저가 일부만 승인(특정 PR 제외)하려 할 때 프롬프트를 왕복하게 만든다. 위 플랜을
@@ -190,19 +187,13 @@ Proceed?
 
 체크가 실패하거나 머지가 막히면, 그 PR 을 중단하고(그 위에 stacked 된 것도 함께 — 아직 머지될 수 없으므로), 보고하고, 아직 멀쩡한 독립 PR 로 계속 진행한다.
 
-### 5. Sync local — pull, 브랜치 prune, 워크트리 제거, 살아남은 것 rebase
+### 5. Sync local — pull, 브랜치 prune, 살아남은 것 rebase
 
 머지가 끝나면:
 
 1. **기본 브랜치 Pull**: `git checkout <default> && git pull --ff-only`. (여기서 절대 커밋하지 말 것 — branch-protection 가드가 직접 작업을 막고, `--ff-only` 가 깨끗하게 유지한다.) **pull 전후 SHA 를 잡아, pulled range 에 lockfile 변경이 있으면 플래그한다** — pull 직전 `git rev-parse HEAD` 를 기억하고, pull 후 `git diff --name-only <before>..HEAD` 에 `package-lock.json`/`pnpm-lock.yaml` 이 있으면 deps 가 바뀐 것이다. worktree 별 `node_modules` 는 분리라 이 경우 main repo 에 `.bin` 미생성 → `make dev` 부팅 실패(`tsx: command not found`) 재발 위험(`branch-worktree-strategy.md` §5a). Report 에 `## ⚠ deps 변경` 섹션으로 lockfile 목록 + `npm install` 제안을 남긴다(마이그 플래그와 동형). 승인 하에 `npm install` 을 실행해도 되지만 임의 실행은 하지 않는다.
-2. **워크트리 정리 인터뷰 → 제거 → 그 다음 브랜치 삭제** — 순서가 중요하다: 워크트리에 체크아웃된 브랜치는 삭제할 수 없다. 그리고 `git worktree remove` 는 `guard-worktree-remove` 훅이 차단한다 — 삭제 대상은 반드시 사용자 인터뷰로 확정한다("머지됨 + clean" 은 브랜치 수명 판정일 뿐, 다른 라이브 세션의 cwd 일 수 있어 "사용 중 아님"을 보장하지 않는다 — 실사고로 훅이 생긴 이유다).
-   - **후보 수집**: `git worktree list` 로 잔여 워크트리를 전수 수집한다 — 랜딩된 브랜치의 워크트리뿐 아니라 **살아남은 브랜치·고아 워크트리도 후보에 올린다**(작업이 끝난 시점이 정리의 자연스러운 때다). 메인 워크트리는 후보 아님.
-   - **dirty 검사**: 각 후보를 `git -C <path> status --porcelain` 으로 확인 — 비어 있지 않으면(커밋 안 된 작업) 후보에서 제외하고 Report 에 플래그한다. 절대 `worktree remove --force` 로 밀지 말 것(stack 여부와 무관하게 항상 적용 — `references/stacking.md` "Dirty 워크트리 가드"는 이 규칙의 rebase 케이스 포함 상세본).
-   - **인터뷰**: 후보를 `AskUserQuestion`(multiSelect) 으로 제시 — 워크트리별 한 옵션, 라벨 = 경로, description = 브랜치 + 상태(머지됨/미머지, clean). 랜딩된 브랜치의 워크트리는 "(Recommended)" 로 표시한다. Step 3 Confirm 승인은 이 인터뷰를 **대체하지 않는다** — 훅이 워크트리별 선택을 별도로 요구한다.
-   - **제거**: 사용자가 선택한 대상만 `GUARD_WORKTREE_OK=1 git worktree remove <path>` 로 제거한다. 마커는 인터뷰 승인 후에만 붙인다 — 인터뷰 없이 선부착 금지. 선택 해제된 워크트리는 건드리지 않고 Report 에 잔여로 남긴다.
-   - **Claude Code 세션 기록도 함께 정리**: 후보 워크트리의 세션 기록 dir(`~/.claude/projects/<slug>`)·라이브 attach 감지·고아 세션은 `references/sweep-mode.md` §세션 기록 정리가 SSOT — 수집은 후보 수집 때 함께, 인터뷰에는 Q2(multiSelect) 로 얹고, 삭제는 워크트리 제거 성공 후 승인분만. 라이브 attach 판정된 워크트리는 후보에서 제외한다(제거하면 그 세션이 깨진다). 세션 삭제는 git 안전망 없는 완전 비가역 — 자동 삭제 금지.
-   - **백그라운드 잡(`$CLAUDE_JOB_DIR` 존재)이면 인터뷰 불가** → 워크트리 제거를 통째로 생략하고, Report 에 잔여 워크트리 목록 + "다음 대화형 세션에서 정리 필요" 를 남긴다(머지·pull·remote 정리는 그대로 진행 — 워크트리만 보류).
-   - 제거가 끝난 랜딩 브랜치는 이어서 삭제한다. 안전망으로 `git branch -d <branch>` (소문자)를 선호하라 — git 은 그 브랜치가 기본 브랜치의 조상이 아니면 거부한다. **하지만 squash 머지는 이 체크를 깬다**: squash 는 브랜치를 기본 브랜치 위의 하나의 새 커밋으로 접어 버려서, 원래 브랜치 커밋들은 조상이 *아니게* 되고 PR 이 정말로 머지됐어도 `-d` 가 거부한다. 그러므로: `-d` 가 거부하면 작업이 랜딩 안 됐다고 단정하지 말 것 — PR 에 대해 확인하라(`gh pr view <n> --json state` 가 `MERGED` 를 보여준다). 머지됐다면 `git branch -D <branch>` 가 안전하다; 그 삭제는 로컬 조상이 아니라 머지가 뒷받침한다. PR 이 머지되지 *않았는데* `-d` 가 여전히 거부할 때만 조사할 것(절대 `-D` 금지) — 그게 진짜 "이건 랜딩 안 됐다" 신호다.
+2. **머지된 로컬 브랜치 삭제 (워크트리는 건드리지 않는다)** — 안전망으로 `git branch -d <branch>` (소문자)를 선호하라 — git 은 그 브랜치가 기본 브랜치의 조상이 아니면 거부한다. **하지만 squash 머지는 이 체크를 깬다**: squash 는 브랜치를 기본 브랜치 위의 하나의 새 커밋으로 접어 버려서, 원래 브랜치 커밋들은 조상이 *아니게* 되고 PR 이 정말로 머지됐어도 `-d` 가 거부한다. 그러므로: `-d` 가 거부하면 작업이 랜딩 안 됐다고 단정하지 말 것 — PR 에 대해 확인하라(`gh pr view <n> --json state` 가 `MERGED` 를 보여준다). 머지됐다면 `git branch -D <branch>` 가 안전하다; 그 삭제는 로컬 조상이 아니라 머지가 뒷받침한다. PR 이 머지되지 *않았는데* `-d` 가 여전히 거부할 때만 조사할 것(절대 `-D` 금지) — 그게 진짜 "이건 랜딩 안 됐다" 신호다.
+   - **워크트리에 체크아웃된 브랜치는 삭제할 수 없다** — 그 브랜치는 삭제를 시도하지 말고 건너뛰고, Report 의 잔여 워크트리 목록에 "브랜치 삭제 보류(워크트리 점유)" 로 남긴다. 워크트리 제거와 그 뒤 브랜치 삭제는 `wt-sweep` 의 일이다 — land 는 `git worktree remove` 를 실행하지 않는다.
 3. **remote-tracking prune + remote 잔존 검사**: `git fetch --prune` / `--delete-branch` 가 이미 처리했다; 마지막 `git remote prune origin` 이 남은 것을 정리한다. 단 `--delete-branch` 는 head 브랜치가 워크트리/메인에 점유돼 있으면 remote 삭제를 **조용히 스킵**한다(실측: ADT-265 #458) — "옵션 줬으니 지워졌을 것"은 green 위장(verification-safety V1). 그러므로 머지된 각 PR 의 head 에 대해 `git ls-remote --heads origin <branch>` 로 검증하고, 비어 있지 않으면(=remote 에 잔존) `git push origin --delete <branch>`(자기 feature 브랜치 한정, force 아님)로 마저 지운다.
 4. **살아남은 것 rebase**: 랜딩되지 않은 각 로컬 브랜치에 대해 `git rebase <default>`. conflict 시 멈추고 그 브랜치를 보고하라(유저가 해결하거나 요청 시 당신이 해결할 수 있게 rebase 를 진행 중으로 남겨 둘 것) — 복구 형태는 `references/stacking.md` 참조.
 5. **Linear 이슈 Done 전이 (연결된 이슈가 있을 때만, graceful).** 머지된 PR 에
@@ -293,15 +284,15 @@ landed 로만 보고하지 말 것.
 
 마지막 메시지는 `result:` 한 줄로 못 박는다(`~/.claude/skills/craft-core/references/output-contract.md`
 L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 머지/정리 수치를 담되 self-contained 로
-(예: `result: N개 PR 머지 — 로컬 <default> 동기화, M개 브랜치/워크트리 정리, K개 rebase`).
+(예: `result: N개 PR 머지 — 로컬 <default> 동기화, M개 브랜치 정리, K개 rebase`).
 산출물이 git 상태 변화라 열기 블록(L2)은 적용 안 하고, 다음 스킬 제안(L3)은 별도로
 내지 않는다 — `## 다음 작업` 섹션(Linear 후보 + kickoff)이 그 역할을 대신한다. conflict 로
 멈춘 rebase 가 있으면 `result:` 가 아니라 진행 상태로 보고한다(미납품).
 
 ## 이 스킬이 틀린 선택일 때
 
-- 머지할 PR 없이 워크트리만 치우려 할 때 → `wt-sweep` (land 의 sweep 모드 전용
-  진입점 — land 로 들어와도 Sweep 모드로 자동 분기하므로 실패는 아니다).
+- 워크트리·세션 기록을 치우려 할 때 → `wt-sweep`. land 는 워크트리를 건드리지
+  않는다 — 머지 후 잔여 워크트리는 Report 에 목록만 남긴다.
 - 유저가 변경을 *작성*하려는 것이지 머지하려는 게 아닐 때 → `forge` / `hunt` / `renew`.
 - 유저가 미완 작업을 재개하거나 어디까지 했는지 떠올리려 할 때 → `handoff`.
 - 유저가 git 브랜치가 아니라 오래된 문서/로그를 치우려 할 때 → `sweep`.

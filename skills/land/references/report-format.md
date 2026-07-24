@@ -24,7 +24,7 @@ changelog(Landed)를 시각적으로 1순위에, 운영 정리(Local sync)를 �
 ⏭ [#46](PR 전체 URL) refactor auth — CI 실패 (재시도 후 다시 land)
 
 ## Local sync
-develop `→ <sha>` · 워크트리 [stoic-wu] 제거 · [refactor-auth] rebase
+develop `→ <sha>` · [refactor-auth] rebase · 잔여 워크트리 [stoic-wu] → wt-sweep 안내
 
 ## 다음 작업
 → [ADT-35](이슈 전체 URL) P1 · rate-limit 대시보드 — ADT-33 Done 으로 unblock. `linear-goal ADT-35`
@@ -38,7 +38,7 @@ develop `→ <sha>` · 워크트리 [stoic-wu] 제거 · [refactor-auth] rebase
 NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-port.sh 삭제
 ↳ [plan](docs/plans/2026-06-29-makefile-next.md) · ADT-33
 
-🔧 develop `→ <sha>` · 워크트리 정리
+🔧 develop `→ <sha>` · 브랜치 정리 (잔여 워크트리는 wt-sweep)
 → 다음: [AUT-31](이슈 전체 URL) P1 refresh token rotation — `linear-goal AUT-31`
 ```
 

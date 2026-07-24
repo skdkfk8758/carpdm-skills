@@ -1,8 +1,7 @@
 # Sweep 모드 — PR 플로우 없이 워크트리만 정리
 
-land 의 cleanup-only 경로. 진입은 둘: ① `wt-sweep` 스킬(정리 전용 트리거), ② land
-실행 중 머지할 PR 이 0건인데 잔여 워크트리만 있을 때 자동 분기. Step 0~4(머지
-플로우)를 통째로 건너뛰고 아래만 수행한다. 머지하지도, PR 을 만들지도 않는다.
+`wt-sweep` 스킬의 절차 SSOT. 머지하지도, PR 을 만들지도 않는다 — 발견→분류→
+인터뷰→제거만 도는 짧은 경로다. PR 머지·로컬 동기화가 필요하면 land 로 간다.
 
 ## 왜 별도 경로인가
 
@@ -92,7 +91,7 @@ result: 워크트리 2개 정리 (브랜치 2 로컬+remote 삭제, 세션 기�
 워크트리 cwd 마다 Claude Code 가 `~/.claude/projects/<slug>/` 에 세션 기록(jsonl
 transcript — `claude --resume` 목록의 실체)을 남긴다. 워크트리만 지우면 이 dir 가
 고아로 쌓인다(실측 2026-07-23: `~/.claude/projects` 287개 dir · 1.5GB). 여기 규칙이
-SSOT — land 본 플로우(Step 5)의 워크트리 제거도 이 절을 그대로 적용한다.
+SSOT 다.
 
 ### 수집 (Discover 에서 함께, 읽기 전용)
 
