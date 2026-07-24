@@ -6,14 +6,14 @@
       "id": 0,
       "name": "full-land-mixed-stack-and-independent",
       "prompt": "이 레포에서 내가 워크트리들에서 작업하고 올려둔 PR들 좀 머지하고 로컬 최신화해줘. PR 상태는 pr-state.json, 워크트리 목록은 worktree-list.txt에 있어 (오프라인이라 gh 못 씀). default 브랜치는 master. 실제로 머지하거나 브랜치/워크트리를 지우진 말고, 어떤 순서로 뭘 머지하고 로컬을 어떻게 정리할지 계획부터 보여줘.",
-      "expected_output": "A plan that: merges #41 (independent) and the #43→#44 stack, with #43 BEFORE #44 (stack bottom-up) and an explicit step to re-point #44's base to master after #43 merges. Drops #45 (draft) and #46 (CI failing) with reasons. Sync plan: pull master --ff-only, remove merged worktrees, delete merged local branches with `git branch -d` (not -D), rebase survivor experiment-x onto master. Halts at confirmation; does NOT execute gh/merge/delete.",
+      "expected_output": "A plan that: merges #41 (independent) and the #43→#44 stack, with #43 BEFORE #44 (stack bottom-up) and an explicit step to re-point #44's base to master after #43 merges. Drops #45 (draft) and #46 (CI failing) with reasons. Sync plan: pull master --ff-only, delete merged local branches with `git branch -d` (not -D) — branches still checked out in worktrees are skipped and listed as leftovers with a wt-sweep pointer (land does NOT remove worktrees), rebase survivor experiment-x onto master. Halts at confirmation; does NOT execute gh/merge/delete.",
       "files": []
     },
     {
       "id": 1,
       "name": "casual-merge-and-cleanup",
       "prompt": "워크트리 개발 끝났어. 올린 PR들 머지하고 다 끝난 브랜치랑 워크트리 정리 좀 해줘. (pr-state.json / worktree-list.txt 참고, master가 default, gh는 못 씀)",
-      "expected_output": "Same correct judgment as eval 0 from a more casual phrasing: bottom-up stack order #43 then #44 with base re-pointing, #41 independent, drop draft #45 and CI-failing #46. Cleanup limited to MERGED branches/worktrees. Should reach a clear plan and stop for confirmation rather than guessing.",
+      "expected_output": "Same correct judgment as eval 0 from a more casual phrasing: bottom-up stack order #43 then #44 with base re-pointing, #41 independent, drop draft #45 and CI-failing #46. Cleanup limited to MERGED branches; worktrees are not removed — leftovers listed with a wt-sweep pointer. Should reach a clear plan and stop for confirmation rather than guessing.",
       "files": []
     },
     {

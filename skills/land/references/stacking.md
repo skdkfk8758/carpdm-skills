@@ -86,7 +86,7 @@ rebase 를 막아선 안 된다. 각각 따로 보고하라.
 
 ## Dirty 워크트리 가드
 
-워크트리를 제거하거나 거기 체크아웃된 브랜치를 rebase 하기 전에, 워크트리가
-깨끗한지 확인하라 (`git -C <path> status --porcelain` 이 비어 있음). dirty 한
-머지된 워크트리는 커밋되지 않은 로컬 작업을 의미한다 — 멈추고 물어보라; 누군가의
-변경 위로 `worktree remove --force` 하지 말 것.
+워크트리에 체크아웃된 브랜치를 rebase 하기 전에, 그 워크트리가 깨끗한지
+확인하라 (`git -C <path> status --porcelain` 이 비어 있음). dirty 면 커밋되지
+않은 로컬 작업을 의미한다 — 그 브랜치는 rebase 하지 말고 보고하라. (워크트리
+제거 자체는 land 의 일이 아니다 — `wt-sweep` 참조.)

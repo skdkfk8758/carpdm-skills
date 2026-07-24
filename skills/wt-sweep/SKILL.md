@@ -6,8 +6,8 @@ description: PR 머지 없이 워크트리만 치우는 경량 정리 — 현재
 # wt-sweep — 세션 워크트리 청소
 
 이 스킬은 얇은 진입점이다. 정리 절차의 SSOT 는
-`~/.claude/skills/land/references/sweep-mode.md` — **그 파일을 읽고 그대로
-수행한다**(복제 금지 — land 의 Sweep 모드와 같은 한 장을 읽어 drift 를 차단한다).
+`references/sweep-mode.md` (`~/.claude/skills/wt-sweep/references/sweep-mode.md`)
+— **그 파일을 읽고 그대로 수행한다**(복제 금지 — 절차는 그 한 장에만 둔다).
 
 여기엔 스코프 계약만 둔다:
 
@@ -25,5 +25,5 @@ description: PR 머지 없이 워크트리만 치우는 경량 정리 — 현재
   후보로 올린다 — 단 git 안전망 없는 완전 비가역이라 인터뷰(Q2) 승인분만 삭제,
   기본은 보존. 절차·불변식은 sweep-mode.md §세션 기록 정리 SSOT.
 
-sweep-mode.md 를 읽을 수 없으면(land 미설치) 같은 원리를 직접 적용하되 안전
+sweep-mode.md 를 읽을 수 없으면 같은 원리를 직접 적용하되 안전
 경계(force 금지·인터뷰 게이트·dirty/미머지 보존)는 동일하게 지킨다.
