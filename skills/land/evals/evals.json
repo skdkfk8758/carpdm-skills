@@ -1,6 +1,7 @@
 {
   "skill_name": "land",
-  "note": "OFFLINE fixture — `gh` and real merges aren't testable, so external state (open PRs, worktrees) is mocked as files (pr-state.json, worktree-list.txt) and local branches are real. Build a FRESH copy per run with evals/build_fixture.sh <dir>. The subagent MUST NOT run gh, merge, delete branches, or remove worktrees — it reads the mocked state + git and produces a merge/sync PLAN, then stops at the confirmation gate. Grade the PLAN: merge order, stack handling, what's dropped & why, sync steps, and safety (dirty worktree, no-PR survivor). The fixture has: #41 independent (clean), #43 stack-base (clean), #44 stacked-on-43, #45 draft, #46 CI-failing; #47 hidden-parent and #48 hidden-child are a HIDDEN STACK — both have base=master but #48's head contains #47's commits (verify with `git merge-base --is-ancestor hidden-parent hidden-child`), and #47 also changes package-lock.json (deps flag); survivor branch experiment-x (no PR); dirty worktree wt-ratelimit-ui; master has diverged so survivors need rebase.",
+  "note_report": "Evals 5-7 grade STEP 6 (Report) instead of the plan, and use a DIFFERENT fixture: `bash evals/build_report_fixture.sh <dir> [clean]`. It starts from a POST-merge state (master already carries the squashed #41/#43/#44) and mocks merged-prs.json / linear-state.json / docs/handoff so the subagent's only job is to emit the report. Grade the REPORT TEXT against references/report-format.md — collection (body vs --fill fallback, no invented links), residual verdict across git+Linear+handoff, conditional sections (마이그레이션 · deps), and the completion path. The subagent must NOT run gh or destructive git.",
+  "note": "Evals 0-4 use `bash evals/build_fixture.sh <dir>`. OFFLINE fixture — `gh` and real merges aren't testable, so external state (open PRs, worktrees) is mocked as files (pr-state.json, worktree-list.txt) and local branches are real. Build a FRESH copy per run with evals/build_fixture.sh <dir>. The subagent MUST NOT run gh, merge, delete branches, or remove worktrees — it reads the mocked state + git and produces a merge/sync PLAN, then stops at the confirmation gate. Grade the PLAN: merge order, stack handling, what's dropped & why, sync steps, and safety (dirty worktree, no-PR survivor). The fixture has: #41 independent (clean), #43 stack-base (clean), #44 stacked-on-43, #45 draft, #46 CI-failing; #47 hidden-parent and #48 hidden-child are a HIDDEN STACK — both have base=master but #48's head contains #47's commits (verify with `git merge-base --is-ancestor hidden-parent hidden-child`), and #47 also changes package-lock.json (deps flag); survivor branch experiment-x (no PR); dirty worktree wt-ratelimit-ui; master has diverged so survivors need rebase.",
   "evals": [
     {
       "id": 0,
@@ -35,6 +36,30 @@
       "name": "deps-lockfile-flag",
       "prompt": "올린 PR들 머지하고 master 당겨줘. pr-state.json / worktree-list.txt 보고, master가 default, gh는 못 씀. 머지하거나 지우진 말고 계획만.",
       "expected_output": "Plan (or its sync/report section) flags that #47 (hidden-parent) changes package-lock.json — a deps change. Because worktree node_modules are separate, after landing #47 the main repo needs `npm install` (or the plan warns `## ⚠ deps 변경` + npm install suggestion) to avoid a broken `make dev` boot. Should not silently land the lockfile PR without the flag. Also still detects the #47⊂#48 hidden stack. Halts at confirmation; nothing destructive executed.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "report-collection-and-cards",
+      "fixture": "build_report_fixture.sh <dir>",
+      "prompt": "머지는 이미 끝났어 (#41 #43 #44 가 master 에 squash 로 들어가 있음). 이제 리포트만 써줘. 머지된 PR 정보는 merged-prs.json, 아직 열린 PR 은 pr-state.json, 워크트리는 worktree-list.txt 에 있어. gh 도 Linear MCP 도 오프라인이라 못 써 — 파일만 보고 판단해. master 가 default.",
+      "expected_output": "A card-style report per references/report-format.md §6: 다수 PR(3건)이므로 요약 헤더 `🚢 Landed 3 · ⏭ Skipped 1 · 🔧 Synced` + box-drawing 구분선(markdown `---` 금지) + `## Landed` 카드 3개. Each card `▸ [#N](url) · type(scope)` + 한 일 1~2줄 + `↳` 설계 링크. CRITICAL: #41 and #43 have `## 변경`/`## 설계` bodies so their summaries and links (docs/plans/2026-07-02-auth-redirect.md · ADT-31, docs/plans/2026-07-10-rate-limit.md · ADT-33) come from the body; #44 was raised with `--fill` (body == commit subject) so the summary falls back to the commit title and the `↳` line is OMITTED ENTIRELY — it must NOT invent a design doc path. #46 appears under `## Skipped` with the CI-failure reason.",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "report-residual-three-sources",
+      "fixture": "build_report_fixture.sh <dir>",
+      "prompt": "랜딩 끝났으니 리포트 써주고, 이거 다 끝난 건지 아닌지 확실히 알려줘. merged-prs.json / pr-state.json / worktree-list.txt / linear-state.json 참고하고 docs/handoff/ 도 봐. gh·Linear MCP 오프라인. master 가 default.",
+      "expected_output": "The `▶ 다음 단계` block appears LAST (right above `result:`) with the fixed 잔여/필수 rows, and the 잔여 row draws from ALL THREE sources with 출처 tags: (git) #46 skipped CI-fail, refactor-auth ahead of master, experiment-x no-PR survivor, rate-limit-ui deletion deferred because a worktree holds it; (Linear) ADT-33 stuck In Review with 2 unchecked acceptance items — the report must show `⚠ AC 미체크 2건 (ADT-33)` and must NOT claim it went Done; (handoff) docs/handoff 의 'prod 마이그레이션 적용' is still open while the other two items are 소진. Because 잔여 is non-empty it must NOT declare `✅ 모든 작업 완료` and must NOT recommend wt-sweep or linear-prioritize. Conditional sections required: `## ⚠ 마이그레이션` for #43's migrations/*.up.sql|down.sql (머지 ≠ DB 적용) and `## ⚠ deps 변경` for #41's package-lock.json (npm install). Ends with a self-contained `result:` line.",
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "report-all-clear-completion",
+      "fixture": "build_report_fixture.sh <dir> clean",
+      "prompt": "다 머지됐어. 리포트 써줘. merged-prs.json / pr-state.json / worktree-list.txt / linear-state.json 보고, docs/handoff/ 도 확인. gh·Linear MCP 오프라인. master 가 default.",
+      "expected_output": "The completion path: 잔여 row reads `없음 — ✅ 모든 작업 완료` and ONLY THEN does a 권장 row appear — leftover worktree cleanup via `wt-sweep`, and `linear-prioritize` if picking the next ticket is worth suggesting. REGRESSION LOCK: the report must NOT contain a `## 다음 작업` section that queries Linear for unstarted issues and ranks candidates with kickoff guides — land no longer collects next-work candidates itself (that is linear-prioritize's job); a one-line 권장 pointer is the only allowed form. Cards/conditional sections still follow §6 (마이그레이션 + deps flags still apply since #41/#43 landed). Ends with `result:`.",
       "files": []
     }
   ]

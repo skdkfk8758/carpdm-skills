@@ -1,6 +1,6 @@
 ---
 name: land
-description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치 삭제 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 잔여 작업 판정(git·Linear·handoff — 모두 완료면 완료 선언 + wt-sweep 안내) + 다음 작업 후보. 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 워크트리·세션 기록 정리는 wt-sweep(land 는 워크트리를 건드리지 않는다), 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
+description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치 삭제 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 잔여 작업 판정(git·Linear·handoff — 모두 완료면 완료 선언 + wt-sweep 안내). 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 워크트리·세션 기록 정리는 wt-sweep(land 는 워크트리를 건드리지 않는다), 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
 ---
 
 # Land — push 한 PR 을 머지하고 로컬을 안전하게 재동기화
@@ -22,6 +22,12 @@ description: Land the open PRs you pushed from worktrees and bring local back in
 `wt-sweep` 스킬의 일이다 — land 는 머지·브랜치·rebase 까지만 하고, 잔여
 워크트리는 Report 에 목록으로 남겨 wt-sweep 을 안내한다.
 
+**Orca 통합(선택).** Orca 앱이 이 repo 를 관리 중이면 세 지점(워크트리 메타 ·
+Linear 전이 폴백 · 백그라운드 CI 대기)을 보강할 수 있다 — 감지 게이트·명령·금지는
+`references/orca.md`(**lazy-read** — 감지 게이트가 거짓이면 이 파일을 읽지도 않는다).
+orca 는 git 을 대체하지 않는다: orca CLI 에 PR·머지·브랜치·rebase 명령이 없어
+판정 SSOT 는 언제나 `gh`/`git` 이다.
+
 ## 안전 경계 — 무엇이든 하기 전에 읽을 것
 
 | Action | 입장 |
@@ -29,7 +35,7 @@ description: Land the open PRs you pushed from worktrees and bring local back in
 | **절대 안 함** | 공유 브랜치에 `git push --force`, draft / CI 실패 / mergeable 아닌 PR 머지, PR 이 아직 열려 있는 브랜치 삭제, 기본 브랜치에 직접 커밋, 추측으로 conflict 해결 |
 | **한 번 확인 후 실행** | 자기 feature 브랜치 push + `gh pr create`(Step 0), PR 머지, 머지된 로컬 브랜치 삭제, 머지된 자기 feature 브랜치의 remote 잔존 삭제(`git push origin --delete`), 살아남은 브랜치 rebase |
 | **하지 않음 (wt-sweep 의 일)** | `git worktree remove`, Claude Code 세션 기록 삭제 — 잔여 워크트리는 Report 에 목록만 남기고 wt-sweep 안내 |
-| **자유롭게 실행** | `gh pr list`, `git worktree list`, `git fetch`, `git rev-list --count`, `git ls-remote --heads`, `git merge-base --is-ancestor`, CI 상태 읽기, `git checkout <default>` + `git pull` (fast-forward) |
+| **자유롭게 실행** | `gh pr list`, `git worktree list`, `git fetch`, `git rev-list --count`, `git ls-remote --heads`, `git merge-base --is-ancestor`, CI 상태 읽기, `git checkout <default>` + `git pull` (fast-forward), Orca 읽기(`orca status`/`worktree ps`/`linear team states`)와 Orca 메타 write(`worktree set --comment`/`--workspace-status` — git 무영향, 실패해도 무시) |
 
 > 공유 브랜치 force-push 금지·squash-only·trunk 직접 push 금지의 SSOT = `~/.claude/rules/branch-worktree-strategy.md` §3. 프로젝트별 override 판단 시 그 규칙을 따른다.
 
@@ -74,12 +80,28 @@ PR 없는 브랜치를 올린다 (base = <default>):
 Proceed?
 ```
 
+**승인은 3 단계 Confirm 과 같은 방식으로 받는다 — 게이트 형태를 비대칭으로 두지 말 것.**
+raise 후보가 2건 이상이면 대화형 세션에서 `AskUserQuestion` `multiSelect`(각 브랜치 = 한
+항목, 기본 전체 선택)로 제시한다. 자유 텍스트 "Proceed?" 는 유저가 일부만 올리려 할 때
+프롬프트를 왕복하게 만드는데, 그 통증은 머지 승인이든 raise 승인이든 똑같다. 후보가
+1건이면 텍스트 확인으로 족하다. **백그라운드 잡(`$CLAUDE_JOB_DIR` 존재)이면
+`AskUserQuestion` 을 쓰지 말고** 텍스트 플랜 + `needs input:` 경로를 유지한다.
+
 승인 후 각 후보를:
 
 - push 안 됐으면 `git push -u origin <branch>` (force 금지 — 자기 feature 브랜치
   일반 push 만).
-- `gh pr create --base <default> --head <branch> --fill` 로 PR 을 연다(draft 아님).
-  제목/본문은 커밋에서 뽑는 `--fill` 이 기본 — 유저가 따로 주면 그걸 쓴다.
+- `gh pr create --base <default> --head <branch>` 로 PR 을 연다(draft 아님). 유저가 제목/본문을
+  주면 그걸 쓴다.
+- **body 를 만들어서 넣을 것 — `--fill` 로 때우지 말 것.** `--fill` 은 body 를 커밋 메시지로
+  채우는데, 그러면 **Step 6 Report 의 요약 수집이 항상 fallback(커밋 제목) 경로로 떨어진다**
+  (Step 6 은 body 의 "변경/Summary" 섹션을 1순위로 읽는다). land 가 자기 손으로 만든 PR 이
+  자기 changelog 품질을 깎는 셈이라, 최소 body 를 조립해 `--body` 로 넘긴다:
+  - `## 변경` — `git log <default>..<branch> --oneline` 을 사람이 읽는 1~3줄로 압축.
+  - `## 설계` — `git diff --name-only <default>..<branch>` 의 `docs/**`(특히 `plans/`·`specs/`·
+    `adr/`)와 커밋 메시지에 박힌 이슈 ID/URL. **없으면 이 섹션 생략 — 추측해 만들지 말 것**
+    (Step 6 의 수집 규칙과 같은 원칙).
+  - 커밋이 1건이고 제목이 이미 충분하면 `--fill` 로 족하다 — 그 경우만 예외.
 - base 는 항상 기본 브랜치. raise 는 **독립 PR(→default)만** 만든다 — stacked PR 을
   새로 *설계*하지 않는다(그건 워크트리 작업 시점의 일이다). 이미 stacked 로 올라온
   PR 의 머지 순서 처리는 2~4 단계가 한다.
@@ -105,9 +127,19 @@ remote 부재·예상외 브랜치 상태로 land 가 조용히 멈춰, 완성�
 
 - `gh pr list --author @me --state open --json number,title,headRefName,baseRefName,isDraft,mergeable,mergeStateStatus,statusCheckRollup`
   — 열린 PR 들, head/base 브랜치, draft 플래그, 머지 가능성, CI 상태.
+  **`--author @me` 는 의도된 스코프다** — land 는 "당신이 워크트리에서 push 한 PR" 을
+  랜딩하는 스킬이고, 남의 PR 을 머지하는 건 리뷰 권한 판단이 필요한 다른 일이다.
+  그래서 팀 repo 에서 동료의 PR 은 보이지 않는 게 정상이다. 유저가 명시적으로 "전부"
+  또는 특정 작성자를 지정하면 그때만 `--author` 를 풀거나 바꾼다. 스코프 때문에
+  후보가 0건이면 "열린 PR 없음" 이 아니라 **"내 열린 PR 없음(스코프: @me)"** 로 보고해
+  유저가 스코프를 의심할 수 있게 한다.
 - `git worktree list` — 어떤 워크트리가 존재하고 각각 어떤 브랜치를 들고 있는지.
 - `git branch --format '%(refname:short) %(upstream:short) %(upstream:track)'` — 로컬 브랜치와 그 추적 상태.
 - `git fetch --prune` — remote ref 를 갱신하고 삭제된 remote-tracking 브랜치를 떨군다.
+- **(Orca 감지 시)** `orca worktree ps --json` — 워크트리마다 branch·displayName·
+  workspaceStatus·라이브 세션 attach(`hasAttachedPty`)·`linkedPR` 을 한 번에 준다.
+  `git worktree list` 를 **대체하지 않고 보강**한다(Orca 밖 워크트리는 ps 에 안 나온다).
+  `linkedPR` 은 표시용이지 판정 근거가 아니다 — 절차·필터·금지는 `references/orca.md` (a).
 
 기본 브랜치는 `gh repo view --json defaultBranchRef` 로 식별할 것 (`master`/`main` 하드코딩 금지).
 
@@ -132,6 +164,12 @@ base=default 로 올리면, 부모를 squash 머지할 때 GitHub 이 자식을 
 "숨은 stack" 으로 승격한다. 승격 시: 자식 base 를 부모 브랜치로 re-point 하는 플랜을
 명시하거나(4 단계처럼), 최소한 Confirm 플랜에 `⚠ 숨은 stack: #A ⊂ #B` 경고를 박아
 부모 단독 머지가 자식을 닫지 않게 한다. 감지 절차 상세는 `references/stacking.md`.
+
+이 검사는 base=default PR 이 n건이면 쌍마다 도는 **n(n−1)/2 회**다. 실무 n 은 한 자리라
+무시해도 되지만, **n 이 8을 넘으면 전수 쌍 검사를 하지 말고** `git rev-list <default>..<head>`
+로 각 head 의 커밋 집합을 한 번씩만 뽑아 포함 관계를 비교한다(n회 조회). 어느 경로든
+**검사를 건너뛰지는 않는다** — 건너뛰면 #430/#431 사고가 그대로 재현된다. n 이 커서 다른
+경로를 썼으면 Confirm 플랜에 그 사실을 한 줄 남긴다.
 
 후보 집합에서 제외할 것: draft, 기다리지 말라고 들은 실패/대기 CI 의 PR,
 `mergeable` 아닌 것 모두. 무엇을 왜 제외했는지 나열할 것.
@@ -178,8 +216,16 @@ Proceed?
 소요에 맞추고(무의미한 초단위 폴링 금지 — 30s~1m 권장), **PR 당 15분 상한**을 둔다.
 초과하면 그 PR 을 '미완'(CI 지연/hang)으로 보고(Report 의 `## Skipped`/`## ⚠ 미완`)하고
 다음 안전한 PR 로 진행한다 — 무한 대기 금지(`delegated-review-watchdog.md` 와 동형).
+**PR당 상한과 별개로 이 단계 전체에 총 45분 상한을 둔다.** per-item 상한만으로는 PR 5건일 때
+최악 75분을 막지 못하고, 백그라운드 잡이 그동안 살아 점유한다. 총 45분을 넘기면 **대기를
+중단하되 실행을 중단하지는 않는다** — 아직 머지 안 된 PR 들을 `## ⚠ 미완`(대기 상한 초과)으로
+넘기고, 이미 머지된 것들의 정리를 위해 **5 단계로 진행한다**. 머지된 PR 을 정리 없이 남기는 게
+기다리는 것보다 나쁘다.
 백그라운드 잡이면 포그라운드 폴링 대신 `run_in_background` Bash 로 대기 명령을 띄우고
-완료 시 재호출되는 경로를 쓴다(잡을 폴링으로 점유하지 않는다).
+완료 시 재호출되는 경로를 쓴다(잡을 폴링으로 점유하지 않는다). **백그라운드 잡이면서
+Orca 가 감지되면** 그 대안으로 대기를 Orca 터미널(`gh pr checks --watch` + `terminal wait`)로
+오프로드할 수 있다 — `references/orca.md` (c). 상한 15분은 어느 경로든 동일하고, 본 SKILL 이
+그 값의 SSOT 다. 포그라운드 대화 세션은 현행 폴링 그대로.
 
 `--delete-branch` 는 머지 시 remote 브랜치를 제거한다. 한 가지 편의: PR 의 head 브랜치가 **이 메인 워크트리에 현재 체크아웃된** 브랜치라면, `gh` 가 *로컬* 브랜치도 삭제하고 당신을 기본 브랜치로 전환시킨다 — 그래서 흔한 "내가 올라가 있는 브랜치를 머지" 케이스는 여기서 완전히 정리되고, 5 단계의 브랜치 삭제는 *다른* 워크트리에 사는 브랜치만 처리하면 된다. 다른 곳에 체크아웃된 브랜치는 `gh` 가 건드리지 않으므로 여전히 5 단계가 필요하다.
 
@@ -189,10 +235,10 @@ Proceed?
 
 ### 5. Sync local — pull, 브랜치 prune, 살아남은 것 rebase
 
-머지가 끝나면:
+머지가 끝나면 (아래 번호 항목은 다른 문서에서 `Step 5.1`~`5.5` 로 참조된다):
 
 1. **기본 브랜치 Pull**: `git checkout <default> && git pull --ff-only`. (여기서 절대 커밋하지 말 것 — branch-protection 가드가 직접 작업을 막고, `--ff-only` 가 깨끗하게 유지한다.) **pull 전후 SHA 를 잡아, pulled range 에 lockfile 변경이 있으면 플래그한다** — pull 직전 `git rev-parse HEAD` 를 기억하고, pull 후 `git diff --name-only <before>..HEAD` 에 `package-lock.json`/`pnpm-lock.yaml` 이 있으면 deps 가 바뀐 것이다. worktree 별 `node_modules` 는 분리라 이 경우 main repo 에 `.bin` 미생성 → `make dev` 부팅 실패(`tsx: command not found`) 재발 위험(`branch-worktree-strategy.md` §5a). Report 에 `## ⚠ deps 변경` 섹션으로 lockfile 목록 + `npm install` 제안을 남긴다(마이그 플래그와 동형). 승인 하에 `npm install` 을 실행해도 되지만 임의 실행은 하지 않는다.
-2. **머지된 로컬 브랜치 삭제 (워크트리는 건드리지 않는다)** — 안전망으로 `git branch -d <branch>` (소문자)를 선호하라 — git 은 그 브랜치가 기본 브랜치의 조상이 아니면 거부한다. **하지만 squash 머지는 이 체크를 깬다**: squash 는 브랜치를 기본 브랜치 위의 하나의 새 커밋으로 접어 버려서, 원래 브랜치 커밋들은 조상이 *아니게* 되고 PR 이 정말로 머지됐어도 `-d` 가 거부한다. 그러므로: `-d` 가 거부하면 작업이 랜딩 안 됐다고 단정하지 말 것 — PR 에 대해 확인하라(`gh pr view <n> --json state` 가 `MERGED` 를 보여준다). 머지됐다면 `git branch -D <branch>` 가 안전하다; 그 삭제는 로컬 조상이 아니라 머지가 뒷받침한다. PR 이 머지되지 *않았는데* `-d` 가 여전히 거부할 때만 조사할 것(절대 `-D` 금지) — 그게 진짜 "이건 랜딩 안 됐다" 신호다.
+2. **머지된 로컬 브랜치 삭제 (워크트리는 건드리지 않는다)** — 안전망으로 `git branch -d <branch>` (소문자)를 선호하라 — git 은 그 브랜치가 기본 브랜치의 조상이 아니면 거부한다. **하지만 squash 머지는 이 체크를 깬다**: squash 는 브랜치를 기본 브랜치 위의 하나의 새 커밋으로 접어 버려서, 원래 브랜치 커밋들은 조상이 *아니게* 되고 PR 이 정말로 머지됐어도 `-d` 가 거부한다. 그러므로: `-d` 가 거부하면 작업이 랜딩 안 됐다고 단정하지 말 것 — PR 에 대해 확인하라(`gh pr view <n> --json state` 가 `MERGED` 를 보여준다). 머지됐다면 `git branch -D <branch>` 가 안전하다; 그 삭제는 로컬 조상이 아니라 머지가 뒷받침한다. PR 이 머지되지 *않았는데* `-d` 가 여전히 거부할 때만 조사할 것(절대 `-D` 금지) — 그게 진짜 "이건 랜딩 안 됐다" 신호다. **그 브랜치는 거기서 끝나지 않는다** — 랜딩되지 않았으므로 아래 4 항의 rebase 대상(survivor)이자 Step 6 잔여 판정 대상이다. "삭제 실패" 로 분류하고 흐름에서 떨구지 말 것(조용히 빠져나가는 항목 금지).
    - **워크트리에 체크아웃된 브랜치는 삭제할 수 없다** — 그 브랜치는 삭제를 시도하지 말고 건너뛰고, Report 의 잔여 워크트리 목록에 "브랜치 삭제 보류(워크트리 점유)" 로 남긴다. 워크트리 제거와 그 뒤 브랜치 삭제는 `wt-sweep` 의 일이다 — land 는 `git worktree remove` 를 실행하지 않는다.
 3. **remote-tracking prune + remote 잔존 검사**: `git fetch --prune` / `--delete-branch` 가 이미 처리했다; 마지막 `git remote prune origin` 이 남은 것을 정리한다. 단 `--delete-branch` 는 head 브랜치가 워크트리/메인에 점유돼 있으면 remote 삭제를 **조용히 스킵**한다(실측: ADT-265 #458) — "옵션 줬으니 지워졌을 것"은 green 위장(verification-safety V1). 그러므로 머지된 각 PR 의 head 에 대해 `git ls-remote --heads origin <branch>` 로 검증하고, 비어 있지 않으면(=remote 에 잔존) `git push origin --delete <branch>`(자기 feature 브랜치 한정, force 아님)로 마저 지운다.
 4. **살아남은 것 rebase**: 랜딩되지 않은 각 로컬 브랜치에 대해 `git rebase <default>`. conflict 시 멈추고 그 브랜치를 보고하라(유저가 해결하거나 요청 시 당신이 해결할 수 있게 rebase 를 진행 중으로 남겨 둘 것) — 복구 형태는 `references/stacking.md` 참조.
@@ -202,6 +248,10 @@ Proceed?
    의 전이 맵대로 **Done 으로 옮긴다**. 이게 빌드(In Progress→In Review)에서 시작한
    라이프사이클의 마지막 칸이다. Linear MCP 미설치이거나 연결 이슈를 못 찾으면 **묻지
    말고 생략**한다 — Linear 전이는 머지/정리를 막지 않는다(저위험 부가 단계).
+   - **MCP 가 없을 때 Orca 폴백.** Linear MCP 는 없지만 Orca 가 감지되면
+     `orca linear status set --current --to <state>` 로 전이한다(상태명은
+     `orca linear team states` 실조회 — 하드코딩 금지). MCP 가 있으면 MCP 가 우선이고,
+     둘 다 없으면 현행대로 생략. 절차는 `references/orca.md` (b).
    - **Done 전 수용 기준 체크박스 스캔 (acceptance-criteria-gate G2 정합).** 전이 직전
      이슈 본문의 체크박스(`- [ ]`/`- [x]`)를 확인한다 — 미체크 항목이 있으면 Done 대신
      그 이슈를 **In Review 로 두고**, Report 에 `⚠ AC 미체크 n건 (ISSUE-ID)` 로 표기한다
@@ -212,114 +262,21 @@ Proceed?
 
 land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정확히 무엇이었고 그 설계
 근거가 어디 적혀 있는지 기억이 흐릿하다. 그래서 report 는 단순 "머지함" 통보가
-아니라, 나중에 다시 읽어도 무엇이 배에 실렸는지 알 수 있는 **짧은 변경 기록**이어야
-한다. 각 머지된 PR 마다 ① 한 일 요약 ② 그 작업의 설계·문서 링크를 함께 붙인다.
-이 메타데이터는 머지·브랜치 삭제 뒤에도 `gh pr view <n>` 으로 읽히므로 report
-시점에 모아도 된다(머지 전 Discover 에서 미리 캐싱해 둬도 좋다).
+아니라, 나중에 다시 읽어도 무엇이 배에 실렸는지 알 수 있는 **짧은 변경 기록**이다.
 
-**세션 이름 설정 — `result:` 직전 필수 선행 행동 (백그라운드 잡 + 1건 이상 머지일 때).**
-이 세션이 백그라운드 잡으로 돌고 있고(`$CLAUDE_JOB_DIR` 존재) 실제로 1건 이상 머지됐으면,
-**report 와 `result:` 를 내기 전에 먼저** 세션 이름을 랜딩 결과로 바꾼다 — 이것은 land 의
-마지막 단계이지 선택적 아사이드가 아니다. 순서를 고정한다: **① 한 일 요약 수집 → ② rename
-실행(아래) → ③ report 출력 → ④ `result:`**. rename 을 건너뛰고 곧장 report/`result:` 로
-가지 말 것 — 이 스킵이 "land 후 이름이 안 바뀐다"의 원인이다.
+**이 시점에 `references/report-format.md` 를 읽고 그대로 따른다**(lazy-read — Step 6
+전에 미리 읽지 않는다). 그 파일이 Step 6 의 SSOT 다: PR 마다의 수집 규칙, 세션 이름
+설정, 잔여 작업 3-소스 판정, `▶ 다음 단계` 행 매핑, 조건부 섹션(마이그레이션 · deps
+변경 · Skipped/미완 · Orca 워크트리), 카드형 렌더, `result:` 규격. 여기서 재기술하지
+않는다.
 
-- 실행: `~/.claude/skills/craft-core/references/session-rename.md`(공유 SSOT — 포맷 표의
-  land 행)의 atomic snippet 그대로(`state.json` `name` 갱신 + `nameSource:"user"` — 하니스
-  auto-rename 차단). 포맷: 단일 `landed #451 fix(make)`(연결 이슈 있으면
-  `landed [ADT-33] fix(make)`), 다수 `landed 3 PRs`.
-- **조용히 생략하는 경우는 둘뿐**: 잡 컨텍스트 아님(`$CLAUDE_JOB_DIR` 없음) 또는 머지 0건.
-  그 외엔 반드시 실행한다. 실행 자체가 실패하면(파일·권한) note 1줄 남기고 보고는 계속 —
-  단 "실패해도 됨"이 "안 해도 됨"은 아니다.
+이 단계에서 SKILL 이 보장할 것은 **순서와 누락 금지** 둘뿐이다:
 
-각 머지된 PR 에 대해 모은다:
-
-- **한 일 요약(1~2줄)**: `gh pr view <n> --json title,body,commits` 에서 압축한다.
-  PR body 의 "변경/Summary" 섹션이나 커밋 메시지 제목들이 근거다. 진단·추측이 아니라
-  실제 PR 내용을 근거로 — 없으면 커밋 제목을 그대로 쓴다.
-- **설계·문서 링크**: PR body·커밋 메시지·변경 파일에서 설계 산출물을 긁는다 —
-  - PR body/커밋 텍스트에 박힌 경로·URL: `docs/plans/…`, `docs/specs/…`, `docs/adr/…`,
-    `docs/reference/…`, Linear 이슈(`ADT-\d+`, `linear.app/…`), 외부 설계 링크.
-  - `gh pr view <n> --json files` 의 변경 파일 중 `docs/**`(특히 `plans/`·`specs/`·`adr/`) —
-    그 작업의 설계 문서는 보통 같은 PR 안에 함께 들어온다.
-  - 찾은 링크는 클릭 가능하게 — 레포 상대경로(예: `docs/plans/2026-06-29-x.md`)는
-    마크다운 링크로, 이슈/PR 은 전체 URL 로. **없으면 생략한다 — 추측해 만들어내지 말 것.**
-
-**잔여 작업 판정 — "모두 끝났는가"에 명시적으로 답한다 (다음 작업 후보와 별개).**
-랜딩이 끝났다고 작업이 다 끝난 건 아니다 — report 는 무엇이 실렸는지에 더해 무엇이
-남았는지를 판정해 두 갈래 중 하나로 답한다. 세 소스를 스캔한다:
-
-- **이번 실행 잔여 (git, 항상)**: Skipped/미완 PR, conflict 로 멈춘 rebase, 워크트리
-  점유로 삭제 보류된 브랜치, 기본 브랜치보다 ahead 인데 머지 안 된 로컬 브랜치
-  (`git rev-list --count <default>..<branch>` > 0), dirty 워크트리.
-- **Linear 연결 이슈 잔여 (graceful — 5 단계 Done 전이와 같은 조건)**: 이번 land 의
-  연결 이슈 중 Done 못 간 것(AC 미체크로 In Review 잔류 포함), 그 parent 이슈의
-  다른 미완 sub-issue. Linear MCP 미설치이거나 연결 이슈가 없으면 이 소스는 조용히 생략.
-- **세션 히스토리 잔여 (graceful)**: `docs/handoff/` 에 이번 랜딩 작업과 같은 스레드의
-  handoff 문서가 있으면 그 "남은 작업" 섹션을 대조한다 — 랜딩으로 소진됐으면 잔여
-  아님(소진 사실만 언급, 삭제는 handoff/sweep 의 일), 미완 항목이 남았으면 잔여다.
-  디렉터리가 없으면 생략.
-
-스캔 결과는 **다음 단계 블록**(`~/.claude/skills/craft-core/references/output-contract.md`
-§N — 고정 3행 `잔여/필수/권장`, 블록 생략 금지, 규칙은 거기가 SSOT — 복제 금지)으로
-emit 한다. 위치: report 본문(카드·Local sync·다음 작업) 아래, `result:` 바로 위. land
-의 행 매핑:
-
-- **잔여** = 3-소스 스캔 결과 그대로 — 항목마다 출처(git/Linear/handoff) + 라우팅
-  1줄(미머지 브랜치 → 이어서 작업 후 다시 land, 미완 이슈 → `linear-goal <ID>`,
-  handoff 잔여 → handoff 로 재개). 잔여 0건일 때만 `없음 — ✅ 모든 작업 완료`.
-- **필수** = 이번 land 가 만든, 안 하면 미완/위험으로 남는 후속만 — conflict 로 멈춘
-  rebase 해소, `## ⚠ 마이그레이션` prod apply, deps 변경 시 `npm install`. 없으면 "없음".
-- **권장** = 잔여 0건(완료 선언)일 때만 잔여 워크트리 `wt-sweep` 안내 — 모두 랜딩됐으니
-  지금이 치워도 안전한 시점이다. **잔여가 있으면 wt-sweep 을 권하지 않는다**(미머지
-  작업이 남은 워크트리 정리 유도 금지 — 워크트리는 Local sync 에 목록만). 새 작업
-  후보는 이 행이 아니라 `## 다음 작업` 섹션이 담당 — 중복 금지.
-
-**다음 작업 후보 수집 (Linear, graceful).** 랜딩 직후는 유저가 다음 티켓을 고르는
-자연스러운 시점이다 — report 가 "무엇이 실렸나"에서 끝나지 않고 "다음은 무엇인가"까지
-답하면 유저가 Linear 를 따로 열 필요가 없다. 조건은 5 단계 Done 전이와 같은 graceful
-정책: **Linear MCP 사용 가능 + 현재 repo 가 `~/.claude/linear-repo-map.json` 에 매핑**
-(linear-dispatch 룰의 repo→team 역매핑)일 때만 수집하고, 아니면 **묻지 말고 섹션 통째
-생략**한다 — 다음 작업 가이드는 부가 정보라 land 의 본업(머지/정리)을 막지 않는다.
-
-- **스코프**: 역매핑으로 잡은 team(projectException 매칭이면 그 project)의 **미착수
-  이슈만** 조회한다 — `list_issues` 를 state type unstarted/backlog 로. 전 워크스페이스
-  긁기 금지(linear-dispatch 룰 그대로).
-- **후보 선별(최대 3건)**: ① 이번 land 로 Done 된 이슈가 block 하고 있던 이슈 —
-  방금 풀렸으므로 최우선 ② 나머지는 priority 높은 순. 미착수 이슈가 0건이면
-  "미착수 이슈 없음" 한 줄로 답한다(섹션 생략과 다르다 — 조회는 됐고 결과가 빈 것).
-- **후보마다 kickoff 가이드 1줄**: 이슈 본문에 `## 추천` 섹션(linear-register 산출)이
-  있으면 그 라우팅을 요약해 쓰고, 없으면 기본으로 `linear-goal <ID>` 를 제안한다.
-  harness-class 신호(estimate≥5·cross-cutting·전면개편)면 대신 `harness-run` 을 언급.
-- 미착수가 많아 순서·병렬 판단 자체가 필요해 보이면 후보 나열 대신 `linear-prioritize`
-  한 줄 권고로 갈음한다 — 스프린트 플래닝을 여기서 재구현하지 않는다.
-
-**리포트 렌더는 `references/report-format.md` 를 이 시점에 읽어 그대로 따른다**
-(카드형 — 다수 PR/단일 PR 두 형태, 글리프·구분선·링크 규칙 포함. lazy-read —
-Step 6 전에 미리 읽지 않는다). 요지: 영속 changelog(Landed 카드)가 1순위, 운영
-정리(Local sync)는 부차, 머지 건수에 따라 graceful 축소.
-
-미완 항목(conflict 로 멈춘 rebase, 막혀서 제외된 PR)은 `## Skipped` 또는 별도 `## ⚠ 미완`
-섹션에 명시해 아무것도 조용히 빠져나가지 않게 할 것.
-
-**마이그레이션 포함 PR 플래그 (해당 시 필수).** 머지된 PR 의 변경 파일
-(`gh pr view <n> --json files`)에 DB 마이그레이션(`migrations/` 경로,
-`*.up.sql`/`*.down.sql`)이 있으면 report 에 `## ⚠ 마이그레이션` 섹션을 넣는다 —
-**머지 ≠ DB 적용**이다(운영 apply 는 slow-lane 수동, `orm-stack.md` §slow-lane /
-`branch-worktree-strategy.md` §6b). 마이그 파일 목록과 함께 "prod 미적용 —
-apply 후 `information_schema` 실객체 조회로 applied 검증 필요(exit 0 은 증거
-아님, verification-safety V3)" 를 명시한다. land 가 apply 를 대신 실행하지는
-않는다(온프레미스 배포는 사용자 직접 관리). 마이그 PR 을 이 섹션 없이 조용히
-landed 로만 보고하지 말 것.
-
-마지막 메시지는 `result:` 한 줄로 못 박는다(`~/.claude/skills/craft-core/references/output-contract.md`
-L1 — 전 스킬 공통, 백그라운드 잡 완료 신호). 머지/정리 수치를 담되 self-contained 로
-(예: `result: N개 PR 머지 — 로컬 <default> 동기화, M개 브랜치 정리, K개 rebase`).
-산출물이 git 상태 변화라 열기 블록(L2)은 적용 안 하고, 다음 스킬 제안(L3)은 별도로
-내지 않는다 — `## 다음 작업` 섹션(Linear 후보 + kickoff)이 그 역할을 대신한다.
-`result:` 는 다음 단계 블록(§N) 아래 마지막 줄이다(순서: report 본문 → `▶ 다음 단계`
-→ `result:`). conflict 로
-멈춘 rebase 가 있으면 `result:` 가 아니라 진행 상태로 보고한다(미납품).
+- **고정 순서**: ① 한 일 요약 수집 → ② 세션 rename(백그라운드 잡 + 1건 이상 머지일 때,
+  건너뛰지 말 것) → ③ report 본문 → ④ `▶ 다음 단계` 블록 → ⑤ `result:` 한 줄.
+- **조용히 빠져나가는 항목 금지**: 대기 상한 초과 PR, conflict 로 멈춘 rebase, 삭제
+  보류/거부된 브랜치, 마이그레이션 포함 PR, deps 변경은 전부 report 에 명시된다.
+  머지 ≠ 적용, 랜딩 ≠ 완료 — 판정은 report-format.md 의 규칙대로 한다.
 
 ## 이 스킬이 틀린 선택일 때
 
