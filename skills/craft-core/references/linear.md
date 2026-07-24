@@ -143,8 +143,10 @@ Acceptance 는 sub-issue body 에 참조로 들어간다). Step 이 곧 atomic �
 보드가 이미 구조화해 담으므로 별도 산문 코멘트를 또 쓰지 않는다). In Progress·Done
 전이는 §3a 그대로.
 
-- **본문 = 보드 그대로.** 턴 출력의 R 보드 markdown 을 재사용한다 — 코멘트용
-  재작성 금지(이중 SSOT 방지, output-contract R 규칙 6). 헤더 1줄
+- **본문 = 보드 + 검증 체크리스트 그대로.** 턴 출력의 R 보드 + §V 검증 체크리스트
+  markdown 을 재사용한다 — 코멘트용 재작성 금지(이중 SSOT 방지, output-contract R
+  규칙 6·V 규칙 5). §V 의 `- [ ]` 체크박스는 Linear 코멘트에서 실제 체크 가능 —
+  **사용자 직접 확인 몫의 추적 표면**이 이슈에 남는다. 헤더 1줄
   (`## 빌드 완료 보고 — <skill> · <브랜치> · <커밋 range>`) + 말미 AI disclaimer 1줄
   (`— AI 생성 보고 (Claude Code · <skill>). 머지는 별도 승인.`)만 덧붙인다.
 - **전이와 동급 자동.** 저위험 write 라 매번 묻지 않는다(생성 게이트 §2 와 위험 등급
