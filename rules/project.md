@@ -14,7 +14,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 - 검토·판정(코드 한 줄 안 고침, 리포트+수정 라우팅만): `preflight`(§9) · `fortify`(§12)
 - UI·도식: `imprint`(수동 추출 DESIGN.md *준수* 재현 — 발명 아님, token-traceability: raw hex/px 하드코딩 0) · `mockup`(기존 프로젝트 충실 HTML 시안; `references/design-context.md` 가 시안 충실도 SSOT — deep-plan·craft pipeline·deep-prompt 가 이 한 소스를 읽는다, 복제 금지) · `erd`(§8)
 - 스캐폴딩·셋업: `cicd-scaffold` · `admap-scaffold` · `colocate-domain-context` · `loop-harness-setup`
-- Linear 라이프사이클: `linear-register`/`linear-goal`/`linear-groom`/`linear-prioritize` — `## 추천` 생성 규칙은 `linear-register/references/recommend-section.md` SSOT 공유(복제 금지); 모두 graceful — Linear MCP 미설치면 가이드 한 번+스킵
+- Linear 라이프사이클: `linear-register`/`linear-goal`/`linear-groom`/`linear-prioritize` — `## 추천` 생성 규칙은 `linear-register/references/recommend-section.md` SSOT 공유(복제 금지); 모두 graceful — Linear MCP 미설치면 가이드 한 번+스킵. `linear-groom` 은 무인 주기 실행(orca automation)용 **scan-only** 모드 보유(§14)
 - 하니스 오케스트레이션: `harness-run`/`eval-generate`/`eval-check`/`harness-heal`(§13)
 
 > 과거 `agents/`(재사용 서브에이전트, 플랫 `.md`)를 두 번째 배포 아티팩트로 두고 `summon`(에이전트 저작) 스킬을 함께 배포했으나, [ADR 002](../docs/adr/002-revert-agents-artifact-type.md) 로 철회했다 — 이 레포는 다시 **스킬 단일 아티팩트**다.
@@ -123,6 +123,27 @@ loop/eval-게이트 자율개발 하니스의 실행 스킬 4종. **SSOT 가 글
 - **추적 내용 = 글로벌 변형 정본(절대경로).** harness-run·eval-generate·eval-check 의 `SKILL.md`·workflow scriptPath 는 cwd-무관 동작을 위해 `/Users/carpdm/.claude/skills/...` **구체 절대경로**를 쓴다(Workflow scriptPath 는 프로젝트 cwd 가 아니라 skills 디렉토리에 resolve 돼야 함 → 상대·`~` 불가). **2단계에서 이식성 해결:** `install.sh` 가 설치 시 `/Users/carpdm/.claude/skills` → `$HOME/.claude/skills` 로 home prefix 재작성(메인테이너 머신 = no-op, 타 머신 = 그 머신 경로). 단방향이라 `sync.sh`(글로벌→repo, carpdm 머신서만 실행)는 no-op 왕복 → repo 오염 없음. 따라서 본 레포의 "어느 머신이든 동작" 불변식 충족.
 - **결합 세트.** harness-run 이 eval-generate(rubric 생성)·eval-check(채점)·harness-heal(단락 자가개선)을 호출하는 한 묶음 — 4종은 함께 추적/이동한다. 상세 하니스 구조(게이트 G0~G4·3역할 분리·decideNext·C4 heal)는 글로벌 rule `loop-visualization` + IA `loop/` 가 SSOT.
 - **이관 완료(①~④):** ① git 집 확보(carpdm-skills 추적) → ② 경로 전략(install.sh home-prefix 재작성) → ③ 글로벌 단독 동작 검증(4스킬 존재·Workflow scriptPath 유효·단위테스트 loop-control 9/9·attribution 5/5·IA 실행 하드의존 0) → ④ IA `.claude/skills/{harness-run,eval-generate,eval-check,harness-heal}` 삭제 + harness-run 글로벌 SSOT 노트 갱신. (`loop-visualization.md` 의 IA 참조는 IA `docs/guides/`·`loop/` 를 가리켜 삭제 무관 — 갱신 불요. 전체 harness-run 실측 완주는 실 이슈 발생 시 자연 검증.)
+
+### 14. linear-groom scan-only = 승인 게이트 스킬을 무인 주기 실행에 붙이는 방식
+
+`linear-groom` 의 핵심 불변식은 "모든 write 는 승인 게이트 뒤"인데, 주기 automation 에는
+승인할 사람이 없다. 게이트를 그대로 두면 표만 내고 반영 0건, 게이트를 프롬프트로 우회하면
+모델의 비결정론 배치 판정이 사람 눈 없이 누적된다(재배치 churn·본문 덮어쓰기). 그래서
+**write 를 빼고 발견만 남기는 모드**를 명시 분기로 뒀다 — 자동화의 가치는 반영이 아니라
+"고아 N건·빈약 M건이 생겼다"의 주기적 발견에 있다는 포지셔닝. 설계:
+
+- **Step 0~3 은 기본 모드와 동일**(전수 조회·결정론 분류·매핑·중복·프로젝트 위생 판정),
+  Step 4 표를 지정 Linear 이슈 코멘트로 게시하고 Step 5·6 미실행. `save_issue`/`save_project`
+  전면 금지, 허용 write 는 **리포트 코멘트 1건**(이슈 필드가 아닌 append 라 백로그 미오염).
+- **진입은 프롬프트에 `scan-only` 명시일 때만** — 무인처럼 보인다고 스스로 내려가면
+  사용자는 반영된 줄 안다. 상세는 `linear-groom/references/scan-only.md`(SSOT, lazy load).
+- **알림 피로 가드 2개**: 갭 0건인 주는 코멘트 생략(실행 여부는 `orca automations runs`),
+  리포트 이슈 자신은 스캔 대상에서 제외(안 그러면 매주 자기를 고아로 리포트).
+- **운영 형상(2026-07-28)**: orca automation 4개(ADT/AUT/SSO/ADM) · 월 09:00 KST ·
+  `--workspace-mode existing`(메인 워크트리 재사용 — 읽기 전용이라 트리 미오염, 워크트리
+  쓰레기 0) · 리포트 이슈 ADT-416/AUT-76/SSO-98/ADM-164. 반영은 사람이 세션에서
+  `/linear-groom` 실행. **은퇴 조건**: 리포트 코멘트가 3개월간 실제 그루밍으로 이어지지
+  않으면(발견은 되는데 아무도 반영 안 하면) 자동화·리포트 이슈를 함께 폐지.
 
 ## Skill authoring 검증
 
