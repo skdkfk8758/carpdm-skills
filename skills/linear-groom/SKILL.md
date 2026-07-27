@@ -1,5 +1,6 @@
 ---
 name: linear-groom
+model: fable
 description: >-
   기존 Linear 백로그를 그루밍 — 고아(프로젝트 없는) 이슈를 알맞은 프로젝트로 묶고,
   이미 프로젝트/마일스톤이 붙은 이슈도 오배치면 재배치·마일스톤 재정리하며,
