@@ -1,5 +1,6 @@
 ---
 name: linear-register
+model: fable
 description: >-
   Linear 이슈 등록의 단일 진입점 — 단건~소수 네이티브 등록(Linear MCP)과 plan/spec/PRD
   다중 슬라이스 분할 등록(구 to-issues 흡수)을 모드 분기로 처리한다. 등록 전 기존 백로그와

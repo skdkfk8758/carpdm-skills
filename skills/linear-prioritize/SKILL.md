@@ -15,35 +15,16 @@ description: 현재 repo 의 Linear 미완 이슈를 한 화면에 모아 의존
 
 ## 워크플로
 
-### Step 1 — repo → 팀 스코프 해소
+### Step 1~2 — 팀 스코프 + 미완 이슈 전수 수집
 
-전 워크스페이스를 긁지 말고 현재 repo 의 팀으로 좁힌다 (`linear-dispatch.md` 룰과 동일).
+`~/.claude/skills/linear-register/references/backlog-scan.md`(공유 SSOT — groom 과 공유)를
+읽고 §A(repo→팀 스코프 해소)·§B(전수 수집 — 페이지네이션·대형 응답 jq 추출)·§C(상세
+fetch 정책) 그대로 적용한다(복제 금지). 이 스킬 고유 사항만:
 
-1. `git rev-parse --show-toplevel` 으로 현재 repo 루트 (worktree 면 메인 repo).
-2. `~/.claude/linear-repo-map.json` 의 `teamRoutes[].repo`(없으면 `projectExceptions[].repo`)가 현재 repo 경로와 일치(prefix 매칭)하는 엔트리 → 그 `teamId`.
-3. 맵에 없으면 사용자에게 어느 팀인지 확인. 멋대로 전체 조회하지 않는다.
-
-> **team ≠ repo 혼재 주의:** 일부 팀(예 ADM)은 한 팀에 provider/consumer 두 repo 이슈가 섞인다. repo-map 의 `note` 를 읽고, 이슈 본문 내용으로 현재 repo 소속을 판별한다. 현재 repo 작업이 아닌 이슈는 리스트에 표시하되 "다른 repo(cross-team)" 로 명시 구분한다.
-
-### Step 2 — 미완 이슈 전수 수집
-
-`mcp__linear__list_issues` 를 `team=<teamId>`, `limit=100` 이상으로 호출. 미완 = `statusType` 가 `completed`/`canceled` **아닌** 것(backlog·unstarted·started·triage).
-
-**출력이 크면 토큰 한도로 잘린다.** list_issues 결과가 파일로 떨어지면(harness 가 경로 안내) `jq` 로 필요한 필드만 압축 추출한다 — 전체를 Read 하지 말 것:
-
-```bash
-jq -r '.issues[]
-  | select(.statusType=="backlog" or .statusType=="unstarted"
-        or .statusType=="started" or .statusType=="triage")
-  | [.id, .status, (.project//"NO_PROJECT"), (.parentId//"-"),
-     (.projectMilestone.name//"-"), .title] | @tsv' "$FILE" | sort
-# 페이징 확인
-jq -r '.hasNextPage' "$FILE"
-```
-
-`hasNextPage=true` 면 `cursor` 로 다음 페이지를 마저 긁어 **전수**를 확보한다. 누락된 채 분석하면 거짓 계획이 된다.
-
-의존 관계가 필요한 이슈는 `get_issue` 로 본문을 봐서 `blockedBy`/`blocks` 관계와 "선행 의존" 서술을 확인한다 (parentId 만으론 cross-team 블록을 못 잡는다 — 예: 자식이 다른 팀 이슈에 blockedBy).
+- repo 컨텍스트 스킬이므로 §A 는 **1번 경로(repo-map 역매핑)가 기본** — 맵에 없으면 사용자 확인.
+- 의존 관계가 필요한 이슈는 §C 대로 `get_issue` 로 본문을 봐서 `blockedBy`/`blocks` 관계와
+  "선행 의존" 서술을 확인한다 (parentId 만으론 cross-team 블록을 못 잡는다 — 예: 자식이
+  다른 팀 이슈에 blockedBy).
 
 ### Step 3 — 의존 그래프 구성
 
@@ -81,6 +62,10 @@ jq -r '.hasNextPage' "$FILE"
 - milestone 생성/편입/재편은 mutation 이다. 2~3개 정도면 바로, 대량이면 사용자 확인 후 진행. **해제·이동은 기존 구조를 바꾸는 것이라 건수 무관 표로 제안 후 진행**(사용자가 의도적으로 묶었을 수 있다 — 조용히 풀지 않는다).
 
 > ⚠ milestone 은 같은 project 내로 갇힌다 — **cross-team 블록은 마일스톤에 안 잡힌다**(그건 blockedBy 관계가 담당). 마일스톤 진척과 별개로 블록은 우선순위 표에서 명시한다.
+
+> **소관 경계 (↔ linear-groom):** milestone **설계·생성·체인 기준 재편**은 이 스킬 전속.
+> 이슈를 다른 프로젝트로 **재배치하면서 생기는 milestone 이동/해제**는 groom 소관(재배치
+> 동반 처리) — 여기서 손대지 않는다. 반대로 groom 은 신규 milestone 을 만들지 않는다.
 
 ## 출력 포맷
 
@@ -126,6 +111,7 @@ Project: ...
 
 ## Related
 
-- `~/.claude/rules-ondemand/linear-dispatch.md` — repo→팀 조회 스코프(Step 1 SSOT).
+- `~/.claude/skills/linear-register/references/backlog-scan.md` — 팀 스코프 + 전수 수집 절차(Step 1~2 SSOT, groom 과 공유).
+- `~/.claude/rules-ondemand/linear-dispatch.md` — repo→팀 조회 스코프(backlog-scan §A 의 근거 룰).
 - `~/.claude/linear-repo-map.json` — repo↔team 매핑 + team≠repo 혼재 note.
 - `[[feedback-epic-chain-milestone-autobind]]` — EPIC 체인 milestone 묶기 컨벤션(Step 6 근거).
