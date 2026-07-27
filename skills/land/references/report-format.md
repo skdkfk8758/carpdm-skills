@@ -57,7 +57,7 @@ report 와 `result:` 를 내기 **전에** 세션 이름을 랜딩 결과로 바
   (`git rev-list --count <default>..<branch>` > 0), dirty 워크트리.
 - **Linear 연결 이슈 잔여 (graceful — Step 5.5 Done 전이와 같은 조건)**: 이번 land 의
   연결 이슈 중 Done 못 간 것(AC 미체크로 In Review 잔류 포함), 그 parent 이슈의
-  다른 미완 sub-issue. Linear MCP·Orca 둘 다 없거나 연결 이슈가 없으면 조용히 생략.
+  다른 미완 sub-issue. Linear MCP 가 없거나 연결 이슈가 없으면 조용히 생략.
 - **세션 히스토리 잔여 (graceful)**: `docs/handoff/` 에 이번 랜딩 작업과 같은 스레드의
   handoff 문서가 있으면 그 "남은 작업" 섹션을 대조한다 — 랜딩으로 소진됐으면 잔여
   아님(소진 사실만 언급, 삭제는 handoff/sweep 의 일), 미완 항목이 남았으면 잔여다.
@@ -100,7 +100,7 @@ report 와 `result:` 를 내기 **전에** 세션 이름을 랜딩 결과로 바
   사용자 직접 관리). 마이그 PR 을 이 섹션 없이 조용히 landed 로만 보고하지 말 것.
 - **`## ⚠ deps 변경`** — Step 5.1 의 lockfile 감지 결과(worktree 별 `node_modules` 분리 탓에
   main repo 부팅 실패 위험). lockfile 목록 + `npm install` 제안.
-- **Orca 감지 시 워크트리 표기·카드 갱신** — `references/orca.md` (a). 워크트리 줄을
+- **Orca 감지 시 워크트리 표기·카드 갱신** — `references/orca.md`. 워크트리 줄을
   displayName + workspaceStatus + 라이브 attach 로 쓰고, 머지된 PR 의 head 워크트리 카드를
   `--workspace-status completed --comment "landed #<n>"` 로 갱신. 저위험 write, 실패해도 무시.
   **워크트리 *제거* 는 하지 않는다**(wt-sweep 소관).
@@ -169,7 +169,7 @@ NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-por
 - **글리프 고정**: 🚢 Landed · ⏭ Skipped · 🔧 Local/Synced. 그 외 이모지 남발 금지(노이즈).
 - **잔여 워크트리 표기** = 기본은 경로/이름 나열(`잔여 워크트리 [stoic-wu]`). Orca 가 감지되면
   `land 리뉴얼 (in-progress · 에이전트 1 attach · #451 merged)` 처럼 displayName +
-  workspaceStatus + 라이브 attach 로 쓴다(§5 / `references/orca.md` (a)).
+  workspaceStatus + 라이브 attach 로 쓴다(§5 / `references/orca.md`).
 - **`▶ 다음 단계` 블록 = 항상 마지막**(`result:` 직전) — 고정 3행 잔여/필수/권장. 항목 형식
   `<대상> — <상태> (<출처 git/Linear/handoff>) → <라우팅>`. 잔여 0건일 때만
   `없음 — ✅ 모든 작업 완료` + 권장 행. 잔여 있으면 완료 선언·wt-sweep 안내 금지.

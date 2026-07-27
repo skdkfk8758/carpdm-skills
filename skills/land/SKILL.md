@@ -22,11 +22,10 @@ description: Land the open PRs you pushed from worktrees and bring local back in
 `wt-sweep` 스킬의 일이다 — land 는 머지·브랜치·rebase 까지만 하고, 잔여
 워크트리는 Report 에 목록으로 남겨 wt-sweep 을 안내한다.
 
-**Orca 통합(선택).** Orca 앱이 이 repo 를 관리 중이면 세 지점(워크트리 메타 ·
-Linear 전이 폴백 · 백그라운드 CI 대기)을 보강할 수 있다 — 감지 게이트·명령·금지는
-`references/orca.md`(**lazy-read** — 감지 게이트가 거짓이면 이 파일을 읽지도 않는다).
-orca 는 git 을 대체하지 않는다: orca CLI 에 PR·머지·브랜치·rebase 명령이 없어
-판정 SSOT 는 언제나 `gh`/`git` 이다.
+**Orca 통합(선택).** Orca 앱이 이 repo 를 관리 중이면 **워크트리 메타 한 지점**을
+보강할 수 있다 — 감지 게이트·명령·금지는 `references/orca.md`(**lazy-read** — 감지
+게이트가 거짓이면 이 파일을 읽지도 않는다). orca 는 git 을 대체하지 않는다: orca CLI 에
+PR·머지·브랜치·rebase 명령이 없어 판정 SSOT 는 언제나 `gh`/`git` 이다.
 
 ## 안전 경계 — 무엇이든 하기 전에 읽을 것
 
@@ -35,7 +34,7 @@ orca 는 git 을 대체하지 않는다: orca CLI 에 PR·머지·브랜치·reb
 | **절대 안 함** | 공유 브랜치에 `git push --force`, draft / CI 실패 / mergeable 아닌 PR 머지, PR 이 아직 열려 있는 브랜치 삭제, 기본 브랜치에 직접 커밋, 추측으로 conflict 해결 |
 | **한 번 확인 후 실행** | 자기 feature 브랜치 push + `gh pr create`(Step 0), PR 머지, 머지된 로컬 브랜치 삭제, 머지된 자기 feature 브랜치의 remote 잔존 삭제(`git push origin --delete`), 살아남은 브랜치 rebase |
 | **하지 않음 (wt-sweep 의 일)** | `git worktree remove`, Claude Code 세션 기록 삭제 — 잔여 워크트리는 Report 에 목록만 남기고 wt-sweep 안내 |
-| **자유롭게 실행** | `gh pr list`, `git worktree list`, `git fetch`, `git rev-list --count`, `git ls-remote --heads`, `git merge-base --is-ancestor`, CI 상태 읽기, `git checkout <default>` + `git pull` (fast-forward), Orca 읽기(`orca status`/`worktree ps`/`linear team states`)와 Orca 메타 write(`worktree set --comment`/`--workspace-status` — git 무영향, 실패해도 무시) |
+| **자유롭게 실행** | `gh pr list`, `git worktree list`, `git fetch`, `git rev-list --count`, `git ls-remote --heads`, `git merge-base --is-ancestor`, CI 상태 읽기, `git checkout <default>` + `git pull` (fast-forward), Orca 읽기(`orca status`/`worktree ps`)와 Orca 메타 write(`worktree set --comment`/`--workspace-status` — git 무영향, 실패해도 무시) |
 
 > 공유 브랜치 force-push 금지·squash-only·trunk 직접 push 금지의 SSOT = `~/.claude/rules/branch-worktree-strategy.md` §3. 프로젝트별 override 판단 시 그 규칙을 따른다.
 
@@ -139,7 +138,7 @@ remote 부재·예상외 브랜치 상태로 land 가 조용히 멈춰, 완성�
 - **(Orca 감지 시)** `orca worktree ps --json` — 워크트리마다 branch·displayName·
   workspaceStatus·라이브 세션 attach(`hasAttachedPty`)·`linkedPR` 을 한 번에 준다.
   `git worktree list` 를 **대체하지 않고 보강**한다(Orca 밖 워크트리는 ps 에 안 나온다).
-  `linkedPR` 은 표시용이지 판정 근거가 아니다 — 절차·필터·금지는 `references/orca.md` (a).
+  `linkedPR` 은 표시용이지 판정 근거가 아니다 — 절차·필터·금지는 `references/orca.md`.
 
 기본 브랜치는 `gh repo view --json defaultBranchRef` 로 식별할 것 (`master`/`main` 하드코딩 금지).
 
@@ -222,10 +221,8 @@ Proceed?
 넘기고, 이미 머지된 것들의 정리를 위해 **5 단계로 진행한다**. 머지된 PR 을 정리 없이 남기는 게
 기다리는 것보다 나쁘다.
 백그라운드 잡이면 포그라운드 폴링 대신 `run_in_background` Bash 로 대기 명령을 띄우고
-완료 시 재호출되는 경로를 쓴다(잡을 폴링으로 점유하지 않는다). **백그라운드 잡이면서
-Orca 가 감지되면** 그 대안으로 대기를 Orca 터미널(`gh pr checks --watch` + `terminal wait`)로
-오프로드할 수 있다 — `references/orca.md` (c). 상한 15분은 어느 경로든 동일하고, 본 SKILL 이
-그 값의 SSOT 다. 포그라운드 대화 세션은 현행 폴링 그대로.
+완료 시 재호출되는 경로를 쓴다(잡을 폴링으로 점유하지 않는다). 포그라운드 대화 세션은
+현행 폴링 그대로. 상한 15분은 어느 경로든 동일하고, 본 SKILL 이 그 값의 SSOT 다.
 
 `--delete-branch` 는 머지 시 remote 브랜치를 제거한다. 한 가지 편의: PR 의 head 브랜치가 **이 메인 워크트리에 현재 체크아웃된** 브랜치라면, `gh` 가 *로컬* 브랜치도 삭제하고 당신을 기본 브랜치로 전환시킨다 — 그래서 흔한 "내가 올라가 있는 브랜치를 머지" 케이스는 여기서 완전히 정리되고, 5 단계의 브랜치 삭제는 *다른* 워크트리에 사는 브랜치만 처리하면 된다. 다른 곳에 체크아웃된 브랜치는 `gh` 가 건드리지 않으므로 여전히 5 단계가 필요하다.
 
@@ -248,10 +245,6 @@ Orca 가 감지되면** 그 대안으로 대기를 Orca 터미널(`gh pr checks 
    의 전이 맵대로 **Done 으로 옮긴다**. 이게 빌드(In Progress→In Review)에서 시작한
    라이프사이클의 마지막 칸이다. Linear MCP 미설치이거나 연결 이슈를 못 찾으면 **묻지
    말고 생략**한다 — Linear 전이는 머지/정리를 막지 않는다(저위험 부가 단계).
-   - **MCP 가 없을 때 Orca 폴백.** Linear MCP 는 없지만 Orca 가 감지되면
-     `orca linear status set --current --to <state>` 로 전이한다(상태명은
-     `orca linear team states` 실조회 — 하드코딩 금지). MCP 가 있으면 MCP 가 우선이고,
-     둘 다 없으면 현행대로 생략. 절차는 `references/orca.md` (b).
    - **Done 전 수용 기준 체크박스 스캔 (acceptance-criteria-gate G2 정합).** 전이 직전
      이슈 본문의 체크박스(`- [ ]`/`- [x]`)를 확인한다 — 미체크 항목이 있으면 Done 대신
      그 이슈를 **In Review 로 두고**, Report 에 `⚠ AC 미체크 n건 (ISSUE-ID)` 로 표기한다
