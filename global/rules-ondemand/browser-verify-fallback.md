@@ -20,5 +20,5 @@ IMPORTANT: 브라우저 자동화(Claude-in-Chrome bridge·Playwright)는 검증
 
 ## Related
 
-- `~/.claude/rules/delegated-review-watchdog.md` — 동형 규칙 (위임 리뷰 10분 캡).
+- `~/.claude/rules-ondemand/delegated-review-watchdog.md` — 동형 규칙 (위임 리뷰 10분 캡).
 - Playwright MCP · `playwright-cli` 스킬 — 1차 fallback 경로.

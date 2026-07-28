@@ -9,10 +9,16 @@
 # the tracker API (local git only, ≤5s) — matching every other guard's contract.
 #
 # Fires when the just-run command was a boundary:
+#   - branch create         → work started         (push -u + set In Progress?)
 #   - git commit            → progress checkpoint  (set In Progress?)
 #   - gh pr create          → PR opened            (set In Progress + attach PR link?)
 #   - gh pr merge           → merge                 (verify done → Done?)
 # and an issue id (e.g. ADT-196) is detectable in the branch name or commit -m.
+#
+# The branch-create boundary exists because a LOCAL branch emits no remote event —
+# the tracker integration only reacts to branch push / PR open / PR merge, so an
+# unpushed worktree branch leaves the issue sitting in Backlog (measured: ADT-313,
+# branch created locally, 0 remote adt-* branches, state still Backlog).
 #
 # Config:
 #   GUARD_LINEAR_NUDGE_DISABLE=1   — turn off
@@ -41,7 +47,9 @@ GREP=/usr/bin/grep
 SANITIZED=$(printf '%s' "$CMD" | sed -E "s/'[^']*'/''/g" | sed -E 's/"[^"]*"/""/g')
 
 BOUNDARY=""
-if echo "$SANITIZED" | $GREP -qE 'gh[[:space:]]+pr[[:space:]]+create'; then
+if echo "$SANITIZED" | $GREP -qE 'git[[:space:]]+(checkout[[:space:]]+-b|switch[[:space:]]+-c|worktree[[:space:]]+add)'; then
+  BOUNDARY="branch_create"
+elif echo "$SANITIZED" | $GREP -qE 'gh[[:space:]]+pr[[:space:]]+create'; then
   BOUNDARY="pr_create"
 elif echo "$SANITIZED" | $GREP -qE 'gh[[:space:]]+pr[[:space:]]+merge'; then
   BOUNDARY="merge"
@@ -60,14 +68,25 @@ ISSUE_RE="$GUARD_LINEAR_ISSUE_RE"
 # Fallback: the commit message in the command itself. Branch is preferred because
 # it rarely contains incidental matches (UTF-8, SHA-256, …) that a message might.
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-ISSUE=$(printf '%s' "$BRANCH" | $GREP -oiE "$ISSUE_RE" | head -1)
-[ -z "$ISSUE" ] && ISSUE=$(printf '%s' "$CMD" | $GREP -oiE "$ISSUE_RE" | head -1)
+if [ "$BOUNDARY" = "branch_create" ]; then
+  # The new branch lives in the command, not in HEAD — a `git worktree add` leaves
+  # this checkout on the trunk, so reading HEAD would pick up the wrong (or no) id.
+  ISSUE=$(printf '%s' "$CMD" | $GREP -oiE "$ISSUE_RE" | head -1)
+  NEW_BRANCH=$(printf '%s' "$CMD" | $GREP -oE '(-b|-c)[[:space:]]+[^[:space:]]+' | head -1 | awk '{print $NF}')
+else
+  ISSUE=$(printf '%s' "$BRANCH" | $GREP -oiE "$ISSUE_RE" | head -1)
+  [ -z "$ISSUE" ] && ISSUE=$(printf '%s' "$CMD" | $GREP -oiE "$ISSUE_RE" | head -1)
+fi
 
 [ -z "$ISSUE" ] && exit 0
 
 ISSUE_UC=$(printf '%s' "$ISSUE" | tr '[:lower:]' '[:upper:]')
 
-if [ "$BOUNDARY" = "commit" ]; then
+if [ "$BOUNDARY" = "branch_create" ]; then
+  echo "[guard] NUDGE: $ISSUE_UC 착수 — 로컬 브랜치는 트래커에 아무 이벤트도 안 보낸다." >&2
+  echo "① git push -u origin ${NEW_BRANCH:-<branch>} (원격 브랜치 이벤트 발생 = 자동연동 진입점)" >&2
+  echo "② 상태를 In Progress 로 명시 전이 — 자동화 토글에 기대지 말 것(확정 경로)." >&2
+elif [ "$BOUNDARY" = "commit" ]; then
   echo "[guard] NUDGE: 이 작업이 $ISSUE_UC 에 묶여 있다 — 이슈 트래커 상태 확인했나?" >&2
   echo "착수 경계면 In Progress 로 전이. (상태 값은 맥락 판단 — 미완이면 그대로 둬도 됨)" >&2
 elif [ "$BOUNDARY" = "pr_create" ]; then
