@@ -23,7 +23,7 @@ Phase 2 는 완성된 Phase-1 플랜을 codex 에게 적대적 리뷰어로서 �
 ROOT=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1)
 # 2) R1 — fresh 실행. stdout=최종 verdict, stderr=진행+부분 발견
 #    --effort 는 아래 effort 게이트 참조 (기본 medium, 고위험 표면만 high)
-#    끝에 완료 마커를 남긴다 — watchdog 의 Monitor 조건이 이 파일을 본다.
+#    끝에 완료 마커를 남긴다 — watchdog 의 hang 워처가 이 파일을 본다.
 date +%s > /tmp/codex-review-start.txt
 CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --effort medium \
   "<R1 프롬프트>" > /tmp/codex-review-r1-out.txt 2> /tmp/codex-review-r1-err.txt
