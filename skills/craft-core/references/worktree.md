@@ -1,8 +1,14 @@
 # Worktree 격리 — 공유 SSOT
 
-> 격리 절차의 단일 소스. `pipeline.md`(Phase 0)·`orchestrated.md`(§0)·`harness-run`(G0)·
-> `linear-goal`(승인 후 동기 블록)이 이 한 장을 읽는다 — **복제 금지**(drift 차단).
-> output-contract·linear 와 같은 포지션: craft-core 에 두지만 **엔진 의존 아닌 공유 reference**.
+> 격리 절차의 단일 소스. **`harness-run`(G0)** 과 **`linear-goal`(승인 후 동기 블록)** 이
+> 이 한 장을 읽는다 — **복제 금지**(drift 차단). 둘 다 사람 없는 백그라운드 잡을 띄우므로
+> 격리가 hard gate 다.
+>
+> craft 빌드 엔진(`pipeline.md`·`orchestrated.md`)은 **이 파일을 읽지 않는다** — forge/hunt/
+> renew 는 대화형이고, 세션이 어느 트리에서 열리는지는 호출자(Orca 카드·사람)가 정한다.
+> 그 규범은 글로벌 `branch-worktree-strategy.md` §5 + `guard-worktree-edit-isolation` 훅이
+> 담당한다. 파일이 craft-core 에 있는 건 output-contract·linear 와 같은 이유 —
+> craft-core 가 **공유 reference 컨테이너**이기 때문이지 엔진이 쓰기 때문이 아니다.
 
 근거 룰: `~/.claude/rules/branch-worktree-strategy.md` §5(새 브랜치 격리는 예외 없이
 worktree, 메인 워크트리는 trunk 유지) + `commit-isolation.md`(uncommitted 노출 최소화).
@@ -36,7 +42,7 @@ Orca 가 만든 워크트리만 안다 — `git worktree add` 로 만든 워크�
 
 - **브랜치명**: `<type>/<topic>`. Linear 이슈ID 가 있으면 `<type>/<issue-id>-<topic>`
   (`branch-worktree-strategy` §2a — 없으면 PR↔이슈 자동연동이 안 걸린다).
-  type = `feat`(forge/신규) · `fix`(hunt) · `refactor`|`feat`(renew) · 하니스는 `feat/<slug>`.
+  linear-goal 은 `feat/<issue-id>-<topic>`, harness-run 은 `feat/<slug>`.
 - **디렉토리**: repo 컨벤션이 있으면 그것(`.claude/worktrees/<type>+<topic>` 등),
   없으면 `../<repo>--<slug>`.
 - `EnterWorktree` 는 deferred 도구(먼저 `ToolSearch` 로 로드)이고 **이미 워크트리면 거부**된다
@@ -68,6 +74,4 @@ goal worker, harness-run 의 dev-eval-loop)에는 **hard gate** 로 취급한다
 - **harness-run**: 격리 후 eval 산물(`.eval/`)을 **워크트리 밖** `evalDir`
   (`<worktree>/../.eval-<slug>/`)로 옮긴다 — dev 워크트리에 oracle 이 0이어야 한다
   (REQ-F-008/N-001). 이 경로 규칙은 워크트리 존재를 전제하므로 Step 2~3 을 생략할 수 없다.
-- **linear-goal**: Step 3 실패 = worker spawn 금지(hard gate).
-- **pipeline / orchestrated**: 격리 직후 `session-rename.md`(백그라운드 잡일 때) → Linear
-  binding 순으로 진행한다.
+- **linear-goal**: Step 3 실패 = goal worker spawn 금지(hard gate).

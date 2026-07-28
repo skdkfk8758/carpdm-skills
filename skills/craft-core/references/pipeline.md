@@ -110,20 +110,22 @@ Task 체크리스트(세션 UI — 다른 세션에선 안 보임)와 별개로,
 재사용하므로 **runId 기록이 곧 재개 비용 절감**이다. 갱신 비용은 phase 당 Edit
 1회. wrap 에서 마지막으로 `phase: 5 (done)` 으로 닫는다.
 
-## Phase 0 — Frame & isolate
+## Phase 0 — Frame
+
+> **워크트리 격리는 이 엔진의 일이 아니다.** 세션이 어느 트리에서 열리는지는 호출자
+> (Orca 카드·사람)가 정하고, 글로벌 `branch-worktree-strategy.md` §5 와
+> `guard-worktree-edit-isolation` 훅이 그 규범을 담당한다. 엔진이 여기서 분기하면
+> 이미 격리된 세션에 워크트리를 겹쳐 판다. 브랜치명(`<type>/<issue-id>-<topic>`)도
+> 세션을 연 쪽 몫 — 다만 Linear 자동연동은 issue-id 가 브랜치에 있어야 걸린다.
 
 - 작업유형과 한 줄 목표를 사용자에게 되짚어준다.
-- **Worktree 격리 (기본 필수 — verify-or-STOP).** forge/renew/hunt 는 실질 빌드라
-  편집 전에 격리한다. 절차는
-  `~/.claude/skills/craft-core/references/worktree.md` 를 읽고 그대로 따른다(감지 →
-  분기 → verify-or-STOP, 복제 금지). type = feat(forge)/fix(hunt)/refactor·feat(renew).
 - **Linear binding (optional, graceful).** 이 작업에 연결된 Linear 이슈가 있으면
   — 사용자가 이슈 ID/URL 을 줬거나, 이어받은 PLAN `.md` 에 deep-plan 이 적어둔
   sub-issue 가 있으면 — `~/.claude/skills/craft-core/references/linear.md` 를 읽고
   그 활성 이슈를 **In Progress 로 자동 전이**한다. Linear MCP 미설치이거나 연결된
   이슈가 없으면 **묻지 말고** Linear 없이 평소대로 진행한다 — Linear 는 워크플로를
   증강할 뿐 게이트하지 않는다. 상태 전이 실패는 빌드를 막지 않는다(경고만).
-- **세션 이름 설정 (백그라운드 잡일 때 — 워크트리 분기 직후 즉시, Phase 1 진입 전).**
+- **세션 이름 설정 (백그라운드 잡일 때 — Phase 1 진입 전 즉시).**
   `$CLAUDE_JOB_DIR` 가 있으면 이 세션 이름을 `[<key>] <짧은 목표>` 로 rename 한다 —
   `<key>` = 위 Linear 바인딩이 잡혔으면 이슈ID(예 `[ADM-55] Direct Paint 직접 스타일링`),
   아니면 worktype(예 `[forge] CSV 내보내기`). **항상 대괄호 prefix 로 통일**한다.
