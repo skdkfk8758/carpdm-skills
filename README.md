@@ -1,8 +1,8 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 워크트리 정리 1종 + 스킬 배포 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + 프로젝트 충실 UI 시안 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + ADMap 지도 스캐폴딩 1종 + 루프 하니스 셋업 1종 + 공유 엔진 1종 + Linear 라이프사이클 4종 + 하니스 오케스트레이션 4종**, 총 **스킬 29종.**
+Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 워크트리 정리 1종 + 스킬 배포 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + 프로젝트 충실 UI 시안 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + ADMap 지도 스캐폴딩 1종 + 공유 엔진 1종 + Linear 라이프사이클 4종**, 총 **스킬 25종.**
 
-스킬은 역할에 따라 **7개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
+스킬은 역할에 따라 **6개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
 
 ### 🔨 build-pipeline — 코드를 짓는 엄격 파이프라인
 
@@ -38,7 +38,6 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 | [`colocate-domain-context`](skills/colocate-domain-context) | 도메인별 CLAUDE.md 를 코드 옆에 배치(경로 근접 auto-load) + 코드만 바뀌고 문서 미갱신 시 경고하는 co-update 게이트 셋업. 프로젝트 구조·verify host(verify.sh/husky/pre-commit/CI/Makefile/none)에 적응 | "폴더별 CLAUDE.md", "도메인 지식 코드 옆에", "co-update 게이트 만들어줘", "문서 노후화 막는 게이트" | 없음 (독립) |
 | [`cicd-scaffold`](skills/cicd-scaffold) | Node 앱 GitHub Actions 배포 워크플로 생성 — develop→dev 자동, 태그→prod, ECR push(OIDC)·self-hosted runner. build/test·포트 탐지 후 워크플로·Dockerfile·셋업 체크리스트 산출 | "dev/prod 배포 github actions 만들어줘", "ECR 로 CD 셋업", "develop 머지하면 자동배포" | 없음 (독립) |
 | [`admap-scaffold`](skills/admap-scaffold) | ADMap 지도가 이미 뜨는 정적 HTML 프로젝트 폴더 스캐폴딩 — style 스냅샷 굽기(file:// 더블클릭 유지) + 레이어 인터뷰 + CLAUDE.md·정적전용 가드 훅·verify.mjs 동봉, 산출 후 폴더로 이동해 오버레이 계속 | "지도 페이지 만들어줘", "OOH 제안용 지도 띄워줘", "ADMap 지도 붙인 html 만들어줘" | 없음 (독립, ADMap API 키 필요) |
-| [`loop-harness-setup`](skills/loop-harness-setup) | 레포에 개발 "하니스"(loop / eval-게이트 자율개발 오케스트레이터) 처음 설치·이식·복제 + loop/ 가시화 HTML·일별 로그 셋업 | "이 레포에 루프 하니스 깔아줘", "하니스 이식·복제", "가시화·로그까지 한번에" | 없음 (독립) |
 
 ### 🧹 session & ops — 작업 사이클 운영 (저장·정리·랜딩·배포검토)
 
@@ -61,17 +60,6 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 | [`linear-goal`](skills/linear-goal) | Linear 티켓 1건을 경량 흐름으로 자율 실행 (fetch→`## 추천` 라우팅→Goal Prompt 조립→확인 게이트→worktree→worker→In Review) | "ADT-211 goal 로 돌려줘", "이 티켓 그대로 진행", "워커한테 맡겨" | Linear MCP |
 | [`linear-groom`](skills/linear-groom) | 기존 Linear 백로그 그루밍 — 고아 이슈 프로젝트 그룹핑 + 빈약 이슈 보강(+`## 추천`/체인) | "리니어 이슈 정리", "백로그 그루밍", "이슈 보강해줘" | Linear MCP |
 | [`linear-prioritize`](skills/linear-prioritize) | 현재 repo 미완 이슈 스프린트 플래닝 — 의존·병렬 분석 + 우선순위 정렬 + 순차 EPIC 체인 milestone 묶기 (이슈 생성·구현 X) | "뭐부터 해야 돼", "병렬로 뭐 돌릴 수 있어", "스프린트 짜줘", "남은 이슈 정리" | Linear MCP |
-
-### ⚙️ harness — loop / eval-게이트 자율개발 오케스트레이션
-
-> 절대경로 결합 주의: harness-run·eval-generate·eval-check 의 `SKILL.md` 는 cwd-무관 동작을 위해 워크플로/스크립트를 `/Users/carpdm/.claude/skills/...` **구체 절대경로**로 가리킨다(Workflow scriptPath 는 프로젝트 cwd 가 아니라 skills 디렉토리에 resolve 돼야 하므로 상대·`~` 불가). 이식성은 **`install.sh` 가 설치 시 home prefix 를 `$HOME` 으로 재작성**해 해결한다(메인테이너 머신에선 no-op). 따라서 어느 머신이든 `bash install.sh` 면 그 머신 경로로 동작.
-
-| 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
-|---|---|---|---|
-| [`harness-run`](skills/harness-run) | 한 이슈를 워크트리 분기→플랜+시안+eval rubric→G1 freeze→자율 dev+eval 루프→pass면 merge/단락이면 heal 로 잇는 상위 오케스트레이터 (게이트 G0~G4) | "이 이슈 하니스로 돌려줘", "harness 돌려", "이슈 자동 개발" | eval-generate·eval-check·harness-heal·deep-plan |
-| [`eval-generate`](skills/eval-generate) | 플랜+시안+acceptance → eval rubric(4 카테고리 적응형 채점표 + 결정론 테스트 스텁) 생성 (채점 안 함) | "rubric 만들어줘", "eval 기준 생성", "체크리스트 뽑아줘" | 없음 (독립) |
-| [`eval-check`](skills/eval-check) | 확정 rubric 으로 산출물 채점 → pass/fail + 점수 리포트·실패 시그니처 (rubric 생성 안 함) | "eval 돌려줘", "채점해줘", "rubric 으로 검사" | 없음 (독립) |
-| [`harness-heal`](skills/harness-heal) | dev-eval 루프 단락 시 자가개선 — 진범 귀속 worksheet → 가장 레버리지 높은 실패 1건 인터뷰·수정(프로젝트 로컬 오버레이만) | harness-run 의 G2 에서 호출 | 없음 (독립) |
 
 **파이프라인 3종 공통 흐름**: 소크라테스 인터뷰 → codex 적대적 플랜 리뷰 → 동적 워크플로 TDD(sonnet) → simplify 검토 패스(forge·renew·hunt, 옵션·동작불변, `/simplify` 위임) → 보안 검증 → 빌드 후 다음 스킬 제안(push 했으면 `/land`, 잔여 정리면 `/sweep` — 추천만, 자동 시작 X).
 
@@ -105,7 +93,7 @@ cp -R skills/handoff ~/.claude/skills/
 cp -R skills/forge skills/craft-core ~/.claude/skills/
 ```
 
-> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / deep-prompt / imprint / mockup / erd / colocate-domain-context / cicd-scaffold / loop-harness-setup / dev-server-daemon 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
+> ⚠️ **forge / hunt / renew / deep-plan 은 craft-core 가 반드시 함께 있어야 한다.** 내부에서 `~/.claude/skills/craft-core/references/...` 를 절대경로로 참조하기 때문 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / deep-prompt / imprint / mockup / erd / colocate-domain-context / cicd-scaffold / dev-server-daemon 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
 
 ---
 
@@ -144,7 +132,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land wt-sweep ship preflight fortify imprint mockup erd colocate-domain-context cicd-scaffold loop-harness-setup craft-core linear-register linear-goal linear-groom linear-prioritize harness-run eval-generate eval-check harness-heal dev-server-daemon
+ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land wt-sweep ship preflight fortify imprint mockup erd colocate-domain-context cicd-scaffold craft-core linear-register linear-goal linear-groom linear-prioritize dev-server-daemon
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.

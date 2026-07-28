@@ -25,9 +25,9 @@ PR 보고)은 본질적으로 다르고, 본문 구조를 억지 통일하면 �
 
 | 레이어 | 적용 | 비적용 |
 |---|---|---|
-| **R — 결과 보드** (본문 마지막 블록, V 위) | **코드를 바꾼 스킬** (forge/hunt/renew · harness-run · linear-goal) | 산출물·운영 스킬 (아래 §R 비적용 근거) |
+| **R — 결과 보드** (본문 마지막 블록, V 위) | **코드를 바꾼 스킬** (forge/hunt/renew · linear-goal) | 산출물·운영 스킬 (아래 §R 비적용 근거) |
 | **V — 검증 체크리스트** (R 아래, N 위) | **코드를 바꾼 스킬** (§R 과 동일 적용) | 산출물·운영 스킬 (§R 근거 동일) |
-| **N — 다음 단계 블록** (V/본문 아래, L1 바로 위) | **작업 완료형** (forge/hunt/renew · harness-run · linear-goal · land) | 산출물 스킬(deep-* — L3 이 그 역할) · handoff/sweep |
+| **N — 다음 단계 블록** (V/본문 아래, L1 바로 위) | **작업 완료형** (forge/hunt/renew · linear-goal · land) | 산출물 스킬(deep-* — L3 이 그 역할) · handoff/sweep |
 | **L1 — `result:` 1줄** (완료 신호) | **전 스킬 의무** | 없음 |
 | **L2 — 산출물 열기 블록** (`open` 경로) | 파일을 산출하는 스킬 | commit/삭제/머지 보고형 |
 | **L3 — 다음 스킬 제안** (`AskUserQuestion`) | 산출물을 *전진*시키는 스킬 | 운영/정리 스킬 |
@@ -37,7 +37,7 @@ PR 보고)은 본질적으로 다르고, 본문 구조를 억지 통일하면 �
 | 스킬군 | 스킬 | L1 | L2 | L3 | N |
 |---|---|---|---|---|---|
 | 빌드 | forge / hunt / renew | ✓ | — (commit 참조) | ✓ (pipeline Phase 5) | ✓ |
-| 하니스·worker | harness-run / linear-goal | ✓ | — | — | ✓ |
+| worker | linear-goal | ✓ | — | — | ✓ |
 | 설계·산출 | deep-interview / deep-plan | ✓ | ✓ | ✓ | — |
 | 산출(단발) | deep-prompt / imprint / erd | ✓ | ✓ | — | — |
 | 리뷰·판정 | preflight | ✓ | ✓ (docs/reviews) | ✓ (수정 라우팅) | — |
@@ -121,13 +121,13 @@ result: <L1 한 줄>
 
 ## R — 결과 보드 (코드를 바꾼 스킬 전용)
 
-작업을 끝낸 시점(빌드 wrap · 하니스 종료 · worker 완료 턴)에 결과를 **고정 행 셋**으로
+작업을 끝낸 시점(빌드 wrap · worker 완료 턴)에 결과를 **고정 행 셋**으로
 정리하는 반고정 블록. **본문 마지막 = §V 검증 체크리스트 바로 위**에 선다 — 순서는
 본문 → 보드 → V 체크리스트 → N 블록 → L1 고정(`result:` 는 여전히 마지막 줄 —
 classifier 파싱 순서 불변식). 보드는 *무엇을 했나*, V 는 *무엇이 어떻게 검증됐나*,
 N 블록은 *이후 뭐가 필요한가* — 관점 분담이라 겹치지 않는다.
 
-**적용**: forge/hunt/renew(pipeline Phase 5 가 주입) · harness-run · linear-goal.
+**적용**: forge/hunt/renew(pipeline Phase 5 가 주입) · linear-goal.
 **비적용**: 산출물 스킬(deep-* 등 — L2 열기 블록이 그 역할) · 운영 스킬(land 등 —
 자체 머지 보고). 범위를 넓히면 이 contract 가 경계한 "본문 억지 통일"로 되돌아간다.
 
@@ -161,7 +161,6 @@ N 블록은 *이후 뭐가 필요한가* — 관점 분담이라 겹치지 않�
 | forge | `신규 표면` — 추가된 엔드포인트/컴포넌트/contract |
 | hunt | `재현` — 재현 커맨드 red 확인 → 회귀테스트 green 잠금 |
 | renew | `보존 계약` — characterization N항 green · 마이그 경로 검증 |
-| harness-run | `outcome` — pass/short-circuit · attempts 점수 궤적(예 `FAIL 76 → PASS 93`) + `게이트` — G0~G4 체크 현황 + `a<N> 감점` — 실패 attempt 의 카테고리·사유·verdict 경로 |
 | linear-goal | `worker` — [DONE]/[FAIL] 자가보고 + `메인 재검증` — git diff·verify 재실행 결과 (R9: 자가보고만으론 완료 불인정) |
 
 ### 보드 6규칙
@@ -187,8 +186,7 @@ R 보드의 Acceptance 요약 행(N/N)을 **항목 단위**로 펼치고, 검증
 몫이 §N 잔여 1행에 뭉뚱그려져 "내가 뭘 확인해야 하는지"가 안 보이던 문제를 없애는 게
 존재 이유다.
 
-**적용**: §R 과 동일 — forge/hunt/renew(pipeline Phase 5 주입) · harness-run ·
-linear-goal. **비적용**: 산출물·운영 스킬(§R 근거 동일).
+**적용**: §R 과 동일 — forge/hunt/renew(pipeline Phase 5 주입) · linear-goal. **비적용**: 산출물·운영 스킬(§R 근거 동일).
 
 **위치**: R 보드 아래, §N 블록 위. 순서 불변식: 본문 → R 보드 → **V 체크리스트** →
 N 블록 → L1.
@@ -248,7 +246,7 @@ N 블록 → L1.
 항상 같은 자리·같은 형태로 답한다 — 종료 메시지마다 후속 가이드가 있다가 없다가
 하는 비일관을 없애는 게 존재 이유다.
 
-**적용**: forge/hunt/renew(pipeline Phase 5 주입) · harness-run · linear-goal · land.
+**적용**: forge/hunt/renew(pipeline Phase 5 주입) · linear-goal · land.
 **비적용**: 산출물 스킬(deep-* — L3 다음 스킬 제안이 그 역할) · handoff/sweep(종착
 운영, next-skill-routing 배제 근거와 동일).
 
@@ -290,7 +288,6 @@ N 블록 → L1.
 | 스킬 | 잔여 소스 | 필수 전형 | 권장 전형 |
 |---|---|---|---|
 | forge/hunt/renew | Acceptance 장부 [HUMAN]·미검증 항목 | push 된 열린 PR → `/land` · 마이그 apply | `/code-review` · `/sweep` |
-| harness-run | 미통과 게이트·short-circuit 사유 | pass→`/land`(G3) · short-circuit→`harness-heal`(G2) | — |
 | linear-goal | 메인 재검증 실패 항목·AC 미체크 | PR 머지 → `/land`(In Review 까지만이므로) | 체인 다음 이슈 → `linear-goal <next-id>` |
 | land | Step 6 3-소스 스캔(git/Linear/handoff) | conflict rebase 해소 · 마이그 apply · `npm install` | 완료 시 잔여 워크트리 → `wt-sweep` |
 
@@ -301,7 +298,7 @@ N 블록 → L1.
 1. 마지막 메시지가 `result:` 로 시작하는 한 줄을 내는가? (L1 — 전부 의무)
 2. 파일을 산출했다면 열기 블록을 붙였는가? (L2 — 파일 산출 스킬)
 3. 산출물이 전진형이면 next-skill-routing 으로 제안하는가? (L3 — 전진형만)
-4. 코드를 바꿨다면 본문 마지막에 결과 보드를 붙였는가? (R — 빌드/하니스/worker 스킬만.
+4. 코드를 바꿨다면 본문 마지막에 결과 보드를 붙였는가? (R — 빌드/worker 스킬만.
    활성 Linear 이슈가 있으면 같은 보드를 코멘트로도 — `linear.md` §3b)
 5. 코드를 바꿨다면 보드 아래 검증 체크리스트를 붙였는가? (V — `[사용자 직접 확인
    필요]` "없음" 명시 포함, Linear 코멘트에 보드와 함께)

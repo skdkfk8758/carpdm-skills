@@ -9,7 +9,7 @@ IMPORTANT: 스킬 파이프라인을 거치지 않고 **기본 대화 턴에서 
 
 **코드 변경 있음 AND (2+ 파일 OR 커밋 생성 OR 테스트/빌드 실행)** 인 턴의 종료 보고.
 
-- 스킬 경유 턴(forge/hunt/renew·harness-run·linear-goal)은 **제외** — 풀 보드가 이미
+- 스킬 경유 턴(forge/hunt/renew·linear-goal)은 **제외** — 풀 보드가 이미
   emit 됨, 이중 출력 금지.
 - 질문답변·탐색·문서/설정 편집·단일 파일 오타 수정은 비대상.
 
@@ -46,8 +46,8 @@ IMPORTANT: 스킬 파이프라인을 거치지 않고 **기본 대화 턴에서 
 ## 프로그래스는 native Task 가 담당
 
 기본 턴의 턴 내 진행 표시는 **native Task 체크리스트**(TaskCreate/TaskUpdate)가 정답 —
-Workflow 잠김이 없어 라이브 갱신이 그냥 된다. 스킬 턴의 P1/P2/P4(council 배너·게이트
-레일·ETA)는 전제 인프라가 없으므로 이식하지 않는다.
+Workflow 잠김이 없어 라이브 갱신이 그냥 된다. 스킬 턴의 P1/P4(council 배너·ETA)는
+전제 인프라가 없으므로 이식하지 않는다.
 
 ## Anti-patterns
 
