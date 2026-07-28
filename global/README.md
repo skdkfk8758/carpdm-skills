@@ -9,6 +9,7 @@
 | repo | 라이브 (SSOT) |
 |---|---|
 | `global/rules/*.md` | `~/.claude/rules/*.md` |
+| `global/rules-ondemand/*.md` | `~/.claude/rules-ondemand/*.md` (전수 아님 — 손댄 것만) |
 | `global/hooks/guards/*.sh` | `~/.claude/hooks/guards/*.sh` |
 | `global/scripts/*.sh` | `~/.claude/scripts/*.sh` |
 | `global/settings.json` | `~/.claude/settings.json` |
