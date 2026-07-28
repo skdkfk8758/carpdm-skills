@@ -19,30 +19,51 @@ Phase 2 는 완성된 Phase-1 플랜을 codex 에게 적대적 리뷰어로서 �
 (실측 2026-07-20). 직접 호출 + stderr 파일 캡처가 그 회수 경로를 연다.
 
 ```bash
+# 0) 출력 디렉토리 — 세션 scratchpad 우선. /tmp 고정 파일명 금지
+#    (동시 세션·다른 repo 실행이 서로 덮어쓴다). 없으면 mktemp -d 로 만든다.
+OUT="${SCRATCHPAD:-$(mktemp -d -t codex-review)}"
 # 1) plugin root 해소 (버전 하드코딩 금지)
 ROOT=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1)
 # 2) R1 — fresh 실행. stdout=최종 verdict, stderr=진행+부분 발견
 #    --effort 는 아래 effort 게이트 참조 (기본 medium, 고위험 표면만 high)
+#    프롬프트는 인자 대신 파일로 — 셸 확장·injection 회피(<<'EOF' 는 확장 안 함)
 #    끝에 완료 마커를 남긴다 — watchdog 의 hang 워처가 이 파일을 본다.
-date +%s > /tmp/codex-review-start.txt
+cat > "$OUT/r1-prompt.txt" <<'EOF'
+<R1 프롬프트>
+EOF
+date +%s > "$OUT/start.txt"
 CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --effort medium \
-  "<R1 프롬프트>" > /tmp/codex-review-r1-out.txt 2> /tmp/codex-review-r1-err.txt
-date +%s > /tmp/codex-review-r1-done.txt
+  --prompt-file "$OUT/r1-prompt.txt" > "$OUT/r1-out.txt" 2> "$OUT/r1-err.txt"
+date +%s > "$OUT/r1-done.txt"
 # 3) R2+ — 같은 스레드 재개 (codex 가 이전 라운드 컨텍스트 유지, 델타만 검증)
 CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --resume-last --effort medium \
-  "<Rn 프롬프트>" > /tmp/codex-review-r2-out.txt 2> /tmp/codex-review-r2-err.txt
-date +%s > /tmp/codex-review-r2-done.txt
+  --prompt-file "$OUT/r2-prompt.txt" > "$OUT/r2-out.txt" 2> "$OUT/r2-err.txt"
+date +%s > "$OUT/r2-done.txt"
 ```
 
-(경로는 세션 scratchpad 가 있으면 그쪽을 쓴다. companion 이 없으면 —
-plugin 미설치 — `codex:rescue` 스킬 경유로 폴백하되, 그 경로는 부분 결과
-회수도 스레드 재개도 안 됨을 안다: 매 라운드 fresh 리뷰로 강등.)
+**`--resume-last` 는 스레드 ID 를 고정하지 않는다.** companion 은 "현재 Claude
+세션·이 repo 의 최신 완료 task 스레드"를 고르므로(`codex-companion.mjs`
+`resolveLatestTrackedTaskThread`), **라운드 사이에 다른 codex task 를 끼우면
+엉뚱한 스레드가 재개된다**. 리뷰 루프가 도는 동안 같은 repo 에서 별도 codex
+task(예: codex-build 레인)를 돌리지 않는다. 재개된 응답이 이전 라운드 맥락을
+모르는 눈치면 그 라운드는 fresh 로 강등하고 원장을 프롬프트에 통째로 싣는다.
 
-두 가지가 중요하다:
+(companion 이 없으면 — plugin 미설치 — **`codex:rescue` 폴백도 불가능하다**:
+rescue 서브에이전트는 같은 플러그인(`codex/<ver>/agents/codex-rescue.md`)에
+들어 있어 companion 이 없으면 그것도 없다. 이 경우 유일한 경로는 아래
+watchdog 4항의 **로컬 multi-agent 적대 리뷰**다.)
+
+네 가지가 중요하다:
 
 1. **read-only 로 유지.** `--write` 를 붙이지 않고, 프롬프트에도 평이한 말로
    *"Review and critique only. Do not edit, create, or delete any files."* 라고
    말한다. 그래야 planning 중 codex 가 당신 작업 트리 밖에 머문다.
+1-a. **마스킹 (송신 전 필수) — codex 는 외부 모델이다.** 프롬프트에 실리는 플랜·
+   repo-context 에 secret·credential·내부 호스트·PII·고객 데이터를 넣지 않는다 —
+   경로·계약 형태·standing 결정 요약만 싣는다. 민감 레포면 승인된 요약만
+   전달하거나 로컬 리뷰어로 전환한다. (`deep-plan` Step 2 의 마스킹 게이트와
+   동형 — 종전엔 그쪽에만 있어 계약이 갈렸다. `acceptance-criteria-gate` G3 의
+   증거 첨부 마스킹과 같은 원리: 외부로 나간 것은 캐시·인덱싱돼 남는다.)
 2. **codex 를 플랜 파일로 경로로 가리켜라** — 당신의 요약이 아니라 실제 문서를
    읽도록. cwd 는 repo 루트로 두면 codex 가 repo 의 `.codex/config.toml`
    (effort 등)을 로드하고 레포 실측 대조까지 한다 — 느려지지만 품질이 오른다.
@@ -102,8 +123,21 @@ Free-form analysis above the block is welcome; the block is the verdict.
 
 verdict JSON 으로 기계 판정한다 — 산문 해석 금지:
 
-- `converged === true` **또는** `issues` 에 `severity:"high"` 가 0건 → **수렴, 루프 종료.**
-- 그 외 → 응답 라운드 진행.
+- `issues` 에 `severity:"high"` 가 **0건일 때만** 수렴, 루프 종료.
+- 그 외 → 응답 라운드 진행. **`converged:true` 가 와도 high 가 1건이라도
+  있으면 수렴이 아니다** — high 0건이 유일한 수렴 조건이고, `converged`
+  필드는 보조 신호일 뿐 단독 종료 근거가 아니다.
+
+> **OR 로 읽지 말 것.** 종전 문구는 "`converged===true` **또는** high 0건" 이라
+> codex 가 `converged:true` 와 high 이슈를 동시에 내면 blocker 를 무시하고
+> 종료했다. 계약(`converged=true only when no high`)을 codex 가 어길 수 있으므로
+> 판정은 **issues 배열이 SSOT**, `converged` 는 참고값이다.
+
+**verdict 파싱은 fail-closed.** JSON 블록을 못 찾거나·복수 블록이거나·파싱
+실패면 **수렴으로 치지 않는다** — 마지막 fenced json 블록을 취하고, 그래도
+실패하면 "verdict 회수 실패"로 보고 그 라운드를 재요청하거나 로컬 폴백으로
+넘어간다. 파싱 실패를 "이슈 0건"으로 읽는 것이 가장 위험한 오독이다(실측:
+추출 정규식 결함으로 정상 verdict 를 "미검출"로 오판한 사례).
 
 (ADMap harness `debate-control.mjs` 의 `isConverged` 와 같은 시맨틱. 그 스크립트는
 프로젝트 로컬이라 import 하지 않는다 — 규칙 자체를 여기 인라인해 전 프로젝트에서
@@ -196,11 +230,11 @@ codex 호출은 hang 할 수 있고(실측 ~39분, 최종 포맷 단계 — comp
 
    ```bash
    # codex 잡과 함께 띄운다. 정상 종료면 done 마커가 생겨 워처도 같이 빠진다.
-   until [ -f /tmp/codex-review-r1-done.txt ] || \
-         [ $(( $(date +%s) - $(stat -f %m /tmp/codex-review-r1-err.txt) )) -ge 480 ]; do
+   until [ -f "$OUT/r1-done.txt" ] || \
+         [ $(( $(date +%s) - $(stat -f %m "$OUT/r1-err.txt") )) -ge 480 ]; do
      sleep 20
    done
-   [ -f /tmp/codex-review-r1-done.txt ] && echo OK || echo STALL
+   [ -f "$OUT/r1-done.txt" ] && echo OK || echo STALL
    ```
 
    (`Monitor` 는 쓰지 않는다 — 알림이 **1회**뿐인 대기에는 background Bash 가
