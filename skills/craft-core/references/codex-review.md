@@ -187,12 +187,25 @@ codex 호출은 hang 할 수 있고(실측 ~39분, 최종 포맷 단계 — comp
 우선**(글로벌 룰의 20분/3분은 codex 이전 계측 기반의 일반값). **모든 라운드(R1·Rn)에
 동일 적용한다:**
 
-1. 위 direct 호출을 background 로 돌리고 **`Monitor` 조건대기**로 기다린다 —
-   포그라운드 무한 대기 금지, 그리고 짧은 sleep 폴링 반복도 금지(폴 1회가
-   메인루프 턴 1회다 — 이 폴링 비용이 p2 오버헤드의 실질 부분). 조건은
-   "완료 마커 파일 존재 **또는** stderr 가 8분간 무변화" 로 걸어 한 번에
-   대기하고, 깨어난 뒤 아래 2항으로 판정한다. `Monitor` 를 못 쓰는 컨텍스트면
-   폴 간격을 최소 2분으로 잡는다(그보다 촘촘한 폴은 정보 없이 턴만 태운다).
+1. **호출 자체를 Bash `run_in_background` 로 띄운다 — 그러면 대기 로직이
+   필요 없다.** 잡이 끝나면 하니스가 알아서 완료 알림을 보낸다. 포그라운드
+   무한 대기 금지, 그리고 짧은 sleep 폴링 반복도 금지 — 폴 1회가 메인루프 턴
+   1회이고, 이 폴링이 p2 오버헤드의 실질 부분이다.
+   hang 감시는 **별도의 background until-loop 하나**로 붙인다 — stderr 가
+   8분간 커지지 않으면 exit 해서 알림을 띄우는 워처:
+
+   ```bash
+   # codex 잡과 함께 띄운다. 정상 종료면 done 마커가 생겨 워처도 같이 빠진다.
+   until [ -f /tmp/codex-review-r1-done.txt ] || \
+         [ $(( $(date +%s) - $(stat -f %m /tmp/codex-review-r1-err.txt) )) -ge 480 ]; do
+     sleep 20
+   done
+   [ -f /tmp/codex-review-r1-done.txt ] && echo OK || echo STALL
+   ```
+
+   (`Monitor` 는 쓰지 않는다 — 알림이 **1회**뿐인 대기에는 background Bash 가
+   맞는 도구다. Monitor 는 발생마다 반복 알림이 필요할 때용이고, 무한 명령을
+   걸면 조건 충족 후에도 타임아웃까지 armed 로 남는다.)
 2. **진행 기반 판정 (경과시간 감각 금지 — 파일과 `date +%s` 로만).**
    - stderr 에 새 진행 줄(`[codex] Running command` / `Assistant message
      captured` / `Turn started`)이 계속 붙고 있으면 → hang 아님. **hard cap
@@ -226,6 +239,9 @@ codex 호출은 hang 할 수 있고(실측 ~39분, 최종 포맷 단계 — comp
 - 수렴 전에 캡·에스컬레이션 사유 없이 루프 중단 — 미해소 high 를 들고
   구현에 진입하는 것.
 - 짧은 간격 sleep 폴링으로 라운드를 지킴 — 폴 1회 = 메인루프 턴 1회라
-  codex 를 기다리는 시간보다 폴링이 더 비싸진다. `Monitor` 조건대기를 쓸 것.
+  codex 를 기다리는 시간보다 폴링이 더 비싸진다. 잡을
+  `run_in_background` 로 띄우고 완료 알림을 받을 것.
+- 알림 1회짜리 대기에 `Monitor` 를 씀 — 무한 명령이면 조건 충족 후에도
+  타임아웃까지 armed 로 남는다. Monitor 는 발생마다 반복 알림용.
 - 모든 NON-BLOCKING nit 을 필수로 취급 → 플랜이 요청하지 않은 scope
   creep.
