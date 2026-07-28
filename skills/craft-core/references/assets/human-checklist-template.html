@@ -17,6 +17,12 @@
     {{NOTES}}       — 확인 필요/완료 후 안내 노트. 없으면 통째 삭제.
     {{STORAGE_KEY}} — localStorage 키 (작업마다 고유. 예: "adt-qa-checklist-v1").
 
+  빌트인 (치환 불필요 — 지우지 말 것):
+    "결과 복사" 버튼 — 체크 상태를 Linear 코멘트 형 markdown(## 헤더 + ### 섹션 +
+      `- [x]/- [ ]` 항목)으로 클립보드 복사. 사용자가 Claude 세션 또는 Linear 이슈
+      코멘트에 붙여넣는 것이 회수 경로다(ui-verify §5 "결과 회수").
+    완료 배너 — 전 항목 체크 시 자동 표시(body.all-done). 후속 안내는 {{NOTES}} 와 별개.
+
   SERVER 블록 (header 바로 아래 — 사람이 첫 링크를 누르기 전에 읽는 자리):
     <div class="server" data-up="{{true|false}}">
       <div class="server-dot"></div>
@@ -135,6 +141,11 @@
   .toolbar { display: flex; gap: 10px; margin-top: 28px; align-items: center; }
   .btn { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--text-2); background: var(--surface); border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 14px; cursor: pointer; transition: all .15s; }
   .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { color: #fff; background: var(--accent); border-color: var(--accent); }
+  .btn.primary:hover { color: #fff; filter: brightness(1.06); }
+  .done-banner { display: none; margin-top: 26px; border: 1px solid var(--ok); border-radius: 10px; background: var(--ok-soft); padding: 14px 18px; font-size: 13.5px; color: var(--text); }
+  .done-banner b { color: var(--ok); }
+  body.all-done .done-banner { display: block; }
   .foot { margin-top: 40px; font-size: 12px; color: var(--text-3); font-family: var(--mono); }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -156,7 +167,9 @@
 
   {{NOTES}}
 
-  <div class="toolbar"><button class="btn" id="reset">체크 초기화</button></div>
+  <div class="done-banner"><b>전 항목 확인 완료.</b> 아래 “결과 복사”를 눌러 Claude 세션(또는 Linear 이슈 코멘트)에 붙여넣으면 검증 장부가 닫힌다.</div>
+
+  <div class="toolbar"><button class="btn primary" id="copy">결과 복사</button><button class="btn" id="reset">체크 초기화</button></div>
   <div class="foot">{{FOOT — 예: dev 서버 origin · 로컬 저장(localStorage)}}</div>
 </div>
 
@@ -186,6 +199,7 @@
       bar.querySelector("span").style.width = pct + "%";
       bar.classList.toggle("done", done === total && total > 0);
       document.getElementById("plabel").textContent = done === 0 ? "시작 전" : (done === total ? "전부 확인됨" : pct + "% 확인됨");
+      document.body.classList.toggle("all-done", done === total && total > 0);
       document.querySelectorAll("section.issue").forEach(function (sec) {
         var items = Array.prototype.slice.call(sec.querySelectorAll("li.check"));
         var d = items.filter(function (li) { return li.classList.contains("on"); }).length;
@@ -195,6 +209,39 @@
     }
     document.getElementById("reset").addEventListener("click", function () {
       checks.forEach(function (li) { li.classList.remove("on"); }); persist(); render();
+    });
+    document.getElementById("copy").addEventListener("click", function () {
+      // Build a Linear-comment-shaped markdown report of the current check state.
+      // Pasting it back into the Claude session (or a Linear issue comment) is the
+      // round-trip path: the agent parses "- [x]" lines to close the §V ledger.
+      var btn = this;
+      var h1 = document.querySelector("h1");
+      var total = checks.length;
+      var done = checks.filter(function (li) { return li.classList.contains("on"); }).length;
+      var lines = ["## 사용자 직접 확인 결과 " + done + "/" + total + (h1 ? " — " + h1.textContent.trim() : ""), ""];
+      document.querySelectorAll("section.issue").forEach(function (sec) {
+        var badge = sec.querySelector(".badge");
+        var title = sec.querySelector(".issue-title");
+        lines.push("### " + (badge ? "[" + badge.textContent.trim() + "] " : "") + (title ? title.textContent.trim() : ""));
+        sec.querySelectorAll("li.check").forEach(function (li) {
+          var t = li.querySelector(".check-text");
+          var hint = li.querySelector(".check-hint");
+          lines.push("- [" + (li.classList.contains("on") ? "x" : " ") + "] " +
+            (t ? t.textContent.trim() : "") + (hint ? " — " + hint.textContent.trim() : ""));
+        });
+        lines.push("");
+      });
+      var md = lines.join("\n").trim() + "\n";
+      function okFeedback() { btn.textContent = "복사됨 ✓"; setTimeout(function () { btn.textContent = "결과 복사"; }, 1600); }
+      function fallbackCopy() {
+        var ta = document.createElement("textarea");
+        ta.value = md; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); okFeedback(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(md).then(okFeedback, fallbackCopy); }
+      else { fallbackCopy(); }
     });
     render();
   })();
