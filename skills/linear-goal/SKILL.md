@@ -138,11 +138,10 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
 1. **세션 이름 — Phase 1 에서 이미 설정됨.** fetch 직후 rename 했으므로 여기선 재실행하지
    않는다(이름이 비어 있거나 placeholder 면 그때만 craft-core `session-rename.md` 로 보정).
 2. **Linear → In Progress** (티켓 ID 있을 때만).
-3. **worktree 분기** — `EnterWorktree` 또는 `git worktree add -b feat/<issue-id>-<topic> <dir>`
-   (branch-worktree-strategy §5: 메인은 develop 유지, 새 브랜치는 worktree 격리).
-4. **worktree 검증 — hard gate** — `git -C <dir> rev-parse --abbrev-ref HEAD` == 기대 브랜치.
-   **실패면 worker 를 절대 띄우지 않고** 중단·보고.
-5. **goal worker spawn** — worktree 안에서 Phase 3 Goal Prompt 를 task 로 하는 백그라운드 잡:
+3. **worktree 격리 — hard gate** — `~/.claude/skills/craft-core/references/worktree.md` 를
+   읽고 그대로(감지 → 분기 → verify-or-STOP, 복제 금지). 브랜치 `feat/<issue-id>-<topic>`.
+   **verify 실패면 worker 를 절대 띄우지 않고** 중단·보고.
+4. **goal worker spawn** — worktree 안에서 Phase 3 Goal Prompt 를 task 로 하는 백그라운드 잡:
    `Agent` 의 `run_in_background:true`, agentType `deep-worker`(가용) 또는 general-purpose
    (subagent-invocation R6). worker 는 자율로 돌아 **PR 까지만** 연다(머지 금지) — 단
    **PR 직전 이슈 수용 기준을 재확인해 100% 검증·충족일 때만** PR 을 열고, 미충족이면 PR 을
@@ -153,7 +152,7 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
      (subagent-invocation R8 을 opt-in 아닌 기본으로). append 규율은 R8 그대로 —
      ≤20 스텝 줄 + 종료 `[DONE]`/`[FAIL]` 마커 1회. 상세는
      `~/.claude/skills/craft-core/references/progress.md` §P3(복제 금지).
-6. **동기 종료** — `result:` 한 줄(repo + worktree + worker 잡 핸들 + Linear 상태) +
+5. **동기 종료** — `result:` 한 줄(repo + worktree + worker 잡 핸들 + Linear 상태) +
    **관전 명령 1줄**(`tail -f <status.log 경로>` — progress.md P3). 백그라운드
    잡은 완료 시 하니스가 자동 알린다(동기 폴링 금지). 사용자가 도중에 진행을 물으면
    status log 꼬리(최근 ~5줄)를 읽어와 요약한다 — 완료 판정은 아님(R9: idle ≠ 완료,
@@ -161,7 +160,7 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
 
 **비동기 (worker 완료 notification 도착 시 — 후속 턴):**
 
-7. **결과 보드 + PR 게이트 분기.** 먼저 **결과 보드**(output-contract §R — 복제 금지)를
+6. **결과 보드 + PR 게이트 분기.** 먼저 **결과 보드**(output-contract §R — 복제 금지)를
    emit 한다. linear-goal 정체성 행: `worker`([DONE]/[FAIL] 자가보고 · status log 스텝 수 ·
    자가보고 테스트 수) · `메인 재검증`(git diff 파일 일치 · verify 명령 재실행 실측 —
    R9: 자가보고만으론 완료 불인정). 공통 행: Acceptance(N/N + 검증 근거) · 납품(PR ·

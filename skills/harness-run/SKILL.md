@@ -55,7 +55,7 @@ description: >-
      미설치이거나 이슈ID 가 없으면 **묻지 말고** 스킵 — Linear 는 증강일 뿐 게이트하지 않는다.
      전이 실패(권한·네트워크)는 하니스를 막지 않는다(경고만). forge/hunt/renew 가 pipeline
      Phase 0 에서 하는 것과 동일 전이를 harness-run 은 G0 에서 한다.
-2. **워크트리 — 자동 아님, 메인루프가 직접 수행·검증한다.** `git worktree add -b feat/<slug> ../<repo>--<slug>` 로 분기. **직후 `git worktree list | grep feat/<slug>` 로 생성 확인 — 안 보이면 STOP**(이 단계를 빠뜨리면 dev 가 메인트리서 돌아 분리무결성이 붕괴한다). 이후 모든 작업·Workflow `args.worktree` 는 이 워크트리 기준 — Workflow agent 의 cwd 는 launch 시점 메인세션 cwd 로 pin 되므로, 메인세션이 이 워크트리에 있어야 dev 가 거기서 돈다. `EnterWorktree` 는 deferred 도구(먼저 `ToolSearch` 로 로드)이고 이미 워크트리 세션이면 거부되니 — `git worktree add` 를 1순위로 쓴다.
+2. **워크트리 — 자동 아님, 메인루프가 직접 수행·검증한다.** 절차는 `~/.claude/skills/craft-core/references/worktree.md` 를 읽고 그대로(감지 → 분기 → verify-or-STOP, 복제 금지). 브랜치 `feat/<slug>`, 디렉토리 `../<repo>--<slug>`. **verify 실패면 STOP** — 이 단계를 빠뜨리면 dev 가 메인트리서 돌아 분리무결성이 붕괴한다(hard gate: dev-eval-loop 를 띄우지 않는다). 이후 모든 작업·Workflow `args.worktree` 는 이 워크트리 기준 — Workflow agent 의 cwd 는 launch 시점 메인세션 cwd 로 pin 되므로, 메인세션이 이 워크트리에 있어야 dev 가 거기서 돈다.
 3. **생성** — `deep-plan` 으로 플랜+시안, `eval-generate` 로 rubric+스텁(G1 검토용으로 `<worktree>/.eval/` 에 생성, frozen:false).
 4. **G1 ★** — {플랜·시안·rubric} 을 `AskUserQuestion` 으로 제시. 승인 시 rubric 의 `"frozen": true` 로 수정(잠금). dev 가 보기 전에 freeze.
 5. **eval 산물 격리(분리무결성 — REQ-F-008/N-001) ★** — freeze 후 dev-loop 전에 `.eval/`(rubric+tests)를 **워크트리 밖** `evalDir`(예: `<worktree>/../.eval-<slug>/`)로 이동하고 워크트리에서 제거한다. dev 워크트리엔 eval 산물이 0이어야 한다(dev 가 oracle 을 읽어 게이밍하는 채널 차단 — M2 dogfood 실측). `.eval/`·`.eval-run/` 는 gitignore — 브랜치에 커밋 금지.

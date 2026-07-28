@@ -114,16 +114,9 @@ Task 체크리스트(세션 UI — 다른 세션에선 안 보임)와 별개로,
 
 - 작업유형과 한 줄 목표를 사용자에게 되짚어준다.
 - **Worktree 격리 (기본 필수 — verify-or-STOP).** forge/renew/hunt 는 실질 빌드라
-  편집 전에 **새 워크트리로 격리**한다 (branch-worktree-strategy §5: 메인 워크트리는
-  trunk 유지, 새 브랜치는 worktree). 메인 트리/trunk 에서 직접 편집하지 않는다.
-  1. `git worktree add -b <type>/<topic> <dir>` — type = feat(forge)/fix(hunt)/refactor·feat(renew);
-     Linear 이슈ID 있으면 `<type>/<issue-id>-<topic>`. (`EnterWorktree` 는 deferred 도구 +
-     이미 워크트리면 거부 → `git worktree add` 1순위.)
-  2. **검증 — 직후 `git -C <dir> rev-parse --abbrev-ref HEAD` 가 기대 브랜치인지 확인.
-     아니면 STOP**(구현 시작 금지). 이 검증을 빠뜨리면 빌드가 메인트리/trunk 에서 돌아
-     격리가 붕괴한다 — "확실히 분리"의 핵심은 이 verify-or-STOP 이다.
-  - 유일 예외(§5): 이미 적절한 feature 워크트리/브랜치에 있고 **동일 토픽 1–2 파일 이어
-    커밋** — 그때만 현 트리 유지하고 첫 응답에 이유를 명시한다. 그 외엔 격리한다.
+  편집 전에 격리한다. 절차는
+  `~/.claude/skills/craft-core/references/worktree.md` 를 읽고 그대로 따른다(감지 →
+  분기 → verify-or-STOP, 복제 금지). type = feat(forge)/fix(hunt)/refactor·feat(renew).
 - **Linear binding (optional, graceful).** 이 작업에 연결된 Linear 이슈가 있으면
   — 사용자가 이슈 ID/URL 을 줬거나, 이어받은 PLAN `.md` 에 deep-plan 이 적어둔
   sub-issue 가 있으면 — `~/.claude/skills/craft-core/references/linear.md` 를 읽고

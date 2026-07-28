@@ -7,7 +7,7 @@
 
 Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스킬은 마크다운(`SKILL.md` + `references/*.md`)이고 `~/.claude/skills/` 로 복사돼야 동작한다. 코드 컴파일·테스트·린트 단계 없음.
 
-스킬 인벤토리·개별 역할의 SSOT 는 각 `skills/<name>/SKILL.md` frontmatter `description:` — 여기 복제하지 않는다(drift 차단). 아키텍처 결합·설계 결정은 아래 §1~§13. 현재 스킬 dir 목록은 `ls skills/`. 그룹 개요:
+스킬 인벤토리·개별 역할의 SSOT 는 각 `skills/<name>/SKILL.md` frontmatter `description:` — 여기 복제하지 않는다(drift 차단). 아키텍처 결합·설계 결정은 아래 §1~§15. 현재 스킬 dir 목록은 `ls skills/`. 그룹 개요:
 - 빌드 파이프라인: `forge`(신규)/`hunt`(버그)/`renew`(개편) + 공유엔진 `craft-core`(§1·§5) + 경량 escape-hatch `tdd`(codex 리뷰·보안 페이즈 없는 red-green-refactor 단독 — 풀 파이프라인 아님)
 - plan·인터뷰(산출만, 빌드 안 함): `deep-interview`(standalone) · `deep-plan`(§6) · `deep-prompt`(자율 잡용 Goal Prompt 저작)
 - 운영: `handoff` · `sweep` · `land` · `wt-sweep`(워크트리·세션기록 정리는 wt-sweep 단독 소관 — land 는 워크트리를 건드리지 않고 Report 로 안내만; 절차 SSOT 는 wt-sweep `references/sweep-mode.md`) · `ship`(§10)
@@ -54,7 +54,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 Socratic 인터뷰 → codex 적대적 플랜 리뷰(`codex:rescue` 플러그인) → 동적 워크플로 TDD(sonnet) → 보안 검증.
 각 작업유형 스킬은 이 엔진 위에 **자기 Phase 1 Socratic 초점 + Phase 3 TDD 진입점**만 얹는다 (SKILL.md 본문은 짧음 — 차이만 기술). 공통 Phase 0/2/4/5 는 엔진 그대로.
 - `codex:rescue` 미설치 시 Phase 2 는 수동 리뷰로 폴백.
-- 참조 분리: `socratic.md`/`codex-review.md`/`dynamic-tdd.md`/`security.md`/`context-adr.md` — phase 필요 시 lazy load. `output-contract.md` 는 phase 참조가 아니라 **전 스킬 공통 종료 출력 규격**(§7). `linear.md` 는 **Linear 연동 공유 SSOT**(§11) — 엔진 의존 아닌 공유 한 장.
+- 참조 분리: `socratic.md`/`codex-review.md`/`dynamic-tdd.md`/`security.md`/`context-adr.md` — phase 필요 시 lazy load. `output-contract.md` 는 phase 참조가 아니라 **전 스킬 공통 종료 출력 규격**(§7). `linear.md` 는 **Linear 연동 공유 SSOT**(§11), `worktree.md` 는 **격리 절차 공유 SSOT**(§15) — 둘 다 엔진 의존 아닌 공유 한 장.
 - **Linear 라이프사이클 wiring (§11):** Phase 0 에 `linear.md` 바인딩(활성 이슈→In Progress), Phase 5 wrap 에 verify green→In Review 를 주입(개별 SKILL.md 안 건드림). 셋 다 graceful — Linear 미설치/이슈 없으면 무시하고 평소대로.
 
 ### 3. SKILL.md frontmatter = 트리거
@@ -144,6 +144,30 @@ loop/eval-게이트 자율개발 하니스의 실행 스킬 4종. **SSOT 가 글
   쓰레기 0) · 리포트 이슈 ADT-416/AUT-76/SSO-98/ADM-164. 반영은 사람이 세션에서
   `/linear-groom` 실행. **은퇴 조건**: 리포트 코멘트가 3개월간 실제 그루밍으로 이어지지
   않으면(발견은 되는데 아무도 반영 안 하면) 자동화·리포트 이슈를 함께 폐지.
+
+### 15. worktree 격리 = 공유 SSOT 한 장 (craft-core/references/worktree.md)
+
+격리 절차(감지 → 분기 → verify-or-STOP)의 단일 소스. output-contract(§7)·linear(§11)과 같은
+포지션 — craft-core 에 두지만 **엔진 의존 아닌 공유 reference** 다. 읽는 곳 4개:
+`pipeline.md` Phase 0 · `orchestrated.md` §0 · `harness-run` G0 · `linear-goal` 동기 블록.
+각 호출처는 포인터 1~3줄 + 자기 브랜치 타입만 남기고 git 명령 리터럴을 갖지 않는다. 설계 결정:
+
+- **감지 게이트가 추가된 이유.** Orca 카드로 세션이 열렸으면 이미 linked 워크트리일 수 있고,
+  그때 또 `git worktree add` 하면 워크트리 안에 워크트리를 판다. 그래서 분기 전에 위치를
+  판정하고 linked 면 분기를 건너뛴다. 종전 "이미 적절한 워크트리면 유지" 휴리스틱과 달리
+  **불리언 사실**이라 모델 판단이 개입하지 않는다.
+- **감지 신호는 git 이지 Orca 가 아니다.** `git rev-parse --path-format=absolute --git-dir
+  --git-common-dir` 두 줄의 동일 여부가 SSOT. `orca worktree current` 의 `isMainWorktree` 를
+  쓰려다 **실측 반례**를 만났다 — Orca 밖에서 `git worktree add` 로 만든 워크트리 안에서
+  호출하면 경로 매칭으로 메인(`isMainWorktree: true`)을 반환한다. `land/references/orca.md` 가
+  `linkedPR` 로 배운 것과 같은 규율(Orca 메타는 보강, ground truth 아님). `--path-format=absolute`
+  는 필수 — 빼면 메인 repo 하위 디렉토리에서 `.git` vs `../.git` 로 갈려 오판한다.
+- **verify-or-STOP 은 이동만, 완화 아님.** 백그라운드 잡을 띄우는 두 호출처(linear-goal 의 goal
+  worker, harness-run 의 dev-eval-loop)에서는 hard gate — 실패면 잡을 띄우지 않는다.
+  harness-run 은 추가로 `evalDir = <worktree>/../.eval-<slug>/` 가 워크트리 경로에 의존하므로
+  (REQ-F-008/N-001 분리무결성) 이 단계를 생략할 수 없다.
+- **통일 이득.** 종전 verify 명령이 `rev-parse --abbrev-ref HEAD`(pipeline·linear-goal) 와
+  `worktree list | grep`(harness-run) 으로 갈려 있었다 — 전자로 통일.
 
 ## Skill authoring 검증
 
