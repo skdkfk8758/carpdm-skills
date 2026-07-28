@@ -124,9 +124,10 @@ CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --effor
   repo-context 에 secret·credential·내부 호스트·PII 를 넣지 않는다 — 경로·계약
   형태·standing 결정 요약만. Step 7.5 Linear 첨부의 마스킹 게이트와 동형이다.
 - **effort 는 medium 기본.** 보안 경계·외부 계약·마이그를 수반하는 요청만 상향.
-- **watchdog** — background + 진행 감시. 마지막 진행 후 3분 무소식이면 kill, hard
-  cap 20분. kill 시 stderr 파일에서 부분 결과를 회수한다. SSOT:
-  `~/.claude/rules-ondemand/delegated-review-watchdog.md`.
+- **watchdog** — background + 진행 감시, 무진행이면 kill 하고 stderr 파일에서
+  부분 결과를 회수한다. **임계값(무진행 판정·hard cap)은 여기 적지 않는다** —
+  SSOT 는 `~/.claude/rules-ondemand/delegated-review-watchdog.md` 이고, 수치를
+  중복 인라인하면 그쪽이 실측으로 갱신될 때 조용히 어긋난다(실측 drift 1건).
 
 비평 프롬프트는 compact 한 XML-태그 operator 형태 — fable 초안 전문 + 원 요청문 +
 repo-context 를 싣고, 산출 계약을 강제한다:
