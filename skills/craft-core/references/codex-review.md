@@ -24,21 +24,21 @@ Phase 2 는 완성된 Phase-1 플랜을 codex 에게 적대적 리뷰어로서 �
 OUT="${SCRATCHPAD:-$(mktemp -d -t codex-review)}"
 # 1) plugin root 해소 (버전 하드코딩 금지)
 ROOT=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1)
-# 2) R1 — fresh 실행. stdout=최종 verdict, stderr=진행+부분 발견
+# 2) 라운드 실행 — N 은 라운드 번호(1,2,3…). 파일명을 라운드로 인덱싱해야
+#    R3+ 가 R2 파일·마커를 재사용해 stale 마커·출력 덮어쓰기를 내지 않는다.
 #    --effort 는 아래 effort 게이트 참조 (기본 medium, 고위험 표면만 high)
 #    프롬프트는 인자 대신 파일로 — 셸 확장·injection 회피(<<'EOF' 는 확장 안 함)
-#    끝에 완료 마커를 남긴다 — watchdog 의 hang 워처가 이 파일을 본다.
-cat > "$OUT/r1-prompt.txt" <<'EOF'
-<R1 프롬프트>
+#    R1 은 fresh, R2+ 는 --resume-last 를 덧붙인다.
+N=1; RESUME=""            # R2+ 는 N=2; RESUME="--resume-last"
+cat > "$OUT/r$N-prompt.txt" <<'EOF'
+<라운드 프롬프트>
 EOF
-date +%s > "$OUT/start.txt"
-CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --effort medium \
-  --prompt-file "$OUT/r1-prompt.txt" > "$OUT/r1-out.txt" 2> "$OUT/r1-err.txt"
-date +%s > "$OUT/r1-done.txt"
-# 3) R2+ — 같은 스레드 재개 (codex 가 이전 라운드 컨텍스트 유지, 델타만 검증)
-CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --resume-last --effort medium \
-  --prompt-file "$OUT/r2-prompt.txt" > "$OUT/r2-out.txt" 2> "$OUT/r2-err.txt"
-date +%s > "$OUT/r2-done.txt"
+date +%s > "$OUT/r$N-start.txt"
+CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task $RESUME --effort medium \
+  --prompt-file "$OUT/r$N-prompt.txt" > "$OUT/r$N-out.txt" 2> "$OUT/r$N-err.txt" \
+  && date +%s > "$OUT/r$N-done.txt" || date +%s > "$OUT/r$N-failed.txt"
+#    ^ 마커는 성공/실패를 갈라 남긴다. 무조건 done 을 찍으면 node 가 죽어도
+#      워처가 "정상 완료"로 읽는다.
 ```
 
 **`--resume-last` 는 스레드 ID 를 고정하지 않는다.** companion 은 "현재 Claude
@@ -133,10 +133,12 @@ verdict JSON 으로 기계 판정한다 — 산문 해석 금지:
 > 종료했다. 계약(`converged=true only when no high`)을 codex 가 어길 수 있으므로
 > 판정은 **issues 배열이 SSOT**, `converged` 는 참고값이다.
 
-**verdict 파싱은 fail-closed.** JSON 블록을 못 찾거나·복수 블록이거나·파싱
-실패면 **수렴으로 치지 않는다** — 마지막 fenced json 블록을 취하고, 그래도
-실패하면 "verdict 회수 실패"로 보고 그 라운드를 재요청하거나 로컬 폴백으로
-넘어간다. 파싱 실패를 "이슈 0건"으로 읽는 것이 가장 위험한 오독이다(실측:
+**verdict 파싱은 fail-closed.** 계약은 fenced json 블록 **정확히 1개**다.
+0개·2개 이상·파싱 실패·`issues` 배열 부재는 전부 **계약 위반 → 수렴 아님**:
+그 라운드를 verdict 없이 재요청하고(같은 스레드), 재요청도 실패하면 로컬
+폴백으로 넘어간다. **복수 블록에서 "마지막 것을 취하는" 추측 복구를 하지
+않는다** — 어느 블록이 최종인지 모르는 채 고르면 조용히 틀린 verdict 를
+채택한다. 파싱 실패를 "이슈 0건"으로 읽는 것이 가장 위험한 오독이다(실측:
 추출 정규식 결함으로 정상 verdict 를 "미검출"로 오판한 사례).
 
 (ADMap harness `debate-control.mjs` 의 `isConverged` 와 같은 시맨틱. 그 스크립트는
@@ -229,13 +231,20 @@ codex 호출은 hang 할 수 있고(실측 ~39분, 최종 포맷 단계 — comp
    8분간 커지지 않으면 exit 해서 알림을 띄우는 워처:
 
    ```bash
-   # codex 잡과 함께 띄운다. 정상 종료면 done 마커가 생겨 워처도 같이 빠진다.
-   until [ -f "$OUT/r1-done.txt" ] || \
-         [ $(( $(date +%s) - $(stat -f %m "$OUT/r1-err.txt") )) -ge 480 ]; do
+   # codex 잡과 함께, 같은 라운드 번호 N 으로 띄운다.
+   # 정상/실패 종료면 마커가 생겨 워처도 같이 빠진다 — 남는 건 STALL 뿐.
+   until [ -f "$OUT/r$N-done.txt" ] || [ -f "$OUT/r$N-failed.txt" ] || \
+         [ $(( $(date +%s) - $(stat -f %m "$OUT/r$N-err.txt") )) -ge 480 ]; do
      sleep 20
    done
-   [ -f "$OUT/r1-done.txt" ] && echo OK || echo STALL
+   if   [ -f "$OUT/r$N-done.txt"   ]; then echo OK
+   elif [ -f "$OUT/r$N-failed.txt" ]; then echo FAILED   # node 자체 실패 — 폴백
+   else echo STALL; fi                                    # 무진행 8분 — kill 대상
    ```
+
+   워처가 `STALL` 을 내면 **거기서 끝이 아니다** — 그 라운드의 잡을 실제로
+   kill 하고(`TaskStop` 또는 잡 PID), 아래 3항으로 부분 결과를 회수한 뒤
+   4항 폴백으로 넘어간다. `FAILED` 는 kill 없이 곧장 3~4항.
 
    (`Monitor` 는 쓰지 않는다 — 알림이 **1회**뿐인 대기에는 background Bash 가
    맞는 도구다. Monitor 는 발생마다 반복 알림이 필요할 때용이고, 무한 명령을
