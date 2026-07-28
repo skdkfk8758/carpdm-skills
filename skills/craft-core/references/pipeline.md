@@ -254,7 +254,7 @@ Phase 2 전에 사용자에게 플랜 확인을 요청한다. 사용자가 보�
 
 **소형·저위험 플랜은 스킵 게이트 (위임 리뷰 = 직렬 고정비 — 실측 p2 중앙값
 24분 · 최대 55분, `craft-timing.jsonl` n=21).** codex 리뷰는 라운드당 hard cap
-12분 × 수렴 게이트(최대 4라운드)의 *직렬* 블록이고, 그중 codex 순수 런타임은
+12분 × 수렴 게이트(최대 3라운드)의 *직렬* 블록이고, 그중 codex 순수 런타임은
 40% 남짓 — 나머지는 라운드 사이 원장·플랜 수정 오버헤드다. 소형 플랜에선 이
 고정비가 효용을 초과한다. Phase 1 플랜이 확정되면 먼저 판정한다:
 
@@ -279,7 +279,7 @@ Phase 2 전에 사용자에게 플랜 확인을 요청한다. 사용자가 보�
 결정을 하거나 standing ADR 과 충돌하는지**. 리뷰는 converge-gated 핑퐁이다:
 codex 의 verdict JSON(high 이슈)에 플랜 수정 + 응답 원장으로 답하고, 같은
 스레드(`--resume-last`)에서 해소 여부를 검증받는다. high 0건 수렴 또는 캡
-4라운드까지 — 상세 계약(원장·분쟁 에스컬레이션·watchdog)은 `codex-review.md`
+3라운드까지 — 상세 계약(원장·분쟁 에스컬레이션·watchdog)은 `codex-review.md`
 가 SSOT. 각 라운드의 평결을 플랜에 기록한다.
 
 ## Phase 3 — Dynamic workflow: task split + TDD (opus)
