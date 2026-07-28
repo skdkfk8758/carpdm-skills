@@ -138,9 +138,11 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
 1. **세션 이름 — Phase 1 에서 이미 설정됨.** fetch 직후 rename 했으므로 여기선 재실행하지
    않는다(이름이 비어 있거나 placeholder 면 그때만 craft-core `session-rename.md` 로 보정).
 2. **Linear → In Progress** (티켓 ID 있을 때만).
-3. **worktree 격리 — hard gate** — `~/.claude/skills/craft-core/references/worktree.md` 를
-   읽고 그대로(감지 → 분기 → verify-or-STOP, 복제 금지). 브랜치 `feat/<issue-id>-<topic>`.
-   **verify 실패면 worker 를 절대 띄우지 않고** 중단·보고.
+3. **worktree 게이트 — hard gate, 만들지 않고 검사만 한다** —
+   `~/.claude/skills/craft-core/references/worktree.md` 를 읽고 그대로(감지 → 게이트 판정,
+   복제 금지). 워크트리 생성은 사용자가 Orca 카드로 한다 — 여기서 `git worktree add` 하지
+   않는다. **STOP 이면 worker 를 절대 띄우지 않고** 권장 브랜치명(`feat/<issue-id>-<topic>`)과
+   함께 중단·보고.
 4. **goal worker spawn** — worktree 안에서 Phase 3 Goal Prompt 를 task 로 하는 백그라운드 잡:
    `Agent` 의 `run_in_background:true`, agentType `deep-worker`(가용) 또는 general-purpose
    (subagent-invocation R6). worker 는 자율로 돌아 **PR 까지만** 연다(머지 금지) — 단

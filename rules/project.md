@@ -145,12 +145,23 @@ loop/eval-게이트 자율개발 하니스의 실행 스킬 4종. **SSOT 가 글
   `/linear-groom` 실행. **은퇴 조건**: 리포트 코멘트가 3개월간 실제 그루밍으로 이어지지
   않으면(발견은 되는데 아무도 반영 안 하면) 자동화·리포트 이슈를 함께 폐지.
 
-### 15. worktree 격리 = 공유 SSOT 한 장 (craft-core/references/worktree.md)
+### 15. worktree 격리 = **게이트**(생성 아님) 공유 SSOT 한 장 (craft-core/references/worktree.md)
 
-격리 절차(감지 → 분기 → verify-or-STOP)의 단일 소스. output-contract(§7)·linear(§11)과 같은
-포지션 — craft-core 에 두지만 **엔진 의존 아닌 공유 reference** 다. 읽는 곳 **2개**:
-`harness-run` G0 · `linear-goal` 동기 블록. 각 호출처는 포인터 1~3줄 + 자기 브랜치 타입만
-남기고 git 명령 리터럴을 갖지 않는다. 설계 결정:
+**스킬은 워크트리를 만들지 않는다 — 검사만 한다.** 생성권은 사용자(Orca 카드)에게 있고,
+`worktree.md` 는 "격리된 트리에 있는가"를 판정해 통과/STOP 만 낸다. output-contract(§7)·
+linear(§11)과 같은 포지션 — craft-core 에 두지만 **엔진 의존 아닌 공유 reference** 다.
+읽는 곳 **2개**: `harness-run` G0 · `linear-goal` 동기 블록. 두 호출처 모두 포인터
+1~2줄 + 권장 브랜치명만 남기고 git 명령 리터럴을 갖지 않는다. 설계 결정:
+
+- **생성을 뺀 이유 = 생성권 귀속.** 사용자가 Orca 카드로 워크트리를 직접 만든다. 스킬이
+  또 만들면 의도하지 않은 이름·위치의 트리가 생기고, 이미 격리된 세션엔 겹쳐 판다.
+  이 변경으로 레포에서 `git worktree add` 리터럴은 codex green 레인 1곳만 남는다.
+- **검사까지 빼지 않은 이유 = 실측 반례.** "Orca 에서 열었다"가 격리를 뜻하지 않는다 —
+  Orca 는 메인 워크트리도 카드로 관리한다(실측: 등록 워크트리 19개 중 **13개**가
+  `isMainWorktree: true`, 그중 하나가 이 레포 `master` 체크아웃). 검사를 빼면 메인
+  트리에서 백그라운드 잡이 trunk 를 자율 편집한다.
+- **STOP 은 안내를 동반한다.** 현재 위치·브랜치(증거) + 권장 브랜치명 + "Orca 카드로
+  만들고 다시 실행" 한 줄. 사용자가 바로 행동할 수 있어야 게이트가 마찰이 아니라 라우팅이 된다.
 
 - **craft 빌드 엔진은 격리하지 않는다.** `pipeline.md` Phase 0 · `orchestrated.md` §0 도 한때
   이 파일을 읽었으나 제거했다 — forge/hunt/renew 는 **대화형**이라 사람이 보고 있고, 세션이
@@ -163,11 +174,7 @@ loop/eval-게이트 자율개발 하니스의 실행 스킬 4종. **SSOT 가 글
   (`branch-worktree-strategy` §2a). 격리와 별개의 회귀이므로 재발하면 네이밍만 되살릴 것.
 - **남은 2곳은 백그라운드다.** linear-goal 의 goal worker, harness-run 의 dev-eval-loop 는
   사람 없이 자율 편집한다 — 메인 트리에서 돌면 `commit-isolation.md` 가 기술한 사고가 그대로
-  난다. 여기선 verify 실패 = 잡 미기동(hard gate).
-- **감지 게이트가 있는 이유.** Orca 카드로 세션이 열렸으면 이미 linked 워크트리일 수 있고,
-  그때 또 `git worktree add` 하면 워크트리 안에 워크트리를 판다. 그래서 분기 전에 위치를
-  판정하고 linked + feature 브랜치면 그 워크트리를 채택한다. 종전 "이미 적절한 워크트리면
-  유지" 휴리스틱과 달리 **불리언 사실**이라 모델 판단이 개입하지 않는다.
+  난다. 여기선 STOP = 잡 미기동(hard gate).
 - **감지 신호는 git 이지 Orca 가 아니다.** `git rev-parse --path-format=absolute --git-dir
   --git-common-dir` 두 줄의 동일 여부가 SSOT. `orca worktree current` 의 `isMainWorktree` 를
   쓰려다 **실측 반례**를 만났다 — Orca 밖에서 `git worktree add` 로 만든 워크트리 안에서
@@ -176,7 +183,7 @@ loop/eval-게이트 자율개발 하니스의 실행 스킬 4종. **SSOT 가 글
   는 필수 — 빼면 메인 repo 하위 디렉토리에서 `.git` vs `../.git` 로 갈려 오판한다.
 - **harness-run 은 구조적으로 생략 불가.** `evalDir = <worktree>/../.eval-<slug>/` 가 워크트리
   경로에 의존한다(REQ-F-008/N-001 분리무결성 — dev 가 oracle 을 읽는 채널 차단).
-- **통일 이득.** 종전 verify 명령이 `rev-parse --abbrev-ref HEAD`(pipeline·linear-goal) 와
+- **통일 이득.** 종전 브랜치 확인 명령이 `rev-parse --abbrev-ref HEAD`(pipeline·linear-goal) 와
   `worktree list | grep`(harness-run) 으로 갈려 있었다 — 전자로 통일.
 
 ## Skill authoring 검증

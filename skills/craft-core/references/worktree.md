@@ -1,22 +1,30 @@
-# Worktree 격리 — 공유 SSOT
+# Worktree 격리 게이트 — 공유 SSOT
 
-> 격리 절차의 단일 소스. **`harness-run`(G0)** 과 **`linear-goal`(승인 후 동기 블록)** 이
-> 이 한 장을 읽는다 — **복제 금지**(drift 차단). 둘 다 사람 없는 백그라운드 잡을 띄우므로
-> 격리가 hard gate 다.
+> **이 문서는 워크트리를 만들지 않는다. 검사만 한다.** 생성권은 사용자(Orca 카드)에게
+> 있고, 스킬은 "격리된 트리에 있는가"만 확인해 통과시키거나 멈춘다.
 >
-> craft 빌드 엔진(`pipeline.md`·`orchestrated.md`)은 **이 파일을 읽지 않는다** — forge/hunt/
-> renew 는 대화형이고, 세션이 어느 트리에서 열리는지는 호출자(Orca 카드·사람)가 정한다.
-> 그 규범은 글로벌 `branch-worktree-strategy.md` §5 + `guard-worktree-edit-isolation` 훅이
-> 담당한다. 파일이 craft-core 에 있는 건 output-contract·linear 와 같은 이유 —
-> craft-core 가 **공유 reference 컨테이너**이기 때문이지 엔진이 쓰기 때문이 아니다.
+> **`harness-run`(G0)** 과 **`linear-goal`(승인 후 동기 블록)** 이 이 한 장을 읽는다 —
+> **복제 금지**(drift 차단). 둘 다 사람 없는 백그라운드 잡을 띄우므로 게이트가 hard gate 다.
+>
+> craft 빌드 엔진(`pipeline.md`·`orchestrated.md`)은 이 파일을 읽지 않는다 — forge/hunt/
+> renew 는 대화형이라 글로벌 `branch-worktree-strategy.md` §5 +
+> `guard-worktree-edit-isolation` 훅이 규범을 담당한다. 파일이 craft-core 에 있는 건
+> output-contract·linear 와 같은 이유 — **공유 reference 컨테이너**이기 때문이다.
 
-근거 룰: `~/.claude/rules/branch-worktree-strategy.md` §5(새 브랜치 격리는 예외 없이
-worktree, 메인 워크트리는 trunk 유지) + `commit-isolation.md`(uncommitted 노출 최소화).
+근거 룰: `~/.claude/rules/branch-worktree-strategy.md` §5(메인 워크트리는 trunk 유지) +
+`commit-isolation.md`(uncommitted 노출 최소화).
+
+## 왜 만들지 않고 검사만 하나
+
+워크트리는 사용자가 Orca 카드로 직접 만든다. 스킬이 또 만들면 사용자가 의도하지 않은
+이름·위치의 트리가 생기고, 이미 격리된 세션엔 워크트리를 겹쳐 판다.
+
+반대로 검사까지 빼면 **메인 워크트리에서 백그라운드 잡이 trunk 를 자율 편집**한다.
+"Orca 에서 열었다"는 격리를 보장하지 않는다 — Orca 는 메인 워크트리도 카드로 관리한다
+(실측: 등록된 워크트리 19개 중 13개가 `isMainWorktree: true`, 그중 하나가 이 레포의
+`master` 체크아웃).
 
 ## Step 1 — 현재 위치 감지
-
-지금 세션이 **메인 워크트리**인지 **linked 워크트리**인지 먼저 판정한다. Orca 카드나 이전
-세션이 이미 워크트리를 잡아 놨을 수 있고, 그때 또 분기하면 워크트리 안에 워크트리를 판다.
 
 ```
 git rev-parse --path-format=absolute --git-dir --git-common-dir
@@ -32,46 +40,38 @@ Orca 가 만든 워크트리만 안다 — `git worktree add` 로 만든 워크�
 `land/references/orca.md` 의 `linkedPR` 교훈과 동형 — Orca 메타는 보강이지 ground truth 가
 아니다. 격리 여부는 위 git 명령이 SSOT.
 
-## Step 2 — 분기
+## Step 2 — 게이트 판정
 
-| Step 1 결과 | 현재 브랜치 | 행동 | Step 3 의 기대 브랜치 |
-|---|---|---|---|
-| **linked 워크트리** | feature 브랜치 | `git worktree add` **하지 않는다** — 그 워크트리를 채택 | 현재 브랜치 |
-| **linked 워크트리** | base(`develop`/`main`/`master`) | 격리가 아니다 → 새로 분기 | 새 브랜치 |
-| **메인 워크트리** | 무관 | `git worktree add -b <branch> <dir>` 로 분기 | 새 브랜치 |
+현재 브랜치는 `git rev-parse --abbrev-ref HEAD` 로 읽는다.
 
-- **브랜치명**: `<type>/<topic>`. Linear 이슈ID 가 있으면 `<type>/<issue-id>-<topic>`
-  (`branch-worktree-strategy` §2a — 없으면 PR↔이슈 자동연동이 안 걸린다).
-  linear-goal 은 `feat/<issue-id>-<topic>`, harness-run 은 `feat/<slug>`.
-- **디렉토리**: repo 컨벤션이 있으면 그것(`.claude/worktrees/<type>+<topic>` 등),
-  없으면 `../<repo>--<slug>`.
-- `EnterWorktree` 는 deferred 도구(먼저 `ToolSearch` 로 로드)이고 **이미 워크트리면 거부**된다
-  → `git worktree add` 를 1순위로 쓴다.
-- 메인세션이 이 워크트리에 있어야 이후 dev/council/Workflow 가 거기서 돈다(Workflow agent 의
-  cwd 는 launch 시점 메인세션 cwd 로 pin 된다).
+| Step 1 | 현재 브랜치 | 판정 |
+|---|---|---|
+| linked 워크트리 | feature 브랜치 | **통과** — 이 트리에서 진행 |
+| linked 워크트리 | base(`develop`/`main`/`master`) | **STOP** — 격리가 아니다 |
+| 메인 워크트리 | 무관 | **STOP** — trunk 체크아웃이다 |
 
-## Step 3 — verify-or-STOP (생략 불가)
+**STOP 은 hard gate 다.** 백그라운드 잡(goal worker · dev-eval-loop)을 **띄우지 않고**
+사용자에게 넘긴다. 자동으로 `git worktree add` 하지 않는다 — 생성권은 사용자에게 있다.
 
-```
-git -C <dir> rev-parse --abbrev-ref HEAD
-```
+STOP 메시지에는 사용자가 바로 쓸 수 있게 다음을 담는다:
 
-Step 2 표의 **기대 브랜치와 불일치면 STOP** — 편집·구현·worker spawn 을 시작하지 않고
-보고한다. 분기를 skip 한 경로(이미 linked + feature 브랜치)에서도 이 검증은 돈다.
-
-이 검증을 빠뜨리면 빌드가 메인트리/trunk 에서 돌아 격리가 붕괴한다 — "확실히 분리"의
-핵심은 분기가 아니라 **이 verify** 다. 호출처가 백그라운드 잡을 띄우는 경우(linear-goal 의
-goal worker, harness-run 의 dev-eval-loop)에는 **hard gate** 로 취급한다: 검증 실패면 잡을
-절대 띄우지 않는다.
-
-## 예외 — 이어 커밋
-
-이미 linked 워크트리이고 **동일 토픽 1–2 파일 이어 커밋**이면 Step 2 skip 이 정상 경로다
-(§5 유일 예외). 이때도 Step 3 은 돌고, 현 트리를 유지하는 이유를 첫 응답에 한 줄 명시한다.
+- 현재 위치(메인/linked)와 브랜치 — 왜 멈췄는지의 증거
+- 권장 브랜치명 — `<type>/<topic>`, Linear 이슈ID 가 있으면 `<type>/<issue-id>-<topic>`
+  (`branch-worktree-strategy` §2a — issue-id 없으면 PR↔이슈 자동연동이 안 걸린다).
+  linear-goal 은 `feat/<issue-id>-<topic>`, harness-run 은 `feat/<slug>` 를 권한다.
+- "Orca 카드로 워크트리를 만들고 그 세션에서 다시 실행해 달라"는 한 줄
 
 ## 호출처별 추가 계약
 
-- **harness-run**: 격리 후 eval 산물(`.eval/`)을 **워크트리 밖** `evalDir`
+- **harness-run**: 게이트 통과 후 eval 산물(`.eval/`)을 **워크트리 밖** `evalDir`
   (`<worktree>/../.eval-<slug>/`)로 옮긴다 — dev 워크트리에 oracle 이 0이어야 한다
-  (REQ-F-008/N-001). 이 경로 규칙은 워크트리 존재를 전제하므로 Step 2~3 을 생략할 수 없다.
-- **linear-goal**: Step 3 실패 = goal worker spawn 금지(hard gate).
+  (REQ-F-008/N-001). 이 경로 규칙은 격리된 트리를 전제하므로 게이트를 생략할 수 없다.
+- **linear-goal**: STOP = goal worker spawn 금지.
+
+## Anti-patterns
+
+- STOP 대신 `git worktree add` 로 자동 분기 — 생성권은 사용자에게 있다.
+- 메인 워크트리인데 "어차피 사용자가 Orca 로 열었을 것"으로 통과 — 등록된 워크트리
+  13/19 가 메인이다. 등록 ≠ 격리.
+- 게이트 자체를 생략 — 백그라운드 잡이 trunk 를 자율 편집한다(`commit-isolation.md`).
+- 감지를 `orca worktree current` 로 — 실측 반례 있음(위 Step 1).
