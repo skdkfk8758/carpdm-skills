@@ -22,11 +22,12 @@ Phase 2 는 완성된 Phase-1 플랜을 codex 에게 적대적 리뷰어로서 �
 # 1) plugin root 해소 (버전 하드코딩 금지)
 ROOT=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1)
 # 2) R1 — fresh 실행. stdout=최종 verdict, stderr=진행+부분 발견
+#    --effort 는 아래 effort 게이트 참조 (기본 medium, 고위험 표면만 high)
 date +%s > /tmp/codex-review-start.txt
-CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task \
+CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --effort medium \
   "<R1 프롬프트>" > /tmp/codex-review-r1-out.txt 2> /tmp/codex-review-r1-err.txt
 # 3) R2+ — 같은 스레드 재개 (codex 가 이전 라운드 컨텍스트 유지, 델타만 검증)
-CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --resume-last \
+CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --resume-last --effort medium \
   "<Rn 프롬프트>" > /tmp/codex-review-r2-out.txt 2> /tmp/codex-review-r2-err.txt
 ```
 
@@ -42,10 +43,15 @@ plugin 미설치 — `codex:rescue` 스킬 경유로 폴백하되, 그 경로는
 2. **codex 를 플랜 파일로 경로로 가리켜라** — 당신의 요약이 아니라 실제 문서를
    읽도록. cwd 는 repo 루트로 두면 codex 가 repo 의 `.codex/config.toml`
    (effort 등)을 로드하고 레포 실측 대조까지 한다 — 느려지지만 품질이 오른다.
-3. **effort 게이트 (비용).** 보안 surface·외부 호출자 계약 변경·마이그 포함
-   플랜만 최대 effort 로 돌린다. 그 외 소·중형 플랜은 R1 프롬프트에 "medium
-   reasoning effort; cross-check the repo only where a finding depends on it"
-   을 명시해 라운드당 수 분을 줄인다 — 최대 비용은 리뷰 품질이 치명적인 표면에만.
+3. **effort 게이트 (비용) — 프롬프트 산문이 아니라 `--effort` CLI 플래그로 건다.**
+   프롬프트에 "medium reasoning effort" 라고 쓰는 것은 추론 예산을 바꾸지
+   **않는다** — 플래그 미지정이면 `~/.codex/config.toml` 의
+   `model_reasoning_effort` (이 머신 기준 `high`) 가 그대로 적용된다.
+   - **기본 `--effort medium`** — 소·중형 플랜 전부.
+   - **`--effort high`** — 보안 surface·외부 호출자 계약 변경·마이그 포함 플랜만.
+   실측(동일 프롬프트·동일 repo·동시 실행, 2026-07-28): high 473s vs medium 206s
+   = **2.3×**. 툴콜은 high 6회 / medium 22회 — 시간차는 repo 대조가 아니라 추론
+   토큰이다. 즉 cwd=repo(위 2항)는 비용 주범이 아니므로 유지한다.
 
 ## R1 프롬프트 형태
 
@@ -154,7 +160,8 @@ resume 이라 codex 는 플랜 전체를 재독하는 대신 델타를 검증한
   surface 한다. 적대자를 조용히 무시하지도, 맹목적으로 따르지도 말 것 —
   단, 논쟁을 무한히 돌리지도 말 것.
 - **캡 4라운드** — 도달 시 미해소 high 목록 + 원장을 사용자에게 제시하고
-  멈춘다. (codex 1회가 3~20분이므로 그 이상은 효용 대비 비용 초과.)
+  멈춘다. (실측 codex 1회 = medium 3~4분 · high 8분, 라운드 사이 원장·플랜
+  수정 오버헤드가 그보다 크다 — 그 이상은 효용 대비 비용 초과.)
 
 종료 후 결과를 플랜에 기록: `## Codex review — round N: <verdict + what changed>`
 (라운드별 1줄 + 최종 수렴/에스컬레이션 상태).
@@ -164,8 +171,13 @@ resume 이라 codex 는 플랜 전체를 재독하는 대신 델타를 검증한
 codex 호출은 hang 할 수 있고(실측 ~39분, 최종 포맷 단계 — companion 에는 턴
 타임아웃이 없다), 동시에 **정당하게 느릴 수도 있다**(실측 2026-07-20: 20줄
 미니 플랜이 repo cwd·effort=high 에서 165초 — 실전 플랜은 10분 초과가 정상
-소요일 수 있다). 고정 cap 은 정상 실행을 죽이므로, **진행 기반 hang 판정**으로
-글로벌 `delegated-review-watchdog` 규칙을 구현한다. **모든 라운드(R1·Rn)에
+소요일 수 있다). **임계가 빡빡하면 정상 실행을 hang 으로 오판해 죽인다** —
+실측 2건(`hang(474s, verdict 미회수)` → p2 45분, `hang(311s 무진행)` → p2 33분)의
+474s 는 정상 high 런 1회 소요(473s)와 같은 길이였다. kill 하면 부분 결과만 건지고
+로컬 폴백을 처음부터 다시 돌리므로 오판 비용이 hang 방치 비용보다 크다.
+고정 cap 은 정상 실행을 죽이므로, **진행 기반 hang 판정**으로
+글로벌 `delegated-review-watchdog` 규칙을 구현한다 — 단 **임계값은 아래 실측치가
+우선**(글로벌 룰의 20분/3분은 codex 이전 계측 기반의 일반값). **모든 라운드(R1·Rn)에
 동일 적용한다:**
 
 1. 위 direct 호출을 background 로 돌리고 폴링마다 stderr 파일을 본다 —
@@ -173,9 +185,12 @@ codex 호출은 hang 할 수 있고(실측 ~39분, 최종 포맷 단계 — comp
 2. **진행 기반 판정 (경과시간 감각 금지 — 파일과 `date +%s` 로만).**
    - stderr 에 새 진행 줄(`[codex] Running command` / `Assistant message
      captured` / `Turn started`)이 계속 붙고 있으면 → hang 아님. **hard cap
-     20분/라운드**까지 연장 허용.
-   - 마지막 진행 줄 이후 **3분+ 새 줄 없음** → hang 판정, 즉시 kill.
-   - hard cap 20분 도달 → 진행 여부 무관 kill (효용 체감 + Phase 지연 상한).
+     12분/라운드**까지 연장 허용.
+   - 마지막 진행 줄 이후 **8분+ 새 줄 없음** → hang 판정, 즉시 kill.
+     (임계 근거: 정상 high 런이 툴콜 6회/473s — 툴콜 사이 추론 무음이 수 분간
+     이어진다. 종전 3분 임계는 이 정상 구간을 잘라 죽였다.)
+   - hard cap 12분 도달 → 진행 여부 무관 kill (기본 effort=medium 실측 206s ·
+     4라운드 캡 기준 상한. 효용 체감 + Phase 지연 상한).
 3. **kill 후 부분 결과 회수 — 건너뛰지 마라.** stderr 의
    `[codex] Assistant message captured:` 줄들이 부분 발견이다(truncate 되어
    있지만 BLOCKING 항목의 존재와 방향은 읽힌다). 이것을 fallback 리뷰의 입력
@@ -194,6 +209,8 @@ codex 호출은 hang 할 수 있고(실측 ~39분, 최종 포맷 단계 — comp
   하고 플랜 전체를 재독한다 (`--resume-last` 를 쓸 것).
 - 증거 없는 REJECTED — codex 지적을 "판단상 아님"으로 기각. 원장의 근거
   칸이 비면 그 reject 는 무효다.
+- effort 를 프롬프트 산문으로 "지정" — `--effort` 플래그 없으면 config 의
+  `high` 가 그대로 적용된다(라운드당 2.3× 비용). 게이트는 플래그다.
 - verdict JSON 없이 산문만 보고 수렴을 "느낌으로" 판정.
 - 수렴 전에 캡·에스컬레이션 사유 없이 루프 중단 — 미해소 high 를 들고
   구현에 진입하는 것.
