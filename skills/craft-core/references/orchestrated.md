@@ -40,11 +40,9 @@ Phase 4 판정으로 운반); **adversary** 는 council 루프에 대해 자격�
 
 1. 작업유형과 한 줄 목표를 되짚는다. heavyweight 경로가 원해진 것인지
    확인 — 사용자가 그냥 작업이 되길 원하면, linear 엔진으로 폴백한다.
-2. **Worktree 격리 (기본 필수 — verify-or-STOP).** 편집/team convene 전에 새 워크트리로
-   격리한다 (메인 트리/trunk 에서 직접 작업 금지). `git worktree add -b <type>/<topic> <dir>`
-   후 **`git -C <dir> rev-parse --abbrev-ref HEAD` 로 기대 브랜치 확인 — 아니면 STOP**.
-   유일 예외(§5): 이미 적절한 feature 워크트리이고 동일 토픽 1–2 파일 이어 커밋 — 이유 명시.
-   메인세션이 이 워크트리에 있어야 council/dev 가 거기서 돈다.
+2. **Worktree 격리 (기본 필수 — verify-or-STOP).** 편집/team convene 전에 격리한다.
+   절차는 `~/.claude/skills/craft-core/references/worktree.md` 그대로(복제 금지).
+   메인세션이 그 워크트리에 있어야 council/dev 가 거기서 돈다.
 2b. **세션 이름 설정 (백그라운드 잡일 때 — 워크트리 직후 즉시).** `$CLAUDE_JOB_DIR` 있으면
    `[<key>] <짧은 목표>` 로 rename(`<key>` = Linear 이슈ID 있으면 그것, 없으면 worktype).
    `session-rename.md` snippet 그대로(`name` + `nameSource:"user"`). 잡 아니면 생략, 실패해도 note 만.
