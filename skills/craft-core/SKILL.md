@@ -17,7 +17,8 @@ Socratic 초점과 TDD 진입점을 얹은 뒤 이 엔진을 돌린다.
 
 - `references/pipeline.md` — 전체 4-phase 파이프라인 (척추).
 - `references/socratic.md` — Phase 1 의 Socratic 질문법.
-- `references/codex-review.md` — `codex:rescue` 를 통한 적대적 플랜 리뷰.
+- `references/codex-review.md` — codex-companion 직접 호출(`codex:rescue` 경유 아님)
+  적대적 플랜 리뷰 — 호출 규약·수렴 게이트·watchdog SSOT.
 - `references/dynamic-tdd.md` — `Workflow` 도구 기반 태스크 분할 + TDD (모델 규칙 SSOT).
 - `references/simplify-pass.md` — Phase 3.5 선택적 정리 패스 (`/simplify` 위임).
 - `references/security.md` — 보안 검증 (Phase 4).
