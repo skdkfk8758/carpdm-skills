@@ -55,14 +55,8 @@ codex cross-model diff 리뷰가 당신이 잊은 호출자·경계를 사냥하
 남아야 할 것을 조용히 깨뜨리지 못하게 하는 안전망이다. 그다음 *바뀐* 동작을
 red → green → refactor 로 몰아가되, characterization test 는 내내 green 으로 유지한다.
 
-## Phase 3.5 — Simplify review pass (see craft-core/references/simplify-pass.md)
-
-바뀐 동작이 green 이 되면, Phase 4 이전에 손댄 diff 가 정리(simplify)가 필요한지
-검토하고, 필요하면 `/simplify` 스킬로 동작 보존 정리(재사용/단순화/효율)를 **한 번
-제안한다** (기본 off) — characterization test(보존된 동작)는 Phase 3 에서와 똑같이
-내내 green 으로 유지한 채. diff 가 사소하거나 사용자가 거절하면 건너뛴다.
-
-Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.
+Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다. (Phase 3.5 simplify pass 는
+은퇴 — diff 정리는 Phase 5 §N 권장 라우팅의 `/simplify` 로, `pipeline.md` 참조.)
 
 ## Anti-patterns (renew 고유 — 공유분은 pipeline.md)
 

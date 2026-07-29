@@ -58,6 +58,11 @@ result: <한 줄 — 무엇을 했는지. 핵심 수치 포함(파일 수, 커�
 규칙:
 
 - **글자 그대로 `result:` 로 시작.** 백그라운드 잡 완료 신호로 쓰인다.
+- **"마지막 메시지" = 마지막 *보고* 메시지.** L3/post-build 라우팅을 내는 스킬은
+  `result:` emit **후** `AskUserQuestion` 을 발화한다 — 질문·답 교환이 뒤따라도 계약
+  위반이 아니다(백그라운드 경로엔 질문 자체가 없어 classifier 가 읽는 최종 메시지는
+  여전히 `result:` 줄이다). 역순 금지 — 질문을 먼저 내고 `result:` 를 답 이후로
+  미루면 사용자 무응답 시 완료 신호가 영영 안 나간다.
 - **한 줄, self-contained** — 요청을 못 본 사람도 읽힌다("done"·"완료" 같은 말은 신호
   아님).
 - 산출물이 아직 안정화 안 됐으면(push 후 CI 대기, 머지 후 settle 등) `result:` 가
@@ -152,7 +157,7 @@ markdown 리스트 + 볼드 라벨**로 emit 한다 — 폭 무관하게 랩핑�
 - **결정** — <주요 결정 + 트레이드오프> · ADR 여부
 - **평결** — 보안 <verdict> (근거 1구절) · intent <verdict>
 - **Acceptance** — N/N [AUTO x · HUMAN y — 처리 방식]   (항목별 상세는 §V 블록)
-- **타이밍** — phase 별 elapsed (est 대비) · total · 사람대기 분리   (progress.md P4 와 같은 소스)
+- **타이밍** — phase 별 elapsed · total · 사람대기 분리   (craft-timing.jsonl 과 같은 실측)
 ```
 
 - 한 행이 길어지면 하위 불릿으로 내려쓴다(변경 행의 파일별 1행과 같은 꼴) —
@@ -176,8 +181,8 @@ markdown 리스트 + 볼드 라벨**로 emit 한다 — 폭 무관하게 랩핑�
 1. **존재하는 행만.** 안 한 것의 행 금지(L2 와 동일 원리) — 해당 없으면 행을 뺀다.
 2. **모든 green 은 증거 동반.** 수치·경로·명령 재실행 결과 — "됐음" 금지
    (verification-safety V1: 이 명령이 실패했다면 지금 출력이 달랐을 것인가).
-3. **타이밍은 est 대비 실측.** progress.md P4 와 같은 jsonl 소스 — 보드가 매 런의
-   병목 보고를 겸한다(사람 대기 분리 표기).
+3. **타이밍은 실측.** craft-timing.jsonl 과 같은 소스 — 보드가 매 런의
+   병목 보고를 겸한다(사람 대기 분리 표기). ETA 예측 표기는 은퇴(2026-07-30).
 4. **사람 몫은 §N 잔여 행으로 명시한다.** [HUMAN] 몫·머지 승인·수동 확인은 보드가
    아니라 다음 단계 블록의 잔여 행에 남긴다 — 종료 출력이 "전부 끝남"으로 위장하지
    않는다. fail/미충족(short-circuit·needs input)도 같은 보드로 정리한다(성공 전용
@@ -218,11 +223,13 @@ N 블록 → L1.
 
 1. **소스 = plan Acceptance 장부 + Phase 4 런타임 스모크 실측 + UI 인수 검증 결과.**
    `[자동 검증 완료]` = `[AUTO]` green 항목(테스트).
-   `[직접 테스트 완료]` = 런타임 스모크(pipeline Phase 4) 결과 + **UI 인수 검증에서
+   `[직접 테스트 완료]` = 런타임 스모크(pipeline Phase 4) 결과 + **agent 실구동으로
+   닫은 `[AGENT]` 항목** + **UI 인수 검증에서
    `pass` 한 인터랙션 항목**(`ui-verify.md` §4 — 조작 → 관찰된 실제 결과가 증거) + 사용자
    walk 로 pass 합의된 `[HUMAN]` 항목.
-   `[사용자 직접 확인 필요]` = 미검증 `[HUMAN]`(백그라운드라 walk 불가 포함) · 스모크
-   skip 으로 이관된 확인 · **UI 인수 검증의 `blocked` 항목**(파괴적 컨트롤·브라우저 불가) ·
+   `[사용자 직접 확인 필요]` = 미검증 `[HUMAN]`(백그라운드라 walk 불가 포함) · 사유 있게
+   `[HUMAN]` 강등된 `[AGENT]` 항목(강등 사유 병기) · 스모크
+   skip 으로 이관된 확인 · **UI 인수 검증의 `blocked` 항목**(외부 발신·브라우저 불가) ·
    "잔여 리스크 수용" 항목. 장부·스모크·구동 결과 밖 항목 창작 금지.
 2. **모든 ✓ 는 증거 동반** — 테스트명 또는 실행 명령+실제 출력(verification-safety
    V1). "됐음" ✓ 금지.
@@ -299,7 +306,7 @@ N 블록 → L1.
 
 | 스킬 | 잔여 소스 | 필수 전형 | 권장 전형 |
 |---|---|---|---|
-| forge/hunt/renew | Acceptance 장부 [HUMAN]·미검증 항목 | push 된 열린 PR → `/land` · 마이그 apply | `/code-review` · `/sweep` |
+| forge/hunt/renew | Acceptance 장부 [HUMAN]·미검증 항목 | push 된 열린 PR → `/land` · 마이그 apply | `/code-review` · `/sweep` · `/simplify`(diff 정리) · `/preflight`·`/fortify`(배포 직전) |
 | linear-goal | 메인 재검증 실패 항목·AC 미체크 | PR 머지 → `/land`(In Review 까지만이므로) | 체인 다음 이슈 → `linear-goal <next-id>` |
 | land | Step 6 3-소스 스캔(git/Linear/handoff) | conflict rebase 해소 · 마이그 apply · `npm install` | 완료 시 잔여 워크트리 → `wt-sweep` |
 

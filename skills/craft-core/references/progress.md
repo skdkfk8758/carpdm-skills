@@ -49,24 +49,12 @@ council 은 Workflow 가 아니라 팀 메시지 교환이라 자동 트리가 �
 - 판정은 R9 그대로 — idle 알림만으론 완료 불인정, `[DONE]` + git diff·verify 재실행으로
   메인이 직접 판정.
 
-## P4 — ETA 스냅샷 (소비: pipeline.md 타이밍 섹션)
-
-라이브 카운트다운은 불가. 가능한 것은 **페이즈 경계마다** 과거 실측
-(`~/.claude/logs/craft-timing.jsonl`) median 으로 ETA 를 다시 찍는 것 — 예측이
-아니라 통계 스냅샷이다.
-
-- **표기 지점 2곳** — Task 항목 텍스트에 부기(`Phase 3 — TDD (est ~52m)`, 경계마다
-  TaskUpdate 로 갱신 가능) + 경계 배너 1줄(`elapsed 23m · remaining ~63m`).
-- **조회** — 같은 `(skill, mode)` 행들의 phase 별 median. Phase 3 는 task 수 비례이므로
-  task 당 시간으로 정규화해 이번 task 수를 곱한다.
-- **정직성 게이트** — 표본 `n<3` 이면 표시하지 않는다("est 없음 — 표본 부족").
-  `humanWait` 미분리 행·per-phase 초 없는 행은 median 계산에서 제외.
-- **Workflow 내부** — 스크립트는 `Date.now()` 금지(resume 파괴)라 시간을 못 잰다.
-  task 소요는 각 agent 가 Bash `date +%s` 로 자가 측정해 반환값에 1필드로 실어
-  label/log 에 붙인다. 트리에 ETA 는 없다 — 경계 배너가 담당.
-- **기록 스키마(v2 — 필수화)** — ETA 의 원료라 스키마 준수가 선행 조건이다.
-  `phases.p1~p5` 초 + `humanWait` 를 **필수**로 기록한다(빠지면 그 행은 ETA 에서
-  버려진다). 스키마 본문은 pipeline.md 타이밍 섹션이 SSOT.
+> **§P4 (ETA 스냅샷) 는 은퇴했다 (2026-07-30).** 매 phase 경계마다 jsonl median
+> 조회 + Task 텍스트 `est ~Xm` 부기 + 배너는 가치(예측 눈요기) 대비 비용(매 경계
+> 조회·갱신)이 안 맞았고, 표본 오염(P2 핑퐁 레거시)으로 예측이 틀렸다. **타이밍
+> 기록 자체는 유지**(pipeline.md 타이밍 섹션 — 튜닝의 유일 근거) — 은퇴한 것은
+> *표시*뿐이다. 소요 보고는 Phase 5 §R 보드의 타이밍 행 1회로 충분. 복원은 git
+> history.
 
 ## 실패 시
 

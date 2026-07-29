@@ -46,15 +46,8 @@ test 다 (실패한다 — 기능이 부재하므로). 그다음 각 후속 task
 통과할 때까지 red → green → refactor 로 몰아가는 unit slice 다.
 acceptance scenario 가 요구하지 않는 인프라는 만들지 말 것.
 
-## Phase 3.5 — Simplify review pass (see craft-core/references/simplify-pass.md)
-
-acceptance test 가 통과하면, Phase 4 이전에 새로 작성한 diff 가 정리(simplify)가
-필요한지 검토하고, 필요하면 `/simplify` 스킬로 동작 보존 정리(재사용/단순화/효율)를
-**한 번 제안한다** (기본 off). 새 기능은 신선하고 정렬되지 않은 코드가 자리 잡는
-곳이므로, 이 패스가 값어치를 하는 지점이다. diff 가 사소하거나 사용자가 거절하면
-건너뛴다.
-
-Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.
+Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다. (Phase 3.5 simplify pass 는
+은퇴 — diff 정리는 Phase 5 §N 권장 라우팅의 `/simplify` 로, `pipeline.md` 참조.)
 
 ## Anti-patterns (forge 고유 — 공유분은 pipeline.md)
 

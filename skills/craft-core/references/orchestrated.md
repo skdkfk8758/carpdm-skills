@@ -187,43 +187,9 @@ build / verify 는 기본 워크플로 subagent 에서 돈다 — 모델 규칙�
 
 ---
 
-## §3.5 — Simplify review pass (forge / renew / hunt)
-
-§3 의 빌드가 green 이 된 후, §4 verify 전 — **`forge` / `renew` / `hunt` 모두**.
-`~/.claude/skills/craft-core/references/simplify-pass.md` 를 읽어라.
-
-메인 세션이 `AskUserQuestion` 으로 **한 번 제안한다** (기본 off). 거부되거나
-정리할 게 없으면, 곧장 §4 로. 수락되면 변경된 diff 를 `/simplify` 스킬로
-정리한다 (재사용/단순화/효율/altitude, behavior 불변). `/simplify` 미설치 시
-같은 정리를 **단일 Workflow 에이전트(무핀 — 세션 상속)**로 돌린다 (fan-out 없음 —
-빌드 diff 에 대한 한 번의 순차 pass, §3 빌드 tier 에 맞춤):
-
-```javascript
-export const meta = {
-  name: 'craft-simplify-pass',
-  description: 'Simplify the build diff, behavior-preserving (fallback when /simplify absent)',
-  phases: [{ title: 'Simplify' }],
-}
-const RESULT = { type: 'object', required: ['testsGreen','summary'], properties: {
-  testsGreen: { type: 'boolean' },
-  filesChanged: { type: 'array', items: { type: 'string' } },
-  summary: { type: 'string' },
-} }
-return await agent(
-  `Simplify pass per simplify-pass.md and convention-guide.md ` +
-  `(merge with the project's lint/rules and docs/guides/, most specific wins).\n` +
-  `Scope: the §3 build diff and its immediate neighborhood only — Read the diff.\n` +
-  `The build's test suite is the behavior pin. Clean in small steps (reuse, ` +
-  `dedup, inline, simpler expressions); run the suite after each step. ` +
-  `A test goes red → that step changed behavior → revert it and stop on that axis. ` +
-  `Never edit a test to make it pass. Do not hunt bugs. Report testsGreen + files changed.`,
-  { label: 'simplify:diff', phase: 'Simplify', schema: RESULT })
-```
-
-**designer 는 idle-alive 로 머문다** 이 phase 내내 (§4 가 여전히 필요로 한다). 
-§4 패널은 그다음 **결합된 (build + simplify) diff** 를 검증한다 — 이 pass 를 위한
-별도 verify 게이트는 없다. pass 가 `testsGreen:false` 를 반환하면, red 빌드
-태스크처럼 취급한다: §4 로 진행 전에 고치거나 되돌린다.
+> **§3.5 (simplify pass) 는 은퇴했다 (2026-07-30, linear P3.5 와 동시).** diff
+> 정리는 phase 가 아니라 §5 wrap 의 §N 권장 라우팅(`/simplify`)으로 잇는다.
+> §4 패널은 §3 빌드 diff 를 그대로 검증한다. 복원은 git history.
 
 ---
 

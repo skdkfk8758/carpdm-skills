@@ -56,8 +56,8 @@ async function greenViaCodex(t, wt) {   // wt = 빌드 전체가 공유하는 gr
 }
 ```
 
-- **refactor** 는 codex 에 안 맡긴다 — green 확정 후 Phase 3.5 simplify pass 가
-  Claude 로 정리한다.
+- **refactor** 는 codex 에 안 맡긴다 — Stage 1 의 refactor 스텝(Claude)이 최소
+  정리를 하고, 추가 정리는 빌드 후 `/simplify`(Phase 5 §N 권장 라우팅)로 잇는다.
 - **claudeFallback** = 현행 Stage 1 그대로 (Claude subagent red+green+refactor). floor.
 - `red` 테스트 파일은 codex green 워크트리에도 있어야 verify 가 같은 트리에서 돈다 —
   리셋 후 red 를 워크트리에 커밋/스테이지, 그 위에서 codex green.

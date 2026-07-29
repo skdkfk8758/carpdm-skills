@@ -256,7 +256,7 @@ craft Phase 1 섹션(`pipeline.md` — 이때 읽는다)을 따르되, deep-plan
 ## Risks
 ## Security surface
 ## YAGNI (deletions this change would make)
-## Acceptance / Eval (numbered, single, checkable; 각 항목에 [AUTO] 또는 [HUMAN] 태그)
+## Acceptance / Eval (numbered, single, checkable; 각 항목에 [AUTO]/[AGENT]/[HUMAN] 태그)
 ```
 
 열어보지 않은 파일/심볼을 거명하는 것은 실패다. Files 는 실제로 확인한다.
@@ -271,7 +271,9 @@ craft Phase 1 섹션(`pipeline.md` — 이때 읽는다)을 따르되, deep-plan
 
 **Acceptance 항목이 곧 eval 항목이다** — 빌드 스킬(forge/renew/hunt)이 구현 후
 Phase 4 에서 하나씩 검증해 닫을 체크리스트. `[AUTO]`=결정론·회귀·보안·계약(자동
-테스트로 잠금), `[HUMAN]`=시각·UX 의도·주관(빌드 후 사람과 walk). 태그 규칙 SSOT 는
+테스트로 잠금), `[AGENT]`=agent 실구동으로 검증 가능(브라우저 조작·curl·CLI —
+빌드 스킬이 직접 닫음, 사람 몫 아님), `[HUMAN]`=순수 주관·실계정·외부 승인만
+("agent 가 왜 못 하는가" 정당화 의무 — 애매하면 [AGENT]). 태그 규칙 SSOT 는
 `pipeline.md` Phase 1. 별도 "eval" 개념을 새로 만들지 말 것 — Acceptance 가 그 자리다.
 
 **debate verdict 를 PLAN 에 기록한다 (스킵 신호 — 의무).** PLAN 작성 직후 Step 4

@@ -35,15 +35,20 @@ race. 이 갭을 변경된 diff 에 대해 **codex 1-pass 리뷰**로 메운다.
   게이트는 SSOT 그대로.
 - **`<look_for>` — correctness 만.** 미테스트 분기, off-by-one, null/경계,
   잘못된 조건/연산자, 자원 누수, race, 테스트가 있어도 그 케이스를 실제로 못
-  잡는 단언. 품질 (reuse / 단순화 / 효율 / altitude) 은 Phase 3.5 가, 보안은
+  잡는 단언. 품질 (reuse / 단순화 / 효율 / altitude) 은 리뷰 대상이 아니다
+  (원하면 빌드 후 `/simplify` — Phase 5 §N 권장 라우팅), 보안은
   아래 §3 이 본다 — 프롬프트에 "correctness bugs only, no quality/security
-  nits" 로 좁혀 삼중 중복을 막는다.
+  nits" 로 좁혀 중복을 막는다.
 - **effort 게이트** (`codex-review.md` 와 동일): 기본 `--effort medium`.
   보안 surface(auth / payment / 권한 경계)·외부 호출자 계약 변경·6+ 파일·
   orchestrated 모드만 `high`.
 - **발견 처리 = red-first.** craft 는 test-first 다 — 원장에서 FIXED 로 닫으려면
   바로 고치지 말고 **실패 회귀 테스트를 먼저 (red) 쓰고 → fix → green**
   (TDD 사이클로 잠깐 Phase 3 으로 되돌아가는 셈). high 는 전부 닫은 뒤에만 wrap.
+- **호출 횟수 = 빌드당 1회 고정.** loop-back(intent gap · 발견 fix)으로 diff 가
+  변해도 codex 를 재호출하지 않는다 — delta 는 회귀 테스트 green + §4 반박 게이트 +
+  로컬 검토로 닫는다(pipeline Phase 4 게이트의 delta-only 재진입 규칙과 같은 결정,
+  재호출은 루프당 +5~15분에 발견 한계효용 낮음).
 - **폴백 래더.** codex 불가(limit / hang-kill / 미설치) → `/code-review` 를
   "correctness 버그만" 으로 좁혀 호출 → 그것도 미설치면 위 `<look_for>` 카테고리를
   직접 훑는다. 어느 폴백이든 그 사실을 리포트에 명시한다.
