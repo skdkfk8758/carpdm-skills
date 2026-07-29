@@ -293,7 +293,8 @@ designer 가 수용할 때까지 Stage A → B → (필요하면 Phase 3) → A 
 ui-verify §4 게이트 통과**. 아무것도 red 로 출시하지 않는다.
 
 세 번째 절이 §5·§5.1 을 끌고 온다 — designer 가 수용해도 **남은 `[사용자 직접 확인 필요]`
-가 2건 이상이면 체크리스트 아티팩트를 publish 하고 dev 서버를 띄운 채 넘겨야** 출시다.
+가 2건 이상이면 체크리스트 아티팩트를 publish 하고, 1건이어도 dev 서버를 띄운 채 실측
+origin 을 넘겨야** 출시다.
 Part A~C 결과를 designer 에게 넘기는 데까지만 신경 쓰고 인계를 흘리는 게 실측된 누락
 형태다(ADT-406) — 여기 메인은 designer 에게 *보고*하는 주체이자 사람에게 *인계*하는 주체다.
 
@@ -303,6 +304,10 @@ Part A~C 결과를 designer 에게 넘기는 데까지만 신경 쓰고 인계�
 
 1. 요약: 무엇이 바뀌었는지, 추가된 테스트, 보안 평결, 잔여 리스크, 그리고
    designer 의 최종 intent-match 평결.
+1-1. **인계 (사람 몫 확인이 남을 때 — 표면 무관).** `[사용자 직접 확인 필요]` 가 2건+ 면
+   체크리스트 아티팩트를 publish 하고, 1건이어도 dev 서버를 띄운 채 실측 origin 을 확인
+   방법에 박는다(`ui-verify.md` §5·§5.1). UI 빌드는 §4 Stage B 에서 이미 했을 테니 중복
+   publish 금지 — **비UI 빌드는 §4 가 ui-verify 를 안 읽으므로 여기가 유일 진입점**이다.
 2. 영속 지식 (`context-adr.md`): ADR 감 결정에 ADR; 재사용 가능한 context 에
    `docs/concepts/` 페이지. 진짜로 정당화될 때만.
 3. **team 을 shut down 하라** — `{ type: 'shutdown_request' }` 를 **designer** 와
