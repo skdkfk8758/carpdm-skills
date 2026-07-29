@@ -57,9 +57,12 @@
       </ul>
     </section>
 
-  항목 도출: ui-verify Part A 인벤토리 중 `blocked` + 미검증 `[HUMAN]`(백그라운드라 walk 불가
-  포함)만 싣는다 — agent 가 이미 pass 시킨 `[직접 테스트 완료]` 는 넣지 않는다(사람이 다시
-  누를 필요 없음). 각 항목은 "동작함" 금지, 관찰 가능한 신호로(verification-safety V1).
+  항목 도출: output-contract §V 의 `[사용자 직접 확인 필요]` 블록 그대로 — UI 경로면 ui-verify
+  Part A 인벤토리의 `blocked` + 미검증 `[HUMAN]`(백그라운드라 walk 불가 포함), 비UI 경로
+  (API·CLI·배치)면 Acceptance 장부의 미검증 `[HUMAN]` + 스모크 skip 이관분. agent 가 이미
+  pass 시킨 `[직접 테스트 완료]` 는 넣지 않는다(사람이 다시 누를 필요 없음). 각 항목은
+  "동작함" 금지, 관찰 가능한 신호로(verification-safety V1) — 비UI 면 실행할 명령과 기대
+  출력을 그대로 적는다(예: `curl -s localhost:8080/api/x` → `200 {"ok":true}`).
 -->
 <title>{{TITLE}}</title>
 <style>
