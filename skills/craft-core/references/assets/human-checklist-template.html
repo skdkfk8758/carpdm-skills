@@ -7,10 +7,11 @@
     {{TITLE}}       — 페이지 제목 (예: "UX 검증 체크리스트 — 캠페인·리포트 관리")
     {{EYEBROW}}     — 상단 라벨 (예: "QA 개선 라운드 · 2026-07-24" 또는 이슈/PR 묶음명)
     {{LEDE}}        — 1~2문장 안내. dev URL 을 <code> 로. 무엇이 남았는지(사람 실렌더 확인).
-    {{DEV_ORIGIN}}  — 로컬 서버 origin. **ui-verify §5.1 로 실제 띄운 뒤 스크립트가 찍은
-                      값만** 쓴다(관례값 :3000 가정 금지 — 메인 체크아웃의 다른 브랜치를
-                      가리키면 변경 없는 화면을 검증하게 된다). 서버가 안 떴으면 링크를
-                      만들지 말고 라우트 경로만 텍스트로 둔다.
+    {{DEV_ORIGIN}}  — 로컬 서버 origin. **ui-verify §5.1 로 실제 띄운 뒤 스크립트가
+                      "이 daemon 소유"로 찍은 포트만** 쓴다(관례값 :3000 가정 금지 — 대개
+                      이미 다른 프로젝트나 메인 체크아웃의 다른 브랜치가 물고 있고, 그러면
+                      변경 없는 화면을 검증하게 된다). 기동 전 §5.1-0.5 로 포트 중복을
+                      확인한다. 서버가 안 떴으면 링크를 만들지 말고 라우트 경로만 텍스트로 둔다.
     {{SERVER}}      — 서버 상태 블록(아래 SERVER 블록). 기동됐으면 origin·정지 명령,
                       안 됐으면 기동 명령·실패 사유. 생략 금지.
     {{SECTIONS}}    — 아래 SECTION 블록을 항목 단위(이슈/화면/기능)로 반복.
@@ -32,7 +33,8 @@
       </div>
     </div>
     기동/정지 명령 SSOT = dev-server-daemon:
-      python ~/.claude/skills/dev-server-daemon/scripts/devserverctl.py start|stop --cwd <워크트리>
+      python ~/.claude/skills/dev-server-daemon/scripts/devserverctl.py ports --port <포트>
+      python ~/.claude/skills/dev-server-daemon/scripts/devserverctl.py start|stop --cwd <워크트리> --name <워크트리별 이름>
     daemon 은 세션이 끝나도 살아 있다 — 체크를 다 채운 뒤 사람이 내리는 게 정상 수명이다.
 
   SECTION 블록 (단위마다 반복 — 이슈ID/화면/기능 하나 = 카드 하나):
