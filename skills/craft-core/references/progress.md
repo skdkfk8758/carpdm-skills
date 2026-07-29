@@ -1,6 +1,6 @@
 # Progress Template — 턴 내 진행 표시 공유 SSOT
 
-구현 스킬(forge/hunt/renew · harness-run · linear-goal)이 서브에이전트·팀에이전트로
+구현 스킬(forge/hunt/renew · linear-goal)이 서브에이전트·팀에이전트로
 작업할 때 그 진행을 **작업 턴 안에서** 보여주는 방법의 단일 SSOT. `output-contract.md`
 와 동렬 — craft-core 에 있지만 엔진(pipeline) 의존이 아닌 공유 한 장이다. 소비처는
 이 파일을 읽어 emit 하고 포맷을 복제하지 않는다(drift 차단).
@@ -36,19 +36,6 @@ council 은 Workflow 가 아니라 팀 메시지 교환이라 자동 트리가 �
 
 수렴 시 `공격 0건 — 수렴` + `plan freeze → 사용자 승인 대기` 1줄. 공격 카운트의
 감소가 곧 수렴 게이지다.
-
-## P2 — 게이트 레일 스냅샷 (소비: harness-run SKILL.md)
-
-게이트 통과 시점마다 레일 1줄을 재출력해 "지금 어느 게이트 앞인가"를 항상 답한다
-(통과 시점마다 1줄 — 반복 재출력 아님):
-
-```
-rail: G0─wt─②plan+rubric─G1★─③④dev+eval─G3─G4   ← 현 위치 표시
-```
-
-Workflow(dev-eval-loop) 안에서는 attempt 결과 log() 에 **점수를 포함**한다:
-`attempt N: PASS 93` / `attempt N: FAIL 76 <signature>` — 사람이 G2 인터뷰 전에
-이미 방향을 안다.
 
 ## P3 — worker STATUS_LOG 기본 주입 (소비: linear-goal SKILL.md)
 

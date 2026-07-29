@@ -1,7 +1,7 @@
 ---
 name: forge
 description: >-
-  엄격한 파이프라인을 통해 NEW 기능을 end-to-end 로 구축한다 — 소크라테스식 요구사항 인터뷰 → codex 의 적대적 플랜 리뷰 → dynamic-workflow TDD 구현 → 보안 검증. 사용자가 아직 존재하지 않는 기능, 엔드포인트, 컴포넌트, 페이지, 명령, 능력을 ADD, BUILD, IMPLEMENT, 또는 CREATE 하려 할 때마다 사용한다 — "add X", "build me Y", "I need a Z", "can you make it do W", "이 기능 추가해줘", "X 만들어줘", "붙여줘", "구현해줘", "이런 거 되게 해줘" 처럼 캐주얼하게 표현하더라도, 프로세스나 테스트를 전혀 언급하지 않더라도 마찬가지다. 사소하지 않은 신규 기능이라면 즉흥적 코딩보다 forge 를 우선하라. 깨진 동작을 고치거나(use hunt), 기존 기능을 변경하거나(use renew), Linear 이슈를 그대로 자율 실행하는(use linear-goal/harness-run) 경우에는 사용하지 말 것.
+  엄격한 파이프라인을 통해 NEW 기능을 end-to-end 로 구축한다 — 소크라테스식 요구사항 인터뷰 → codex 의 적대적 플랜 리뷰 → dynamic-workflow TDD 구현 → 보안 검증. 사용자가 아직 존재하지 않는 기능, 엔드포인트, 컴포넌트, 페이지, 명령, 능력을 ADD, BUILD, IMPLEMENT, 또는 CREATE 하려 할 때마다 사용한다 — "add X", "build me Y", "I need a Z", "can you make it do W", "이 기능 추가해줘", "X 만들어줘", "붙여줘", "구현해줘", "이런 거 되게 해줘" 처럼 캐주얼하게 표현하더라도, 프로세스나 테스트를 전혀 언급하지 않더라도 마찬가지다. 사소하지 않은 신규 기능이라면 즉흥적 코딩보다 forge 를 우선하라. 깨진 동작을 고치거나(use hunt), 기존 기능을 변경하거나(use renew), Linear 이슈를 그대로 자율 실행하는(use linear-goal) 경우에는 사용하지 말 것.
 ---
 
 # Forge — 새 기능 구축

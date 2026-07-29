@@ -43,7 +43,7 @@
 | REQ-F-002 | 타깃 팀을 현재 repo → `linear-repo-map.json` 역매핑으로 추론; 맵에 없으면 사용자에게 질의 | Must | 맵에 있는 repo 에서 호출 → 해당 teamId 자동 선택; 없는 repo → "어느 팀?" 질문 | R6 |
 | REQ-F-003 | 프로젝트를 그 팀의 `list_projects` 에서 고르거나 사용자 확인 | Must | 생성 전 프로젝트가 결정/확인됨 (projectId 또는 명시적 "프로젝트 없음") | R6 |
 | REQ-F-004 | 모든 Linear 쓰기 전, "X팀 / Y프로젝트 / N건" 확인을 제시하고 대기 — 단 사용자가 "바로 등록" 지시 시 스킵 | Must | 게이트 미승인 상태에서 `save_issue`(생성) 호출 0회; "바로 등록" 입력 시에만 게이트 없이 진행 | R6 |
-| REQ-F-005 | 각 생성 이슈 본문에 "## 추천" 섹션 — **글로벌 스킬/에이전트 우선**(forge/hunt/renew/linear-goal/harness-run/deep-plan + Explore/Plan), 이슈 타입·크기에 적응한 모델 판단 추천 | Must | bug 이슈 → hunt 류 추천; 큰 교차 기능 → harness-run/deep-plan 류 추천; 섹션에 글로벌 후보 ≥1 명시 | R2,R3 |
+| REQ-F-005 | 각 생성 이슈 본문에 "## 추천" 섹션 — **글로벌 스킬/에이전트 우선**(forge/hunt/renew/linear-goal/deep-plan + Explore/Plan), 이슈 타입·크기에 적응한 모델 판단 추천 | Must | bug 이슈 → hunt 류 추천; 큰 교차 기능 → deep-plan 류 추천; 섹션에 글로벌 후보 ≥1 명시 | R2,R3 |
 | REQ-F-006 | "## 추천" 섹션에 프로젝트 로컬 스킬/에이전트 **경량 포인터**를 부차로 포함 — 타repo 를 읽지 않음 | Must | 섹션에 "해당 repo 의 `.claude/skills`/`.agents` 도 확인" 류 1줄; 타repo 파일 read 호출 0회 | R5 |
 | REQ-F-007 *(개정)* | 대형 plan/spec/PRD 분해 입력은 **내부 분할 모드**(plan-split.md — vertical slice 초안 + 분해 quiz + 의존순 발행)로 처리 | Must | "이 plan 전체를 이슈로 쪼개줘" 류 입력 → 분할 모드 진입, quiz 승인 후 의존순 발행 | 2026-07-21 R5 |
 | REQ-F-012 *(개정)* | 모든 생성 이슈 기본 `state: "Backlog"` (양 모드) — Backlog 미활성 팀은 팀 기본 state 폴백 + 보고 명시; 게이트에서 사용자 지정 state 우선 | Must | 생성 이슈 state=Backlog; 미활성 팀 → 폴백 + 보고 문구 존재 | 2026-07-21 R4 / 개정 2026-07-21 |

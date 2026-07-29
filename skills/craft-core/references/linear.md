@@ -1,7 +1,7 @@
 # Linear 통합 — MCP 감지 → 이슈 등록(plan) → 상태 전이(build)
 
 `deep-plan`(plan→이슈 등록) 과 craft consumer(`forge`/`renew`/`hunt` — 빌드 중
-상태 전이), 그리고 `harness-run`(G0 bind 시 In Progress 전이)이 공유하는 Linear 연동 SSOT. 직접 호출하지 않는다 — 해당 스킬이
+상태 전이)가 공유하는 Linear 연동 SSOT. 직접 호출하지 않는다 — 해당 스킬이
 필요할 때 lazy-load 한다. 이 한 장이 세 가지를 정의한다: (1) Linear MCP 감지 +
 미설치 시 가이드/스킵, (2) PLAN → Linear 이슈 트리 등록, (3) 빌드 중 상태 자동 전이.
 
@@ -82,7 +82,7 @@ Acceptance 는 sub-issue body 에 참조로 들어간다). Step 이 곧 atomic �
 **작은 plan 예외.** Step 이 1개이거나 매우 작으면 parent 없이 단일 이슈로 만든다 —
 트리 과투자 회피(deep-plan 의 flat 분기와 같은 정신).
 
-## 3. 빌드 중 상태 자동 전이 (forge / renew / hunt / harness-run)
+## 3. 빌드 중 상태 자동 전이 (forge / renew / hunt)
 
 빌드 스킬은 **활성 Linear 이슈가 있을 때만** 상태를 옮긴다. 없으면 Linear 를 무시하고
 평소대로 빌드한다(graceful — Linear 부재가 빌드를 막지 않는다).
@@ -98,7 +98,7 @@ Acceptance 는 sub-issue body 에 참조로 들어간다). Step 이 곧 atomic �
 
 | 시점 | 전이 |
 |---|---|
-| 빌드 시작 (pipeline Phase 0 bind; harness-run 은 G0 bind) | → In Progress |
+| 빌드 시작 (pipeline Phase 0 bind) | → In Progress |
 | Phase 4 verify green + Acceptance 닫힘 | → In Review |
 | 머지/완료 (`land` 머지 또는 사용자가 완료 커밋) | → Done |
 
@@ -136,7 +136,7 @@ Acceptance 는 sub-issue body 에 참조로 들어간다). Step 이 곧 atomic �
 
 ### 3b. 결과 보드 코멘트 — 구현 스킬 wrap 시 (In Review 행 대체)
 
-코드를 바꾼 스킬(forge/hunt/renew · harness-run · linear-goal)이 작업을 끝낼 때,
+코드를 바꾼 스킬(forge/hunt/renew · linear-goal)이 작업을 끝낼 때,
 활성 이슈가 있으면 **결과 보드**(`output-contract.md` §R)의 markdown 을 그 이슈에
 코멘트로 남긴다 — **In Review 전이(§3)와 같은 wrap 시점, 같은 활성 이슈**의 원자 쌍.
 §3a 표의 "→ In Review" 행은 이 보드 코멘트가 **대체**한다(검증 방식·범위 밖·잔여를
@@ -153,7 +153,7 @@ Acceptance 는 sub-issue body 에 참조로 들어간다). Step 이 곧 atomic �
   구분). 실패해도 wrap 을 막지 않는다(경고만).
 - **마스킹 의무** (acceptance-criteria-gate G3) — 토큰·PII·내부 URL·DB dump 는 코멘트
   전 마스킹. 검증 커맨드 행의 credential 인자도 대상 — 외부 서비스 캐시에 영속 노출된다.
-- **실패도 남긴다.** short-circuit(harness) · needs input(linear-goal) 의 실패 보드도
+- **실패도 남긴다.** needs input(linear-goal) 의 실패 보드도
   동일하게 코멘트 — 실패 기록이 다음 시도의 컨텍스트다.
 - graceful 불변식은 §1a/§3 그대로 — MCP 없거나 활성 이슈 없으면 묻지 말고 스킵.
 

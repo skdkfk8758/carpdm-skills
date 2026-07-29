@@ -3,8 +3,8 @@
 > **이 문서는 워크트리를 만들지 않는다. 검사만 한다.** 생성권은 사용자(Orca 카드)에게
 > 있고, 스킬은 "격리된 트리에 있는가"만 확인해 통과시키거나 멈춘다.
 >
-> **`harness-run`(G0)** 과 **`linear-goal`(승인 후 동기 블록)** 이 이 한 장을 읽는다 —
-> **복제 금지**(drift 차단). 둘 다 사람 없는 백그라운드 잡을 띄우므로 게이트가 hard gate 다.
+> **`linear-goal`(승인 후 동기 블록)** 이 이 한 장을 읽는다 — **복제 금지**(drift 차단).
+> 사람 없는 백그라운드 잡을 띄우므로 게이트가 hard gate 다.
 >
 > craft 빌드 엔진(`pipeline.md`·`orchestrated.md`)은 이 파일을 읽지 않는다 — forge/hunt/
 > renew 는 대화형이라 글로벌 `branch-worktree-strategy.md` §5 +
@@ -50,7 +50,7 @@ Orca 가 만든 워크트리만 안다 — `git worktree add` 로 만든 워크�
 | linked 워크트리 | base(`develop`/`main`/`master`) | **STOP** — 격리가 아니다 |
 | 메인 워크트리 | 무관 | **STOP** — trunk 체크아웃이다 |
 
-**STOP 은 hard gate 다.** 백그라운드 잡(goal worker · dev-eval-loop)을 **띄우지 않고**
+**STOP 은 hard gate 다.** 백그라운드 잡(goal worker)을 **띄우지 않고**
 사용자에게 넘긴다. 자동으로 `git worktree add` 하지 않는다 — 생성권은 사용자에게 있다.
 
 STOP 메시지에는 사용자가 바로 쓸 수 있게 다음을 담는다:
@@ -58,14 +58,11 @@ STOP 메시지에는 사용자가 바로 쓸 수 있게 다음을 담는다:
 - 현재 위치(메인/linked)와 브랜치 — 왜 멈췄는지의 증거
 - 권장 브랜치명 — `<type>/<topic>`, Linear 이슈ID 가 있으면 `<type>/<issue-id>-<topic>`
   (`branch-worktree-strategy` §2a — issue-id 없으면 PR↔이슈 자동연동이 안 걸린다).
-  linear-goal 은 `feat/<issue-id>-<topic>`, harness-run 은 `feat/<slug>` 를 권한다.
+  linear-goal 은 `feat/<issue-id>-<topic>` 를 권한다.
 - "Orca 카드로 워크트리를 만들고 그 세션에서 다시 실행해 달라"는 한 줄
 
 ## 호출처별 추가 계약
 
-- **harness-run**: 게이트 통과 후 eval 산물(`.eval/`)을 **워크트리 밖** `evalDir`
-  (`<worktree>/../.eval-<slug>/`)로 옮긴다 — dev 워크트리에 oracle 이 0이어야 한다
-  (REQ-F-008/N-001). 이 경로 규칙은 격리된 트리를 전제하므로 게이트를 생략할 수 없다.
 - **linear-goal**: STOP = goal worker spawn 금지.
 
 ## Anti-patterns

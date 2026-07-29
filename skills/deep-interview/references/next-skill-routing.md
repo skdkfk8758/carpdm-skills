@@ -31,7 +31,7 @@ available-skills 는 40+ 개일 수 있다. 대부분은 이 산출물의 *다�
 
 - **후보 가능** — 이 spec/plan 을 *입력으로 받아 전진*시키는 스킬: 빌드
   (`forge`/`renew`/`hunt`), plan 화(`deep-plan`), 이슈 분해(`linear-register` 분할 모드),
-  **자율 실행**(`linear-goal`/`harness-run` — Goal Prompt/이슈를 받아 사람 개입 최소로
+  **자율 실행**(`linear-goal` — Goal Prompt/이슈를 받아 사람 개입 최소로
   구현), 조사(`deep-research`), UI 탐색(`prototype`/`frontend-design`/`imprint`),
   빌드 전 **plan 압박 검증**(`grill-with-docs`) 등. (검증은 산출물을 입력으로
   받아 *더 단단하게* 전진시키므로 후보다 — 빌드처럼 코드를 내지 않을 뿐.)
@@ -68,7 +68,6 @@ Tier 1 단축이 명백하더라도, 컨텍스트의 available-skills 목록에�
 |---|---|
 | plan 을 독립적으로 grab 가능한 **이슈로 분해** | `linear-register` (분할 모드) |
 | Goal Prompt(`-prompt.md`)/이슈를 **경량 자율 실행** — 단일 티켓, 사람 개입 최소 | `linear-goal` |
-| **게이트 걸린 하니스 자율 실행** — harness-class(estimate≥5·cross-cutting·전면개편) | `harness-run` |
 | 빌드 전 plan/design 을 **적대 압박테스트·결정트리 추궁** | `grill-with-docs` |
 | 빌드 전 **사실 조사·다출처 검증** 이 먼저 필요 | `deep-research` |
 | 커밋 전 **버릴 프로토타입**으로 설계 검증 | `prototype` |
@@ -133,6 +132,6 @@ Phase 1). 순진하게 핸드오프하면 사용자가 두 번 인터뷰받는�
   시작이 아니다**. `deep-plan` 자신은 후보에서 제외(이미 만들었다). 흔한 다음 단계
   셋: ① plan 을 받아 빌드(Tier 1), ② 이슈로 분해(`linear-register` 분할 모드),
   ③ **자율 실행** — `-prompt.md` 는 애초에 자율 에이전트 goal 칸에 통째로 들어가라고
-  만든 파일이다. Step 7.5 에서 Linear 이슈로 등록됐으면 `linear-goal`(경량) 또는
-  `harness-run`(harness-class)이 그 이슈를 집어 실행하는 경로를 반드시 후보에 넣는다.
+  만든 파일이다. Step 7.5 에서 Linear 이슈로 등록됐으면 `linear-goal` 이 그 이슈를
+  집어 실행하는 경로를 반드시 후보에 넣는다.
   이슈 미등록이어도 `-prompt.md` 를 goal 로 직접 먹이는 자율 실행을 제안할 수 있다.

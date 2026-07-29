@@ -15,7 +15,7 @@
    - 버그/고장 → `/hunt`
    - 새 기능(greenfield) → `/forge`
    - 기존 변경/개편 → `/renew`
-   - 큰 교차·전면개편·research → `harness-run` 또는 `/deep-plan`
+   - 큰 교차·전면개편·research → `/deep-plan`
    - 자율 적합 단일 티켓 → `linear-goal`
    - 코드 이해·위치 파악 → `Explore` 에이전트 / `/deep-research`
    - 대형 plan/spec/PRD 분할 → `linear-register` 분할 모드 (plan-split.md)

@@ -1,7 +1,7 @@
 ---
 name: linear-goal
 description: >-
-  Linear 이슈 1건을 가볍게 자율 실행하는 오케스트레이터 — fetch → `## 추천` 라우팅 + harness 안전판정 → 이슈의 `## 작업 내용`/`## 수용 기준`을 Goal Prompt 로 매핑 → 확인 게이트 → worktree 분기·검증 → goal worker 백그라운드 잡 → PR(In Review 까지만). "ADT-211 goal 로 돌려줘", "이 티켓 해줘", "이슈대로 구현해줘" 처럼 'linear-goal' 이란 말이 없어도 트리거. 세션에 `Linked Linear issue: <ID>` 배너가 있으면 "이거 진행해줘"/"작업 시작해" 만으로 그 이슈 대상. harness-class(estimate≥5·cross-cutting·전면개편)면 harness-run 추천하고 멈춤. 일반 Goal Prompt 는 deep-prompt, 직접 빌드/버그수정은 forge/hunt, 이슈 등록은 linear-register, PR 머지는 land.
+  Linear 이슈 1건을 가볍게 자율 실행하는 오케스트레이터 — fetch → `## 추천` 라우팅 + oversized 안전판정 → 이슈의 `## 작업 내용`/`## 수용 기준`을 Goal Prompt 로 매핑 → 확인 게이트 → worktree 분기·검증 → goal worker 백그라운드 잡 → PR(In Review 까지만). "ADT-211 goal 로 돌려줘", "이 티켓 해줘", "이슈대로 구현해줘" 처럼 'linear-goal' 이란 말이 없어도 트리거. 세션에 `Linked Linear issue: <ID>` 배너가 있으면 "이거 진행해줘"/"작업 시작해" 만으로 그 이슈 대상. oversized-class(estimate≥5·cross-cutting·전면개편)면 deep-plan·linear-register 분할을 추천하고 멈춤. 일반 Goal Prompt 는 deep-prompt, 직접 빌드/버그수정은 forge/hunt, 이슈 등록은 linear-register, PR 머지는 land.
 ---
 
 # linear-goal — Linear 티켓을 경량 게이트로 묶어 자율 goal 실행
@@ -15,11 +15,11 @@ worktree 분기를 검증하고 goal worker 를 자율 실행한다.
 핵심은 **재작성이 아니라 재사용**이다. `linear-register` 가 만든 이슈는 이미
 `## 작업 내용`·`## 수용 기준`·`## 추천`(어느 스킬로 갈지)·체인이면 `## 다음 작업`을
 갖는다 — 이 구조를 **그대로 Goal Prompt 로 매핑**한다. 무거운 메타프롬프트·시안·적대
-critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애초에 harness-class 로
-판정돼 `harness-run` 으로 빠진다(Phase 2).
+critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애초에 oversized-class 로
+판정돼 `deep-plan`+`linear-register` 분할로 빠진다(Phase 2).
 
 > 자매 관계: 티켓 신규 등록 = `linear-register`(거기 `## 추천` 이 이 스킬을 가리킨다) ·
-> 티켓 없는 일반 goal = `deep-prompt` · 어려운 티켓 = `harness-run` · PR 머지 = `land`.
+> 티켓 없는 일반 goal = `deep-prompt` · 너무 큰 티켓 = `deep-plan`+`linear-register` 분할 · PR 머지 = `land`.
 
 ## 안전 불변식 — 먼저 읽을 것
 
@@ -30,9 +30,9 @@ critic 은 없다. 그 무게가 필요한 디자인-리스크 큰 작업은 애
   **In Review 까지만**. 머지·Linear "Done" 은 `land`/사람 몫.
 - **확인 전 어떤 mutation 도** — fetch·Goal Prompt 조립까지는 read-only. Linear 전이·
   worktree·worker spawn 은 전부 Phase 4 확인 게이트 통과 후.
-- **harness-class 티켓을 goal 로 강행** — false-done PR 이 되어 사람이 미묘한 오류를
+- **oversized-class 티켓을 goal 로 강행** — false-done PR 이 되어 사람이 미묘한 오류를
   떠안는다. 판정해서 추천만 하고 멈춘다(Phase 2). 추천 섹션이 빌드 스킬을 가리켜도
-  안전 판정이 상위 — `## 추천` 은 모델 판단이고 harness 게이트는 hard rule 이다.
+  안전 판정이 상위 — `## 추천` 은 모델 판단이고 oversized 게이트는 hard rule 이다.
 - **worktree 검증 실패 시 worker spawn** — 엉뚱한 트리/develop 위 자율작업 방지. hard gate.
 - **수용 기준 미충족 상태로 PR/종료** — `## 수용 기준`(=Success Criteria)이 100% 검증되지
   않았는데 PR 을 열거나 작업을 완료(In Review)로 올리지 않는다. **PR 직전 이슈 수용 기준을
@@ -64,20 +64,20 @@ Phase 1~3 은 read-only + 파일 생성뿐 — mutation 은 Phase 4 확인 뒤�
   이라 확인 게이트 전에 실행해도 안전. 잡 컨텍스트 아니거나(`$CLAUDE_JOB_DIR` 없음) 붙여넣은
   텍스트라 ID 가 없으면 생략. 실패해도 hard gate 아님 — note 만 남기고 계속.
 
-### Phase 2 — Route & gate (repo 확정 + goal/harness 판정)
+### Phase 2 — Route & gate (repo 확정 + goal/oversized 판정)
 
 `references/routing.md` 를 읽고 그대로 적용한다 (dispatch 라우팅 SSOT).
 
 1. **repo 확정** — `team.key`(또는 projectExceptions 의 `project.id`)로
    `~/.claude/linear-repo-map.json` 조회. `repo:null`·uncertain·외부/운영-요청이면
    거부 또는 사용자 확인.
-2. **goal/harness/spec-thin 판정** — routing.md rubric 을 위에서 아래로. **harness-class**면
-   **여기서 멈추고** "이 티켓은 goal 부적합 — `harness-run` 권장 (사유: …)" 출력.
+2. **goal/oversized/spec-thin 판정** — routing.md rubric 을 위에서 아래로. **oversized-class**면
+   **여기서 멈추고** "이 티켓은 goal 부적합 — `/deep-plan` 후 `/linear-register` 분할 권장 (사유: …)" 출력.
    **spec-thin**(AC 없음 + 본문 빈약)이면 역시 멈추고 `linear-groom` 보강 또는
    `deep-plan` 을 권장한다(보강 후 재판정이 정경로). goal 강행 금지.
 3. 이슈에 `## 추천` 이 있으면 그 라우팅을 **참고 신호**로 본다(예: 추천이 `/hunt` →
-   worker 가 버그수정 모드). 단 위 harness 판정이 상위 — 추천이 빌드를 가리켜도
-   estimate≥5/cross-cutting 이면 harness 로 멈춘다.
+   worker 가 버그수정 모드). 단 위 oversized 판정이 상위 — 추천이 빌드를 가리켜도
+   estimate≥5/cross-cutting 이면 oversized 로 멈춘다.
 
 ### Phase 3 — Goal Prompt 조립 (메타프롬프트 아님 — 이슈 구조 재사용)
 
@@ -197,7 +197,7 @@ SSOT 금지).
 
 - **확인 전 mutation** — fetch·조립까지 read-only. Linear 전이·worktree·worker 를 확인 전에 하면 게이트가 무의미.
 - **worktree 검증 생략하고 spawn** — 분기 실패 시 엉뚱한 트리에서 자율작업. hard precondition.
-- **harness-class 를 goal 강행** — false-done PR. 판정해서 추천하고 멈춰라(`## 추천` 이 빌드를 가리켜도 안전 게이트가 상위).
+- **oversized-class 를 goal 강행** — false-done PR. 판정해서 추천하고 멈춰라(`## 추천` 이 빌드를 가리켜도 안전 게이트가 상위).
 - **머지/Done 자동화** — human merge-gate 붕괴. In Review 까지만.
 - **이슈 구조 무시하고 메타프롬프트 재작성** — linear-register 이슈는 이미 `## 작업 내용`/`## 수용 기준`이 있다. 재사용이 이 리뉴얼의 핵심 — 다시 쓰지 말고 매핑하라.
 - **검증 불가 Success Criteria** — `## 수용 기준`을 그대로 옮기되 "잘 동작" 류 모호 항목만 관찰 가능하게 보정.
@@ -210,6 +210,6 @@ SSOT 금지).
 
 ## References
 
-- `references/routing.md` — linear-repo-map 조회(repo 확정) + goal/harness rubric. Phase 2 에서 읽는다.
+- `references/routing.md` — linear-repo-map 조회(repo 확정) + goal/oversized rubric. Phase 2 에서 읽는다.
 - `references/goal-prompt-template.md` — Goal Prompt 7섹션 고정 템플릿 + 검증 가능성 5질문 게이트. Phase 3 에서 **스켈레톤**으로 읽는다(이슈 필드를 채워 넣는 용도 — 재작성 아님).
 - `~/.claude/skills/craft-core/references/session-rename.md` — 세션 rename 공유 SSOT(포맷 표에 linear-goal 행). **Phase 1(fetch 직후)에서 읽고 즉시 적용**한다.

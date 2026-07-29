@@ -13,9 +13,8 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 - 운영: `handoff` · `sweep` · `land` · `wt-sweep`(워크트리·세션기록 정리는 wt-sweep 단독 소관 — land 는 워크트리를 건드리지 않고 Report 로 안내만; 절차 SSOT 는 wt-sweep `references/sweep-mode.md`) · `ship`(§10)
 - 검토·판정(코드 한 줄 안 고침, 리포트+수정 라우팅만): `preflight`(§9) · `fortify`(§12)
 - UI·도식: `imprint`(수동 추출 DESIGN.md *준수* 재현 — 발명 아님, token-traceability: raw hex/px 하드코딩 0) · `mockup`(기존 프로젝트 충실 HTML 시안; `references/design-context.md` 가 시안 충실도 SSOT — deep-plan·craft pipeline·deep-prompt 가 이 한 소스를 읽는다, 복제 금지) · `erd`(§8)
-- 스캐폴딩·셋업: `cicd-scaffold` · `admap-scaffold` · `colocate-domain-context` · `loop-harness-setup`
+- 스캐폴딩·셋업: `cicd-scaffold` · `admap-scaffold` · `colocate-domain-context`
 - Linear 라이프사이클: `linear-register`/`linear-goal`/`linear-groom`/`linear-prioritize` — `## 추천` 생성 규칙은 `linear-register/references/recommend-section.md` SSOT 공유(복제 금지); 모두 graceful — Linear MCP 미설치면 가이드 한 번+스킵. `linear-groom` 은 무인 주기 실행(orca automation)용 **scan-only** 모드 보유(§14)
-- 하니스 오케스트레이션: `harness-run`/`eval-generate`/`eval-check`/`harness-heal`(§13)
 
 > 과거 `agents/`(재사용 서브에이전트, 플랫 `.md`)를 두 번째 배포 아티팩트로 두고 `summon`(에이전트 저작) 스킬을 함께 배포했으나, [ADR 002](../docs/adr/002-revert-agents-artifact-type.md) 로 철회했다 — 이 레포는 다시 **스킬 단일 아티팩트**다.
 
@@ -54,7 +53,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 Socratic 인터뷰 → codex 적대적 플랜 리뷰(`codex:rescue` 플러그인) → 동적 워크플로 TDD(sonnet) → 보안 검증.
 각 작업유형 스킬은 이 엔진 위에 **자기 Phase 1 Socratic 초점 + Phase 3 TDD 진입점**만 얹는다 (SKILL.md 본문은 짧음 — 차이만 기술). 공통 Phase 0/2/4/5 는 엔진 그대로.
 - `codex:rescue` 미설치 시 Phase 2 는 수동 리뷰로 폴백.
-- 참조 분리: `socratic.md`/`codex-review.md`/`dynamic-tdd.md`/`security.md`/`context-adr.md` — phase 필요 시 lazy load. `output-contract.md` 는 phase 참조가 아니라 **전 스킬 공통 종료 출력 규격**(§7). `linear.md` 는 **Linear 연동 공유 SSOT**(§11) — 엔진 의존 아닌 공유 한 장. `worktree.md`(§15)도 같은 컨테이너에 있지만 **엔진은 읽지 않는다**(harness-run·linear-goal 전용).
+- 참조 분리: `socratic.md`/`codex-review.md`/`dynamic-tdd.md`/`security.md`/`context-adr.md` — phase 필요 시 lazy load. `output-contract.md` 는 phase 참조가 아니라 **전 스킬 공통 종료 출력 규격**(§7). `linear.md` 는 **Linear 연동 공유 SSOT**(§11) — 엔진 의존 아닌 공유 한 장. `worktree.md`(§15)도 같은 컨테이너에 있지만 **엔진은 읽지 않는다**(linear-goal 전용).
 - **Linear 라이프사이클 wiring (§11):** Phase 0 에 `linear.md` 바인딩(활성 이슈→In Progress), Phase 5 wrap 에 verify green→In Review 를 주입(개별 SKILL.md 안 건드림). 셋 다 graceful — Linear 미설치/이슈 없으면 무시하고 평소대로.
 
 ### 3. SKILL.md frontmatter = 트리거
@@ -118,11 +117,13 @@ craft 엔진은 **두 토폴로지**를 가진다. **linear**(기본, `pipeline.
 - **고정 포맷 + severity 루브릭.** 사용자 5-카테고리 체크리스트를 verbatim 리포트 템플릿으로 박았다(카테고리별 결과 + 반드시막음/보완권장/확인필요/판정/우선순위). blocker/should/keep 와 PASS/조건부PASS/FAIL 은 감이 아니라 루브릭 — 보안 불변식(auth/payment/crypto/권한경계·비밀노출·평문비번)은 항상 blocker(FAIL). 상세 카테고리 체크리스트·정적 패턴·probe 명령 카탈로그는 `references/security-checklist.md`(lazy load).
 - **검토만, 안 고침.** 코드 한 줄 안 바꾼다(수정은 hunt/renew/forge). 산출물군 — L1 `result:` + L2 리포트 열기(`docs/reviews/…-fortify.md`) + L3 수정 라우팅(발견→hunt 보안버그/renew 인증동작변경/forge 누락보안기능, output-contract §L3 메커니즘). standalone 이지만 종료 출력은 output-contract 공유(엔진 의존 아님).
 
-### 13. 하니스 오케스트레이션 4종 (harness-run/eval-generate/eval-check/harness-heal) — IA→글로벌 SSOT 이관 진행 중
-loop/eval-게이트 자율개발 하니스의 실행 스킬 4종. **SSOT 가 글로벌(본 레포 추적)로 이관 완료**됐다 — 종전 SSOT 는 `~/Workspace/Intelligence-Auth/.claude/skills/`(하니스 origin)였고 글로벌은 무버전 미러였으나, 사용자 결정으로 **글로벌 단일 SSOT** 로 수렴했다(IA 사본 제거 완료).
-- **추적 내용 = 글로벌 변형 정본(절대경로).** harness-run·eval-generate·eval-check 의 `SKILL.md`·workflow scriptPath 는 cwd-무관 동작을 위해 `/Users/carpdm/.claude/skills/...` **구체 절대경로**를 쓴다(Workflow scriptPath 는 프로젝트 cwd 가 아니라 skills 디렉토리에 resolve 돼야 함 → 상대·`~` 불가). **2단계에서 이식성 해결:** `install.sh` 가 설치 시 `/Users/carpdm/.claude/skills` → `$HOME/.claude/skills` 로 home prefix 재작성(메인테이너 머신 = no-op, 타 머신 = 그 머신 경로). 단방향이라 `sync.sh`(글로벌→repo, carpdm 머신서만 실행)는 no-op 왕복 → repo 오염 없음. 따라서 본 레포의 "어느 머신이든 동작" 불변식 충족.
-- **결합 세트.** harness-run 이 eval-generate(rubric 생성)·eval-check(채점)·harness-heal(단락 자가개선)을 호출하는 한 묶음 — 4종은 함께 추적/이동한다. 상세 하니스 구조(게이트 G0~G4·3역할 분리·decideNext·C4 heal)는 글로벌 rule `loop-visualization` + IA `loop/` 가 SSOT.
-- **이관 완료(①~④):** ① git 집 확보(carpdm-skills 추적) → ② 경로 전략(install.sh home-prefix 재작성) → ③ 글로벌 단독 동작 검증(4스킬 존재·Workflow scriptPath 유효·단위테스트 loop-control 9/9·attribution 5/5·IA 실행 하드의존 0) → ④ IA `.claude/skills/{harness-run,eval-generate,eval-check,harness-heal}` 삭제 + harness-run 글로벌 SSOT 노트 갱신. (`loop-visualization.md` 의 IA 참조는 IA `docs/guides/`·`loop/` 를 가리켜 삭제 무관 — 갱신 불요. 전체 harness-run 실측 완주는 실 이슈 발생 시 자연 검증.)
+### 13. 하니스 오케스트레이션 5종 — **은퇴됨 (2026-07-29)**
+
+`harness-run`·`eval-generate`·`eval-check`·`harness-heal`·`loop-harness-setup` 을 레포와 라이브(`~/.claude/skills/`) 양쪽에서 제거했다. 절 번호는 §7/§11/§15 등 상호참조가 걸려 있어 유지하고, 본문만 은퇴 기록으로 대체한다.
+
+- **은퇴 근거 = 실사용 빈도.** 트랜스크립트 실측(`"skill":"harness-run"` 카운트) 16회/13세션 — 같은 기간 renew 41·hunt 31·linear-goal 31·forge 21 대비 구현계열 최하위이고, 2026-07-01 하루 6건(하니스 개발기)을 빼면 주 1회 미만이다. 글로벌 은퇴 규율의 "축적 ≠ 진보" 적용 — 유지비(5스킬·절대경로 재작성 로직·20여 참조)가 사용 가치를 넘겼다.
+- **흡수된 것.** linear-goal 의 안전판정은 남는다 — 판정 클래스명이 `harness-class` → **`oversized-class`** 로 바뀌었고, 라우팅 대상이 `harness-run` → `deep-plan`+`linear-register` 분할이다(레거시 Linear 라벨 `agent:harness` 는 그대로 인식). `install.sh` 의 home-prefix 재작성 블록은 유일 소비자였던 하니스 절대경로가 사라져 함께 제거했다.
+- **되살리려면** git history 가 안전망 — 이 커밋을 revert 하면 5스킬과 참조가 함께 돌아온다.
 
 ### 14. linear-groom scan-only = 승인 게이트 스킬을 무인 주기 실행에 붙이는 방식
 
@@ -150,8 +151,8 @@ loop/eval-게이트 자율개발 하니스의 실행 스킬 4종. **SSOT 가 글
 **스킬은 워크트리를 만들지 않는다 — 검사만 한다.** 생성권은 사용자(Orca 카드)에게 있고,
 `worktree.md` 는 "격리된 트리에 있는가"를 판정해 통과/STOP 만 낸다. output-contract(§7)·
 linear(§11)과 같은 포지션 — craft-core 에 두지만 **엔진 의존 아닌 공유 reference** 다.
-읽는 곳 **2개**: `harness-run` G0 · `linear-goal` 동기 블록. 두 호출처 모두 포인터
-1~2줄 + 권장 브랜치명만 남기고 git 명령 리터럴을 갖지 않는다. 설계 결정:
+읽는 곳 **1개**: `linear-goal` 동기 블록(종전엔 `harness-run` G0 도 읽었으나 §13 은퇴로 빠졌다).
+호출처는 포인터 1~2줄 + 권장 브랜치명만 남기고 git 명령 리터럴을 갖지 않는다. 설계 결정:
 
 - **생성을 뺀 이유 = 생성권 귀속.** 사용자가 Orca 카드로 워크트리를 직접 만든다. 스킬이
   또 만들면 의도하지 않은 이름·위치의 트리가 생기고, 이미 격리된 세션엔 겹쳐 판다.
@@ -172,8 +173,7 @@ linear(§11)과 같은 포지션 — craft-core 에 두지만 **엔진 의존 �
   **알고 가는 대가**: Phase 0 이 `<type>/<issue-id>-<topic>` 을 박던 유일한 지점이라, 이제
   브랜치에 issue-id 를 넣는 건 세션을 연 쪽 몫이다 — 없으면 PR↔Linear 자동연동이 안 걸린다
   (`branch-worktree-strategy` §2a). 격리와 별개의 회귀이므로 재발하면 네이밍만 되살릴 것.
-- **남은 2곳은 백그라운드다.** linear-goal 의 goal worker, harness-run 의 dev-eval-loop 는
-  사람 없이 자율 편집한다 — 메인 트리에서 돌면 `commit-isolation.md` 가 기술한 사고가 그대로
+- **남은 1곳은 백그라운드다.** linear-goal 의 goal worker 는 사람 없이 자율 편집한다 — 메인 트리에서 돌면 `commit-isolation.md` 가 기술한 사고가 그대로
   난다. 여기선 STOP = 잡 미기동(hard gate).
 - **감지 신호는 git 이지 Orca 가 아니다.** `git rev-parse --path-format=absolute --git-dir
   --git-common-dir` 두 줄의 동일 여부가 SSOT. `orca worktree current` 의 `isMainWorktree` 를
@@ -181,10 +181,8 @@ linear(§11)과 같은 포지션 — craft-core 에 두지만 **엔진 의존 �
   호출하면 경로 매칭으로 메인(`isMainWorktree: true`)을 반환한다. `land/references/orca.md` 가
   `linkedPR` 로 배운 것과 같은 규율(Orca 메타는 보강, ground truth 아님). `--path-format=absolute`
   는 필수 — 빼면 메인 repo 하위 디렉토리에서 `.git` vs `../.git` 로 갈려 오판한다.
-- **harness-run 은 구조적으로 생략 불가.** `evalDir = <worktree>/../.eval-<slug>/` 가 워크트리
-  경로에 의존한다(REQ-F-008/N-001 분리무결성 — dev 가 oracle 을 읽는 채널 차단).
-- **통일 이득.** 종전 브랜치 확인 명령이 `rev-parse --abbrev-ref HEAD`(pipeline·linear-goal) 와
-  `worktree list | grep`(harness-run) 으로 갈려 있었다 — 전자로 통일.
+- **통일 이득.** 종전 브랜치 확인 명령이 `rev-parse --abbrev-ref HEAD` 와 `worktree list | grep`
+  으로 갈려 있었다 — 전자로 통일.
 
 ## Skill authoring 검증
 

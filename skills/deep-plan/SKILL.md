@@ -198,11 +198,11 @@ fable 갭 + codex 갭을 **union·dedup** 한 목록이 인터뷰의 유일한 �
 
 갭이 처음부터 0개면 인터뷰를 통째로 건너뛰고 그 사실을 한 줄로 말한다.
 
-**질문 불가 컨텍스트(자율/백그라운드 — `harness-run` ②, 백그라운드 잡,
+**질문 불가 컨텍스트(자율/백그라운드 — 백그라운드 잡,
 `$CLAUDE_JOB_DIR`)에서는 인터뷰를 돌리지 않는다.** `[CODE]` 갭은 평소대로 읽어서
 닫고, `[HUMAN]` 갭은 **전부 assumption 으로 승격**해 최종 프롬프트 Constraints +
 PLAN Risks 에 명시한 뒤 Step 4 로 간다. 보고에 *"자율 컨텍스트 — [HUMAN] 갭 N건을
-assumption 으로 승격"* 을 남긴다. harness-run 의 "사람 프롬프트 0" 계약을 깨지
+assumption 으로 승격"* 을 남긴다. 자율 잡의 "사람 프롬프트 0" 계약을 깨지
 않기 위한 분기다.
 
 ### Step 4 — debate ③④ 반영 + 최종 verdict (델타 판정 게이트)
@@ -380,7 +380,7 @@ PLAN `.md` 에 기록.
 - 빌드로 제안하면 산출물을 **이미 완료된 Phase-1 결과물**로 취급해 다시 인터뷰하지
   말라고 프레이밍한다(이중 인터뷰 회피). Acceptance(=eval) 항목이 그 빌드가 Phase 4
   에서 닫을 체크리스트이고, UI 면 `.html` 목업이 승인된 visual 계약임을 함께 짚는다.
-  자율 실행(`linear-goal`·`harness-run`)으로 제안하면 `-prompt.md` 를 그대로 goal 로
+  자율 실행(`linear-goal`)으로 제안하면 `-prompt.md` 를 그대로 goal 로
   먹이면 된다고 짚는다 — 그게 그 파일의 존재 이유다.
 - **`AskUserQuestion` 으로 제안만** 한다.
 

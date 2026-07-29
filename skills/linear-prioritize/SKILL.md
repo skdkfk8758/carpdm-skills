@@ -105,7 +105,7 @@ Project: ...
 | 백로그 재배치·thin 이슈 보강 | `linear-groom` 스킬 |
 | 단일 티켓 자율 빌드 실행 | `linear-goal` 스킬 |
 | plan/PRD 를 다중 이슈로 분할 | `linear-register` (분할 모드) |
-| 실제 코드 구현 | `forge`/`hunt`/`renew`/`harness-run` |
+| 실제 코드 구현 | `forge`/`hunt`/`renew` |
 
 이 스킬은 **이미 등록된 미완 이슈의 실행 계획**만 낸다 — 새 이슈도, 코드도 만들지 않는다.
 
