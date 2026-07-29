@@ -15,19 +15,30 @@ WHY THIS EXISTS (the hard-won part):
   sandbox's tree-kill, so the server keeps running across agent turns and even
   after the agent session ends — until you explicitly stop it.
 
+PORT REPORTING IS OWNERSHIP-BASED (the second hard-won part):
+  A machine-wide "what is listening" snapshot is NOT this server's URL. Another
+  project (or the main checkout on a different branch) commonly already holds
+  :3000, and reporting it hands the user a live link to the wrong code. Ports are
+  therefore resolved by process-group ownership: the daemon is a session leader,
+  so every port opened by its children shares its pgid. Foreign ports are never
+  reported — if this server opened none, that is said out loud instead.
+
 Subcommands:
   start   daemonize a dev command, wait for it to listen, report URLs
-  status  is it alive? which ports are listening?
+  status  is it alive? which ports does IT own?
   stop    kill the daemon (whole process group: make + node + vite…)
   logs    print the tail of the daemon log
+  ports   show what is occupying ports (conflict check, no daemon needed)
 
-State (pidfile + log) lives under ~/.cache/dev-daemon/<name>/.
+State (pidfile + log + meta) lives under ~/.cache/dev-daemon/<name>/.
 """
 import argparse
+import json
 import os
 import re
 import shutil
 import signal
+import socket
 import subprocess
 import sys
 import time
@@ -50,6 +61,26 @@ def state_dir(name):
 def paths(name):
     d = state_dir(name)
     return os.path.join(d, "daemon.pid"), os.path.join(d, "daemon.log")
+
+
+def meta_path(name):
+    return os.path.join(state_dir(name), "daemon.json")
+
+
+def write_meta(name, **kv):
+    try:
+        with open(meta_path(name), "w") as f:
+            json.dump(kv, f)
+    except OSError:
+        pass
+
+
+def read_meta(name):
+    try:
+        with open(meta_path(name)) as f:
+            return json.load(f) or {}
+    except (OSError, ValueError):
+        return {}
 
 
 def read_pid(pidfile):
@@ -84,8 +115,6 @@ def detect_cmd(cwd):
     pj = os.path.join(cwd, "package.json")
     if os.path.isfile(pj):
         try:
-            import json
-
             with open(pj) as f:
                 scripts = (json.load(f) or {}).get("scripts", {})
         except (OSError, ValueError):
@@ -102,21 +131,90 @@ def detect_cmd(cwd):
 
 
 # ── port inspection ──────────────────────────────────────────────────────────
-def listening_ports():
-    """Set of TCP ports currently in LISTEN state (best-effort, POSIX lsof)."""
+def listening_map():
+    """{port: (pid, command)} for TCP LISTEN sockets (best-effort, POSIX lsof)."""
     if not shutil.which("lsof"):
-        return set()
+        return {}
     try:
         out = subprocess.run(
             ["lsof", "-nP", "-iTCP", "-sTCP:LISTEN"],
             capture_output=True, text=True, timeout=8,
         ).stdout
     except Exception:
+        return {}
+    found = {}
+    for line in out.splitlines()[1:]:
+        m = re.search(r"\s\S*:(\d+)\s+\(LISTEN\)", line)
+        f = line.split()
+        if not m or len(f) < 2:
+            continue
+        try:
+            found[int(m.group(1))] = (int(f[1]), f[0])
+        except ValueError:
+            continue
+    return found
+
+
+def pgid_map():
+    """{pid: pgid} for every visible process (one `ps` call)."""
+    try:
+        out = subprocess.run(
+            ["ps", "-axo", "pid=,pgid="], capture_output=True, text=True, timeout=8
+        ).stdout
+    except Exception:
+        return {}
+    m = {}
+    for line in out.splitlines():
+        f = line.split()
+        if len(f) >= 2:
+            try:
+                m[int(f[0])] = int(f[1])
+            except ValueError:
+                pass
+    return m
+
+
+def owned_ports(pid):
+    """Ports LISTENed by *this daemon's* process group (make + node + vite…).
+
+    The setsid() happens in the intermediate child, so the daemon's pgid is that
+    child's pid — NOT `pid` itself. Every descendant inherits that pgid, so it is
+    the exact ownership key, and it is what keeps a foreign :3000 out of the
+    report."""
+    if not alive(pid):
         return set()
-    ports = set()
-    for m in re.finditer(r":(\d+)\s+\(LISTEN\)", out):
-        ports.add(int(m.group(1)))
-    return ports
+    try:
+        pgid = os.getpgid(pid)
+    except OSError:
+        return set()
+    pmap = pgid_map()
+    return {
+        port for port, (lpid, _cmd) in listening_map().items()
+        if pmap.get(lpid) == pgid
+    }
+
+
+def port_owner(port):
+    """(pid, command) holding `port`, or None if free."""
+    return listening_map().get(port)
+
+
+def port_free(port):
+    """True if nothing can be bound-clashed on `port` (bind test, no lsof needed)."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            s.bind(("127.0.0.1", port))
+            return True
+        except OSError:
+            return False
+
+
+def next_free_port(start, limit=40):
+    for p in range(start, start + limit):
+        if port_free(p):
+            return p
+    return None
 
 
 def http_code(port):
@@ -177,35 +275,59 @@ def cmd_start(args):
 
     existing = read_pid(pidfile)
     if alive(existing):
-        print(f"already running: name={name} pid={existing}")
-        _report_ports(set(), logfile, existing, name, pidfile)
+        prev = read_meta(name)
+        print(f"already running: name={name} pid={existing} cwd={prev.get('cwd', '?')}")
+        if prev.get("cwd") and os.path.abspath(prev["cwd"]) != cwd:
+            print(
+                "!! CWD MISMATCH — this daemon serves a DIFFERENT directory (likely another\n"
+                f"   branch/worktree). Requested: {cwd}\n"
+                "   Its URLs show code you did NOT change. Start a separate one:\n"
+                f"     ... start --cwd {cwd} --name <distinct-name> --port <free port>"
+            )
+        _report_ports(existing, logfile, name)
         return
 
     cmd = args.cmd or detect_cmd(cwd)
     if not cmd:
         sys.exit("could not detect a dev command — pass --cmd \"make dev\" (or your dev command)")
 
+    # ── port conflict pre-check ──────────────────────────────────────────────
+    # A busy port is not a hard failure (Next/Vite silently shift to the next
+    # one), which is exactly why it must be reported: the URL you'd assume is
+    # then someone else's server.
+    if args.port:
+        owner = port_owner(args.port)
+        if owner or not port_free(args.port):
+            who = f"pid {owner[0]} ({owner[1]})" if owner else "another process"
+            alt = next_free_port(args.port + 1)
+            msg = f"port {args.port} is already taken by {who}."
+            if alt:
+                msg += f"\n  retry with a free one: --port {alt}"
+            sys.exit(msg)
+        cmd = f"PORT={args.port} {cmd}"  # honored by next/nest/CRA/remix; Vite
+        # needs it on the command line instead: --cmd "npm run dev -- --port N"
+
     open(logfile, "w").close()  # truncate previous log
-    before = listening_ports()
     pid = spawn_daemon(cmd, cwd, logfile, pidfile)
     if not pid:
         sys.exit("failed to spawn daemon")
+    write_meta(name, cwd=cwd, cmd=cmd, pid=pid)
     print(f"daemon started: name={name} pid={pid} cmd={cmd!r} cwd={cwd}")
     print(f"log: {logfile}")
 
-    # poll for newly-opened ports (dev servers compile first — give them time)
+    # poll for the ports THIS daemon opened (dev servers compile first)
     deadline = time.time() + args.timeout
-    new = set()
+    mine = set()
     while time.time() < deadline:
         time.sleep(2)
         if not alive(pid):
             print("\n!! daemon died during startup — last log lines:")
             _tail(logfile, 15)
             sys.exit(1)
-        new = listening_ports() - before
-        if new and _all_http_ready(new):
+        mine = owned_ports(pid)
+        if mine and _all_http_ready(mine):
             break
-    _report_ports(new, logfile, pid, name, pidfile)
+    _report_ports(pid, logfile, name)
 
 
 def _all_http_ready(ports):
@@ -213,17 +335,38 @@ def _all_http_ready(ports):
     return any(http_code(p) is not None for p in ports)
 
 
-def _report_ports(new, logfile, pid, name, pidfile):
-    ports = sorted(new) if new else sorted(listening_ports())
+def _log_advertised_ports(logfile):
+    """Ports the framework printed in its own banner (Local: http://localhost:N)."""
+    try:
+        with open(logfile) as f:
+            text = f.read()
+    except OSError:
+        return set()
+    return {int(m) for m in re.findall(r"localhost:(\d{2,5})", text)}
+
+
+def _report_ports(pid, logfile, name):
+    mine = owned_ports(pid)
     print("\n=== dev server ===")
-    if new:
-        for p in sorted(new):
+    if mine:
+        for p in sorted(mine):
             code = http_code(p)
             tag = f"http {code}" if code is not None else "listening"
             print(f"  http://localhost:{p}   ({tag})")
     else:
-        print("  (no NEW ports detected — check the log; server may still be compiling)")
+        print("  (this daemon owns NO listening port — still compiling, or it failed;"
+              " run `logs`)")
+
+    # A port the banner advertises but that a FOREIGN pid owns = the trap: the
+    # link is alive and shows someone else's code.
+    for p in sorted(_log_advertised_ports(logfile) - mine):
+        owner = port_owner(p)
+        if owner and owner[0] != pid:
+            print(f"  !! :{p} appears in this server's log but is owned by pid "
+                  f"{owner[0]} ({owner[1]}) — do NOT hand that URL out")
+
     print(f"\npid {pid}  ·  log: {logfile}")
+    print("(only ports owned by this daemon's process group are listed above)")
     print(f"stop:   python {os.path.abspath(__file__)} stop --name {name}")
     print(f"status: python {os.path.abspath(__file__)} status --name {name}")
 
@@ -233,12 +376,33 @@ def cmd_status(args):
     pidfile, logfile = paths(name)
     pid = read_pid(pidfile)
     if alive(pid):
-        print(f"RUNNING  name={name} pid={pid}")
-        print("listening ports:", sorted(listening_ports()) or "(none seen)")
+        meta = read_meta(name)
+        print(f"RUNNING  name={name} pid={pid} cwd={meta.get('cwd', '?')}")
+        mine = sorted(owned_ports(pid))
+        print("ports owned by this daemon:", mine or "(none — compiling or failed)")
     else:
         print(f"STOPPED  name={name} (no live pid)")
     if os.path.isfile(logfile):
         print(f"log: {logfile}")
+
+
+def cmd_ports(args):
+    """Conflict check: who holds what, before you assume a URL."""
+    lm = listening_map()
+    if not lm:
+        print("(no LISTEN sockets seen — is lsof available?)")
+        return
+    if args.port:
+        owner = lm.get(args.port)
+        if owner:
+            print(f":{args.port} TAKEN by pid {owner[0]} ({owner[1]})"
+                  f"  → free alternative: {next_free_port(args.port + 1)}")
+        else:
+            print(f":{args.port} free")
+        return
+    for p in sorted(lm):
+        pid, cmdname = lm[p]
+        print(f"  :{p:<6} pid {pid:<8} {cmdname}")
 
 
 def cmd_stop(args):
@@ -289,11 +453,16 @@ def main():
     s.add_argument("--cmd", help='dev command (e.g. "make dev", "npm run dev"). auto-detected if omitted')
     s.add_argument("--cwd", default=".", help="project directory (default: cwd)")
     s.add_argument("--name", help="daemon name (default: basename of cwd)")
+    s.add_argument("--port", type=int, help="pin the port (checked for conflicts first; exported as PORT=)")
     s.add_argument("--timeout", type=int, default=60, help="seconds to wait for ports (default 60)")
     s.set_defaults(func=cmd_start)
 
+    pp = sub.add_parser("ports", help="who is listening on what (conflict check)")
+    pp.add_argument("--port", type=int, help="check a single port instead of listing all")
+    pp.set_defaults(func=cmd_ports)
+
     for act, fn, help_ in [
-        ("status", cmd_status, "show whether the daemon is alive + ports"),
+        ("status", cmd_status, "show whether the daemon is alive + the ports IT owns"),
         ("stop", cmd_stop, "stop the daemon (whole process group)"),
         ("logs", cmd_logs, "print the tail of the daemon log"),
     ]:
