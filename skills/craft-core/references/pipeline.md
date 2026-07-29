@@ -52,8 +52,8 @@ eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 
 진행 표시다.)
 
 - **생성** — `TaskCreate` 로 Phase 0~5 를 항목당 1페이즈로 시드한다(기본 5~10 항목,
-  세분 포함 15 미만). 항목 텍스트는 self-contained 하게(예: "Phase 2 — codex 적대
-  플랜 리뷰").
+  세분 포함 15 미만). 항목 텍스트는 self-contained 하게(예: "Phase 2 — plan
+  review 게이트").
 - **전이** — 각 페이즈 진입 시 `TaskUpdate` 로 `in_progress`, 그 페이즈의 verify 가
   닫힐 때 `completed`. 페이즈 경계마다 빠짐없이 — wrap 시점엔 전 항목 completed.
 - **긴 페이즈(Workflow 한 방 구간 — Phase 3 등)** — 내부 진행을 Task 로 세분하지
@@ -71,7 +71,7 @@ eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 
 `~/.claude/logs/craft-timing.jsonl` 에 한 줄 append 한다:
 
 ```json
-{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p35":<sec>,"p4":<sec>},"humanWait":<sec>,"total":<sec>,"tasks":<Phase3 태스크 수>}
+{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p35":<sec>,"p4":<sec>},"humanWait":<sec>,"total":<sec>,"tasks":<Phase3 태스크 수>,"p4Review":{"source":"codex|code-review|manual","sec":<sec>,"found":<발견 수>,"confirmed":<반박 게이트 생존 수>}}
 ```
 
 - **스키마 필수 준수** — `phases.p1~p5` 초와 `humanWait` 는 note 로 대체하지 않고
@@ -229,7 +229,7 @@ self-contained 하게 만든다 (inline `<style>`, 외부 asset 없음). compani
   Steps→verify 표, 파일 경로 코드 스타일)로 만든다.
 
 플랜이 혼합이면 (백엔드 작업이 있는 UI 변경), UI 는 목업으로 만들고 그 아래
-비 UI 섹션은 플랜 렌더링으로 둔다. Phase 2 에서 codex 평결이 `.md` 에
+비 UI 섹션은 플랜 렌더링으로 둔다. Phase 2 리뷰가 돌아 평결이 `.md` 에
 들어오면, 둘이 동기 유지되도록 `.html` 을 갱신한다.
 
 **Eval 체크리스트 패널 (companion 을 만들 때는 항상).** companion 종류가
@@ -250,37 +250,44 @@ URL 을 리뷰 딜리버러블로 제시**한다. 로컬 `.html` 은 삭제하�
 Phase 2 전에 사용자에게 플랜 확인을 요청한다. 사용자가 보지 못한 플랜은
 플랜이 아니다.
 
-## Phase 2 — Adversarial plan review (codex)
+## Phase 2 — Plan review 게이트 (기본 = 스킵, 잔여만 1-pass)
 
-**소형·저위험 플랜은 스킵 게이트 (위임 리뷰 = 직렬 고정비 — 실측 p2 중앙값
-24분 · 최대 55분, `craft-timing.jsonl` n=21).** codex 리뷰는 라운드당 hard cap
-12분 × 수렴 게이트(최대 3라운드)의 *직렬* 블록이고, 그중 codex 순수 런타임은
-40% 남짓 — 나머지는 라운드 사이 원장·플랜 수정 오버헤드다. 소형 플랜에선 이
-고정비가 효용을 초과한다. Phase 1 플랜이 확정되면 먼저 판정한다:
+**적대적 플랜 리뷰의 소유권은 상류(deep-plan debate)로 이동했다 (2026-07-29).**
+Phase 2 는 리뷰를 *돌리는* phase 가 아니라 **상류 리뷰가 있었는지 판정하고,
+없는 고위험 잔여에만 1-pass 리뷰를 거는 게이트**다. 근거 실측: 종전 수렴 핑퐁이
+직렬 24.8분(중앙, 총 벽시계 21%, `craft-timing.jsonl` n=27)이었고, deep-plan
+경유 플로우에선 같은 플랜을 두 번 공격하는 중복이었다. 판정 순서:
 
-- **필수 (스킵 불가)** — 다음 중 하나라도 해당하면 리뷰를 돌린다: 보안 surface
-  있음 (auth / payment / 권한 경계 / 외부 입력 처리 / secret), 외부 호출자가 있는
-  계약 변경, DB 마이그레이션 포함, 6+ 파일, 사용자의 stakes 신호 ("이거 중요한데",
-  "제대로 하고 싶어" 류), orchestrated 모드.
-- **스킵 제안 가능** — 위 어디에도 안 걸리고 플랜이 소형 (≤3 파일 · 단일 도메인 ·
-  계약 무변경) 이면, `AskUserQuestion` 으로 **한 번** 묻는다: "소형·저위험 플랜이라
-  codex 적대 리뷰(실측 중앙 ~20분)를 스킵할 수 있어요. 스킵할까요, 돌릴까요?" — 스킵을
-  recommended 로. 사용자가 리뷰를 원하면 돌린다.
-- **질문 불가 컨텍스트** (백그라운드 잡 · 자율 실행) 에서는 기본값 = **리뷰 실행**
-  (안전 쪽 폴백 — 묻지 못하면 스킵하지 않는다).
+1. **hunt → 무조건 스킵.** 버그픽스는 재현 테스트(Phase 3 red)가 이미 oracle 이고
+   플랜이 작다 — 플랜 적대리뷰 없이 바로 Phase 3. 설계 결함은 Phase 4 의 codex
+   diff 리뷰가 잡는다.
+2. **상류 리뷰 흔적 있음 → 스킵.** 다음 중 하나가 실존하면 이미 적대 리뷰를
+   거친 플랜이다 — 재리뷰는 중복:
+   - 플랜 `.md` 에 `## Codex review` 섹션(deep-plan debate verdict 기록) 실존.
+   - 활성 Linear 이슈 본문에 `Plan-reviewed:` 마커 실존(`linear.md` §2a — 리뷰된
+     plan 에서 분할 등록된 이슈).
+   흔적은 **파일/이슈 본문에서 직접 확인**한다 — 사용자 구두 선언("이미 리뷰됨")
+   은 흔적이 아니다.
+3. **소형·저위험 → 스킵 제안.** 위에 안 걸리고 필수 클래스(아래 4)도 아니고
+   플랜이 소형(≤3 파일 · 단일 도메인 · 계약 무변경)이면, `AskUserQuestion` 으로
+   **한 번** 묻는다 — 스킵을 recommended 로. 사용자가 리뷰를 원하면 4 로.
+4. **잔여 → 1-pass 리뷰.** 필수 클래스 — 보안 surface(auth / payment / 권한 경계 /
+   외부 입력 처리 / secret), 외부 호출자가 있는 계약 변경, DB 마이그레이션 포함,
+   6+ 파일, 사용자의 stakes 신호, orchestrated 모드 — 이거나 3 에서 리뷰를 택했으면
+   `codex-review.md`(호출·verdict·watchdog·원장 SSOT)를 읽어 **1회** 돌린다.
+   수렴 핑퐁 없음 — 발견은 원장(FIXED/증거 REJECTED/DEFERRED)으로 닫고, high 는
+   전부 해소한 뒤에만 Phase 3 진입. `<look_for>` (플랜 공격 목록): 숨은 가정,
+   누락된 엣지 케이스, 보안 구멍, 더 단순한 경로, scope creep, 각 step 의 verify
+   가 그 step 을 실제 증명하는지, **그리고 플랜이 ADR 가 필요한 아키텍처 결정을
+   하거나 standing ADR 과 충돌하는지**.
+- **질문 불가 컨텍스트** (백그라운드 잡 · 자율 실행) 에서는 3 의 질문을 생략하고
+  기본값 = **리뷰 실행** (안전 쪽 폴백 — 묻지 못하면 스킵하지 않는다). 1·2 의
+  기계 판정 스킵은 그대로 유효.
 
-스킵했으면 플랜에 `## Codex review — skipped: <소형 게이트 사유 + 사용자 승인>` 을
-기록하고 Phase 3 으로 간다. 스킵은 이 게이트 + 사용자 승인 경유만 — "플랜이
-괜찮아 보여서" 는 사유가 아니다.
-
-리뷰를 돌리는 경우: `codex-review.md` 를 읽어라. 플랜을 codex 에게 적대적 리뷰어로서 넘긴다 —
-그 일은 무엇이 잘못됐는지 찾는 것이다: 숨은 가정, 누락된 엣지 케이스, 보안
-구멍, 더 단순한 경로, scope creep, **그리고 플랜이 ADR 가 필요한 아키텍처
-결정을 하거나 standing ADR 과 충돌하는지**. 리뷰는 converge-gated 핑퐁이다:
-codex 의 verdict JSON(high 이슈)에 플랜 수정 + 응답 원장으로 답하고, 같은
-스레드(`--resume-last`)에서 해소 여부를 검증받는다. high 0건 수렴 또는 캡
-3라운드까지 — 상세 계약(원장·분쟁 에스컬레이션·watchdog)은 `codex-review.md`
-가 SSOT. 각 라운드의 평결을 플랜에 기록한다.
+판정 결과를 플랜에 기록한다: 스킵이면 `## Codex review — skipped: <hunt |
+상류 리뷰 흔적 <위치> | 소형 게이트 + 사용자 승인>`, 리뷰했으면
+`## Codex review — 1-pass: <발견 수 + 원장 요약>`. 스킵은 위 게이트 경유만 —
+"플랜이 괜찮아 보여서" 는 사유가 아니다.
 
 ## Phase 3 — Dynamic workflow: task split + TDD (opus)
 
@@ -506,9 +513,10 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
 
 - spec 이 테스트 가능해지기 전에 코딩 (Phase 1 스킵).
 - 사용자의 첫 표현을 완전한 spec 으로 취급.
-- "플랜이 괜찮아 보여서" codex 리뷰 스킵 — 플랜이 괜찮아 보일 때가
-  바로 적대자가 가장 유용한 때다. 스킵은 Phase 2 의 소형·저위험 게이트 +
-  사용자 승인 경유만 (보안 surface · 계약 변경 · 마이그 포함이면 스킵 불가).
+- "플랜이 괜찮아 보여서" Phase 2 리뷰 스킵 — 스킵은 게이트 판정(hunt ·
+  상류 리뷰 흔적 실측 확인 · 소형+사용자 승인) 경유만. 필수 클래스(보안
+  surface · 계약 변경 · 마이그 · 6+ 파일)가 상류 흔적 없이 스킵되는 것,
+  그리고 구두 선언을 흔적으로 인정하는 것이 이 게이트의 실패 모드다.
 - Phase 3 구현 에이전트를 세션보다 낮은 tier 로 다운그레이드 핀하기, 또는
   verify/tester 결정론 스테이지를 haiku 위 tier 로 돌리기 (모델 규칙 SSOT:
   `dynamic-tdd.md`).

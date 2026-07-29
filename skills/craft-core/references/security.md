@@ -12,22 +12,38 @@ Phase 4 는 무언가 출시되기 전에 변경이 동작하고 AND 안전함�
 적용되는지 이미 안다. 아니면 명백한 등가물을 돌린다: tests, typecheck,
 lint, build. 이 중 하나라도 red 인 동안 아무것도 진행하지 않는다.
 
-## 2. diff 에 대한 correctness 리뷰
+## 2. diff 에 대한 correctness 리뷰 — codex 1-pass (cross-model)
 
 기능 게이트는 *작성된* 테스트가 통과함을 증명할 뿐, 테스트가 **놓친** 버그는
 잡지 못한다 — 미테스트 분기, off-by-one, null/경계 처리, 잘못된 조건, 미묘한
-race. 이 갭을 변경된 diff 에 대해 `/code-review` 스킬로 메운다.
+race. 이 갭을 변경된 diff 에 대해 **codex 1-pass 리뷰**로 메운다. 같은 모델의
+자기 리뷰(`/code-review`)보다 cross-model 독립성을 검증단에 두는 선택이다 —
+구현을 쓴 가중치와 다른 가중치가 diff 를 읽는다(2026-07-29, Phase 2 적대리뷰의
+상류 이동과 짝). 호출·마스킹·effort·verdict 파싱·watchdog·원장 규칙 SSOT 는
+`codex-review.md` — 이 절은 diff 소비처의 델타만 정의한다.
 
-- **correctness 에만 초점.** 품질 (reuse / 단순화 / 효율 / altitude) 은 Phase 3.5
-  가, 보안은 아래 §3 이 이미 본다 — `/code-review` 를 그대로 부르면 둘과 삼중
-  중복된다. 프롬프트로 "correctness 버그만, 품질·보안 nit 제외" 로 좁힌다.
-- **effort 는 실행 모드를 따른다.** linear → `medium` (소수 고확신 발견).
-  orchestrated / 고위험 변경 (auth / payment / 6+ 파일) → `high` 또는 `ultra`.
-- **`--fix` 자동적용 금지.** craft 는 test-first 다 — 발견된 버그는 바로 고치지
-  말고 **실패 회귀 테스트를 먼저 (red) 쓰고 → fix → green**. 자동적용은 이
-  규율을 우회한다 (TDD 사이클로 잠깐 Phase 3 으로 되돌아가는 셈).
-- **폴백.** `/code-review` 미설치 시 같은 카테고리를 직접 훑는다 — 미테스트
-  분기, off-by-one, null/경계, 잘못된 조건/연산자, 자원 누수, race.
+- **대상 = 이 빌드의 diff.** `<task>` 에 브랜치/커밋 범위(`git diff <base>...HEAD`
+  의 대상)를 명시하고 codex 가 repo cwd 에서 직접 읽게 한다. read-only + 마스킹
+  게이트는 SSOT 그대로.
+- **`<look_for>` — correctness 만.** 미테스트 분기, off-by-one, null/경계,
+  잘못된 조건/연산자, 자원 누수, race, 테스트가 있어도 그 케이스를 실제로 못
+  잡는 단언. 품질 (reuse / 단순화 / 효율 / altitude) 은 Phase 3.5 가, 보안은
+  아래 §3 이 본다 — 프롬프트에 "correctness bugs only, no quality/security
+  nits" 로 좁혀 삼중 중복을 막는다.
+- **effort 게이트** (`codex-review.md` 와 동일): 기본 `--effort medium`.
+  보안 surface(auth / payment / 권한 경계)·외부 호출자 계약 변경·6+ 파일·
+  orchestrated 모드만 `high`.
+- **발견 처리 = red-first.** craft 는 test-first 다 — 원장에서 FIXED 로 닫으려면
+  바로 고치지 말고 **실패 회귀 테스트를 먼저 (red) 쓰고 → fix → green**
+  (TDD 사이클로 잠깐 Phase 3 으로 되돌아가는 셈). high 는 전부 닫은 뒤에만 wrap.
+- **폴백 래더.** codex 불가(limit / hang-kill / 미설치) → `/code-review` 를
+  "correctness 버그만" 으로 좁혀 호출 → 그것도 미설치면 위 `<look_for>` 카테고리를
+  직접 훑는다. 어느 폴백이든 그 사실을 리포트에 명시한다.
+- **계측 (은퇴 조건의 원료).** wrap 의 `craft-timing.jsonl` 행에 `p4Review`
+  필드를 기록한다 — `{"source":"codex|code-review|manual","sec":<초>,
+  "found":<발견 수>,"confirmed":<§4 반박 게이트 생존 수>}`. **은퇴 조건**: 1개월
+  표본에서 codex 의 confirmed unique 발견율이 폴백(`/code-review`) 대비 우위가
+  없으면 codex 를 기본에서 폴백으로 강등한다(글로벌 룰 수명 규율 — 축적 ≠ 진보).
 
 발견은 §4 의 반박 게이트를 똑같이 통과해야 보고된다.
 

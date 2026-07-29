@@ -50,9 +50,9 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 - craft-core 는 `user-invocable: false` — 직접 트리거 금지, 컨테이너일 뿐.
 
 ### 2. 공유 4-phase 파이프라인 (craft-core/references/pipeline.md)
-Socratic 인터뷰 → codex 적대적 플랜 리뷰(`codex:rescue` 플러그인) → 동적 워크플로 TDD(sonnet) → 보안 검증.
+Socratic 인터뷰 → plan review 게이트 → 동적 워크플로 TDD → codex diff 리뷰 포함 보안 검증.
 각 작업유형 스킬은 이 엔진 위에 **자기 Phase 1 Socratic 초점 + Phase 3 TDD 진입점**만 얹는다 (SKILL.md 본문은 짧음 — 차이만 기술). 공통 Phase 0/2/4/5 는 엔진 그대로.
-- `codex:rescue` 미설치 시 Phase 2 는 수동 리뷰로 폴백.
+- **codex 재배치 (2026-07-29):** 플랜 적대리뷰의 소유권은 상류 `deep-plan` debate 로 이동. Phase 2 는 리뷰를 돌리는 phase 가 아니라 **게이트**다 — hunt 무조건 스킵 → 상류 리뷰 흔적(PLAN `## Codex review` 섹션 / Linear `Plan-reviewed:` 마커, `linear.md` §2a) 스킵 → 소형·저위험 스킵 제안 → 잔여 필수 클래스만 codex **1-pass**(수렴 핑퐁 은퇴 — 실측 직렬 24.8분 중앙·총 21% + deep-plan 경유 시 이중 리뷰가 근거, 복원은 git history). 대신 **Phase 4 §2 correctness diff 리뷰가 codex 1-pass**(cross-model 검증단 — `/code-review` 는 폴백으로 강등, `p4Review` 계측 + 1개월 unique 발견율 은퇴 조건 명시). codex 호출·verdict·watchdog·원장 공통 계약은 `codex-review.md` 한 장(소비처: Phase 2 폴백·security.md §2·deep-plan 호출 규약).
 - 참조 분리: `socratic.md`/`codex-review.md`/`dynamic-tdd.md`/`security.md`/`context-adr.md` — phase 필요 시 lazy load. `output-contract.md` 는 phase 참조가 아니라 **전 스킬 공통 종료 출력 규격**(§7). `linear.md` 는 **Linear 연동 공유 SSOT**(§11) — 엔진 의존 아닌 공유 한 장. `worktree.md`(§15)도 같은 컨테이너에 있지만 **엔진은 읽지 않는다**(linear-goal 전용).
 - **Linear 라이프사이클 wiring (§11):** Phase 0 에 `linear.md` 바인딩(활성 이슈→In Progress), Phase 5 wrap 에 verify green→In Review 를 주입(개별 SKILL.md 안 건드림). 셋 다 graceful — Linear 미설치/이슈 없으면 무시하고 평소대로.
 

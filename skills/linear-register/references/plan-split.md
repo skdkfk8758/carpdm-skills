@@ -73,8 +73,15 @@ plan 을 **tracer bullet** 이슈들로 쪼갠다. 각 이슈는 한 레이어�
 ## Blocked by
 - <blocking 이슈 참조> 또는 "None - can start immediately"
 
+> Plan-reviewed: <조건부 — 아래 마커 규칙>
 > AI 가 등록·작성
 ```
+
+**`Plan-reviewed:` 마커 (조건부 의무).** 원본 plan `.md` 에 `## Codex review`
+섹션이 실존하면 각 이슈에 마커 한 줄을 넣는다 — 규격·소비처는
+`~/.claude/skills/craft-core/references/linear.md` §2a 가 SSOT(복제 금지).
+빌드 파이프라인 Phase 2 가 이 마커로 플랜 재리뷰를 스킵한다. verdict 섹션이
+없는 plan 이면 마커 줄 자체를 생략(거짓 마커 금지).
 
 부모/원본 이슈를 close 하거나 수정하지 않는다.
 
