@@ -340,8 +340,8 @@ Phase 4 로 스킵.
 `security.md` 를 읽어라. 프로젝트 검증 게이트 (tests / typecheck / lint /
 build — 단 Phase 3 최종 형제 게이트 이후 diff 무변경이면(simplify 스킵 등)
 수트/typecheck 재실행은 생략하고 그 green 을 인용하며, 아직 안 돈 게이트만
-돌린다), diff 에 대한 **correctness 리뷰** (`/code-review` — 테스트가 못 잡은 버그만,
-effort 는 실행 모드를 따름; 발견은 바로 고치지 말고 회귀 테스트 먼저), 그리고
+돌린다), diff 에 대한 **correctness 리뷰** (codex 1-pass — `security.md` §2,
+테스트가 못 잡은 버그만; 발견은 바로 고치지 말고 회귀 테스트 먼저), 그리고
 diff 에 대한 **보안 pass** 를 돌린다. correctness·보안 발견 모두 진짜로 보고하기
 전에 적대적으로 검증한다 (반박을 시도). 아무것도 red 로 출시하지 않는다.
 출시 전에, 플랜의 **Acceptance(=eval) 항목을 명시적 완료 장부로 삼아 하나씩**
