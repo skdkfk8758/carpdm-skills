@@ -63,9 +63,13 @@ If a task is estimated > 10 minutes or needs self-verification loops, call `deep
 
 On verify FAIL inside an agent: the agent stops after **one** internal retry, returns a failure summary + evidence path, and lets the main Claude decide whether to re-spawn. No silent retry loops.
 
-### R8: Status log for long-running agents (opt-in)
+### R8: Status log for long-running agents (background = default, foreground = opt-in)
 
-For long deep-worker phases or multi-file refactors, inject `STATUS_LOG=<path>` into the prompt header so the agent appends progress markers to a file the user can `tail -f`:
+**Background worker/goal jobs: STATUS_LOG injection is the DEFAULT, not opt-in** — the turn
+is silent while they run, so the log is the only live window (and R9's [DONE]/[FAIL] marker
+depends on it). Foreground agent calls stay opt-in per the criteria below.
+
+Inject `STATUS_LOG=<path>` into the prompt header so the agent appends progress markers to a file the user can `tail -f`:
 
 ```
 ${PROJECT_ROOT}/logs/agents/<subagent>-<slug>-<YYYYMMDD-HHMMSS>.status.log
@@ -73,7 +77,7 @@ ${PROJECT_ROOT}/logs/agents/<subagent>-<slug>-<YYYYMMDD-HHMMSS>.status.log
 
 The footer's "Status log" section drives append discipline (≤ 20 step lines, terminal `[DONE]`/`[FAIL]` marker emitted exactly once by the agent itself).
 
-Engage explicitly when:
+Foreground opt-in criteria (background jobs skip this — always inject):
 - Long deep-worker phase (> 10 min) — user wants to watch progress.
 - Multi-file refactor where step count is meaningful.
 - User explicitly asked to "watch".
@@ -87,6 +91,8 @@ Worker/goal 잡이 최종 구조화 리포트(변경 파일 목록 + 실행한 �
 - idle 2회째부터 그 잡을 **완료로 인정하지 않는다** — "idle = 아마 끝났음" 추정 금지 (실측: worker 가 idle 알림만 반복하고 최종 리포트 없이 종료 → 수동 fallback 강제).
 - main 이 직접 판정한다: `git diff`/`git log` 로 실제 변경 확인 → 검증 명령 재실행 → 완료/실패 판정. worker 의 침묵이 검증 생략의 근거가 되지 않는다.
 - 판정 결과와 "worker 가 리포트 없이 종료" 사실을 함께 보고한다 (도구 실패 명시 — `browser-verify-fallback.md` 3항과 동형).
+- **no-op 도 리포트 대상** — 잡이 아무것도 안 바꿨으면 "변경 0 + 이유"를 명시 리포트한다. 조용한 no-op 종료는 건강하지 않은 게 아니라 **리포트 없는 no-op** 이 미완이다. 같은 사실을 매 라운드 재발견하는 잡은 상태 기록 누락 신호.
+- **반복·상시 잡은 은퇴 조건 명시** — cron/loop/goal 류 지속 잡은 프롬프트에 "이 잡이 언제 폐지되는가"(목표 달성 조건 또는 재검토 시점)를 포함한다. 은퇴 조건 없는 상시 잡은 잊힌 채 돌며 비용만 낸다.
 
 ## Prompt shape (canonical)
 

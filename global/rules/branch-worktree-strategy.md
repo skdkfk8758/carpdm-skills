@@ -28,8 +28,24 @@ PR 이 첨부되지 않는다. `guard-branch-linear-naming` 훅이 브랜치 생
 - **자동연동 전제 2가지**: ① 트래커↔GitHub **integration 설치**, ② 브랜치/PR 에 **issue-id 존재**. 둘 중
   하나라도 없으면 자동연동 안 됨 → **수동 갱신 필수**(상태 전이 + PR 링크 attachment).
 - **트래커는 코드 PR 로 자동 안 바뀐다.** PR 생성·머지는 트래커 경계 — 상태(착수→In Progress, 머지+검증→
-  Done)와 PR 링크를 **직접** 갱신한다. `guard-linear-state-nudge` 훅이 commit/`gh pr create`/`gh pr merge`
-  에서 리마인드(비차단). nudge 는 리마인드일 뿐 — 실제 갱신은 사람/AI 가 한다.
+  Done)와 PR 링크를 **직접** 갱신한다. `guard-linear-state-nudge` 훅이 브랜치 생성/commit/`gh pr create`/
+  `gh pr merge` 에서 리마인드(비차단). nudge 는 리마인드일 뿐 — 실제 갱신은 사람/AI 가 한다.
+
+### 2a-1. 착수 = push + 명시 전이 (로컬 브랜치는 이벤트가 0이다)
+
+IMPORTANT: 트래커 자동화는 **원격 이벤트**(branch push · PR open · PR merge)에만 반응한다. `git worktree add -b`
+/`git checkout -b` 는 GitHub 에 아무것도 보내지 않으므로, 브랜치명에 issue-id 를 제대로 박아도 **push 전까지
+이슈는 Backlog 에 그대로 있다**(실측 ADType-Intelligence: ADT-313 브랜치 로컬 생성, `git ls-remote --heads`
+의 `adt-*` 0개, 상태 Backlog·`startedAt: null`). "자동연동이 안 걸린다"의 원인은 대개 네이밍이 아니라 **이벤트 부재**다.
+
+이슈에 묶인 작업을 착수하면 브랜치 분기 직후 둘 다 한다:
+
+1. **`git push -u origin <branch>`** — 원격 브랜치 이벤트 발생. 트래커가 브랜치를 이슈에 붙일 수 있는 유일한 진입점.
+2. **상태를 In Progress 로 명시 전이**(`mcp__linear__save_issue` 등) — 1을 해도 "branch → In Progress" 자동화는
+   팀 워크플로 설정에서 켜져 있어야 하고 기본 off 인 경우가 많다. 자동화 토글에 기대지 말고 **직접 전이가 확정 경로**.
+
+`push` 를 미루면 uncommitted 노출도 같이 길어진다(`commit-isolation.md` 와 같은 방향) — 착수 push 는 상태 동기화와
+백업을 동시에 산다.
 
 ### 2b. 함정 — 열린 PR 이 있는 브랜치를 rename 하면 PR 이 닫힌다
 
@@ -42,6 +58,27 @@ PR 이 첨부되지 않는다. `guard-branch-linear-naming` 훅이 브랜치 생
 - PR 기반(base=trunk), **squash 머지만** 허용. repo 설정에서 merge-commit·rebase off.
 - trunk·release 라인 **직접 push 금지**, **force-push 예외없이 금지**.
 - 선형 히스토리 유지 → 롤백·bisect 단순.
+
+### 3a. PR base back-merge — head 브랜치 push 는 §3 직접-push 금지의 예외
+
+PR 의 conflict 해소는 **base 를 head 브랜치로 back-merge** 하는 것이다: `git fetch origin <base>` →
+`git merge --no-ff --no-edit FETCH_HEAD` → 해소 → `git push origin <head>`. head 가 trunk(`develop`)인
+**release-promotion PR**(`develop`→`main`)에서는 이 push 가 §3 "trunk 직접 push 금지"와 겉으로 충돌하는데,
+**back-merge 는 예외**다 — 그 브랜치가 PR 의 head 이고, push 없이는 호스트가 mergeability 를 재계산하지 않는다.
+예외 범위는 **back-merge 커밋 한 개뿐** — 기능 커밋을 trunk 에 직접 얹는 것은 여전히 금지.
+
+- **back-merge 커밋은 §3 squash-only 대상이 아니다** — PR 머지가 아니라 브랜치 동기화다. 선형 히스토리
+  요구는 *PR 을 base 에 넣는 머지*에 걸리는 것이지, base 를 head 로 들여오는 방향에는 걸리지 않는다.
+- **호스트가 보고한 conflict 가 실제로는 안 날 수 있다**(mergeability 캐시 stale). 실측(review-radar,
+  2026-07-28): PR 이 conflict 보고 → 로컬 back-merge 는 ort 자동해결(1 file). 자동해결이라도 push 해야
+  호스트 상태가 갱신된다 — "충돌 없었으니 할 일 없음" 이 아니다.
+- 해소 중 `git reset --hard`·`git checkout .`·`git restore .`·`git stash`·`merge --abort` 금지 —
+  무관한 uncommitted 작업을 날린다(`commit-isolation.md` 와 같은 방향). 시작 전 `git status` 로
+  위험 노출부터 확인.
+- 버전·릴리스 메타(`package.json` version 등) 충돌은 **release 라인(main) 값이 정답** — trunk 값으로
+  되돌리지 않는다.
+
+**폐지 기준**: repo 가 release-promotion 모델을 버리면(예: `main` 단일 trunk, develop 소멸) 본 절 삭제.
 
 ## 4. 짧은 브랜치 — 통합브랜치는 예외
 
@@ -91,10 +128,12 @@ IMPORTANT: PRIVATE repo + GitHub Pro 미보유면 `branch protection`·`ruleset`
 - 신규 마이그를 정수 순차 prefix 로 — 병렬 브랜치 충돌·수동 리넘버.
 - root build 가 일부 workspace 만 타입체크 — 나머지 tsc 에러 green 머지.
 - CI green 을 "머지 차단됨"으로 착각 — Pro/public 아니면 advisory.
+- PR base back-merge push 를 §3 위반으로 오인해 멈춤 — §3a 예외(호스트가 재계산할 유일 경로).
+- 호스트가 자동해결로 conflict 를 안 냈다고 back-merge 를 push 안 함 — PR 은 계속 conflict 로 남는다.
 
 ## Related
 
 - 프로젝트 인스턴스 예: ADMap `docs/adr/041-branch-worktree-strategy.md` (실측 근거·D1~D9 SSOT).
 - CI/CD 파이프라인 템플릿: `~/.config/cicd-template/` (본 전략의 배포 구현부).
 - `~/.claude/rules/commit-isolation.md` — uncommitted 노출 최소화 (§5 근거).
-- `~/.claude/rules/cc-worktree.md` — worktree 웹개발 환경(포트/도메인/.env).
+- `~/.claude/rules-ondemand/cc-worktree.md` — worktree 웹개발 환경(포트/도메인/.env).

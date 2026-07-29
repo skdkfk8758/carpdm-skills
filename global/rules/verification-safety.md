@@ -18,7 +18,7 @@ IMPORTANT: "검증 통과(green)" 는 선언이 아니라 **검증 가능한 사
 
 - 마이그 명령의 exit 0 은 "실행됨"일 뿐. **적용 증거**는 대상 DB 직접 쿼리로 별도 확보 — `information_schema` 컬럼/테이블 존재, before/after row count.
 - prod 는 migrations 이력 테이블도 신뢰 불가(이력 미기록 스크립트 실존) — 실객체 조회만 증거로 인정.
-- apply 절차 SSOT: `~/.claude/rules/orm-stack.md` §slow-lane, `branch-worktree-strategy.md` §6b.
+- apply 절차 SSOT: `~/.claude/rules-ondemand/orm-stack.md` §slow-lane, `branch-worktree-strategy.md` §6b.
 
 ## 강제 (hook 자동 — 비차단 nudge)
 
@@ -33,6 +33,6 @@ IMPORTANT: "검증 통과(green)" 는 선언이 아니라 **검증 가능한 사
 
 ## Related
 
-- `~/.claude/rules/orm-stack.md` — 마이그 apply·검증 절차 SSOT.
+- `~/.claude/rules-ondemand/orm-stack.md` — 마이그 apply·검증 절차 SSOT.
 - `~/.claude/rules/acceptance-criteria-gate.md` G1 — 검증이 체크를 선행 (본 룰은 그 검증 신호의 무결성).
-- `~/.claude/rules/db-drop-preflight.md` — 파괴 방향의 짝 (drop 전 liveness 증거).
+- `~/.claude/rules-ondemand/db-drop-preflight.md` — 파괴 방향의 짝 (drop 전 liveness 증거).
