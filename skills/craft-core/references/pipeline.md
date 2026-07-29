@@ -83,10 +83,15 @@ eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 
   규칙 상세는 `~/.claude/skills/craft-core/references/progress.md` §P4 를 읽어
   따른다(복제 금지).
 
-- **사람 대기는 기계 시간과 분리** — Phase 1 말미의 플랜 확인 대기, Phase 4 의
-  `[HUMAN]` walk 대기처럼 사용자 응답을 기다린 구간은 그 phase 의 elapsed 에서
-  빼거나 불가능하면 `"humanWait":<sec>` 로 별도 기록한다. 사람 대기를 파이프라인
-  병목으로 오인하는 것이 이 계측의 가장 흔한 오염이다.
+- **사람 대기는 기계 시간과 분리 (강화 2026-07-29)** — Phase 1 말미의 플랜 확인
+  대기, Phase 4 의 `[HUMAN]` walk 대기처럼 사용자 응답을 기다린 구간은 **대기
+  시작/종료에 `date +%s` 를 찍어** 그 phase 의 elapsed 에서 빼고 합산을
+  `"humanWait":<sec>` 로 기록한다. **분리를 못 쟀으면 그 phase 값을 숫자로 쓰지
+  말고 `null`** 로 두라 — 오염된 숫자는 없는 숫자보다 나쁘다: ETA median 이
+  체계적으로 부풀어 모든 후속 런의 예측을 오염시킨다(실측: p4 max 158m·p1 max
+  120m 은 phase 시간이 아니라 미분리 사람 대기다). 사람 대기를 파이프라인 병목으로
+  오인하는 것이 이 계측의 가장 흔한 오염이다. (ETA 계산은 `null` 을 표본에서
+  제외한다 — note-only drift 금지 규칙은 그대로: 행 자체와 나머지 필드는 숫자 유지.)
 - 실패해도 hard gate 아님 — 기록 불가면 note 만 남기고 wrap 을 막지 않는다.
 - 이 로그가 튜닝(모델 tier · phase 게이트) 의 유일한 근거 데이터다 — 계측 없는
   "느린 것 같다" 튜닝 금지.
@@ -231,6 +236,13 @@ self-contained 하게 만든다 (inline `<style>`, 외부 asset 없음). compani
 플랜이 혼합이면 (백엔드 작업이 있는 UI 변경), UI 는 목업으로 만들고 그 아래
 비 UI 섹션은 플랜 렌더링으로 둔다. Phase 2 리뷰가 돌아 평결이 `.md` 에
 들어오면, 둘이 동기 유지되도록 `.html` 을 갱신한다.
+
+**companion 생성은 병렬 서브에이전트가 기본 (2026-07-29 — deep-plan Step 6 과
+동일 패턴).** `.md` 플랜이 디스크에 있으면 companion `.html` 은 서브에이전트로
+띄우고(플랜 경로 + design-context 경로를 프롬프트로 — 본문 붙여넣기 금지), 메인은
+그동안 플랜 확인 요청·Phase 2 게이트 판정을 진행한다. Artifact publish 는
+서브에이전트 완료 후 메인이 한다. companion 이 소형(plan 렌더 한 장)이면 메인
+인라인도 가 — 위임 오버헤드가 이득을 넘는 경우.
 
 **Eval 체크리스트 패널 (companion 을 만들 때는 항상).** companion 종류가
 무엇이든, `.html` 은 플랜의 **Acceptance(=eval) 항목** 을 체크리스트 패널로 렌더한다 —

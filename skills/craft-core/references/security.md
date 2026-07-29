@@ -5,6 +5,14 @@ Phase 4 는 무언가 출시되기 전에 변경이 동작하고 AND 안전함�
 에 대한 보안 pass. 테스트가 못 본 버그가 남은, 혹은 SQL injection 이 있는 green
 테스트 스위트는 완료가 아니다.
 
+**병렬 실행 (2026-07-29 — p4 직렬이 총 벽시계 23% 실측).** §1·§2·§3 은 서로
+독립이고 전부 read-only 다(§2 codex read-only, §3 리뷰) — **§2 codex 를 Bash
+`run_in_background` 로 먼저 띄운 뒤**(watchdog 포함, `codex-review.md` 계약)
+§1 기능 게이트와 §3 보안 pass 를 그동안 돌린다. codex 완료 알림이 오면 원장
+triage — codex 벽시계(medium 실측 206s)가 §1·§3 뒤로 숨는다. 단 **§4 반박
+게이트와 발견 처리(red-first)는 셋이 모두 끝난 뒤** — 발견을 고치는 diff 변경이
+병렬 중에 끼면 §1 green 이 무효가 된다.
+
 ## 1. 기능 게이트
 
 프로젝트의 표준 검증 경로를 돌린다. 프로젝트가 하나 정의하면 (예:
