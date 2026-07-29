@@ -71,26 +71,28 @@ eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 
 `~/.claude/logs/craft-timing.jsonl` 에 한 줄 append 한다:
 
 ```json
-{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p35":<sec>,"p4":<sec>},"humanWait":<sec>,"total":<sec>,"tasks":<Phase3 태스크 수>,"p4Review":{"source":"codex|code-review|manual","sec":<sec>,"found":<발견 수>,"confirmed":<반박 게이트 생존 수>}}
+{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p4":<sec>,"p5":<sec>},"humanWait":<sec>,"total":<sec>,"tasks":<Phase3 태스크 수>,"p4Review":{"source":"codex|code-review|manual","sec":<sec>,"found":<발견 수>,"confirmed":<반박 게이트 생존 수>},"human":{"acceptance":<[AGENT]+[HUMAN] 총>,"agentClosed":<agent 실구동으로 닫은 수>,"handed":<사람 이관 수>}}
 ```
 
 - **스키마 필수 준수** — `phases.p1~p5` 초와 `humanWait` 는 note 로 대체하지 않고
-  숫자로 기록한다. 이 로그가 ETA 스냅샷(아래)의 원료라, 스키마를 벗어난 행은
-  ETA 계산에서 버려진다(과거 행의 note-only drift 가 실측 교훈).
-- **ETA 스냅샷 (progress.md P4)** — 각 phase 진입 시 이 jsonl 에서 같은
-  `(skill, mode)` 의 phase 별 median 을 조회해 Task 항목 텍스트에 `est ~Xm` 부기
-  + 경계 배너 1줄(`elapsed Xm · remaining ~Ym`). 표본 `n<3` 이면 표시하지 않는다.
-  규칙 상세는 `~/.claude/skills/craft-core/references/progress.md` §P4 를 읽어
-  따른다(복제 금지).
+  숫자로 기록한다. 스키마를 벗어난 행은 튜닝 판정에서 버려진다(과거 행의
+  note-only drift 가 실측 교훈). `p35` 키는 P3.5 은퇴(2026-07-30)로 제거 — 과거
+  행의 p35 는 무시한다. **레거시 필터**: 튜닝 판정 시 2026-07-29 이전 행은 제외
+  (P2 핑퐁 은퇴 전 데이터라 현행 설계를 대표하지 않는다).
+- **`human` 필드 (2026-07-30 — 사람 확인 최소화의 성공 지표).** Acceptance 장부의
+  `[AGENT]`+`[HUMAN]` 총 건수, agent 실구동으로 닫은 수, 사람 이관 수를 기록한다.
+  `handed / acceptance` 비율이 태그 3분류의 효과 판정 근거다. **은퇴 조건**: 2개월
+  표본에서 `handed` median ≤ 1 안정 시 이 필드 제거(목적 달성). [AGENT] 도입에도
+  비율이 안 내려가면 P1 태그 루브릭 재검토.
 
 - **사람 대기는 기계 시간과 분리 (강화 2026-07-29)** — Phase 1 말미의 플랜 확인
   대기, Phase 4 의 `[HUMAN]` walk 대기처럼 사용자 응답을 기다린 구간은 **대기
   시작/종료에 `date +%s` 를 찍어** 그 phase 의 elapsed 에서 빼고 합산을
   `"humanWait":<sec>` 로 기록한다. **분리를 못 쟀으면 그 phase 값을 숫자로 쓰지
-  말고 `null`** 로 두라 — 오염된 숫자는 없는 숫자보다 나쁘다: ETA median 이
-  체계적으로 부풀어 모든 후속 런의 예측을 오염시킨다(실측: p4 max 158m·p1 max
+  말고 `null`** 로 두라 — 오염된 숫자는 없는 숫자보다 나쁘다: 튜닝 median 이
+  체계적으로 부풀어 판정을 오염시킨다(실측: p4 max 158m·p1 max
   120m 은 phase 시간이 아니라 미분리 사람 대기다). 사람 대기를 파이프라인 병목으로
-  오인하는 것이 이 계측의 가장 흔한 오염이다. (ETA 계산은 `null` 을 표본에서
+  오인하는 것이 이 계측의 가장 흔한 오염이다. (median 계산은 `null` 을 표본에서
   제외한다 — note-only drift 금지 규칙은 그대로: 행 자체와 나머지 필드는 숫자 유지.)
 - 실패해도 hard gate 아님 — 기록 불가면 note 만 남기고 wrap 을 막지 않는다.
 - 이 로그가 튜닝(모델 tier · phase 게이트) 의 유일한 근거 데이터다 — 계측 없는
@@ -107,13 +109,17 @@ Task 체크리스트(세션 UI — 다른 세션에선 안 보임)와 별개로,
 - phase: 3 (in progress) · mode: linear
 - tasks: 3/5 green (t4 red — <사유>)
 - workflow runId: wf_xxx        ← Phase 3 Workflow 시작 시 기록
+- codex: <OUT>/<TAG> (running)  ← P2/P4 codex bg 잡 기동 시 기록, triage 후 done 으로
 - updated: <ISO 시각>
 ```
 
 세션이 중간에 죽어도(컨텍스트 고갈·크래시) 다른 세션이 plan 문서만 읽고 정확한
 지점에서 이어받는다 — Workflow 는 `resumeFromRunId` 로 완료 태스크를 캐시
-재사용하므로 **runId 기록이 곧 재개 비용 절감**이다. 갱신 비용은 phase 당 Edit
-1회. wrap 에서 마지막으로 `phase: 5 (done)` 으로 닫는다.
+재사용하므로 **runId 기록이 곧 재개 비용 절감**이다. codex 행도 같은 이유 —
+재개 세션은 그 경로의 `-done.txt`/`-failed.txt` 마커(`codex-review.md` 호출 계약)로
+진행을 판정해, 완료 알림 유실·세션 사망 시 **P4 파킹이나 이중 호출 없이** 결과를
+회수하거나 폴백으로 간다. 갱신 비용은 phase 당 Edit 1회. wrap 에서 마지막으로
+`phase: 5 (done)` 으로 닫는다.
 
 ## Phase 0 — Frame
 
@@ -124,6 +130,12 @@ Task 체크리스트(세션 UI — 다른 세션에선 안 보임)와 별개로,
 > 세션을 연 쪽 몫 — 다만 Linear 자동연동은 issue-id 가 브랜치에 있어야 걸린다.
 
 - 작업유형과 한 줄 목표를 사용자에게 되짚어준다.
+- **스모크 가능성 사전 판정 (2026-07-30 — 이관 폭탄 예방).** dev 실행면이 있는지
+  지금 확인한다 — `devserverctl.py` auto-detect 대상(Makefile `dev:` / package.json
+  `dev`) + `.env`(또는 `.env.example`)·시드/도커 존재 여부(실행은 안 함, 존재만).
+  불가 판정이면 Phase 1 인터뷰에서 사용자에게 조기 고지한다: "스모크 불가 —
+  `[AGENT]` 항목이 `[HUMAN]` 으로 강등될 수 있음". env/DB 부재를 Phase 4 에서
+  처음 발견하면 사람 이관이 한꺼번에 쏟아진다 — 발견을 플랜 시점으로 당긴다.
 - **Linear binding (optional, graceful).** 이 작업에 연결된 Linear 이슈가 있으면
   — 사용자가 이슈 ID/URL 을 줬거나, 이어받은 PLAN `.md` 에 deep-plan 이 적어둔
   sub-issue 가 있으면 — `~/.claude/skills/craft-core/references/linear.md` 를 읽고
@@ -154,8 +166,9 @@ PLAN (`docs/plans/<…>.md` — Goal / Scope / Files / Steps / **Acceptance(=eva
 섹션, 그리고 UI 면 곁의 `.html` 시안) 을 가리키거나 건네주면, 그것을 완료된 Phase-1
 산출물로 취급한다 — 재인터뷰 **금지**, ground-check 만 (코드와 여전히 일치하는지).
 PLAN 의 **Acceptance 항목이 곧 이 빌드가 Phase 4 에서 하나씩 닫을 eval 체크리스트**다
-— 그대로 이어받는다. Acceptance 가 `[AUTO]`/`[HUMAN]` 태그 없이 왔으면(구버전
-deep-plan) 지금 한 번 아래 태그 규칙으로 빠르게 분류해 태그만 붙인다 (재인터뷰 아님).
+— 그대로 이어받는다. Acceptance 가 태그 없이 왔거나 구 2분류(`[AUTO]`/`[HUMAN]`)로
+왔으면 지금 한 번 아래 3분류 태그 규칙으로 빠르게 재분류한다 (재인터뷰 아님 —
+특히 구 `[HUMAN]` 중 agent 실구동 가능한 항목은 `[AGENT]` 로 강등).
 곁에 `.html` 시안이 있으면 그것이 **승인된 mockup**(visual 계약)이다 — Phase 3 가
 거기에 충실히 구현하고 Phase 4 시안 충실도 게이트가 대조한다.
 
@@ -199,14 +212,22 @@ deep-plan) 지금 한 번 아래 태그 규칙으로 빠르게 분류해 태그�
 ##   characterization test IS the item, not vague prose like "handles errors")
 ```
 
-각 Acceptance 항목 앞에 **`[AUTO]` 또는 `[HUMAN]`** 태그를 붙인다 (예:
-`1. [AUTO] 빈 비번 → 400` / `2. [HUMAN] 로그인 후 대시보드 화면이 안 깨짐`):
+각 Acceptance 항목 앞에 **`[AUTO]` / `[AGENT]` / `[HUMAN]`** 태그를 붙인다 (예:
+`1. [AUTO] 빈 비번 → 400` / `2. [AGENT] 로그인 후 대시보드 렌더 + 콘솔 무에러` /
+`3. [HUMAN] 대시보드 카드 배치가 답답해 보이지 않음`):
 
 - **`[AUTO]`** — 결정론적·회귀민감·보안·계약 수준. Phase 3 자동 테스트가 커버해야 한다.
-- **`[HUMAN]`** — 시각 판단·UX 의도·카피 톤·주관적 사용성, 또는 자동화 비용이 가치를
-  크게 초과하는 일회성 검증. Phase 3 테스트 의무에서 제외하되 Phase 4 보고에 노출한다.
-- **보안 불변식**(auth / payment / crypto / permission 경계)은 절대 `[HUMAN]`-only 금지 —
-  항상 `[AUTO]` 로 잠근다.
+- **`[AGENT]`** — 자동 테스트는 아니지만 **agent 가 실구동으로 검증 가능**한 것:
+  브라우저 조작(클릭·입력·네비게이션·`ui-verify.md` Part B), 스크린샷+콘솔 판정,
+  `curl`/CLI 실행, dev 데이터 상태 확인. Phase 4 에서 agent 가 직접 닫고 §V
+  `[직접 테스트 완료]` 로 배출한다 — 사람 몫 아님.
+- **`[HUMAN]`** — 순수 주관 판단(미감·카피 톤·UX 질감), 실계정/실결제/외부 승인,
+  prod 전용 확인. **태깅 시 "agent 가 왜 못 하는가" 1구절 의무** — 정당화를 못 쓰면
+  그 항목은 `[AGENT]` 다. **기본값 편향: 애매하면 `[AGENT]`** — "자동 테스트가
+  아니다"는 "사람이 봐야 한다"가 아니다(이 오태깅이 사람 확인 인플레이션의
+  구조 원인, 2026-07-30).
+- **보안 불변식**(auth / payment / crypto / permission 경계)은 `[AGENT]`/`[HUMAN]`-only
+  금지 — 항상 `[AUTO]` 로 잠근다.
 
 `.md` 와 나란히, 같은 경로에 `.html` 확장자로 리뷰 친화적 HTML companion 을
 쓴다 (`docs/plans/YYYY-MM-DD-<topic>.html`). 브라우저에서 바로 열리도록
@@ -336,21 +357,16 @@ pipeline 하고; 태스크는 자신의 테스트가 green 일 때만 완료된�
 "cleanup" 단계는 존재하지도 필요하지도 않다 — 워크플로 subagent 는 일회성이고 유일한
 영속 에이전트인 orchestrated council 은 §5 에서 정리된다.)
 
-## Phase 3.5 — Simplify review pass (forge / renew / hunt)
-
-`simplify-pass.md` 를 읽어라. `forge` / `renew` 구현이나 `hunt` 수정이 Phase 3 에서
-green 이 된 후: 방금 작성한 diff 가 정리(simplify)가 필요한지 검토하고, 필요하면
-`/simplify` 스킬로 behavior-preserving 정리 — 재사용/단순화/효율/altitude — 를
-`AskUserQuestion` 으로 **한 번 제안** (기본 off) 후 돌린다. `/simplify` 미설치 시
-같은 정리를 직접 수행 (`convention-guide.md`, 프로젝트 lint/rule 및 `docs/guides/`
-참조). Phase 3 테스트가 behavior 핀이다; 정리 후 테스트가 red 가 되면 그 단계가
-behavior 를 바꾼 것이다 — 되돌린다. trivial 변경, 거부, 또는 정리할 게 없으면 곧장
-Phase 4 로 스킵.
+> **Phase 3.5 (simplify pass) 는 은퇴했다 (2026-07-30).** 실측 p35 median 0m —
+> 사실상 항상 스킵되거나 무비용 통과라, 블로킹 질문 1개의 비용만 남았었다. diff
+> 정리는 파이프라인 phase 가 아니라 **Phase 5 §N 권장 라우팅의 `/simplify`** 로
+> 이어간다(구현 집중 원칙 — 구현 외 관심사는 다음 스킬로). Phase 3 의 refactor
+> 스텝(TDD 내장)이 최소 정리를 담당한다. 복원은 git history.
 
 ## Phase 4 — Secure verify & intent conformance
 
 `security.md` 를 읽어라. 프로젝트 검증 게이트 (tests / typecheck / lint /
-build — 단 Phase 3 최종 형제 게이트 이후 diff 무변경이면(simplify 스킵 등)
+build — 단 Phase 3 최종 형제 게이트 이후 diff 무변경이면
 수트/typecheck 재실행은 생략하고 그 green 을 인용하며, 아직 안 돈 게이트만
 돌린다), diff 에 대한 **correctness 리뷰** (codex 1-pass — `security.md` §2,
 테스트가 못 잡은 버그만; 발견은 바로 고치지 말고 회귀 테스트 먼저), 그리고
@@ -362,15 +378,33 @@ diff 에 대한 **보안 pass** 를 돌린다. correctness·보안 발견 모두
 
 - **`[AUTO]` 항목** — Phase 3 테스트로 자동 pass / fail. fail 이면 confirmed gap →
   아래 loop-back 으로 Phase 3 재진입해 그 항목만 다시 green (사람 개입 없이 자동).
-- **`[HUMAN]` 항목** — 자동 단정 불가라 `not-run` 으로 흘리지 말고 **사용자와 하나씩
-  walk** 한다: 항목을 보여주고, (UI 면) 빌드 결과를 시안에 대조한 소견을 곁들여,
-  `pass / 조정 필요 / 잔여 리스크로 수용` 중 하나를 사용자와 합의한다. "조정 필요" 는
-  confirmed gap 으로 Phase 3 재진입, "잔여 리스크 수용" 만 wrap 에 남긴다 (출시 막는
-  red 아님). 합의 없이 조용히 not-run 으로 넘기지 말 것.
+- **`[AGENT]` 항목** — **agent 가 직접 실구동해 닫는다, 사람에게 넘기지 않는다.**
+  UI 항목은 `ui-verify.md` Part A 인벤토리에 합류시켜 Part B 실구동으로(클릭·입력·
+  DOM/네트워크/콘솔 관찰), 비UI 항목은 `curl`/CLI 실행+실제 출력으로 판정한다.
+  green → §V `[직접 테스트 완료]`(조작→관찰 결과가 증거). fail → confirmed gap
+  (loop-back). 구동 자체가 불가한 경우(env 부재·브라우저 폴백 소진·외부 발신)만
+  사유와 함께 `[HUMAN]` 으로 강등해 아래 이관 경로로 — **강등에는 사유가 의무**다
+  (조용한 강등 = 사람 확인 인플레이션 재발).
+- **`[HUMAN]` 항목** — 자동 단정 불가라 `not-run` 으로 조용히 흘리지 않는다. 단
+  **항목당 질문 1회씩의 직렬 walk 는 금지** — `AskUserQuestion` **1회 배치**(질문
+  최대 4개, 초과분은 아래 이관 경로로)로 전 항목을 한 번에 묻는다. 항목마다 (UI 면)
+  빌드 결과를 시안에 대조한 소견을 곁들이고, 선택지는 `pass / 조정 필요 / 나중에
+  직접 확인(§V 이관)` — 마지막 옵션이 있어 사용자가 응답 한 번으로 전부 미뤄도
+  세션이 진행된다. "조정 필요" 는 confirmed gap 으로 Phase 3 재진입, "잔여 리스크
+  수용" 은 wrap 에 남긴다 (출시 막는 red 아님).
+  **walk 로 파킹하지 않는다** — 이관 선택·백그라운드 실행·사용자 부재 항목은 §V
+  `[사용자 직접 확인 필요]` 로 이관(확인 방법 1구절 포함)하고 `ui-verify.md` §5·§5.1
+  인계(체크리스트 아티팩트 + dev 서버 + 결과 복사 회수 루프)로 넘긴 뒤 wrap 으로
+  진행한다 — 회수 시점은 사람이 아티팩트를 채워 붙여넣는 때다. 실측 근거: 미분리
+  humanWait max 3h — walk 동기 대기가 P4 최대 파킹 원인이었다(craft-timing 40행,
+  2026-07-30).
 
-eval 장부가 닫히는 조건: **모든 `[AUTO]` 항목 green AND 모든 `[HUMAN]` 항목이
-사용자와 walk 되어 pass 또는 명시 수용**. 보안 불변식은 `[HUMAN]`-only 금지라 항상
-`[AUTO]` 로 자동 잠긴다 (Phase 1 규칙).
+eval 장부가 닫히는 조건: **모든 `[AUTO]` 항목 green AND 모든 `[AGENT]` 항목이
+실구동 green(또는 사유 있는 `[HUMAN]` 강등) AND 모든 `[HUMAN]` 항목이
+walk 로 pass/명시 수용되었거나 §V 이관으로 처리 경로가 명시됨**. 이관 항목은
+"닫힘"이 아니라 "인계됨" — §N 잔여 행과 체크리스트 아티팩트가 그 추적 표면이고,
+G2(미충족 채 Done 금지)는 그 표면이 지킨다. 보안 불변식은 `[HUMAN]`-only 금지라
+항상 `[AUTO]` 로 자동 잠긴다 (Phase 1 규칙).
 
 **닫은 항목은 plan `.md` 에 사실로 기록한다** — 항목을 닫을 때마다 해당 Acceptance
 줄에 `✓` + 검증 증거 1줄(테스트명/명령 결과/walk 합의)을 덧붙인다
@@ -450,6 +484,12 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
   때만 출시한다. confirmed gap 이 있으면 Phase 3(또는 plan defect 면 Phase 1 micro-round)
   으로 돌아가 delta 를 짓고 Phase 4 를 다시 돈다 — orchestrated 의 Stage A→B→Phase 3→A
   loop 의 linear 대응이다.
+  **재진입 범위 = delta-only (2026-07-30).** loop-back 후 Phase 4 재실행은 전량
+  재검증이 아니다: §1 기능 게이트는 전체 재실행(수트가 회귀 안전망), **§2 codex
+  correctness 리뷰는 빌드당 1회 고정** — loop-back delta diff 는 재호출하지 않고
+  회귀 테스트 green + §4 반박 게이트 + 로컬 검토로 닫는다(재호출 시 루프당 +5~15분
+  실측, 발견 가치는 최초 1-pass 에 집중). §3 보안 pass 는 delta 가 보안 surface 를
+  건드릴 때만 재실행. UI 인수 검증은 loop-back 이 고친 그 항목만 재구동.
 
 - **한계 (정직히).** linear 엔 영속 designer 가 없어 **메인 세션이 designer 겸
   빌더**다 — 자기 빌드를 자기가 판정하는 self-judgment 라 독립성이 낮다(자기 구현을
@@ -510,6 +550,10 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
     - 변경을 PR 로 push 했다 → `/land` (CI 통과 후 머지 + 로컬/워크트리 정리) 제안.
     - 시점 문서·로그가 쌓였다 (오래된 plan, 랜딩된 handoff, agent 로그) → `/sweep`
       (정리) 제안.
+    - diff 에 정리 여지가 보인다 (중복 블록·과도 추상화·데드 경로) → `/simplify`
+      (behavior-preserving 정리 — 은퇴한 P3.5 의 후계 경로) 제안.
+    - 배포 직전이다 → `/preflight` (10차원 종합 판정) · 보안 심화가 필요하다 →
+      `/fortify` 제안 — 파이프라인은 구현+검증까지, 배포 판정은 다음 스킬의 일이다.
   위 `land`/`sweep` 은 *예시*일 뿐 고정 목록이 아니다 — available-skills 목록을 실제로
   훑어 정리/검증 성격의 후보를 열거하라. 글로벌·플러그인도 동등 후보다(예: 머지 전
   `/verify`·`/code-review` 로 변경 검증, `understand-anything:understand` 로 결과 구조
@@ -533,3 +577,7 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
   verify/tester 결정론 스테이지를 haiku 위 tier 로 돌리기 (모델 규칙 SSOT:
   `dynamic-tdd.md`).
 - 보안 pass 를 돌리지 않고 테스트 green 을 보고하기.
+- Phase 4 `[HUMAN]` walk 을 항목당 직렬 질문으로 돌리거나, 무응답에 세션을
+  파킹하기 — 배치 1회 + §V 이관이 규칙(humanWait max 3h 실측이 근거).
+- loop-back 마다 codex diff 리뷰 재호출 — 빌드당 1회 고정, delta 는 회귀
+  테스트 + 반박 게이트로 닫는다.

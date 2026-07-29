@@ -22,7 +22,6 @@ codex diff 리뷰 포함 보안 검증**. 3종의 작업유형 스킬(`forge`,
   1-pass 리뷰 공통 계약 — 호출 규약·verdict 파싱·triage 원장·watchdog SSOT
   (소비처: Phase 2 폴백·security.md §2·deep-plan 호출 규약).
 - `references/dynamic-tdd.md` — `Workflow` 도구 기반 태스크 분할 + TDD (모델 규칙 SSOT).
-- `references/simplify-pass.md` — Phase 3.5 선택적 정리 패스 (`/simplify` 위임).
 - `references/security.md` — 보안 검증 (Phase 4).
 - `references/ui-verify.md` — UI 인수 검증: 인터랙션 실구동 + 시안 갭 분석 (Phase 4, UI 빌드만)
   + **잔여 인계** (체크리스트 아티팩트 2건+ / dev 서버 살려서 넘기기 1건+, §5·§5.1 —

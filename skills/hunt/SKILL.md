@@ -72,15 +72,8 @@ Task 1 은 **버그를 재현하는 실패하는 회귀 테스트**다 — 현�
 수정은 최소로, 근본 원인을 겨냥하라 — 버그 수정은 주변 코드를 리팩터링할 면허가
 아니다.
 
-## Phase 3.5 — Simplify review pass (see craft-core/references/simplify-pass.md)
-
-수정이 green 이 되면, Phase 4 이전에 *방금 변경한 diff* 가 정리(simplify)가 필요한지
-검토하고, 필요하면 `/simplify` 스킬로 동작 보존 정리(재사용/단순화/효율)를 **한 번
-제안한다** (기본 off). simplify 는 방금 바뀐 코드만 보므로 surgical 한 수정의 범위를
-넘지 않는다 — 주변 미변경 코드로 번지지 않는다. diff 가 사소하거나 사용자가 거절하면
-건너뛴다.
-
-Phase 0, 4, 5 는 공유 파이프라인 그대로 실행된다. **Phase 2 는 hunt 에서 무조건
+Phase 0, 4, 5 는 공유 파이프라인 그대로 실행된다. (Phase 3.5 simplify pass 는
+은퇴 — diff 정리는 Phase 5 §N 권장 라우팅의 `/simplify` 로, `pipeline.md` 참조.) **Phase 2 는 hunt 에서 무조건
 스킵이다** (`pipeline.md` Phase 2 판정 1 — 재현 테스트가 이미 oracle, 설계 결함은
 Phase 4 의 codex diff 리뷰가 잡는다).
 
