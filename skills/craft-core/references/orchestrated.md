@@ -1,4 +1,4 @@
-# Orchestrated Execution — team-mode council + dynamic workflow
+# Orchestrated Execution — named-agent council + dynamic workflow
 
 craft 엔진의 **orchestrated driver**. linear 경로 (`pipeline.md`) 와 같은 다섯
 phase 와 같은 content ref 를 쓰지만, *토폴로지* 가 단일 linear 세션이 아니라
@@ -20,14 +20,25 @@ fan-out + 수동 shutdown — 그리고 설계 리스크가 진짜일 때만 본
 linear 경로는 같은 엔진을 훨씬 싸게 돌린다.
 
 **메인 세션이 허브다**: 사용자 ↔ council 에이전트를 중계하고, Workflow
-실행을 시작하고, 검증 발견을 라우팅한다. team-mode 에이전트는 사용자와
+실행을 시작하고, 검증 발견을 라우팅한다. council 에이전트는 사용자와
 직접 대화할 수 없다 — 모든 사용자 턴은 메인 세션을 거친다.
 
-영속 룰 (team mode 가 여기 있는 이유): 에이전트는 **라운드 간에 기억해야 할
-때만** 살아있다. **designer** 가 자격이 있다 (Phase 1 의 설계 의도를
-Phase 4 판정으로 운반); **adversary** 는 council 루프에 대해 자격이
-있다. QA / tester / correctness / security 는 **그렇지 않다** — 무상태(stateless) Workflow fan-out
-으로 한 번 돈다.
+**영속 메커니즘 = 이름(name), 살려두기가 아니다.** `Agent({ name: 'designer' })` 로
+띄우면 그 이름이 `SendMessage({ to: 'designer' })` 의 주소가 되고, **에이전트가 완료된
+뒤에 보내도 자기 트랜스크립트에서 재개된다**(SendMessage 도구 계약이 SSOT — "names keep
+working after an agent completes (a send resumes it from its transcript)"). 그래서 이
+driver 는 에이전트를 idle 로 붙잡아 두지 않고, 필요할 때 이름으로 부른다.
+
+누가 이름을 갖는가: **designer**(Phase 1 설계 의도를 Phase 4 판정으로 운반) ·
+**adversary**(council 루프의 라운드 간 기억). QA / tester / correctness / security 는
+**아니다** — 무상태(stateless) Workflow fan-out 으로 한 번 돈다.
+
+> **은퇴된 team mode (2026-07-30).** 종전 이 절은 `TeamCreate` + `Agent({team_name})` +
+> `§5 shutdown_request` 로 팀을 소집·정리했다. 현행 하니스에 `TeamCreate` 도구가 없고
+> `Agent` 의 `team_name` 은 스키마에 "Deprecated; ignored. The session has a single
+> implicit team." 으로 박혀 있다 — 즉 종전 §0 은 첫 스텝에서 깨진다(실측: 전체 트랜스크립트
+> 3118 세션에서 `"name":"TeamCreate"` 도구 호출 **0회**). 이름 기반은 대체가 아니라
+> *더 단순한* 상위집합이다 — 소집·정리 단계가 사라지고 영속성은 유지된다. 복원은 git history.
 
 모델: designer + adversary + 검증 judge + Phase 3 빌드 = **무핀(세션 모델 상속)** —
 세션이 최상위 티어면 상속이 곧 최고 품질, 세션이 opus 미만일 때만 `model: 'opus'`
@@ -36,17 +47,18 @@ Phase 4 판정으로 운반); **adversary** 는 council 루프에 대해 자격�
 
 ---
 
-## §0 — Frame & convene the team
+## §0 — Frame & spawn the council
 
 1. 작업유형과 한 줄 목표를 되짚는다. heavyweight 경로가 원해진 것인지
    확인 — 사용자가 그냥 작업이 되길 원하면, linear 엔진으로 폴백한다.
-2. **세션 이름 설정 (백그라운드 잡일 때 — team convene 전 즉시).** `$CLAUDE_JOB_DIR` 있으면
+2. **세션 이름 설정 (백그라운드 잡일 때 — council spawn 전 즉시).** `$CLAUDE_JOB_DIR` 있으면
    `[<key>] <짧은 목표>` 로 rename(`<key>` = Linear 이슈ID 있으면 그것, 없으면 worktype).
    `session-rename.md` snippet 그대로(`name` + `nameSource:"user"`). 잡 아니면 생략, 실패해도 note 만.
-3. `TeamCreate({ team_name: 'craft-<topic>', description: '<one-line goal>' })`.
-4. 두 council 에이전트를 Agent 도구로 spawn 한다 (`team_name` 설정, model 무핀 —
-   세션 상속; 세션이 opus 미만일 때만 `model: 'opus'` 상향):
-   - **designer** (`subagent_type: general-purpose`) — spec 과 플랜을 소유한다.
+3. 두 council 에이전트를 `Agent` 도구로 spawn 한다. **`name` 을 반드시 준다** — 그게
+   `SendMessage` 주소이고 이 driver 의 영속 메커니즘이다(위 §영속 메커니즘). `run_in_background`
+   는 생략한다(기본 background — 메인 세션이 사용자 중계를 계속해야 한다). model 무핀 —
+   세션 상속; 세션이 opus 미만일 때만 `model: 'opus'` 상향:
+   - **designer** (`name: 'designer'`, `subagent_type: general-purpose`) — spec 과 플랜을 소유한다.
      Brief: "You are the designer on a craft council. Run the Socratic interview
      (the main session relays the user's answers to you) **applying the calling
      skill's Phase 1 focus** — read that skill's SKILL.md Phase 1 section and
@@ -56,7 +68,7 @@ Phase 4 판정으로 운반); **adversary** 는 council 루프에 대해 자격�
      companion. You will defend and revise this plan against an adversary, and
      later judge the built result against your own intent. Keep your design
      rationale in context — you persist across the whole job."
-   - **adversary** (`subagent_type: general-purpose`) — 적대적 플랜 리뷰어.
+   - **adversary** (`name: 'adversary'`, `subagent_type: general-purpose`) — 적대적 플랜 리뷰어.
      Brief: "You are the adversarial reviewer. Attack the designer's plan per
      `~/.claude/skills/craft-core/references/codex-review.md` — hidden assumptions,
      missing edges, security holes, a simpler path, scope creep, ADR conflicts. If
@@ -65,14 +77,14 @@ Phase 4 판정으로 운반); **adversary** 는 council 루프에 대해 자격�
      before code does."
 
 QA / tester / correctness / security 를 여기서 spawn 하지 말 것 — 그들은 Phase 4 에 속하고
-team 에이전트가 아니다.
+council 멤버가 아니다(이름 없는 Workflow 에이전트).
 
 ---
 
 ## §1 — Council loop (Phase 1 인터뷰 + Phase 2 공격, 융합)
 
 인터뷰와 적대적 리뷰가 하나의 **수렴 루프(convergence loop)** 로 돈다, 왜냐하면
-team mode 에서 리뷰어는 standing 에이전트이기 때문이다 — 라운드 N 의 이의가
+리뷰어가 이름으로 재개되는 standing 에이전트이기 때문이다 — 라운드 N 의 이의가
 designer 의 라운드 N+1 에 정보를 주는데, 단일 linear 세션은 이를 할 수 없다.
 
 **deep-interview spec 이 이미 확정됐으면** (`docs/specs/<slug>.md`, acceptance 가
@@ -127,9 +139,13 @@ regression 테스트를 먼저 쓴다; `renew` 는 어떤 태스크가 코드를
 건드리기 전에 보존 behavior 를 핀하는 characterization 테스트를 쓴다. orchestrated driver 는
 진입점을 바꾸지 않고, 구현 단계만 바꾼다.
 
-**designer 는 idle-alive 로 머문다** 이 phase 내내 (shut down 하지 말 것) — 그
-설계 의도가 Phase 4 를 위해 여전히 context 에 있도록. 메인 세션이
-Workflow 를 구동한다; 빌드 에이전트는 team 멤버가 아니라 무상태 Workflow 에이전트다.
+**designer 를 이 phase 동안 붙잡아 둘 필요는 없다** — 이름이 남아 있으면 Phase 4 에서
+`SendMessage({ to: 'designer' })` 가 그 트랜스크립트(=설계 의도)를 재개한다. 메인 세션이
+Workflow 를 구동한다; 빌드 에이전트는 이름 없는 무상태 Workflow 에이전트다.
+
+> **같은 이름을 재spawn 하지 말 것** — 최신 것이 이름을 가져간다(latest wins). designer 를
+> Agent 로 다시 띄우면 Phase 1 의 설계 의도가 그 이름에서 끊긴다. Phase 4 에서 부를 것은
+> §0 이 띄운 그 designer 다.
 
 (opt-in — `--codex-build` 또는 명시 요청 시: 빌드 레인의 green 스텝을 codex 로
 위임하는 cross-model 구현. Phase 2 의 cross-model 리뷰와 대칭이며, red·verify·intent
@@ -236,9 +252,9 @@ return (await parallel(LANES.map(L => () =>
 세션 상속. 프롬프트가 각 lane 의 검증 계약이다 (correctness·security lane 은 발견을
 적대적으로 반박해 살아남은 것만 보고).
 
-**Stage B — intent judgment (영속 designer).** 메인 세션이
-패널의 살아남은 발견을 **여전히 살아있는 designer** 에게 `SendMessage` 로
-넘긴다. **UI 빌드면** 메인이 먼저
+**Stage B — intent judgment (이름으로 재개하는 designer).** 메인 세션이
+패널의 살아남은 발견을 `SendMessage({ to: 'designer' })` 로
+넘긴다 — designer 가 이미 완료됐어도 그 send 가 트랜스크립트에서 재개한다. **UI 빌드면** 메인이 먼저
 `~/.claude/skills/craft-core/references/ui-verify.md` 를 읽어 그 절차대로 **인터랙션
 인벤토리(Part A) → chrome MCP 실구동(Part B) → 시안 갭 표(Part C)** 를 수행하고, 그
 산출(구동 판정 목록 + 갭 표 + 스크린샷 경로)을 승인 mockup `.html` 과 함께 `SendMessage`
@@ -266,7 +282,7 @@ Part A~C 결과를 designer 에게 넘기는 데까지만 신경 쓰고 인계�
 
 ---
 
-## §5 — Wrap & shut down
+## §5 — Wrap
 
 1. 요약: 무엇이 바뀌었는지, 추가된 테스트, 보안 평결, 잔여 리스크, 그리고
    designer 의 최종 intent-match 평결.
@@ -276,21 +292,24 @@ Part A~C 결과를 designer 에게 넘기는 데까지만 신경 쓰고 인계�
    publish 금지 — **비UI 빌드는 §4 가 ui-verify 를 안 읽으므로 여기가 유일 진입점**이다.
 2. 영속 지식 (`context-adr.md`): ADR 감 결정에 ADR; 재사용 가능한 context 에
    `docs/concepts/` 페이지. 진짜로 정당화될 때만.
-3. **team 을 shut down 하라** — `{ type: 'shutdown_request' }` 를 **designer** 와
-   **adversary** (그리고 여전히 살아있는 teammate) 에게 보낸다. 이 에이전트들은 영속적이고
-   그렇지 않으면 idle 로 lingering 한다. 검증 lane 은 Workflow 에이전트였고
-   이미 종료됐다.
+3. **shutdown 을 보내지 않는다.** council 에이전트는 각자 일이 끝나면 스스로 완료되고,
+   이름은 그 뒤에도 주소로 남는다 — 정리할 팀이 없다. `shutdown_request` 는 legacy 프로토콜이고
+   SendMessage 계약이 "Don't originate `shutdown_request` unless asked" 로 금하므로, 사용자가
+   명시 요청할 때만 보낸다. 검증 lane 은 이름 없는 Workflow 에이전트였고 이미 종료됐다.
 4. 사용자가 요청하지 않으면 commit 이나 push 하지 말 것.
 
 ---
 
 ## Cost & failure notes
 
-- 이 토폴로지는 의도적으로 비싼 경로다: 영속 에이전트 2(세션 티어) + 
+- 이 토폴로지는 의도적으로 비싼 경로다: 이름 붙은 council 에이전트 2(세션 티어) +
   빌드 fan-out + 검증 fan-out + loop-back. 설계 리스크가
   진짜일 때만 정당하다.
 - `codex:rescue` 부재 → adversary 가 스스로 Phase 2 공격을 한다 (수동
   폴백), linear 파이프라인과 동일.
-- Workflow 실행이 빌드 중간에 실패하면, designer/adversary 는 여전히 살아있다 — 고치고
-  Workflow 를 재시작하라; council 을 재spawn 하지 말 것.
-- §5 shutdown 을 잊으면 idle 에이전트가 context 를 쥔 채 남는다. 항상 team 을 닫아라.
+- Workflow 실행이 빌드 중간에 실패하면, designer/adversary 의 **이름은 그대로 유효하다** —
+  고치고 Workflow 를 재시작하라; council 을 재spawn 하지 말 것(재spawn 은 이름을 빼앗아
+  설계 의도를 끊는다).
+- 이름을 잃는 유일한 경로가 재spawn 이다. `SendMessage` 가 `to` 를 못 찾으면 spawn 결과의
+  raw `agentId`(`a...-...`)로 폴백하고, 그것도 없으면 council 이 끊긴 것이니 linear 엔진의
+  Phase 4(메인이 designer 겸직 — `pipeline.md`)로 정직하게 폴백한다.

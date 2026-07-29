@@ -40,6 +40,21 @@ fetch 정책) 그대로 적용한다(복제 금지). 이 스킬 고유 사항만
 
 충돌 영역이 겹치면 병렬 대신 "순서 권장"으로 분류한다(예: 두 이슈가 같은 UI 컴포넌트 공유). 워크트리 N개로 동시에 굴릴 수 있는 **충돌 없는 집합**을 명시적으로 뽑는 게 이 단계의 핵심 산출물이다.
 
+> **3건+ 이고 순차 체인이 섞이면 조율을 제안한다(선택).** 위 ①②③ 판정이 곧 Orca
+> orchestration 의 `--deps` 입력이다 — 병렬 집합은 deps 없이, 순차 체인은 `--deps` 로
+> 걸어 dispatch 하면 앞 태스크 완료 시 다음 것이 자동 ready 로 올라온다(사람이 완료를
+> 지켜보며 손으로 투입할 필요가 없다). 절차·함정은 `orchestration` 스킬이 SSOT
+> (`orca skills get orchestration`) — 여기 복제 금지.
+>
+> **2건이면 제안하지 않는다** — 워크트리 2개 + 세션별 `linear-goal` 이 더 싸다(코디네이터
+> 오버헤드가 본전을 못 뽑는다). 조율 없이 던져둘 작업도 대상 아님(그건 full handoff —
+> orchestration 가이드가 그 경우 `task-create`/`dispatch --inject` 를 금지한다).
+> **감지 후 제안** — `orca status --json` 실패거나 orchestration 실험기능이 꺼져 있으면
+> 조용히 생략한다(Linear MCP 미설치 처리와 같은 graceful 규율 — 제안이 죽은 안내가 되지
+> 않게). **은퇴 조건**: 3개월간 이 줄이 실제 orchestration 실행으로 이어지지 않으면 제거
+> (실측 근거로 도입된 제안이다 — 도입 시점 orchestration 81 태스크 중 `deps` 보유 1건·
+> gate 0건, 즉 DAG 가 미사용이었다).
+
 ### Step 5 — 우선순위 정렬
 
 각 이슈를 세 축으로 평가해 정렬:
@@ -87,6 +102,7 @@ linear-register 가 신규를 전부 Triage 로 넣으므로 사용자 triage �
 ### 🔀 지금 동시 착수 가능 (충돌 없는 병렬 집합)
 { ID ∥ ID ∥ ID } — <왜 충돌 없는지 1줄>
 착수: 각 이슈마다 `linear-goal <id>` (자율실행 kickoff — 병렬 워크트리로 바로 넘김)
+조율(3건+ ∧ 순차 체인 혼재 ∧ orchestration 가용 시에만): Orca orchestration DAG — Step 4 주석
 블록: <막힌 이슈 + 막은 원인>
 
 ### 🗂 마일스톤 구조 (묶은 경우)
