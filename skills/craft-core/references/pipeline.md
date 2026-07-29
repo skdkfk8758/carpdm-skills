@@ -39,10 +39,10 @@ stakes 신호 없는 가벼운 "build X" / "fix Y" / "refactor Z" 는
 강도(intensity) 선택이다: forge / renew / hunt 어느 것이든 두 모드 중 하나로 돌 수 있다.
 
 에스컬레이트되면 `orchestrated.md` 를 읽고 아래 linear 지침 대신 그것의
-team-mode + Workflow 토폴로지로 다섯 phase 를 구동한다. phase
+named-agent council + Workflow 토폴로지로 다섯 phase 를 구동한다. phase
 *내용* 과 당신의 작업유형 Phase 1 초점 / Phase 3 TDD 진입점은
 변하지 않는다 — 실행 구조만 다르다. 모델 tier 도 동일:
-orchestrated 빌드도 linear Phase 3 과 같이 **opus** 에서 돈다 (linear 대비 달라지는 건 실행 구조 = team-mode council 토폴로지뿐).
+orchestrated 빌드도 linear Phase 3 과 같이 **opus** 에서 돈다 (linear 대비 달라지는 건 실행 구조 = 이름 붙은 council 토폴로지뿐).
 
 ## Task 진행 체크리스트 (전 phase 공통 — 항상)
 
@@ -354,8 +354,8 @@ pipeline 하고; 태스크는 자신의 테스트가 green 일 때만 완료된�
 
 워크플로는 구현 / 검증 에이전트를 기본 subagent 로 돌린다 — 프롬프트가 곧 계약이다.
 정확한 골격은 `dynamic-tdd.md` / `orchestrated.md` 참조. (에이전트
-"cleanup" 단계는 존재하지도 필요하지도 않다 — 워크플로 subagent 는 일회성이고 유일한
-영속 에이전트인 orchestrated council 은 §5 에서 정리된다.)
+"cleanup" 단계는 존재하지도 필요하지도 않다 — 워크플로 subagent 는 일회성이고,
+orchestrated council 은 이름으로 재개되므로 닫을 팀이 없다.)
 
 > **Phase 3.5 (simplify pass) 는 은퇴했다 (2026-07-30).** 실측 p35 median 0m —
 > 사실상 항상 스킵되거나 무비용 통과라, 블로킹 질문 1개의 비용만 남았었다. diff
