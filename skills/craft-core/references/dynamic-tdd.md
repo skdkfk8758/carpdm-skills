@@ -1,6 +1,6 @@
 # Dynamic Workflow — Task Split + TDD on Opus
 
-Phase 3 은 승인되고 codex 리뷰를 거친 플랜을 동작하는 코드로 바꾼다.
+Phase 3 은 승인되고 Phase 2 게이트를 통과한 플랜을 동작하는 코드로 바꾼다.
 `Workflow` 도구로 (a) 플랜을 atomic 태스크로 쪼개고 (b) 각 태스크를
 엄격한 TDD 사이클로 구동한다. 구현은 **무핀 — 세션 모델을 상속**한다: 세션이
 최상위 티어(fable 등)면 상속이 곧 최고 품질이고, 세션이 opus 미만일 때만

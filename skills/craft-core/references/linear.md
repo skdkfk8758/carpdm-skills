@@ -82,6 +82,25 @@ Acceptance 는 sub-issue body 에 참조로 들어간다). Step 이 곧 atomic �
 **작은 plan 예외.** Step 이 1개이거나 매우 작으면 parent 없이 단일 이슈로 만든다 —
 트리 과투자 회피(deep-plan 의 flat 분기와 같은 정신).
 
+### 2a. `Plan-reviewed:` 마커 — 리뷰된 plan 산 이슈의 스킵 신호 (규격 SSOT)
+
+원본 PLAN `.md` 에 `## Codex review` 섹션(deep-plan debate verdict 기록)이
+**실존할 때만**, 그 plan 에서 등록되는 각 이슈(parent·sub 모두) 본문에 마커
+한 줄을 넣는다:
+
+```
+> Plan-reviewed: <plan 경로> · fable×codex debate · <verdict 요약 — 예: 4비트, BLOCKING 3 해소>
+```
+
+- **소비처 둘**: 심는 쪽 = 이 절(§2 등록) + `linear-register` 분할 모드
+  (`plan-split.md`). 읽는 쪽 = 빌드 파이프라인 Phase 2 게이트(`pipeline.md` —
+  마커 실존이면 플랜 재리뷰 스킵). 규격은 여기 한 곳 — 양쪽에 복제하지 말 것.
+- **verdict 섹션이 없는 plan 이면 마커를 넣지 않는다** — 마커는 리뷰 사실의
+  증명이지 장식이 아니다. 거짓 마커는 리뷰 안 된 플랜을 무검증으로 빌드에
+  통과시킨다.
+- 직접 등록 단건 이슈(plan 출처 없음)는 마커 비대상 — 빌드 시 Phase 2 게이트가
+  평소대로 판정한다.
+
 ## 3. 빌드 중 상태 자동 전이 (forge / renew / hunt)
 
 빌드 스킬은 **활성 Linear 이슈가 있을 때만** 상태를 옮긴다. 없으면 Linear 를 무시하고
