@@ -33,8 +33,8 @@ Phase 1에서 뭘 묻나 + Phase 3 TDD 시작점뿐. 엔진 SSOT:
 자동 linear. 빌드 모델 opus.
 
 ### orchestrated (council) — 무거운 opt-in
-멀티에이전트: 영속 designer + adversary가 설계를 토론 → Workflow TDD →
-검증패널 → 팀 정리. SSOT: `craft-core/references/orchestrated.md`.
+멀티에이전트: 이름 붙은 designer + adversary가 설계를 토론 → Workflow TDD →
+검증패널. SSOT: `craft-core/references/orchestrated.md`.
 
 발동 방법 3가지:
 
@@ -63,12 +63,12 @@ Phase 1에서 뭘 묻나 + Phase 3 TDD 시작점뿐. 엔진 SSOT:
 
 | Phase | 무엇 | 모델 |
 |---|---|---|
-| 0 | 팀 생성(TeamCreate) + designer·adversary spawn | opus |
+| 0 | designer·adversary spawn (`Agent({name})` — 이름이 SendMessage 주소) | opus |
 | 1+2 | **council 루프** — designer 인터뷰(메인 경유)→plan, adversary 공격, 수렴까지. 종료: 유저 승인 AND adversary blocking 없음(≤2R) | opus |
 | 3 | **Workflow TDD** — plan을 atomic task 분할, red→green→refactor | **sonnet** |
 | 3.5 | **simplify 검토 패스**(forge·renew·hunt, 옵션) — 변경 diff를 `/simplify`로 정리, 테스트 green 유지. designer는 idle-alive 유지 | **sonnet** |
-| 4 | **검증패널** — QA/tester/security 병렬 fan-out + 살아있는 designer가 원의도 대조 판정 → accept or Phase 3 재진입 | opus |
-| 5 | 요약 + **팀 shutdown**(영속 agent 정리) | — |
+| 4 | **검증패널** — QA/tester/security 병렬 fan-out + designer(이름으로 재개)가 원의도 대조 판정 → accept or Phase 3 재진입 | opus |
+| 5 | 요약 (shutdown 없음 — 닫을 팀이 없다) | — |
 
 핵심: Phase 3·3.5만 sonnet(test-pinned + 독립검증이라 충분), 판단 페이즈는 opus.
 
@@ -81,8 +81,9 @@ Phase 1에서 뭘 묻나 + Phase 3 TDD 시작점뿐. 엔진 SSOT:
 
 ## 5. 주의
 
-- **팀 정리** — orchestrated 끝나면 designer/adversary가 idle로 살아있다.
-  Phase 5 shutdown 필수(엔진이 처리하지만 중단 시 수동 확인).
+- **정리 불필요** — designer/adversary는 각자 일이 끝나면 완료되고, 이름만 주소로
+  남는다. shutdown 보내지 말 것(SendMessage 계약이 금지). 대신 **같은 이름 재spawn 금지** —
+  최신이 이름을 가져가 Phase 1 설계 의도가 끊긴다.
 - **재시작** — craft-core 변경은 신규 세션부터 반영된다.
 - **codex:rescue 없으면** Phase 2 적대리뷰는 수동 폴백.
 
