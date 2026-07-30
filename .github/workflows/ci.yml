@@ -1,0 +1,46 @@
+# CI — validate the skill catalog before merge.
+#
+# Security conventions (adapted from affaan-m/ecc):
+#   - actions pinned to commit SHAs (tags are movable — supply-chain vector)
+#   - persist-credentials: false (no git token left in the worktree)
+#   - least-privilege permissions
+# No npm install: the validators under scripts/ci/ have zero dependencies.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '22'
+
+      - name: Validate skill frontmatter
+        run: node scripts/ci/validate-skills.js
+
+      - name: Check invisible characters
+        run: node scripts/ci/check-invisible-chars.js
+
+      - name: Check catalog freshness
+        run: node scripts/ci/catalog.js
