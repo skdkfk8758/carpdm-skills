@@ -11,7 +11,8 @@
 | `global/rules/*.md` | `~/.claude/rules/*.md` |
 | `global/rules-ondemand/*.md` | `~/.claude/rules-ondemand/*.md` (전수 아님 — 손댄 것만) |
 | `global/hooks/guards/*.sh` | `~/.claude/hooks/guards/*.sh` |
-| `global/scripts/*.sh` | `~/.claude/scripts/*.sh` |
+| `global/hooks/*.py` | `~/.claude/hooks/*.py` |
+| `global/scripts/*.{sh,py}` | `~/.claude/scripts/*.{sh,py}` |
 | `global/settings.json` | `~/.claude/settings.json` |
 
 ## 규칙

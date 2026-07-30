@@ -44,3 +44,7 @@ jobs:
 
       - name: Check catalog freshness
         run: node scripts/ci/catalog.js
+
+      # Targets the repo mirror under global/, so no ~/.claude install is needed.
+      - name: Test prompt-intake hook
+        run: bash scripts/ci/test-prompt-intake.sh
