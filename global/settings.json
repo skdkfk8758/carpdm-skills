@@ -296,8 +296,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else cat >/dev/null 2>&1 || :; fi",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/prompt-intake.py",
+            "timeout": 5
           }
         ]
       }
