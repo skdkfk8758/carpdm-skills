@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-# PreToolUse(Bash) guard: before `gh pr create`, ensure README.md references every
-# skill directory under skills/. Blocks (exit 2) with an actionable message if the
-# README is stale (a skill dir exists but isn't linked in README). This keeps the
-# README skill table in sync with what actually ships, checked at the moment a PR
-# is opened.
+# PreToolUse(Bash) guard: before `gh pr create`, ensure README.md agrees with the
+# skills/ inventory. Blocks (exit 2) with an actionable message if stale.
+#
+# Judgment logic lives in scripts/ci/catalog.js (SSOT — the same check CI runs:
+# link presence + stale references + count claims). This hook is the fast local
+# feedback at the moment a PR is opened; CI is the server-side gate. The inline
+# grep loop below is only a fallback for environments without node.
 #
 # Override: README_FRESH_DISABLE=1
 set -euo pipefail
@@ -25,6 +27,19 @@ README="$ROOT/README.md"
 [ -f "$README" ] || exit 0
 [ -d "$ROOT/skills" ] || exit 0
 
+# Preferred path: delegate to the CI validator (SSOT).
+if command -v node >/dev/null 2>&1 && [ -f "$ROOT/scripts/ci/catalog.js" ]; then
+  if out="$(node "$ROOT/scripts/ci/catalog.js" 2>&1)"; then
+    exit 0
+  fi
+  echo "[guard-readme-fresh] BLOCKED: README.md 가 skills/ 와 어긋남 —" >&2
+  echo "$out" >&2
+  echo "[guard-readme-fresh] PR 전에 README.md 스킬 표/카운트를 갱신하세요." >&2
+  echo "[guard-readme-fresh] override: README_FRESH_DISABLE=1" >&2
+  exit 2
+fi
+
+# Fallback (node 없음): link-presence check only.
 missing=()
 for d in "$ROOT"/skills/*/; do
   [ -d "$d" ] || continue

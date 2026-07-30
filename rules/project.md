@@ -38,7 +38,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 | `bash sync.sh --pr-only` | 미러 + 브랜치·커밋·push·PR **생성까지만** (머지 보류). 브랜치를 로컬에 남겨 CI 게이트+land 를 `ship` 스킬이 처리 (§10) |
 | `ls ~/.claude/skills/` | 스킬 설치 검증 — `forge hunt renew handoff sweep land ship craft-core` 보여야 함 |
 
-검증 스위트는 없다. "테스트"는 `install.sh`/`sync.sh` 실행 + `ls` 확인이 전부.
+검증 스위트: `scripts/ci/` 3종 — `validate-skills.js`(frontmatter: name↔dir 일치·ASCII kebab-case·description 존재), `check-invisible-chars.js`(ASCII-smuggling 위험 invisible 문자 0 유지 — emoji·U+FE0F 변이선택자는 의도적 허용), `catalog.js`(README↔skills/ 링크·stale 참조·"N개 스킬" 카운트 대조). 전부 의존성 0(node 단독), CI(`.github/workflows/ci.yml` validate 잡)와 `guard-readme-fresh` 훅이 같은 스크립트를 실행한다. 그 외 "테스트"는 `install.sh`/`sync.sh` 실행 + `ls` 확인.
 
 ## Architecture — 반드시 알 것
 
@@ -200,4 +200,4 @@ linear(§11)과 같은 포지션 — craft-core 에 두지만 **엔진 의존 �
 작업 종료 시 글로벌 스킬이 repo 에 미반영이거나 push 안 됐으면 `.claude/hooks/check-skill-sync.sh` (Stop hook, `.claude/settings.json` 등록)가 **비차단 경고**. 감지: (a) live↔repo drift (skills 디렉토리별) → `bash sync.sh`, (b) `skills/` 미커밋, (c) 미push 커밋 → `bash sync.sh --push`. 감지·알림만 — auto-push 안 함(외부발신·비가역). 경고 뜨면 직접 sync/push 로 마무리.
 
 ## PR-time README check (PreToolUse hook)
-`gh pr create` 직전 `.claude/hooks/guard-readme-fresh.sh` (PreToolUse:Bash hook)가 README.md 가 모든 `skills/<name>` 디렉토리를 링크하는지 확인 — 누락 시 **차단(exit 2)** 하고 누락 스킬을 출력한다. 스킬을 추가/삭제하면 같은 PR 에서 README 스킬 표·카운트를 갱신할 것. Stop hook(비차단)과 달리 이건 **차단형** — README drift 가 PR 에 실리는 것을 막는다. Override: `README_FRESH_DISABLE=1`. 체크는 `skills/<name>` 링크 존재만 보며, 표 내용 정확성까지는 검증하지 않으니 행 내용은 수동 관리.
+`gh pr create` 직전 `.claude/hooks/guard-readme-fresh.sh` (PreToolUse:Bash hook)가 README.md 가 `skills/` 인벤토리와 일치하는지 확인 — 어긋나면 **차단(exit 2)**. 판정 로직은 `scripts/ci/catalog.js` **SSOT**(링크 존재 + stale 참조 + "N개 스킬" 카운트 — CI validate 잡과 동일 스크립트, 훅은 node 부재 시에만 링크-존재 grep 폴백). 스킬을 추가/삭제하면 같은 PR 에서 README 스킬 표·카운트를 갱신할 것. Stop hook(비차단)과 달리 이건 **차단형**. Override: `README_FRESH_DISABLE=1`. 표 행의 설명 문구 정확성까지는 검증하지 않는다(수동 관리). 근거: 카운트 drift 실사고 2회(#109 수선 후 8일 만에 #137 은퇴로 재발) — 링크-존재 체크만으로는 못 잡았다.
