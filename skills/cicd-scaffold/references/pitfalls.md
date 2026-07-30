@@ -51,6 +51,25 @@ billing 과 무관하게 CI 와 deploy 가 계속 돈다. 트레이드오프 —
 runner host 가 다운되면 CI *와* deploy 가 함께 멈춘다. 두 runner host(dev + prod) 가
 최소한의 완화책이다.
 
+## 6. 공급망 하드닝 — 템플릿 기본값 (2026-07-30)
+
+템플릿의 모든 외부 action 은 **커밋 SHA 로 핀**돼 있다(`uses: actions/checkout@11d5960a… # v4`).
+태그(`@v4`)는 upstream 이 옮길 수 있는 포인터라 공급망 벡터다 — tj-actions/changed-files
+사고가 정확히 이 경로(태그 재지정으로 악성 코드 주입)였다. 유지 규칙:
+
+- **버전 올릴 때도 SHA 로**: `gh api repos/<owner>/<repo>/git/ref/tags/<tag> --jq .object.sha`
+  (type 이 `tag` 면 `git/tags/<sha>` 로 한 번 더 deref) → SHA 교체 + `# <tag>` 주석 갱신.
+- **checkout 은 `persist-credentials: false`**: 템플릿 워크플로는 git push 를 하지
+  않으므로(release 는 `GH_TOKEN` env 로 gh CLI 사용) 토큰을 워크스페이스에 남길 이유가
+  없다. 나중에 git push 하는 step 을 추가하면 그 job 에서만 이 줄을 빼고 이유를 주석으로.
+- **`--ignore-scripts` 는 audit.yml 에만**: 감사 잡은 산출물을 실행하지 않으므로 lifecycle
+  script 차단이 무비용. ci.yml/deploy.yml 의 `npm ci` 에는 넣지 않는다 — 앱이 postinstall
+  (prisma generate, native build 등)에 의존할 수 있어 빌드가 깨진다. 앱에 postinstall
+  의존이 없다고 확인되면 거기도 붙이는 게 맞다.
+
+출처: affaan-m/ecc CI 관습 리뷰(2026-07-30) — SHA 핀·persist-credentials·ignore-scripts
+3종을 이식, emoji 금지 등 나머지 정책은 부적합 판정으로 배제.
+
 ## Cross-plan limits (버그 아님 — billing-tier 사실)
 
 - **prod Required reviewers**(Environment protection)는 **public repo 또는
