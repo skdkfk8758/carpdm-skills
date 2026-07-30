@@ -209,8 +209,12 @@ assert_eq "A13 레코드 정확히 1건" "1" "$(count "$d")"
 # ── Acceptance 14 — file 0600, dir 0700 ─────────────────────────────────────
 d="$(new_logdir a14)"
 run_hook "$d" "$(payload '권한 확인')" >/dev/null
-assert_eq "A14 로그 파일 0600" "600" "$(stat -f %Lp "$d/records.jsonl" 2>/dev/null || stat -c %a "$d/records.jsonl")"
-assert_eq "A14 로그 디렉토리 0700" "700" "$(stat -f %Lp "$d" 2>/dev/null || stat -c %a "$d")"
+# Not `stat`: macOS -f means "format", Linux -f means "filesystem info", so the
+# usual `stat -f … || stat -c …` fallback never fires on Linux — it succeeds
+# with the wrong output instead.
+mode_of() { python3 -c "import os,sys;print(format(os.stat(sys.argv[1]).st_mode & 0o777, 'o'))" "$1"; }
+assert_eq "A14 로그 파일 0600" "600" "$(mode_of "$d/records.jsonl")"
+assert_eq "A14 로그 디렉토리 0700" "700" "$(mode_of "$d")"
 
 # ── Acceptance 15 — truncation, no sha, secret redaction ────────────────────
 d="$(new_logdir a15)"
