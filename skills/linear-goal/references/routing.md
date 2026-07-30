@@ -14,9 +14,15 @@ SSOT 는 `~/.claude/linear-repo-map.json` 이다(본 파일은 그걸 조회만 
 ## Step 0 — repo 해소
 
 1. fetch 한 이슈에서 `team.key`(+ `project.id`) 추출.
-2. `~/.claude/linear-repo-map.json` 조회:
+2. `~/.claude/linear-repo-map.json` 조회 (우선순위 순):
    - `projectExceptions[]` 의 `projectId` **우선** 매칭 (예 ad-simulator →
      ADSimulator_V2).
+   - 없으면 `labelRoutes[]` — **먼저 `teamKey` 로 스코프한 뒤** 그 안에서 이슈 라벨 중
+     `labelGroup`/`label` 이 일치하는 항목 → `repo`. teamKey 스코프를 건너뛰고 라벨만
+     매칭하면 같은 라벨명(`Area/FE`)을 쓰는 다른 팀의 이슈가 남의 repo 로 라우팅된다.
+     한 팀이 표면(FE/BE)별로 다른 repo 를 가질 때 쓴다(예 SMF 의 `Area` 그룹).
+     `repo: null` 이면 아래 3항 거부 규칙이 그대로 적용된다 — teamRoutes 로 **폴백하지
+     않는다**(폴백하면 BE 이슈가 FE 워크트리로 분기된다).
    - 없으면 `teamRoutes[]` 의 `teamKey`/`teamId` 매칭 → `repo`.
 3. 예외 처리:
    - `repo: null` → **dispatch 거부** (코드 자동개발 대상 아님). 사용자 보고.
@@ -51,6 +57,9 @@ SSOT 는 `~/.claude/linear-repo-map.json` 이다(본 파일은 그걸 조회만 
   3종만)이면 순위2 area 행·순위3 "단일 `area:*`" 절을 건너뛰고 regex/AC/대상특정/
   estimate 로만 판정한다. area 부재를 cross-cutting 또는 uncertain 신호로 오독하지
   말 것 — 그러면 그 팀의 모든 trivial 티켓이 oversized 로 과라우팅된다.
+- **`Area` 라벨 그룹 ≠ `area:*`**: SMF 의 `Area/FE|BE|Contract` 는 **repo 라우팅용
+  표면 축**(labelRoutes 입력)이지 cross-cutting 도메인 축이 아니다. 순위2/3 의
+  `area:*` 절에 넣어 판정하지 말 것.
 - **‡ 대상 특정 가능** = 구체 파일/엔드포인트/함수가 본문에 명시됨, **또는** 범위가
   좁고(estimate ≤2) AC 가 이분법적이라 worker 가 ground-first(grep/Read)로 대상을
   안전하게 특정 가능. 후자는 **ID 없는 붙여넣기·파일 미명시 소형 티켓**(예: "격자 셀
