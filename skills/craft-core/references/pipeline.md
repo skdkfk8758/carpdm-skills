@@ -71,7 +71,7 @@ eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 
 `~/.claude/logs/craft-timing.jsonl` 에 한 줄 append 한다:
 
 ```json
-{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p4":<sec>,"p5":<sec>},"humanWait":<sec>,"total":<sec>,"tasks":<Phase3 태스크 수>,"p4Review":{"source":"codex|code-review|manual","sec":<sec>,"found":<발견 수>,"confirmed":<반박 게이트 생존 수>},"human":{"acceptance":<[AGENT]+[HUMAN] 총>,"agentClosed":<agent 실구동으로 닫은 수>,"handed":<사람 이관 수>}}
+{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p4":<sec>,"p5":<sec>},"humanWait":<sec>,"total":<sec>,"tasks":<Phase3 태스크 수>,"p4Review":{"source":"code-review|adversarial|manual","sec":<sec>,"found":<발견 수>,"confirmed":<반박 게이트 생존 수>},"human":{"acceptance":<[AGENT]+[HUMAN] 총>,"agentClosed":<agent 실구동으로 닫은 수>,"handed":<사람 이관 수>}}
 ```
 
 - **스키마 필수 준수** — `phases.p1~p5` 초와 `humanWait` 는 note 로 대체하지 않고
@@ -109,16 +109,15 @@ Task 체크리스트(세션 UI — 다른 세션에선 안 보임)와 별개로,
 - phase: 3 (in progress) · mode: linear
 - tasks: 3/5 green (t4 red — <사유>)
 - workflow runId: wf_xxx        ← Phase 3 Workflow 시작 시 기록
-- codex: <OUT>/<TAG> (running)  ← P2/P4 codex bg 잡 기동 시 기록, triage 후 done 으로
+- review: P4 §2 (running)       ← P2/P4 적대 리뷰 기동 시 기록, triage 후 done 으로
 - updated: <ISO 시각>
 ```
 
 세션이 중간에 죽어도(컨텍스트 고갈·크래시) 다른 세션이 plan 문서만 읽고 정확한
 지점에서 이어받는다 — Workflow 는 `resumeFromRunId` 로 완료 태스크를 캐시
-재사용하므로 **runId 기록이 곧 재개 비용 절감**이다. codex 행도 같은 이유 —
-재개 세션은 그 경로의 `-done.txt`/`-failed.txt` 마커(`codex-review.md` 호출 계약)로
-진행을 판정해, 완료 알림 유실·세션 사망 시 **P4 파킹이나 이중 호출 없이** 결과를
-회수하거나 폴백으로 간다. 갱신 비용은 phase 당 Edit 1회. wrap 에서 마지막으로
+재사용하므로 **runId 기록이 곧 재개 비용 절감**이다. review 행도 같은 이유 —
+재개 세션은 그 행으로 리뷰가 이미 돌았는지 판정해 **이중 호출 없이** 원장 triage 로
+직행한다. 갱신 비용은 phase 당 Edit 1회. wrap 에서 마지막으로
 `phase: 5 (done)` 으로 닫는다.
 
 ## Phase 0 — Frame
@@ -292,11 +291,12 @@ Phase 2 는 리뷰를 *돌리는* phase 가 아니라 **상류 리뷰가 있었�
 경유 플로우에선 같은 플랜을 두 번 공격하는 중복이었다. 판정 순서:
 
 1. **hunt → 무조건 스킵.** 버그픽스는 재현 테스트(Phase 3 red)가 이미 oracle 이고
-   플랜이 작다 — 플랜 적대리뷰 없이 바로 Phase 3. 설계 결함은 Phase 4 의 codex
-   diff 리뷰가 잡는다.
+   플랜이 작다 — 플랜 적대리뷰 없이 바로 Phase 3. 설계 결함은 Phase 4 의
+   correctness diff 리뷰가 잡는다.
 2. **상류 리뷰 흔적 있음 → 스킵.** 다음 중 하나가 실존하면 이미 적대 리뷰를
    거친 플랜이다 — 재리뷰는 중복:
-   - 플랜 `.md` 에 `## Codex review` 섹션(deep-plan debate verdict 기록) 실존.
+   - 플랜 `.md` 에 `## Plan review` 섹션(deep-plan debate verdict 기록) 실존.
+     레거시 헤딩 `## Codex review` 도 같은 흔적으로 인식한다(codex 은퇴 이전 플랜).
    - 활성 Linear 이슈 본문에 `Plan-reviewed:` 마커 실존(`linear.md` §2a — 리뷰된
      plan 에서 분할 등록된 이슈).
    흔적은 **파일/이슈 본문에서 직접 확인**한다 — 사용자 구두 선언("이미 리뷰됨")
@@ -307,7 +307,9 @@ Phase 2 는 리뷰를 *돌리는* phase 가 아니라 **상류 리뷰가 있었�
 4. **잔여 → 1-pass 리뷰.** 필수 클래스 — 보안 surface(auth / payment / 권한 경계 /
    외부 입력 처리 / secret), 외부 호출자가 있는 계약 변경, DB 마이그레이션 포함,
    6+ 파일, 사용자의 stakes 신호, orchestrated 모드 — 이거나 3 에서 리뷰를 택했으면
-   `codex-review.md`(호출·verdict·watchdog·원장 SSOT)를 읽어 **1회** 돌린다.
+   `adversarial-review.md`(프롬프트 골격·verdict·원장 SSOT)를 읽어 **1회** 돌린다.
+   리뷰어는 adversary 역할 subagent 다 — **cross-model 이 아니다**(codex 은퇴,
+   2026-07-30). 같은 모델이므로 원장의 직접 검증 증거가 유일한 신뢰 층이다.
    수렴 핑퐁 없음 — 발견은 원장(FIXED/증거 REJECTED/DEFERRED)으로 닫고, high 는
    전부 해소한 뒤에만 Phase 3 진입. `<look_for>` (플랜 공격 목록): 숨은 가정,
    누락된 엣지 케이스, 보안 구멍, 더 단순한 경로, scope creep, 각 step 의 verify
@@ -317,9 +319,9 @@ Phase 2 는 리뷰를 *돌리는* phase 가 아니라 **상류 리뷰가 있었�
   기본값 = **리뷰 실행** (안전 쪽 폴백 — 묻지 못하면 스킵하지 않는다). 1·2 의
   기계 판정 스킵은 그대로 유효.
 
-판정 결과를 플랜에 기록한다: 스킵이면 `## Codex review — skipped: <hunt |
+판정 결과를 플랜에 기록한다: 스킵이면 `## Plan review — skipped: <hunt |
 상류 리뷰 흔적 <위치> | 소형 게이트 + 사용자 승인>`, 리뷰했으면
-`## Codex review — 1-pass: <발견 수 + 원장 요약>`. 스킵은 위 게이트 경유만 —
+`## Plan review — 1-pass: <발견 수 + 원장 요약>`. 스킵은 위 게이트 경유만 —
 "플랜이 괜찮아 보여서" 는 사유가 아니다.
 
 ## Phase 3 — Dynamic workflow: task split + TDD (opus)
@@ -328,9 +330,7 @@ Phase 2 는 리뷰를 *돌리는* phase 가 아니라 **상류 리뷰가 있었�
 태스크로 쪼개고 각각을 엄격한 TDD 사이클 — **red → green →
 refactor** — 로 구동한다. 모델 규칙은 `dynamic-tdd.md` 가 SSOT: 구현은 무핀
 (세션 상속, 세션이 opus 미만일 때만 상향 핀), verify 는 `haiku` 최저가 핀.
-(opt-in: `--codex-build` 플래그 발동 시 green 스텝을 codex 로 위임하는 cross-model
-빌드 레인 — SSOT `codex-build.md`. 기본 off, 미발동이면 위 표준 그대로.) 태스크들을
-pipeline 하고; 태스크는 자신의 테스트가 green 일 때만 완료된다. 플랜이
+태스크들을 pipeline 하고; 태스크는 자신의 테스트가 green 일 때만 완료된다. 플랜이
 계약이다: 각 구현 에이전트는 코드를 쓰기 전에 승인된 플랜 (`.md`) 과
 관련 프로젝트 guide (`docs/guides/`) 를 다시 읽고, 플랜에 없는 것은 Phase 1 로
 돌아가지 않고서는 구현하지 않는다.
@@ -368,7 +368,7 @@ orchestrated council 은 이름으로 재개되므로 닫을 팀이 없다.)
 `security.md` 를 읽어라. 프로젝트 검증 게이트 (tests / typecheck / lint /
 build — 단 Phase 3 최종 형제 게이트 이후 diff 무변경이면
 수트/typecheck 재실행은 생략하고 그 green 을 인용하며, 아직 안 돈 게이트만
-돌린다), diff 에 대한 **correctness 리뷰** (codex 1-pass — `security.md` §2,
+돌린다), diff 에 대한 **correctness 리뷰** (`/code-review` 1-pass — `security.md` §2,
 테스트가 못 잡은 버그만; 발견은 바로 고치지 말고 회귀 테스트 먼저), 그리고
 diff 에 대한 **보안 pass** 를 돌린다. correctness·보안 발견 모두 진짜로 보고하기
 전에 적대적으로 검증한다 (반박을 시도). 아무것도 red 로 출시하지 않는다.
@@ -485,7 +485,7 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
   으로 돌아가 delta 를 짓고 Phase 4 를 다시 돈다 — orchestrated 의 Stage A→B→Phase 3→A
   loop 의 linear 대응이다.
   **재진입 범위 = delta-only (2026-07-30).** loop-back 후 Phase 4 재실행은 전량
-  재검증이 아니다: §1 기능 게이트는 전체 재실행(수트가 회귀 안전망), **§2 codex
+  재검증이 아니다: §1 기능 게이트는 전체 재실행(수트가 회귀 안전망), **§2
   correctness 리뷰는 빌드당 1회 고정** — loop-back delta diff 는 재호출하지 않고
   회귀 테스트 green + §4 반박 게이트 + 로컬 검토로 닫는다(재호출 시 루프당 +5~15분
   실측, 발견 가치는 최초 1-pass 에 집중). §3 보안 pass 는 delta 가 보안 surface 를
@@ -579,5 +579,5 @@ intent judgment 를 단일 세션용으로 경량화한 것이다.
 - 보안 pass 를 돌리지 않고 테스트 green 을 보고하기.
 - Phase 4 `[HUMAN]` walk 을 항목당 직렬 질문으로 돌리거나, 무응답에 세션을
   파킹하기 — 배치 1회 + §V 이관이 규칙(humanWait max 3h 실측이 근거).
-- loop-back 마다 codex diff 리뷰 재호출 — 빌드당 1회 고정, delta 는 회귀
+- loop-back 마다 correctness diff 리뷰 재호출 — 빌드당 1회 고정, delta 는 회귀
   테스트 + 반박 게이트로 닫는다.

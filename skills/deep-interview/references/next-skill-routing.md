@@ -20,7 +20,7 @@
 예시*일 뿐 후보 목록이 아니다 — LLM 은 프롬프트 안 예시에 anchor 해 표에 적힌 몇몇
 로컬 스킬만 반복 추천하는 실패가 흔하다. 추천 전 **반드시** 컨텍스트의 available-skills
 목록을 실제로 훑어 valid-next 후보를 그 자리에서 재선정하라. 플러그인 스킬
-(`plugin:skill` 네임스페이스 형, 예: `codex:rescue`, `understand-anything:understand`,
+(`plugin:skill` 네임스페이스 형, 예: `understand-anything:understand`,
 `skill-creator:skill-creator`)도 bare-name 스킬과 **동등한 후보다** — 형식이 다르다고
 배제하지 말 것.
 
@@ -74,7 +74,7 @@ Tier 1 단축이 명백하더라도, 컨텍스트의 available-skills 목록에�
 | **새 UI 미감 창작**(자유 디자인) | `frontend-design` |
 | **주어진 DESIGN.md 충실 재현**(추출 디자인) | `imprint` |
 | 코드베이스 **이해·구조 파악**이 먼저 (플러그인 예) | `understand-anything:understand` |
-| 막힌 지점 **2nd-opinion·조사 위임** (플러그인 예) | `codex:rescue` |
+| 배포 전 **종합 검토·ship 판정** | `preflight` |
 | (deep-interview 한정) 빌드 전 **plan 문서/UI 시안** 먼저 | `deep-plan` |
 
 ## 강도(intensity)도 함께 추천 — 빌드로 라우팅할 때

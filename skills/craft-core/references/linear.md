@@ -84,12 +84,12 @@ Acceptance 는 sub-issue body 에 참조로 들어간다). Step 이 곧 atomic �
 
 ### 2a. `Plan-reviewed:` 마커 — 리뷰된 plan 산 이슈의 스킵 신호 (규격 SSOT)
 
-원본 PLAN `.md` 에 `## Codex review` 섹션(deep-plan debate verdict 기록)이
-**실존할 때만**, 그 plan 에서 등록되는 각 이슈(parent·sub 모두) 본문에 마커
-한 줄을 넣는다:
+원본 PLAN `.md` 에 `## Plan review` 섹션(deep-plan debate verdict 기록 — 레거시
+헤딩 `## Codex review` 도 인식)이 **실존할 때만**, 그 plan 에서 등록되는 각
+이슈(parent·sub 모두) 본문에 마커 한 줄을 넣는다:
 
 ```
-> Plan-reviewed: <plan 경로> · fable×codex debate · <verdict 요약 — 예: 4비트, BLOCKING 3 해소>
+> Plan-reviewed: <plan 경로> · fable debate · <verdict 요약 — 예: 4비트, BLOCKING 3 해소>
 ```
 
 - **소비처 둘**: 심는 쪽 = 이 절(§2 등록) + `linear-register` 분할 모드
