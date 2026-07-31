@@ -6,7 +6,7 @@ Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프�
 
 ### 🔨 build-pipeline — 코드를 짓는 엄격 파이프라인
 
-craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → TDD → 보안 검증) 위에서 도는 작업유형 3종 + 엔진.
+craft-core 공유 엔진(소크라테스 인터뷰 → plan review 게이트 → TDD → 보안 검증) 위에서 도는 작업유형 3종 + 엔진.
 
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
@@ -61,7 +61,7 @@ craft-core 공유 엔진(소크라테스 인터뷰 → codex 적대 리뷰 → T
 | [`linear-groom`](skills/linear-groom) | 기존 Linear 백로그 그루밍 — 고아 이슈 프로젝트 그룹핑 + 빈약 이슈 보강(+`## 추천`/체인) | "리니어 이슈 정리", "백로그 그루밍", "이슈 보강해줘" | Linear MCP |
 | [`linear-prioritize`](skills/linear-prioritize) | 현재 repo 미완 이슈 스프린트 플래닝 — 의존·병렬 분석 + 우선순위 정렬 + 순차 EPIC 체인 milestone 묶기 (이슈 생성·구현 X) | "뭐부터 해야 돼", "병렬로 뭐 돌릴 수 있어", "스프린트 짜줘", "남은 이슈 정리" | Linear MCP |
 
-**파이프라인 3종 공통 흐름**: 소크라테스 인터뷰 → codex 적대적 플랜 리뷰 → 동적 워크플로 TDD(sonnet) → simplify 검토 패스(forge·renew·hunt, 옵션·동작불변, `/simplify` 위임) → 보안 검증 → 빌드 후 다음 스킬 제안(push 했으면 `/land`, 잔여 정리면 `/sweep` — 추천만, 자동 시작 X).
+**파이프라인 3종 공통 흐름**: 소크라테스 인터뷰 → plan review 게이트(상류 리뷰면 스킵, 고위험만 적대 1-pass) → 동적 워크플로 TDD(sonnet) → simplify 검토 패스(forge·renew·hunt, 옵션·동작불변, `/simplify` 위임) → 보안 검증 → 빌드 후 다음 스킬 제안(push 했으면 `/land`, 잔여 정리면 `/sweep` — 추천만, 자동 시작 X).
 
 엔진은 두 실행 모드를 가진다 — **linear**(기본, 단일세션) / **orchestrated**(멀티에이전트 council, 명시 요청 시). 사용법은 [`docs/guides/craft-modes.md`](docs/guides/craft-modes.md).
 
@@ -104,7 +104,6 @@ cp -R skills/forge skills/craft-core ~/.claude/skills/
 | Claude Code | ✅ | 스킬은 Claude Code Skill 기능 위에서 동작 |
 | 설치 경로 `~/.claude/skills/` | ✅ 고정 | 다른 위치면 craft-core 엔진을 못 찾아 깨짐 |
 | **craft-core** | ✅ | 파이프라인 3종 + deep-plan 공유 엔진. 빼면 4개 전부 동작 불가 |
-| **`codex:rescue` 플러그인** | ⚠️ 권장 | Phase 2(적대 플랜 리뷰)가 호출. 없으면 그 단계는 수동 대체/생략. handoff 는 무관 |
 
 `~` 절대경로는 사용자별 전개되므로 어느 머신이든 `~/.claude/skills/` 설치면 동작.
 
@@ -136,7 +135,7 @@ ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt h
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.
-- **Phase 2 codex 에러/스킵** → `codex:rescue` 미설치. 수동 리뷰 또는 codex 플러그인 설치.
+- **Phase 4 correctness 리뷰 스킵** → `/code-review` 미설치. `adversarial-review.md` 계약으로 적대 subagent 폴백.
 - **스킬 안 보임** → Claude Code 재시작 (세션 시작 시 로드).
 - **handoff 저장 위치** → git repo 의 `docs/handoff/`. repo 밖/non-git 이면 `~/.claude/projects/<slug>/handoff/`.
 

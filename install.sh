@@ -33,6 +33,6 @@ echo
 echo "Done. Installed ${#installed[@]} skills: ${installed[*]}."
 echo "Restart Claude Code (or start a new session) to load them."
 echo
-echo "Note: the forge/hunt/renew pipeline uses the 'codex:rescue'"
-echo "plugin for its adversarial plan-review phase. If it is not installed,"
-echo "that phase falls back to manual review. See README.md."
+echo "Note: the forge/hunt/renew Phase 4 correctness review uses '/code-review'."
+echo "If it is unavailable, that phase falls back to an adversarial subagent"
+echo "(craft-core/references/adversarial-review.md). See README.md."

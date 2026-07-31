@@ -7,8 +7,8 @@ user-invocable: false
 # Craft Core
 
 공유 4-phase 개발 엔진: **Socratic 인터뷰 → plan review 게이트
-(상류 리뷰면 스킵, 고위험만 codex 1-pass) → dynamic-workflow TDD →
-codex diff 리뷰 포함 보안 검증**. 3종의 작업유형 스킬(`forge`,
+(상류 리뷰면 스킵, 고위험만 적대 1-pass) → dynamic-workflow TDD →
+correctness diff 리뷰 포함 보안 검증**. 3종의 작업유형 스킬(`forge`,
 `renew`, `hunt`)은 각자 자신의 Socratic 초점과 TDD 진입점을 얹은 뒤
 이 엔진을 돌린다.
 
@@ -18,9 +18,9 @@ codex diff 리뷰 포함 보안 검증**. 3종의 작업유형 스킬(`forge`,
 
 - `references/pipeline.md` — 전체 4-phase 파이프라인 (척추).
 - `references/socratic.md` — Phase 1 의 Socratic 질문법.
-- `references/codex-review.md` — codex-companion 직접 호출(`codex:rescue` 경유 아님)
-  1-pass 리뷰 공통 계약 — 호출 규약·verdict 파싱·triage 원장·watchdog SSOT
-  (소비처: Phase 2 폴백·security.md §2·deep-plan 호출 규약).
+- `references/adversarial-review.md` — 적대 리뷰 1-pass 공통 계약 — 프롬프트 골격·
+  verdict 파싱·triage 원장 SSOT (소비처: Phase 2 잔여·security.md §2 폴백·deep-plan
+  debate 라운드). cross-model(codex)은 2026-07-30 은퇴 — 같은 모델 + 역할 분리다.
 - `references/dynamic-tdd.md` — `Workflow` 도구 기반 태스크 분할 + TDD (모델 규칙 SSOT).
 - `references/security.md` — 보안 검증 (Phase 4).
 - `references/ui-verify.md` — UI 인수 검증: 인터랙션 실구동 + 시안 갭 분석 (Phase 4, UI 빌드만)

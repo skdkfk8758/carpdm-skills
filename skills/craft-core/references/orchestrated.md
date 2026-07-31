@@ -70,11 +70,10 @@ driver 는 에이전트를 idle 로 붙잡아 두지 않고, 필요할 때 이�
      rationale in context — you persist across the whole job."
    - **adversary** (`name: 'adversary'`, `subagent_type: general-purpose`) — 적대적 플랜 리뷰어.
      Brief: "You are the adversarial reviewer. Attack the designer's plan per
-     `~/.claude/skills/craft-core/references/codex-review.md` — hidden assumptions,
-     missing edges, security holes, a simpler path, scope creep, ADR conflicts. If
-     the `codex:rescue` plugin is available, invoke it and fold its findings in.
-     Label each finding blocking / non-blocking. You exist to make the plan wrong
-     before code does."
+     `~/.claude/skills/craft-core/references/adversarial-review.md` — hidden
+     assumptions, missing edges, security holes, a simpler path, scope creep, ADR
+     conflicts. Label each finding blocking / non-blocking. You exist to make the
+     plan wrong before code does."
 
 QA / tester / correctness / security 를 여기서 spawn 하지 말 것 — 그들은 Phase 4 에 속하고
 council 멤버가 아니다(이름 없는 Workflow 에이전트).
@@ -106,12 +105,12 @@ Loop:
    쓴다 (또는 갱신한다). 섹션은 craft-engine 표준 (Goal / Scope / Files /
    Steps→verify / Risks / Security surface / YAGNI / Acceptance).
 3. **Attack 라운드.** main 이 플랜 경로를 **adversary** 에게 넘긴다; adversary 가
-   blocking + non-blocking 발견 (그리고 있으면 codex 의) 을 반환한다. main 이 blocking
-   발견을 designer 에게 중계한다.
+   blocking + non-blocking 발견을 반환한다. main 이 blocking 발견을 designer 에게
+   중계한다.
 4. **Converge check** — **둘 다** 게이트가 성립할 때까지 1–3 을 반복한다:
    - **User-approval 게이트** — 사용자가 현재 플랜을 보고 승인했다.
-   - **Adversary 게이트** — adversary (그리고 codex) 가 **blocking** 이의를
-     제기하지 않는다, **또는** 2 리뷰 라운드가 완료됐다. 각 라운드의 평결을 플랜에 기록한다.
+   - **Adversary 게이트** — adversary 가 **blocking** 이의를 제기하지 않는다,
+     **또는** 2 리뷰 라운드가 완료됐다. 각 라운드의 평결을 플랜에 기록한다.
 
 둘 다 통과하면, 플랜은 Phase 3 계약으로 frozen 된다. 최종 `.md` 와 맞도록
 `.html` 을 갱신한다.
@@ -146,11 +145,6 @@ Workflow 를 구동한다; 빌드 에이전트는 이름 없는 무상태 Workfl
 > **같은 이름을 재spawn 하지 말 것** — 최신 것이 이름을 가져간다(latest wins). designer 를
 > Agent 로 다시 띄우면 Phase 1 의 설계 의도가 그 이름에서 끊긴다. Phase 4 에서 부를 것은
 > §0 이 띄운 그 designer 다.
-
-(opt-in — `--codex-build` 또는 명시 요청 시: 빌드 레인의 green 스텝을 codex 로
-위임하는 cross-model 구현. Phase 2 의 cross-model 리뷰와 대칭이며, red·verify·intent
-judgment 는 여전히 Claude 가 쥔다. 계약·limit 래더 SSOT `codex-build.md`. 미발동이면
-아래 표준 Workflow 빌드 그대로 — floor.)
 
 승인된 플랜의 Steps 를 `args.tasks` (`{ id, title, spec, files }`) 로 넘긴다.
 
@@ -305,8 +299,8 @@ Part A~C 결과를 designer 에게 넘기는 데까지만 신경 쓰고 인계�
 - 이 토폴로지는 의도적으로 비싼 경로다: 이름 붙은 council 에이전트 2(세션 티어) +
   빌드 fan-out + 검증 fan-out + loop-back. 설계 리스크가
   진짜일 때만 정당하다.
-- `codex:rescue` 부재 → adversary 가 스스로 Phase 2 공격을 한다 (수동
-  폴백), linear 파이프라인과 동일.
+- Phase 2 공격은 adversary 가 스스로 한다 — cross-model 보강은 은퇴했다
+  (codex 플러그인 제거, 2026-07-30). linear 파이프라인과 동일.
 - Workflow 실행이 빌드 중간에 실패하면, designer/adversary 의 **이름은 그대로 유효하다** —
   고치고 Workflow 를 재시작하라; council 을 재spawn 하지 말 것(재spawn 은 이름을 빼앗아
   설계 의도를 끊는다).

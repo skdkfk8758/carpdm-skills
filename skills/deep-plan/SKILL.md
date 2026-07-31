@@ -1,26 +1,28 @@
 ---
 name: deep-plan
-description: 사용자의 요청문을 fable(저자)×codex(적대 비평자) 교차모델 debate 로 깎아 자율 에이전트가 먹을 수 있는 Goal Prompt 로 만들고, 그 과정에서 두 모델이 지목한 컨텍스트 갭을 인터뷰로 채운 뒤, 프롬프트(`-prompt.md`) + 구현 PLAN(`.md`) + 통합 뷰(`.html`)를 산출하고 빌드하지 않고 멈춘다. 사용자가 plan/설계/기획안/제안서/접근법/로드맵/UI 시안을 원하되 지금 구현은 원하지 않을 때 사용 — "계획 세워줘", "어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안 만들어줘", "UI 시안 뽑아줘", "design doc 작성", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 번호 매긴 요구사항 spec 결정화는 deep-interview, 프롬프트 한 덩어리만 필요하면 deep-prompt, 실제 구현/버그수정/기존 동작 변경은 forge/hunt/renew — deep-plan 은 코드를 쓰지 않는다, 프롬프트와 plan 만 쓴다.
+description: 사용자의 요청문을 fable 저자 × fable 비평자(별 좌석) debate 로 깎아 자율 에이전트가 먹을 수 있는 Goal Prompt 로 만들고, 그 과정에서 두 좌석이 지목한 컨텍스트 갭을 인터뷰로 채운 뒤, 프롬프트(`-prompt.md`) + 구현 PLAN(`.md`) + 통합 뷰(`.html`)를 산출하고 빌드하지 않고 멈춘다. 사용자가 plan/설계/기획안/제안서/접근법/로드맵/UI 시안을 원하되 지금 구현은 원하지 않을 때 사용 — "계획 세워줘", "어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안 만들어줘", "UI 시안 뽑아줘", "design doc 작성", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 번호 매긴 요구사항 spec 결정화는 deep-interview, 프롬프트 한 덩어리만 필요하면 deep-prompt, 실제 구현/버그수정/기존 동작 변경은 forge/hunt/renew — deep-plan 은 코드를 쓰지 않는다, 프롬프트와 plan 만 쓴다.
 ---
 
-# Deep Plan — fable×codex debate 메타프롬프팅 → 갭 인터뷰 → PLAN(+시안), 빌드 없음
+# Deep Plan — fable×2 debate 메타프롬프팅 → 갭 인터뷰 → PLAN(+시안), 빌드 없음
 
 당신은 **계획을 세우지, 빌드하지 않는다.** 사용자가 던지는 한 문단짜리 요청은 자율
 실행 계약으로는 약하다 — 그 약함을 사람이 스스로 보기는 어렵다. 그래서 이 스킬은
-**두 모델의 debate** 로 요청문을 깎는다: fable 서브에이전트가 초안을 쓰고(저자),
-codex 가 다른 가중치로 그것을 공격하며 갭을 보태고(적대 비평자), 갭 union 만큼
+**두 좌석의 debate** 로 요청문을 깎는다: fable 서브에이전트가 초안을 쓰고(저자),
+두 번째 fable 서브에이전트가 skeptic 좌석에서 그것을 공격하며 갭을 보태고(적대
+비평자 — 교차모델 codex 는 2026-07-30 은퇴, Step 2 기록), 갭 union 만큼
 사용자를 인터뷰한 뒤, 저자가 반영하고 비평자가 최종 verdict 를 낸다. 산출물은 셋:
 실행 계약인 Goal Prompt(`-prompt.md`), 설계 근거인 PLAN(`.md`), 사람이 보는 통합
 뷰(`.html`).
 
-교차모델인 이유: 같은 모델은 대체로 같은 걸 못 본다. 저자와 채점자가 다른
-가중치여야 자기채점이 진짜 검증이 된다. **이 debate 가 플랜 적대리뷰의 소유자다**
-(2026-07-29 — 빌드 파이프라인 Phase 2 는 이 verdict 기록을 보고 재리뷰를
+좌석을 나누는 이유: 한 컨텍스트가 자기 초안을 채점하면 승인으로 수렴한다. 별
+컨텍스트 + skeptic 역할이어야 채점이 성립한다 — **교차모델이었던 종전보다 약한
+장치라는 것을 알고 쓴다**(Step 2 은퇴 기록). **이 debate 가 플랜 적대리뷰의
+소유자다** (2026-07-29 — 빌드 파이프라인 Phase 2 는 이 verdict 기록을 보고 재리뷰를
 스킵하는 게이트로 축소됐다). TDD 도, 보안 페이즈도, 구현 코드도 없다.
 
 막아야 할 실패 넷: (1) 깎이지 않은 요청문이 그대로 자율 에이전트 goal 칸에 들어가
 에이전트가 완료를 판정하지 못하는 것, (2) 갭을 모르는 채 인터뷰가 표류하는 것,
-(3) 두 강모델이 스타일 논쟁으로 라운드를 태우는 것(→ BLOCKING 규약 + 고정 왕복),
+(3) 두 좌석이 스타일 논쟁으로 라운드를 태우는 것(→ BLOCKING 규약 + 고정 왕복),
 (4) UI plan 의 `.html` 이 plan 텍스트를 렌더만 하고 *결과 화면*을 안 보여주는 것.
 
 ## 경계
@@ -45,7 +47,7 @@ codex 가 다른 가중치로 그것을 공격하며 갭을 보태고(적대 비
 |---|---|
 | Step 0 입력이 Linear 이슈 참조일 때 | `~/.claude/skills/linear-goal/references/routing.md` §goal-ready |
 | Step 0 문서 grounding 시 | `cc/context-adr.md` |
-| Step 2 codex 호출 직전 (첫 1회) | `cc/codex-review.md` 의 "어떻게 호출하는가" 절 |
+| Step 2 비평자 기동 직전 (첫 1회) | `cc/adversarial-review.md` 의 "어떻게 돌리는가" 절 |
 | Step 5 PLAN 작성 직전 | `cc/pipeline.md` 의 Phase 1 (plan 섹션 + HTML companion + Eval 패널 규칙) |
 | Step 6 UI 목업을 **그릴 때만** | `~/.claude/skills/mockup/references/design-context.md` |
 | Step 6 ERD 분기 **진입 시만** | `~/.claude/skills/erd/SKILL.md` + `assets/erd-template.html` + `references/schema-discovery.md` |
@@ -55,9 +57,9 @@ codex 가 다른 가중치로 그것을 공격하며 갭을 보태고(적대 비
 
 fable 저자에게는 `dp/SKILL.md` 의 "고정 템플릿 채우기"·"검증 가능성 게이트" 절
 **경로를 프롬프트에 실어** 서브에이전트가 직접 읽게 한다(메인이 본문을 중계하지
-않는다 — 재직렬화 손실 회피). `cc/codex-review.md` 에서 가져오는 것은 **호출
-규약**(plugin root 해소·`task` / `task --resume-last`·stdout↔stderr 분리·read-only
-규칙)뿐이다. 그 파일의 리뷰 프롬프트·원장 계약은 이 스킬 것이 아니다 —
+않는다 — 재직렬화 손실 회피). `cc/adversarial-review.md` 에서 가져오는 것은 **리뷰어
+기동 규약**(read-only·역할 명시·대상을 경로로·1회)뿐이다. 그 파일의 리뷰 프롬프트·
+원장 계약은 이 스킬 것이 아니다 —
 가져오지 말 것(debate 는 자체 BLOCKING/SUGGESTION·왕복 규약을 쓴다).
 
 파일이 없으면(해당 스킬 미설치) 그 사실을 말하고 같은 원리를 직접 적용한다.
@@ -107,36 +109,34 @@ fable 저자에게는 `dp/SKILL.md` 의 "고정 템플릿 채우기"·"검증 �
 
 갭 목록 없이 초안만 오면 실패로 친다 — 갭을 요구하는 한 문장으로 한 번 재요청.
 
-### Step 2 — debate ② codex 적대 비평 (비평자)
+### Step 2 — debate ② 적대 비평 (비평자)
 
-`cc/codex-review.md` 의 호출 규약대로 **codex-companion 을 Bash 로 직접** 호출한다
-(`codex:rescue` 경유 아님 — 그 계약은 실패 시 부분 결과를 버린다):
+**두 번째 fable 서브에이전트를 비평자 좌석에 띄운다** — `Agent`(`model: 'fable'`,
+`name: 'dp-critic'`), skeptic 프레이밍 + 아래 산출 계약. 저자(`dp-author`)와 **별
+컨텍스트**여야 한다(같은 에이전트에 자기 비평을 시키면 debate 가 아니다).
 
-```bash
-ROOT=$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1)
-CLAUDE_PLUGIN_ROOT="$ROOT" node "$ROOT/scripts/codex-companion.mjs" task --effort medium \
-  "<비평 프롬프트>" > <scratch>/dp-meta-critique-out.txt 2> <scratch>/dp-meta-critique-err.txt
-```
+> **cross-model(codex) 은퇴 (2026-07-30).** 종전 이 좌석은 codex 였다 — 다른 가중치가
+> 초안을 공격하는 교차모델 debate. 사용자 요청으로 codex 플러그인을 제거하면서
+> 종전의 **폴백(fable×2)이 유일 경로로 승격**됐다. **잃은 것: 교차모델성.** debate
+> 구조(역할 분리 + BLOCKING/SUGGESTION 계약)는 그대로지만 두 좌석이 같은 모델이므로
+> 공유 맹점은 이 단계가 못 잡는다 — 그래서 Step 3 갭 인터뷰(사람에게 묻는 층)가
+> 종전보다 더 중요하다. 복원: `claude plugin install codex@openai-codex` 후 git
+> history 의 이 절 revert.
 
-- **read-only 로 유지** — `--write` 를 붙이지 않고, 프롬프트에도 평이한 말로
-  *"Do not edit, create, or delete any files."* 라고 쓴다.
-- **마스킹 (송신 전 필수)** — codex 는 외부 모델이다. 프롬프트에 실리는 초안·
-  repo-context 에 secret·credential·내부 호스트·PII 를 넣지 않는다 — 경로·계약
-  형태·standing 결정 요약만. Step 7.5 Linear 첨부의 마스킹 게이트와 동형이다.
-- **effort 는 medium 기본.** 보안 경계·외부 계약·마이그를 수반하는 요청만 상향.
-- **watchdog** — background + 진행 감시, 무진행이면 kill 하고 stderr 파일에서
-  부분 결과를 회수한다. **임계값(무진행 판정·hard cap)은 여기 적지 않는다** —
-  SSOT 는 `~/.claude/rules-ondemand/delegated-review-watchdog.md` 이고, 수치를
-  중복 인라인하면 그쪽이 실측으로 갱신될 때 조용히 어긋난다(실측 drift 1건).
+- **read-only 로 유지** — 프롬프트에 평이한 말로 *"Do not edit, create, or delete any
+  files."* 라고 쓴다.
+- **역할을 명시하라** — 같은 모델이므로 skeptic 역할 프레이밍이 유일한 독립성 장치다.
+  이걸 빼면 비평이 초안 승인으로 수렴한다.
 
-비평 프롬프트는 compact 한 XML-태그 operator 형태 — fable 초안 전문 + 원 요청문 +
+비평 프롬프트는 compact 한 XML-태그 형태 — fable 초안 전문 + 원 요청문 +
 repo-context 를 싣고, 산출 계약을 강제한다:
 
 ```
 <task>
-Adversarially critique the draft Goal Prompt below. It was written by another
-model for an autonomous build agent. Find what is WRONG or MISSING. Review and
-write only in your answer — do NOT edit, create, or delete any files.
+Adversarially critique the draft Goal Prompt below. It was written by a separate
+author agent for an autonomous build agent. You are the skeptic seat: your job is
+to find what is WRONG or MISSING, not to approve. Review and write only in your
+answer — do NOT edit, create, or delete any files.
 </task>
 <contract>
 The deliverable is a Goal Prompt for a FUTURE autonomous build agent that runs
@@ -160,19 +160,19 @@ intended contract. Do not flag that as goal inversion.
 
 태그 없는 비평 항목이 오면 SUGGESTION 으로 강등 처리한다(의무 반영은 명시적
 BLOCKING 만 — 취향 진동 차단). `<contract>` 블록은 생략 금지 — 실측(2026-07-21
-첫 debate 런): 이 블록 없이 보내자 codex 가 "구현하지 마"를 소비자 계약으로 오독해
+첫 debate 런): 이 블록 없이 보내자 비평자가 "구현하지 마"를 소비자 계약으로 오독해
 BLOCKING 9건 중 6건이 거짓 goal-inversion 이었다. 계약을 처음부터 실으면 그 노이즈가
 안 생긴다.
 
-**폴백.** codex 미설치·호출 실패·watchdog kill 로 비평을 못 얻으면 **두 번째
-fable 서브에이전트가 비평자 좌석을 승계**한다(skeptic 프레이밍 + 동일
-BLOCKING/SUGGESTION·GAPS 산출 계약). 교차모델성만 잃고 debate 구조는 보존 — 강등
-사실을 *"codex 미사용, fable×2 debate 로 산출"* 로 명시 보고한다. 스킬을 중단하지
-않는다.
+**동조 감시.** 비평이 BLOCKING 0건 + SUGGESTION 만으로 오면 그게 "초안이 좋다"는
+증거가 아니다 — 같은 모델의 자기 승인일 수 있다. 그 경우 **갭 목록이 비어 있는지**로
+가른다: 갭도 0건이면 skeptic 프레이밍이 먹지 않은 것이므로 "무엇이 이 초안을 깨뜨리는가"
+한 문장으로 **1회 재요청**한다. 재요청도 0건이면 그 사실을 Step 8 보고에 명시한다
+(교차모델 은퇴 이후 이 단계의 주 실패 모드다).
 
 ### Step 3 — 갭 인터뷰 (union — 인터뷰 기계는 이것 하나뿐)
 
-fable 갭 + codex 갭을 **union·dedup** 한 목록이 인터뷰의 유일한 의제다. 별도
+저자 갭 + 비평자 갭을 **union·dedup** 한 목록이 인터뷰의 유일한 의제다. 별도
 모호성 점수·임계값을 두지 않는다 — **갭 목록 소진**이 종료 게이트다.
 
 1. **`[CODE]` 갭은 내가 닫는다.** Read/Grep 으로 답하고, 사용자에게 묻지 않는다.
@@ -207,15 +207,15 @@ assumption 으로 승격"* 을 남긴다. 자율 잡의 "사람 프롬프트 0" 
 
 ### Step 4 — debate ③④ 반영 + 최종 verdict (델타 판정 게이트)
 
-**델타 판정 먼저 — 접을 델타가 없으면 여기서 debate 를 끝낸다.** codex 비평에
+**델타 판정 먼저 — 접을 델타가 없으면 여기서 debate 를 끝낸다.** 비평에
 BLOCKING 0건 **그리고** 갭 인터뷰·`[CODE]` 보정이 아무것도 바꾸지 않았으면
 **fable 초안이 곧 최종 프롬프트다**(2비트 종료 — crisp 요청의 빠른 경로). 스킵
 사실을 한 줄 보고하고 Step 5 로 간다.
 
 **소형 plan 적응(3비트) — 델타가 있어도 ④ 를 생략할 수 있다.** 예상 Steps ≤ 3
-**AND** BLOCKING ≤ 2 **AND** 보안 표면 없음이면, ③ 반영까지만 돌고 ④ codex 최종
+**AND** BLOCKING ≤ 2 **AND** 보안 표면 없음이면, ③ 반영까지만 돌고 ④ 최종
 verdict 를 생략한다 — 메인이 원장(BLOCKING→처리·GAP→답)을 항목별로 자가검증하고
-*"3비트 종료(소형 적응) — 교차 채점 생략"* 을 명시 보고한다. 교차검증 손실이
+*"3비트 종료(소형 적응) — 최종 채점 생략"* 을 명시 보고한다. 채점 손실이
 트레이드오프이므로 **BLOCKING ≥ 3 또는 보안 표면이 있으면 항상 4비트**.
 
 델타가 있으면(소형 적응 비해당 시) 나머지 2비트를 돈다:
@@ -224,14 +224,17 @@ verdict 를 생략한다 — 메인이 원장(BLOCKING→처리·GAP→답)을 �
   넘긴다: `BLOCKING n → 처리:` / `GAP n → 답:` / `[CODE] GAP n → 코드 실측:` 한
   줄씩. 규칙: **BLOCKING 은 의무 반영**, SUGGESTION 은 재량 — 기각 시 사유 1줄.
   산출 = 최종 7섹션 프롬프트 + 항목별 처리 원장.
-- **④ codex 최종 verdict — Step 5 PLAN 작성 *후*에 돌린다.** `task --resume-last`
-  로 같은 스레드 재개, 최종 프롬프트 **와 PLAN 경로**를 함께 넘겨 항목별 verdict
-  를 받는다: (a) 자기 BLOCKING·갭이 실제로 닫혔는지, (b) **PLAN 구체 공격** —
-  각 Step 의 verify 가 그 Step 을 실제 증명하는지, Files 가 실존하는지(레포 실측
-  대조), Acceptance 가 검증 가능한지, 숨은 가정·누락 엣지·더 단순한 경로.
-  저자와 채점자가 다른 모델이라 이 채점이 진짜 교차검증이고, (b) 가 빌드
-  파이프라인의 구체-플랜 적대리뷰를 대체한다(Phase 2 는 이 verdict 기록을 보고
-  스킵 — `pipeline.md` Phase 2 판정 2).
+- **④ 비평자 최종 verdict — Step 5 PLAN 작성 *후*에 돌린다.** `SendMessage` 로
+  `dp-critic` 을 재개(컨텍스트 유지 — 자기 BLOCKING 을 기억해야 닫힘을 채점할 수
+  있다), 최종 프롬프트 **와 PLAN 경로**를 함께 넘겨 항목별 verdict 를 받는다:
+  (a) 자기 BLOCKING·갭이 실제로 닫혔는지, (b) **PLAN 구체 공격** — 각 Step 의
+  verify 가 그 Step 을 실제 증명하는지, Files 가 실존하는지(레포 실측 대조),
+  Acceptance 가 검증 가능한지, 숨은 가정·누락 엣지·더 단순한 경로.
+  채점자가 저자와 **다른 좌석**(별 컨텍스트 + skeptic 역할)이라 이 채점이 성립하고,
+  (b) 가 빌드 파이프라인의 구체-플랜 적대리뷰를 대체한다(Phase 2 는 이 verdict
+  기록을 보고 스킵 — `pipeline.md` Phase 2 판정 2). **단 같은 모델이므로 종전의
+  교차모델 채점보다 약하다** — 그래서 (b) 의 Files 실존·verify 증명력은 verdict 를
+  믿지 말고 메인이 직접 대조한다(원장 규율, `cc/adversarial-review.md`).
 
 **왕복은 고정 2회가 상한이다**(4비트; 델타 0 이면 1왕복 2비트). 수렴까지 돌지
 않는다 — verdict 에 미해소 BLOCKING 이 남아도 3왕복 대신 프롬프트 Constraints 의
@@ -278,8 +281,8 @@ Phase 4 에서 하나씩 검증해 닫을 체크리스트. `[AUTO]`=결정론·�
 
 **debate verdict 를 PLAN 에 기록한다 (스킵 신호 — 의무).** PLAN 작성 직후 Step 4
 ④(위 규칙 — 최종 프롬프트 + PLAN 함께 채점)를 돌리고, 그 결과를 PLAN 말미에
-`## Codex review` 섹션으로 남긴다 — 비트 수(2·3·4), BLOCKING 처리 요약, 폴백
-(fable×2) 여부, 미해소 assumption 목록. 2·3비트 종료(④ 생략)면 그 사유를 같은
+`## Plan review` 섹션으로 남긴다 — 비트 수(2·3·4), BLOCKING 처리 요약, 미해소
+assumption 목록. 2·3비트 종료(④ 생략)면 그 사유를 같은
 섹션에 쓴다. 빌드 파이프라인 Phase 2 가 이 섹션의 실존으로 "상류 리뷰 있음"을
 판정해 플랜 재리뷰를 스킵한다 — 섹션이 없으면 빌드에서 같은 플랜이 다시
 리뷰된다(중복 비용).
@@ -339,7 +342,7 @@ Artifact publish. 판정: 스키마/관계가 plan 의 핵심이면 그린다 �
 딜리버러블은 Step 6 에서 publish 한 **artifact URL** 이다. 예:
 
 ```
-result: <topic> 프롬프트+PLAN 산출 — fable×codex debate N비트, 갭 N건 해소, N steps, scope IN <…> / OUT <…>
+result: <topic> 프롬프트+PLAN 산출 — fable×2 debate N비트, 갭 N건 해소, N steps, scope IN <…> / OUT <…>
 
 산출물 — 열기:
 - 프롬프트 `docs/plans/2026-06-04-<topic>-prompt.md`  →  `open docs/plans/2026-06-04-<topic>-prompt.md`
@@ -349,8 +352,9 @@ result: <topic> 프롬프트+PLAN 산출 — fable×codex debate N비트, 갭 N�
 (`open` = macOS. Linux `xdg-open <path>`, Windows `start <path>`.)
 ```
 
-codex 폴백(fable×2 강등)이 발동했으면 그 사실을 `result:` 아래 한 줄로 반드시
-덧붙인다. verdict 에 미해소 BLOCKING 이 assumption 으로 승격됐으면 그 목록도.
+Step 2 동조 감시에서 비평이 재요청 후에도 BLOCKING·갭 0건이었으면 그 사실을
+`result:` 아래 한 줄로 반드시 덧붙인다(교차모델 은퇴 이후 주 실패 모드).
+verdict 에 미해소 BLOCKING 이 assumption 으로 승격됐으면 그 목록도.
 
 **이 보고를 emit 했다고 턴을 끝내지 마라.** "정지"는 빌드 미진입(craft Phase 2+
 금지)을 뜻하지 턴 종료가 아니다 — 같은 턴에서 Step 7.5(Linear 등록 제안)와
@@ -408,10 +412,10 @@ PLAN `.md` 에 기록.
 - **goal-ready Linear 이슈 재플래닝** — 실측 증거·측정가능 AC·범위 밖·단일 해석을
   다 갖춘 이슈에 plan 재생성은 중복(Step 0 readiness 게이트 — routing.md §goal-ready).
   제안 없이 debate 로 직행하지 말 것.
-- **codex 를 수렴 핑퐁 리뷰어로 쓰기** — 여기서 codex 의 일은 고정 비트
+- **비평자를 수렴 핑퐁 리뷰어로 쓰기** — 비평자의 일은 고정 비트
   debate 비평 + 최종 verdict 뿐이다. 수렴까지 도는 루프는 어디에도 없다
   (미해소 BLOCKING 은 assumption·Risks 승격 — Step 4 상한 규칙).
-- **④ verdict 를 돌리고도 PLAN 에 `## Codex review` 섹션 미기록** — 스킵 신호가
+- **④ verdict 를 돌리고도 PLAN 에 `## Plan review` 섹션 미기록** — 스킵 신호가
   없으면 빌드 파이프라인이 같은 플랜을 다시 리뷰한다(중복 비용, Step 5 의무).
 - **왕복 3회 이상 / 델타 0 인데 반영·verdict 비트 실행** — 상한 고정 2왕복(4비트),
   델타 없으면 1왕복(2비트)에서 끝낸다. 미해소 BLOCKING 은 추가 왕복이 아니라
@@ -420,10 +424,13 @@ PLAN `.md` 에 기록.
   진동의 연료다. 의무는 명시적 BLOCKING 만, 무태그는 SUGGESTION 강등.
 - **메인 루프가 저자 겸직** — 저자는 항상 fable 서브에이전트. orchestrator 가
   초안까지 쓰면 저자/중재자 분리가 무너진다.
-- **codex 불가 시 비평 생략** — 폴백은 두 번째 fable 비평자 승계다. 비평 좌석을
-  비운 채 초안을 최종으로 내보내지 않는다(강등 보고 의무).
-- **codex 송신물에 secret·credential·내부 호스트 포함** — codex 는 외부 모델,
-  송신 전 마스킹 필수.
+- **비평 좌석 생략** — 비평자를 비운 채 초안을 최종으로 내보내지 않는다. debate 가
+  아니라 단일 초안이 된다.
+- **저자에게 자기 비평을 시킴** — `dp-author` 를 재개해 비평까지 받으면 별 컨텍스트가
+  아니라 자기 승인이다. 비평자는 별도 `dp-critic` 좌석이어야 한다(교차모델 은퇴로
+  좌석 분리가 유일한 독립성 장치가 됐다).
+- **BLOCKING 0건을 "초안이 좋다"로 읽기** — 같은 모델의 동조일 수 있다. Step 2 동조
+  감시(갭도 0건이면 1회 재요청, 그래도 0건이면 보고)를 건너뛰지 말 것.
 - **프롬프트 Success Criteria 와 PLAN Acceptance 를 따로 진화시키기** — SSOT 는
   Acceptance, 어긋나면 프롬프트를 고친다.
 - **갭 목록 없이 인터뷰 시작 / union·dedup 없이 양측 갭을 중복 질문** — 의제 없는

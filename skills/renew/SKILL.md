@@ -1,7 +1,7 @@
 ---
 name: renew
 description: >-
-  엄격한 파이프라인을 통해 EXISTING 기능을 새단장하거나 개편한다 — 무엇이 바뀌어야 하고 무엇이 보존되어야 하는지 분리하는 소크라테스식 인터뷰 → plan review 게이트(상류 deep-plan 리뷰면 스킵, 고위험만 codex 1-pass) → dynamic-workflow TDD → codex diff 리뷰 포함 보안 검증. 사용자가 기존 기능, 플로우, 화면, 또는 API 를 CHANGE, REDESIGN, REVAMP, MODERNIZE, OVERHAUL, EXTEND, 또는 REWORK 하려 할 때마다 사용한다 — "redo the X", "rework how Y works", "modernize the Z flow", "change the behavior of W", "the old A should now also do B", "이 화면 개편해줘", "동작 바꿔줘", "리뉴얼해줘", "고도화해줘", "이 기능 손봐줘", "기존 X 를 Y 도 되게 확장해줘" 같은 표현. 특히 하위 호환성, 마이그레이션, 또는 기존 호출자를 깨지 않는 것이 중요할 때. 완전히 새로운 것을 만들거나(use forge), 버그를 고치는(use hunt) 데에는 사용하지 말 것.
+  엄격한 파이프라인을 통해 EXISTING 기능을 새단장하거나 개편한다 — 무엇이 바뀌어야 하고 무엇이 보존되어야 하는지 분리하는 소크라테스식 인터뷰 → plan review 게이트(상류 deep-plan 리뷰면 스킵, 고위험만 적대 1-pass) → dynamic-workflow TDD → correctness diff 리뷰 포함 보안 검증. 사용자가 기존 기능, 플로우, 화면, 또는 API 를 CHANGE, REDESIGN, REVAMP, MODERNIZE, OVERHAUL, EXTEND, 또는 REWORK 하려 할 때마다 사용한다 — "redo the X", "rework how Y works", "modernize the Z flow", "change the behavior of W", "the old A should now also do B", "이 화면 개편해줘", "동작 바꿔줘", "리뉴얼해줘", "고도화해줘", "이 기능 손봐줘", "기존 X 를 Y 도 되게 확장해줘" 같은 표현. 특히 하위 호환성, 마이그레이션, 또는 기존 호출자를 깨지 않는 것이 중요할 때. 완전히 새로운 것을 만들거나(use forge), 버그를 고치는(use hunt) 데에는 사용하지 말 것.
 ---
 
 # Renew — 기존 기능 개편
@@ -9,7 +9,7 @@ description: >-
 당신은 이미 동작하며 무언가가 이미 의존하고 있는 것을 바꾸고 있다. 위험은 남아
 있어야 할 부분을 깨뜨리거나, 옛 동작에 의존하던 대상을 놓치는 것이다. 파이프라인은
 보존/변경 경계선을 명시하고, 손대기 전에 보존할 동작을 테스트로 고정하며, 구현 후
-codex cross-model diff 리뷰가 당신이 잊은 호출자·경계를 사냥하게 한다(계약 변경·
+correctness diff 리뷰가 당신이 잊은 호출자·경계를 사냥하게 한다(계약 변경·
 마이그 동반 플랜은 구현 전 1-pass 적대 리뷰도 — Phase 2 게이트).
 
 `~/.claude/skills/craft-core/references/pipeline.md` 의 공유 엔진을 실행하라
