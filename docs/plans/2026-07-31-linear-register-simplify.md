@@ -5,10 +5,11 @@
 
 ## Goal (testable success criteria)
 
-linear-register 가 등록하고 linear-groom 이 보강하는 Linear 이슈 본문이 **항상 4섹션 ·
-600자 이내 · 파일경로 0개**로 유지되고, `## 추천` 이 **붙여넣어 바로 착수하는 kickoff
-프롬프트**를 모든 이슈에 담는다. 규칙 준수는 생성(상한)·승인(게이트 미리보기)·종료
-(검증 절 카운트) 3지점에서 강제된다.
+linear-register 가 등록하고 linear-groom 이 보강하는 Linear 이슈 본문이 **고정 헤딩
+화이트리스트(항상 3 + 조건부 2) · 600자 이내 · 산문 내 파일경로 0개**로 유지되고,
+`## 추천` 이 **붙여넣어 바로 착수하는 kickoff 프롬프트**를 모든 이슈에 담는다. 규칙
+준수는 생성(상한)·승인(게이트 미리보기)·종료(검증 절 카운트) 3지점에서 강제된다.
+`>` 인용줄과 fenced 코드블록은 carve-out(규칙 대상 밖).
 
 ## Scope (IN / OUT)
 
@@ -53,8 +54,8 @@ linear-register 가 등록하고 linear-groom 이 보강하는 Linear 이슈 본
 | 2 | `skills/linear-register/references/recommend-section.md` | §A 추천 포맷 · §B 전방 포인터 · §C UI 한 줄 (공유 SSOT — groom 도 이 파일을 읽음) |
 | 3 | `skills/linear-register/references/plan-split.md` | §5 확장 템플릿의 `## Parent`/`## Blocked by` 폐지, 본문 템플릿 정렬 |
 | 4 | `skills/linear-register/references/dedup-grouping.md` | §4 게이트 표시 포맷에 본문 전문 미리보기 |
-| 5 | `skills/linear-groom/SKILL.md` | frontmatter model · surgical 규칙의 `## 배경` 참조(46) · 보강 요지 표 헤더(204) |
-| 6 | `skills/linear-groom/references/enrichment-template.md` | 채울 섹션을 4섹션으로 통일 (범위 확장분) |
+| 5 | `skills/linear-groom/SKILL.md` | frontmatter model · 원본 보존 불변식(43-44) · healthy 센티널 레거시 인식(46) · 보강 요지 문구(146-147, 204) · anti-pattern(282) |
+| 6 | `skills/linear-groom/references/enrichment-template.md` | 채울 섹션을 register 화이트리스트로 통일 + 원본 코멘트 이관 (9-11, 19-45, 53, 62) |
 | 7 | `skills/linear-register/SPEC.md` | REQ-F-016~023 / REQ-N-005~008 편입 + 개정 이력 |
 
 ## 보존 계약 (MUST survive — characterization 대상)
