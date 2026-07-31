@@ -52,30 +52,34 @@ plan 을 **tracer bullet** 이슈들로 쪼갠다. 각 이슈는 한 레이어�
 `blocks`/`blockedBy`/`parentId` 로 네이티브 세팅. **전건 기본 `state: "Backlog"`**
 (SKILL.md Step 4 와 동일 — 미활성 팀 폴백 + 변경 사유 포함).
 
-본문 템플릿 = SKILL.md 통합 템플릿 + 이 모드 전용 확장 헤딩:
+본문 템플릿 = **SKILL.md 통합 템플릿 그대로**. 이 모드 전용 확장 헤딩은 없다 —
+부모·의존은 본문 헤딩이 아니라 **Linear 네이티브 관계**(`parentId`/`blockedBy`)로만
+표현한다(구 `## Parent`/`## Blocked by` 는 같은 정보의 본문 중복이었다):
 
 ```markdown
-## Parent                ← 출처가 기존 이슈일 때만
-<부모 이슈 참조>
-
 ## 작업 내용
-<이 vertical slice 의 end-to-end 동작 — 레이어별 구현 서술 금지.
-파일 경로·코드 스니펫 지양(빨리 낡음). 예외: 프로토타입이 산출한 결정 인코딩
-스니펫(state machine, reducer, schema, type shape)은 결정 핵심부만 인라인.>
+<이 vertical slice 의 end-to-end 동작 — 3줄 이내, 레이어별 구현 서술 금지.>
 
 ## 수용 기준
 - [ ] [AUTO] <기계 검증 — 테스트/타입체크/관찰 가능 동작>
 - [ ] [HUMAN] <사람 검증 — 시각 확인/운영 apply>
 
-## 추천
-<recommend-section.md §A 로 생성 — 이 슬라이스에 맞는 스킬/에이전트>
+## 범위 밖              ← 이 슬라이스가 안 하는 것 (다음 슬라이스 몫)
+- <경계>
 
-## Blocked by
-- <blocking 이슈 참조> 또는 "None - can start immediately"
+## 추천
+<recommend-section.md §A 로 생성 — 권장 스킬 1줄 + 시작 프롬프트 코드블록>
+
+## 다음 작업           ← 이 슬라이스가 blocks 하는 다음 슬라이스가 있을 때
+<recommend-section.md §B>
 
 > Plan-reviewed: <조건부 — 아래 마커 규칙>
 > AI 가 등록·작성
 ```
+
+슬라이스는 서로 의존하므로 `## 범위 밖` 이 특히 값을 한다 — "이건 다음 슬라이스 몫"을
+적어두면 worker 가 범위를 넘지 않는다. 결정 인코딩 스니펫(state machine·schema·type
+shape)이 꼭 필요하면 **fenced 코드블록**에 넣는다 — 코드블록은 자수 상한 carve-out 이다.
 
 **`Plan-reviewed:` 마커 (조건부 의무).** 원본 plan `.md` 에 `## Plan review`
 섹션(레거시 헤딩 `## Codex review` 도 인식)이 실존하면 각 이슈에 마커 한 줄을

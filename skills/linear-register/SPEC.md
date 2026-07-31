@@ -10,6 +10,11 @@
 > 1인 운영(전 이슈 createdBy·assignee 동일)이라 수신 팀이 곧 등록자다 — 인수 판단이 중복이고,
 > 실제로 SSO 팀 Triage 에 AI 등록분 4건(SSO-68·69·70·71)이 방치돼 있었다. 다인 운영으로
 > 전환되면 되돌린다.
+> **개정 2026-07-31** — 본문 간결화(§3a): 헤딩 화이트리스트·분량 상한·비전문 문체·`## 추천`
+> kickoff 프롬프트화·게이트 본문 미리보기·`model: sonnet`. REQ-F-016~027 / REQ-N-005~010 신설,
+> **REQ-F-005 개정 · REQ-F-006 폐지**(로컬 boilerplate 줄 — 정보량 0 실측). 기존 ID 재번호 0건.
+> SPEC: `carpdm-skills/docs/specs/linear-register-simplify.md`,
+> PLAN: `carpdm-skills/docs/plans/2026-07-31-linear-register-simplify.md`(적대 리뷰 1-pass 9건).
 
 ## 1. Goal & scope
 
@@ -43,8 +48,8 @@
 | REQ-F-002 | 타깃 팀을 현재 repo → `linear-repo-map.json` 역매핑으로 추론; 맵에 없으면 사용자에게 질의 | Must | 맵에 있는 repo 에서 호출 → 해당 teamId 자동 선택; 없는 repo → "어느 팀?" 질문 | R6 |
 | REQ-F-003 | 프로젝트를 그 팀의 `list_projects` 에서 고르거나 사용자 확인 | Must | 생성 전 프로젝트가 결정/확인됨 (projectId 또는 명시적 "프로젝트 없음") | R6 |
 | REQ-F-004 | 모든 Linear 쓰기 전, "X팀 / Y프로젝트 / N건" 확인을 제시하고 대기 — 단 사용자가 "바로 등록" 지시 시 스킵 | Must | 게이트 미승인 상태에서 `save_issue`(생성) 호출 0회; "바로 등록" 입력 시에만 게이트 없이 진행 | R6 |
-| REQ-F-005 | 각 생성 이슈 본문에 "## 추천" 섹션 — **글로벌 스킬/에이전트 우선**(forge/hunt/renew/linear-goal/deep-plan + Explore/Plan), 이슈 타입·크기에 적응한 모델 판단 추천 | Must | bug 이슈 → hunt 류 추천; 큰 교차 기능 → deep-plan 류 추천; 섹션에 글로벌 후보 ≥1 명시 | R2,R3 |
-| REQ-F-006 | "## 추천" 섹션에 프로젝트 로컬 스킬/에이전트 **경량 포인터**를 부차로 포함 — 타repo 를 읽지 않음 | Must | 섹션에 "해당 repo 의 `.claude/skills`/`.agents` 도 확인" 류 1줄; 타repo 파일 read 호출 0회 | R5 |
+| REQ-F-005 *(개정 2026-07-31)* | 각 생성 이슈 본문에 "## 추천" 섹션 — **글로벌 스킬/에이전트 우선**, 이슈 타입·크기에 적응한 모델 판단 추천. **포맷은 REQ-F-019 로 대체**(권장 1줄 + 시작 프롬프트 코드블록; `대안:` 줄 폐지) | Must | bug 이슈 → hunt 류 추천; 큰 교차 기능 → deep-plan 류 추천; 섹션에 글로벌 후보 1개 + 코드블록 1개 | R2,R3 / 개정 2026-07-31 |
+| REQ-F-006 *(개정 2026-07-31)* | ~~"## 추천" 섹션에 프로젝트 로컬 스킬/에이전트 경량 포인터를 부차로 포함~~ → **폐지**. 매 이슈 동일 문구라 정보량 0 이고 repo명 치환조차 안 됐다(실측). 로컬 스킬이 실제로 더 맞으면 REQ-F-019 의 권장 자리에 직접 쓴다. 타repo 미읽기 제약은 REQ-N-003 이 계속 담당 | ~~Must~~ 폐지 | 이슈 본문에 로컬 boilerplate 문구 0회 | R5 / 폐지 2026-07-31 |
 | REQ-F-007 *(개정)* | 대형 plan/spec/PRD 분해 입력은 **내부 분할 모드**(plan-split.md — vertical slice 초안 + 분해 quiz + 의존순 발행)로 처리 | Must | "이 plan 전체를 이슈로 쪼개줘" 류 입력 → 분할 모드 진입, quiz 승인 후 의존순 발행 | 2026-07-21 R5 |
 | REQ-F-012 *(개정)* | 모든 생성 이슈 기본 `state: "Backlog"` (양 모드) — Backlog 미활성 팀은 팀 기본 state 폴백 + 보고 명시; 게이트에서 사용자 지정 state 우선 | Must | 생성 이슈 state=Backlog; 미활성 팀 → 폴백 + 보고 문구 존재 | 2026-07-21 R4 / 개정 2026-07-21 |
 | REQ-F-013 | 등록 전 팀 미완 이슈(최근 갱신순 ≤100건, Done·Canceled 제외) 대조 — 이슈별 유사 후보 ≤3건을 확인 게이트에 병합 표시, 이슈별 4택(등록/스킵/기존 보강/relatedTo 연결) | Must | 유사 존재 시 게이트에 후보+4택 표시; 자동 스킵/자동 연결 0회 | 2026-07-21 R1/R2/R6 |
@@ -55,11 +60,39 @@
 | REQ-F-010 | 등록 후 사용자에게 첫(또는 다음) 실행 가능 이슈의 kickoff 프롬프트를 응답으로 제시 | Must | 등록 종료 메시지에 즉시 복사 가능한 프롬프트 1개 포함 | R3 |
 | REQ-F-011 | 스킬이 쓰는 모든 이슈 본문/코멘트에 짧은 AI 생성 표식 1줄 부착(한국어, 예 `> AI 가 등록·작성`) | Must | 생성된 이슈 본문 하단/코멘트에 disclaimer 줄 존재 | R7 |
 
+### 3a. 본문 간결화 + 추천 kickoff (개정 2026-07-31)
+
+> 출처: `carpdm-skills/docs/specs/linear-register-simplify.md` (deep-interview 9라운드,
+> ambiguity 12%) + `docs/plans/2026-07-31-linear-register-simplify.md` (적대 리뷰 1-pass
+> 9건 반영). 근본 전환: **이슈 본문은 기계 입력이 아니라 사람 독자용 짧은 문서**이고,
+> 착수 직전 상세 플래닝은 별도 단계가 맡는다.
+
+| ID | Requirement (the system SHALL…) | Priority | Acceptance criteria | Origin |
+|----|----------------------------------|----------|---------------------|--------|
+| REQ-F-016 | 이슈 본문 헤딩을 화이트리스트로 고정 — `## 작업 내용`·`## 수용 기준`·`## 추천` + disclaimer 항상, `## 범위 밖`·`## 다음 작업` 조건부. `## 배경` 폐지, 화이트리스트 밖 헤딩 신설 금지 | Must | 본문의 `^## ` 집합 ⊆ 5개 화이트리스트; `## 배경` 출현 0회 | R2 |
+| REQ-F-017 | 숫자 분량 상한 — `## 작업 내용` ≤3줄 · `## 수용 기준` ≤5개 · 본문 전체 ≤600자(carve-out 제외) | Must | 등록 이슈가 세 상한을 모두 만족; 초과 시 등록 전 축약 | R9 |
+| REQ-F-018 | 비전문 독자 문체 — 산문에 파일경로·라인번호·심볼명 배제(산출 경로 *지정*은 예외), 한 문장 두 절 이내, 도메인 약어 첫 등장 시 쉬운 말 병기 | Must | 본문 산문에 `path:line` 형태 참조 0개 | R1,R4 |
+| REQ-F-019 | `## 추천` = 권장 스킬 1줄 + **붙여넣기용 시작 프롬프트 코드블록 1개**, 모든 이슈에(체인 여부 무관). `대안:` 줄·로컬 boilerplate 줄 폐지 | Must | 이슈마다 권장 1줄 + 코드블록 1개; `대안:` 0회; boilerplate 0회 | R7 |
+| REQ-F-020 | 확인 게이트를 2단으로 — `AskUserQuestion` **직전 메시지**에 각 이슈 본문 전문을 fenced 블록으로 제시하고, 질문 선택지는 승인/거부(+4택)만 담는다 | Must | 게이트 출력에 이슈별 본문 전문 존재; 선택지에 본문 미포함 | R9 |
+| REQ-F-021 | SKILL.md `## 검증` 절에 세는 항목 4종 추가 — 화이트리스트 밖 헤딩 0개 · 분량 상한 준수 · disclaimer 존재 · 추천 코드블록 1개 | Must | 검증 절에 4항목이 카운트 가능한 형태로 기재 | R9 |
+| REQ-F-022 | 이슈 본문이 사람용 요약임을 전제로, 착수 직전 상세 플래닝이 별도 단계임을 경계 절에 명시 | Should | `## 경계` 에 해당 문장 존재 | R4 |
+| REQ-F-023 | `## 수용 기준` 의 `[AUTO]`/`[HUMAN]` 마커 유지 — 간결화 대상 제외 | Must | 축약 후에도 각 항목에 마커 존재 | R2 |
+| REQ-F-024 | 헤딩·자수·경로 규칙의 **carve-out** — `>` 인용줄(`> 출처:`·`> Plan-reviewed:`·disclaimer)과 fenced 코드블록은 규칙 대상 밖 | Must | 템플릿 절에 carve-out 명시; `> Plan-reviewed:` 가 경로 금지와 모순 없음 | 적대 리뷰 B6 |
+| REQ-F-025 | 분할 모드도 같은 화이트리스트 사용 — `## Parent`·`## Blocked by` 폐지, 부모·의존은 네이티브 관계(`parentId`/`blockedBy`)로만 | Must | plan-split.md 에 두 헤딩 0회; `Plan-reviewed` 마커 존속 | R2 + B6 |
+| REQ-F-026 | linear-groom 보강 본문도 같은 계약 — 원본은 본문이 아니라 **이슈 코멘트로 1회 이관**(코멘트 먼저, 본문 교체 나중) | Must | groom 산출 본문에 `## 원본`·`## 현황`·`## 배경` 0회; 원본 전문이 코멘트로 존속 | 적대 리뷰 B2 |
+| REQ-F-027 | groom healthy 판정은 **레거시 헤딩**(`## 배경`·`## 현황`·`## 원본`)도 계속 structure 로 인정 — 기존 백로그 전수 재작성 방지 | Must | groom SKILL.md 에 레거시 인정 문구 존재; 기존 이슈 `updatedAt` 변화 0건 | 적대 리뷰 B7 |
+
 ## 4. Non-functional requirements
 
 | ID | Category | Requirement | Acceptance criteria | Origin |
 |----|----------|-------------|---------------------|--------|
 | REQ-N-001 *(개정)* | Compatibility/trigger | description 이 단건 등록 + 분할 등록 양쪽 트리거를 모두 커버(단일 진입점); linear-goal/linear-groom 경계 명시 | description 에 양 모드 트리거 문구 + 경계 문장 존재 | 2026-07-21 R5 |
+| REQ-N-005 | Configuration | `linear-register`·`linear-groom` frontmatter `model:` 을 `sonnet` 으로 | 두 SKILL.md 의 `model:` 이 sonnet; 그 외 키 무변경 | 2026-07-31 R8 |
+| REQ-N-006 | Compatibility | `references/recommend-section.md` 는 register·groom 공유 SSOT — 개정은 그 파일 한 곳에서만, 복제 금지 | 개정 1곳; 두 SKILL.md 는 포인터만 | 2026-07-31 R6 |
+| REQ-N-007 | Compatibility | 이미 등록된 이슈를 소급 수정하지 않는다 | 배포 후 기존 이슈 본문 `updatedAt` 변화 0건 | 2026-07-31 R6 |
+| REQ-N-008 | Traceability | 이번 개정이 무효화한 기존 Must 는 재번호 없이 *(개정 YYYY-MM-DD)* + 대체 REQ 지시 | REQ-F-005·006 에 개정 마커 + 대체 지시 존재; 기존 ID 재번호 0건 | 적대 리뷰 B3 |
+| REQ-N-009 | Compatibility | `linear-goal` 의 goal-ready 판정(`references/routing.md`)이 읽는 `## 범위 밖` 헤딩을 화이트리스트에 존치 | `## 범위 밖` 이 조건부 화이트리스트 항목으로 존속 | 적대 리뷰 B1 |
+| REQ-N-010 | Compatibility | `## 다음 작업` 의 kickoff 코드블록 존치 — `linear-goal` 이 Objective 시드·완료 턴 제시에 사용 | recommend-section.md §B 에 코드블록 존속 | 적대 리뷰 B4 |
 | REQ-N-002 | Security/safety | 확인 게이트(REQ-F-004) 전 외부 쓰기 금지 | 게이트 미승인 시 Linear 쓰기 0회 | R6 |
 | REQ-N-003 | Performance | 등록 시 타repo 파일시스템 read 안 함(경량) | 등록 경로에서 타repo Read/Grep 0회 | R5 |
 | REQ-N-004 | Reuse | 라우팅을 `linear-repo-map.json` + `linear-dispatch` 역매핑 컨벤션 재사용(재구현 금지) | 팀 결정 로직이 repo-map 참조; 별도 매핑 테이블 신설 0 | R6 |
