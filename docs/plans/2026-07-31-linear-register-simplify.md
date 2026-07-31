@@ -219,7 +219,7 @@ Linear MCP 호출 규약(승인 전 write 금지)은 무변경(P6·P7 보존).
 | B9 | FIXED | Step 3 게이트가 `AskUserQuestion`(`SKILL.md:59`) 확인 → 본문은 직전 메시지 fenced 블록, 선택지는 승인/거부만 |
 
 ## Pipeline state
-- phase: 4 (done) · mode: linear · review: 1-pass 9건 원장 닫힘 · Acceptance 12/13 닫힘(1건 §V 이관)
+- phase: 5 (done) · mode: linear · review: 1-pass 9건 원장 닫힘 · Acceptance 12/13 닫힘(1건 §V 이관)
 - updated: 2026-07-31
 
 ## Acceptance 검증 결과 (2026-07-31)
