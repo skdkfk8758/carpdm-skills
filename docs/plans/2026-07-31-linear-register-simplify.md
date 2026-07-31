@@ -171,6 +171,9 @@ Linear MCP 호출 규약(승인 전 write 금지)은 무변경(P6·P7 보존).
 
 ## Acceptance
 
+> 전 항목 검증 완료 2026-07-31 — 증거는 각 행 끝. `[AUTO]` 11/11 · `[AGENT]` 2/2 ·
+> `[HUMAN]` 1건 §V 이관. 검증 러너: `scratchpad/verify-acceptance.sh` (전 항목 PASS, exit 0).
+
 1. `[AUTO]` `! grep -q '## 배경' skills/linear-register/SKILL.md` (배경만 폐지 —
    `## 범위 밖`·`> 출처:` 는 P9/B8 로 **존속**해야 하므로 0회 검사 대상 아님).
 2. `[AUTO]` `skills/linear-register/SKILL.md` 템플릿에 `## 작업 내용`·`## 수용 기준`·
@@ -216,5 +219,32 @@ Linear MCP 호출 규약(승인 전 write 금지)은 무변경(P6·P7 보존).
 | B9 | FIXED | Step 3 게이트가 `AskUserQuestion`(`SKILL.md:59`) 확인 → 본문은 직전 메시지 fenced 블록, 선택지는 승인/거부만 |
 
 ## Pipeline state
-- phase: 2 (done) · mode: linear · review: 1-pass 9건 원장 닫힘
+- phase: 4 (done) · mode: linear · review: 1-pass 9건 원장 닫힘 · Acceptance 12/13 닫힘(1건 §V 이관)
 - updated: 2026-07-31
+
+## Acceptance 검증 결과 (2026-07-31)
+
+| # | 태그 | 결과 | 증거 |
+|---|---|---|---|
+| 1 | AUTO | ✓ | `! grep -qE '^## 배경' register/SKILL.md` — 헤딩 0건 (백틱 인용 문구는 규칙 설명이라 대상 아님) |
+| 2 | AUTO | ✓ | 작업 내용·수용 기준·범위 밖·추천·`[AUTO]`·disclaimer 전부 존재 (P1~P3·P9) |
+| 3 | AUTO | ✓ | `대안:` 0회 · `로컬 툴도 확인` 0회 · `시작 프롬프트:` 2곳(§A·§B, P10) |
+| 4 | AUTO | ✓ | plan-split 에 `^## Parent\|^## Blocked by` 0건 · `Plan-reviewed` 존속(P4) |
+| 5 | AUTO | ✓ | `3줄`·`5개`·`600자`·`carve-out` 리터럴 존재 |
+| 6 | AUTO | ✓ | 검증 절 ①~④ 항목 존재 (SKILL.md:158-160) |
+| 7 | AUTO | ✓ | `model: sonnet` × 2 (register·groom) |
+| 8 | AUTO | ✓ | dedup §4 에 `직전 메시지` + `AskUserQuestion` 2단 구조 |
+| 9 | AUTO | ✓ | REQ-F-016~027·REQ-N-005~010 신설, 기존 F-001~015 전부 존속, F-005·006 개정 마커 |
+| 10 | AUTO | ✓ | `validate-skills: OK — 25 skills valid` · `check-invisible-chars: OK — 158 files clean` · `catalog: OK — 25 skills, README.md in sync` (exit 0 ×3) |
+| 11 | AGENT | ✓ | 실제 본문 작성 후 실측 — 헤딩 4개(화이트리스트 내) · 작업 내용 3줄 · 수용 기준 2개 · **385자**(carve-out 제외) · 산문 경로 0개 · 코드블록 1개. 기존 AUT-73 = 2,300자/헤딩 6개 |
+| 12 | AGENT | ✓ | groom 에 `^## 현황\|^## 배경\|^## 원본` 0건 · enrichment-template 에 코멘트 이관 지시 · SKILL.md 에 레거시 healthy 인정 문구 |
+| 13 | HUMAN | **이관** | 다음 실제 등록 시 게이트 미리보기 유용성 — 실제 Linear 등록 워크플로 + 사용자 판단 필요, agent 대행 불가 |
+
+### 잔여 참조 sweep (correctness pass)
+
+- 폐지 구조물(`## Parent`/`## Blocked by`/`대안:`) 잔여 참조: **설명 문맥 4건뿐**
+  (전부 "구 X 는 폐지" 서술) — stale 0.
+- register 템플릿을 읽는 타 스킬 14개 점검: `craft-core/linear.md` 는 `Plan-reviewed`
+  마커·완료 코멘트 규약만 참조(둘 다 보존), `linear-goal/routing.md` 는 P9/P10 으로 보존,
+  나머지는 템플릿 복제 없음. `scan-only.md:43` 의 요지 나열만 정렬(추가 수정).
+- live `~/.claude/skills/craft-core/references/linear.md` ↔ repo drift 없음.
