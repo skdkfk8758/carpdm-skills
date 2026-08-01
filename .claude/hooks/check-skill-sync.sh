@@ -24,7 +24,7 @@ if [ -d "$DST_DIR" ] && [ -d "$SRC_DIR" ]; then
     [ -d "$src" ] || continue
     # -c: compare by checksum, not mtime — git checkout bumps mtimes and would
     # otherwise flag content-identical files as drift. Itemize real changes only.
-    if rsync -ainc --delete "$src/" "$dst" 2>/dev/null | grep -qE '^(\*deleting|[<>]f)'; then
+    if rsync -ainc --delete --exclude '__pycache__' "$src/" "$dst" 2>/dev/null | grep -qE '^(\*deleting|[<>]f)'; then
       msgs+=("live ~/.claude/skills/$name 가 repo 에 미반영 — 'bash sync.sh' 필요")
     fi
   done
