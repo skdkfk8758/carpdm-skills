@@ -20,7 +20,7 @@ echo "  Linear 는 첫 사용 시 브라우저 OAuth 가 뜬다 — 본인 계�
 step "Claude Code 플러그인 마켓플레이스"
 for repo in anthropics/claude-plugins-official forrestchang/andrej-karpathy-skills \
             JuliusBrussee/caveman DietrichGebert/ponytail Lum1104/Understand-Anything \
-            warpdotdev/claude-code-warp; do
+            warpdotdev/claude-code-warp nathankim0/clean-architecture-skills; do
   claude plugin marketplace add "$repo" || echo "  ($repo 이미 있음 — 스킵)"
 done
 
@@ -29,7 +29,8 @@ for p in typescript-lsp@claude-plugins-official pyright-lsp@claude-plugins-offic
          skill-creator@claude-plugins-official frontend-design@claude-plugins-official \
          claude-md-management@claude-plugins-official superpowers@claude-plugins-official \
          andrej-karpathy-skills@karpathy-skills caveman@caveman \
-         understand-anything@understand-anything ponytail@ponytail; do
+         understand-anything@understand-anything ponytail@ponytail \
+         clean-architecture@clean-architecture-skills; do
   claude plugin install "$p" || echo "  ($p 설치 실패/이미 있음 — 확인)"
 done
 
