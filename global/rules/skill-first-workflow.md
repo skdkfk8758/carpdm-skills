@@ -23,7 +23,7 @@ IMPORTANT: 비trivial 코드 작업은 즉흥 편집(ad-hoc) 대신 **적합한 
 | 신규 기능 빌드 | `forge` |
 | 버그·회귀 수정 | `hunt` |
 | 기존 기능 변경·개편 | `renew` |
-| 요구사항 명확·순수 TDD만(파이프라인 없이) | `tdd` — codex 리뷰/보안 페이즈 없는 red-green-refactor escape-hatch. forge/hunt/renew 의 풀 파이프라인 아님(그것들은 자체 TDD 페이즈 보유) |
+| 요구사항 명확·순수 TDD만(파이프라인 없이) | `tdd` — 적대 리뷰/보안 페이즈 없는 red-green-refactor escape-hatch. forge/hunt/renew 의 풀 파이프라인 아님(그것들은 자체 TDD 페이즈 보유) |
 | 플랜만(구현 X) | `deep-plan` / `deep-interview` |
 | Linear 이슈 자동 실행 | `linear-goal` |
 | 그 외 모호 | 메인 판단 — 필요 시 `Plan`/`Explore` 위임 |

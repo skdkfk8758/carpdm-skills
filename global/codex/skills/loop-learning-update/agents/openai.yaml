@@ -1,0 +1,4 @@
+interface:
+  display_name: "Loop Learning Update"
+  short_description: "Draft approved improvements from loop failures"
+  default_prompt: "Use loop-learning-update to analyze a loop failure or retrospective and draft safe skill or guidance improvement candidates."

@@ -1,0 +1,85 @@
+---
+name: claude-hunt
+description: Imported Claude skill for fixing bugs with reproduction-first debugging and regression tests.
+---
+
+# Hunt — 버그 수정
+
+버그 수정의 두 가지 실패 양상은: 원인 대신 증상을 고치는 것, 그리고 나중에 조용히
+되살아나는 방식으로 고치는 것이다. 파이프라인은 둘 다 막는다 — 재현할 수 없는 것은
+고칠 수 없으므로 원인은 먼저 증거로 고정되어야 하고, 수정은 이전엔 실패하고 이후엔
+통과하는 회귀 테스트로 잠긴다.
+
+`/Users/carpdm/.codex/skills/claude-craft-core/references/pipeline.md` 의 공유 엔진을 실행하라
+(먼저 읽을 것). 그 안에서 다음 hunt 고유 강조점을 적용한다:
+
+## 실행 모드 기본값 (toggle)
+
+**기본 모드: orchestrated.** craft-core 의 linear-기본을 override 한다 — 버그는
+재현·근본원인·회귀 리스크가 커 적대적 council 검토가 기본값으로 적절하다.
+`pipeline.md` 의 "Execution mode" 진입 시 linear-기본·stakes 제안을 건너뛰고 곧장
+orchestrated (`orchestrated.md`) 로 간다.
+
+- **이번 호출만 linear**: 호출 어디든 `--linear` 가 있으면 그 호출만 linear 로 돈다.
+- **영구 토글**: 위 "기본 모드" 를 `linear` 로 바꾸면 craft-core 기본(linear)으로 복귀.
+
+## Phase 1 — Socratic focus (see craft-core/references/socratic.md)
+
+- **Exact reproduction** — 그것을 유발하는 정확한 단계, 입력, 환경. 재현할 수 없다면
+  그것이 사용자와 함께 가장 먼저 해결할 일이다; 볼 수 없는 버그의 수정을 추측하지 말 것.
+- **Expected vs actual** — 무엇이 일어나야 하는지, 무엇이 일어나는지, 실제
+  에러 메시지 / 스택 / 잘못된 출력을 정확히 인용 (의역하지 말 것).
+- **Scope & onset** — 얼마나 광범위한지, 언제부터인지, 그 무렵 무엇이 바뀌었는지.
+- **Root-cause hypothesis** — 코드 안의 실제 원인까지 추적하라 (호출자/영향은 graph/LSP
+  먼저, 아니면 Read/Grep) 그리고 에러 자체의 어휘로; 이 영역을 이미 문서화한
+  ADR/concept 가 있는지 확인 (`context-adr.md`). 신뢰도를 진술하라; 추측이면 그렇게
+  말하고 수정을 계획하기 전에 검증하라. 추적하지 않은 증상을 고치는 것이 버그 수정이
+  실패하는 가장 흔한 경로다.
+- **ADR-worthy?** 보통 **아니오**. 예외: 수정이 향후 코드가 지켜야 할 항구적
+  invariant/정책을 수립하는 경우 → Phase 5 에서 ADR 기록.
+- **Blast radius & edge inputs (type 5)** — 근본 원인이 그 밖에 무엇을 건드리는지,
+  그리고 수정이 깨뜨려서는 안 되는 edge input (새 회귀 없음). 마무리 전에 완전성
+  sweep 을 실행해, 수정이 하나의 버그를 다른 버그와 맞바꾸지 않도록 하라.
+
+### 막힌 재현·원인은 diagnose 로 선행 (optional — hard bug 한정)
+
+재현이 불안정하거나(간헐적·환경 의존·race) 근본 원인이 위 1-패스 추적으로 안
+잡히는 hard bug 면, 수정을 계획하기 전에 `diagnose` 스킬의 체계적 루프
+(reproduce → minimise → hypothesise → instrument)를 선행해 원인을 증거로 고정하라.
+hunt 의 Phase 1 추적은 원인이 한 번에 보이는 흔한 경우를 위한 것이고, diagnose 는
+그게 막힐 때만 — 대부분 버그는 여기까지 안 간다(둘을 겹쳐 돌리지 말 것). 원인이
+증거로 고정되면 hunt 로 돌아와 Phase 3 회귀 테스트부터 이어간다.
+
+### Parallel hypothesis diagnosis (optional — multi-candidate bugs only)
+
+원인에 **두 개 이상의 그럴듯한 후보**가 있고 각각을 추적하는 비용이 비쌀 때
+(예: migration, ORM 매핑, env var, 또는 race 일 수 있는 500), 첫 추측에 닻을 내리지
+말 것. `Workflow` 도구로 가설당 에이전트 하나씩 fan out 하여 각자 자기 후보를
+**독립적으로** 추적하게 하라 — 이들은 서로 대화하지 않는다. 교차 대화가 이 방식이
+깨뜨리려는 앵커링을 다시 들여오기 때문이다. 각자는 증거를 반환한다: 정확한 코드
+경로, 그것이 설명하는 재현, 그리고 설명하지 못하는 것. 그다음 당신은 증거를 저울질해
+재현이 실제로 뒷받침하는 원인을 고른다 — 수정을 계획하기 전에 확인하라.
+
+버그가 하나의 명백한 원인으로 추적될 때는 이것을 건너뛰어라 — 대부분이 그렇고,
+신뢰도 높은 단일 추적에는 패널이 필요 없다. 이것은 독립 증거를 위한 hub-and-spoke
+fan-out 이지 peer team 이 아니다; 독립성이 가치의 전부다.
+
+## Phase 3 — TDD entry point (see craft-core/references/dynamic-tdd.md)
+
+Task 1 은 **버그를 재현하는 실패하는 회귀 테스트**다 — 현재 코드에 대해 정확히
+보고된 이유로 실패한다. 그다음에야 그 테스트가 green 이 될 때까지 opus 에서 수정을
+구현하고, 다른 어떤 테스트도 회귀하지 않았음을 확인하라. 회귀 테스트가 스위트에
+남아 있는 것이 버그의 재발을 막는다.
+
+수정은 최소로, 근본 원인을 겨냥하라 — 버그 수정은 주변 코드를 리팩터링할 면허가
+아니다.
+
+## Phase 3.5 — Simplify review pass (see craft-core/references/simplify-pass.md)
+
+수정이 green 이 되면, Phase 4 이전에 *방금 변경한 diff* 가 정리(simplify)가 필요한지
+검토하고, 필요하면 `/simplify` 스킬로 동작 보존 정리(재사용/단순화/효율)를 **한 번
+제안한다** (기본 off). simplify 는 방금 바뀐 코드만 보므로 surgical 한 수정의 범위를
+넘지 않는다 — 주변 미변경 코드로 번지지 않는다. diff 가 사소하거나 사용자가 거절하면
+건너뛴다.
+
+Phase 0, 2, 4, 5 는 공유 파이프라인 그대로 실행된다.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Naver Real Estate Research"
+  short_description: "Broker-focused Naver listing research"
+  default_prompt: "Use $naver-real-estate-research to research Naver Real Estate listings for a broker client brief."

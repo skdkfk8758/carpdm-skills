@@ -1,0 +1,11 @@
+// Pure gate decision for the /guide integration guide. Mirrors the /docs (Scalar)
+// policy: the guide is served on local + dev deploys and 404s only on the prod
+// deploy. Keyed on APP_ENV (the deploy-environment signal) — NOT NODE_ENV, which
+// is 'production' on every Docker deploy including dev, and so would hide the guide
+// on the dev deploy too. Kept side-effect-free so it is unit testable (the layout
+// calls notFound() based on it, which needs the Next runtime).
+import { resolveDeployEnv } from './deploy-info';
+
+export function isGuideEnabled(appEnv: string | undefined): boolean {
+  return resolveDeployEnv(appEnv) !== 'prod';
+}

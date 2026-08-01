@@ -1,0 +1,31 @@
+// The single OpenAPIRegistry instance. Domain schema modules import this and call
+// registry.registerPath(...) at module load. document.ts imports those modules
+// (for their side-effecting registrations) and then builds the document from
+// registry.definitions. One registry = one source of truth for paths + components.
+import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
+import { z } from './zod';
+
+export const registry = new OpenAPIRegistry();
+
+// Shared error envelope: every validation/gate failure returns { error: string }.
+// Registered once as a reusable component referenced by error responses.
+export const ErrorResponse = registry.register(
+  'ErrorResponse',
+  z.object({ error: z.string() }).openapi({ description: '에러 봉투 — 모든 실패 응답은 { error: string } 형태' }),
+);
+
+// Helper: a JSON error response entry for a given status + description.
+export function errorResponse(description: string) {
+  return {
+    description,
+    content: { 'application/json': { schema: ErrorResponse } },
+  };
+}
+
+// Helper: a JSON success response entry for a given schema + description.
+export function jsonResponse(description: string, schema: z.ZodTypeAny) {
+  return {
+    description,
+    content: { 'application/json': { schema } },
+  };
+}

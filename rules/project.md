@@ -33,7 +33,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 | 명령 | 용도 |
 |---|---|
 | `bash install.sh` | repo `skills/` → `~/.claude/skills/` 복사. 멱등 — 기존 동명은 in-place 덮어씀(백업 안 남김 — git history 가 안전망). 설치 후 Claude Code 재시작 필요 |
-| `bash sync.sh` | 반대 방향. live `~/.claude/skills/` → repo `skills/` 미러(rsync `--delete`). repo 가 **이미 추적 중인** 것만 갱신. staged 변경 표시 |
+| `bash sync.sh` | 반대 방향. live `~/.claude/skills/` → repo `skills/` 미러(rsync `--delete`, repo 가 **이미 추적 중인** 것만) + **`sync-global.sh` 내장 실행**(글로벌 덤프 — `global/` 도 함께 미러·stage, 2026-08-02 통합). staged 변경 표시 |
 | `bash sync.sh --push` | 미러 + `chore/sync-<ts>` 브랜치·PR·**즉시 머지** 자동 (`gh` CLI 필요). master 직접 push 금지 환경 대응. CI·승인 게이트 없는 빠른 경로 |
 | `bash sync.sh --pr-only` | 미러 + 브랜치·커밋·push·PR **생성까지만** (머지 보류). 브랜치를 로컬에 남겨 CI 게이트+land 를 `ship` 스킬이 처리 (§10) |
 | `bash install-global.sh` | repo `global/` → `~/.claude/` 글로벌 셋업(CLAUDE.md·rules·rules-ondemand·guards·settings) 설치. 변경분 백업 후 덮어씀, settings `<FILL-ME>` 는 로컬 실값 보존 머지. 상세 `global/README.md` |
@@ -101,6 +101,7 @@ craft 엔진은 **두 토폴로지**를 가진다. **linear**(기본, `pipeline.
 ### 10. ship = 이 레포 전용 PR→CI→land 배포 스킬
 `ship` 은 carpdm-skills 의 개발 루프(라이브 편집 → repo 미러 → PR → 머지)를 **CI 게이트를 끼운 안전한 한 흐름**으로 묶는 운영 스킬이다. craft 엔진 무의존(land/sweep/handoff 동급), output-contract L1 `result:` 공유. 핵심 설계:
 - **`sync.sh --push` 와의 분리가 존재 이유.** `--push` 는 PR 생성과 동시에 즉시 머지(line 49-65)라 CI·검토 게이트가 없다 — 그래서 `--push` 직후 `land` 를 돌리면 머지할 PR 이 비는 게 정상이었다(실측). ship 은 이를 갈라, `sync.sh --pr-only`(신규 — 미러+커밋+push+PR 까지만, 머지 보류, 브랜치를 로컬에 남김)로 PR 만 올리고 → `gh pr checks --watch` 로 CI 를 기다린 뒤 → **승인 게이트 1회** → squash 머지 + 로컬정리. 즉 "PR 올리고 land 까지" 를 머지 전 멈춤이 있는 흐름으로 잇는다.
+- **sync PR 에는 글로벌 덤프도 실린다(2026-08-02).** `sync.sh` 가 `sync-global.sh` 를 내장 실행하고 `git add -A skills global` 로 stage — 팀원 이식 덤프(`global/skills-extra`·`codex`·rules·settings)의 신선도는 배포 경로가 하나여야 유지된다(수동 sync-global 은 잊혀 stale 됐던 실측이 근거). secret 은 sync-global 내장 마스킹+스캔이 게이트(hit 시 sync.sh 전체 exit 1). 루트 메타(`sync.sh`·README·project.md)는 여전히 수동 커밋.
 - **단일 sync PR 전용 — land 의 stack 처리 미차용(YAGNI).** sync 브랜치는 항상 독립·단일이라 land 의 topological merge·re-base·dirty 워크트리 stack 케이스가 필요 없다. land 의 *안전 규율*(머지 검증 후 삭제, squash 가 `-d` 를 깨면 `gh pr view … MERGED` 확인 후 `-D`, force 금지)만 차용하고 multi-PR 일반화는 인라인하지 않는다. 범용 다중 PR/워크트리 정리는 여전히 `land` 의 일.
 - **비가역 액션 계약 = land 와 동일.** 발견→PR→CI→플랜 1회 승인→머지→정리→보고. CI 실패·머지 막힘이면 중단하고 PR·브랜치를 복구 가능 상태로 남겨 보고(미납품), 머지 안 된 브랜치는 절대 삭제 금지.
 - output-contract: 머지 보고형 — L1 `result:` 만(L2 열기·L3 다음 스킬 제안 비적용, git 상태 변화라 §7 land 와 동렬).

@@ -1,0 +1,25 @@
+{
+  "_doc": "Linear team -> local repo root (1:1 cross-repo routing SSOT). team-based since 8-team split (2026-06-25). Match an issue by its team.key/id. Precedence: projectExceptions[] > labelRoutes[] > teamRoutes[]. projectExceptions[] take precedence for issues whose owning service has no team yet (ad-simulator). labelRoutes[] split a single team across surfaces by label (SMF FE/BE). repo:null = not a code/auto-dev target.",
+  "_model": "team-based (8-team split 2026-06-25). Prior single-team project.id-based routing retired.",
+  "_workspace": "ADType Intelligence (adtype-intelligence.linear.app)",
+  "teamRoutes": [
+    { "teamKey": "ADT", "teamId": "5394a70d-638a-46d0-8222-40c53dec88b2", "team": "ADType Intelligence (코어 앱)", "repo": "/Users/carpdm/Workspace/ADType-Intelligence" },
+    { "teamKey": "AUT", "teamId": "bae8d294-5bf1-469e-b0d4-27cc8135e0c7", "team": "Auth (IdP)", "repo": "/Users/carpdm/Workspace/Intelligence-Auth" },
+    { "teamKey": "SSO", "teamId": "67d81df3-48c4-48d5-be9e-d5934772aadd", "team": "SSOT (시공간데이터)", "repo": "/Users/carpdm/Workspace/Intelligence-SSOT" },
+    { "teamKey": "ADM", "teamId": "f5d4e5b1-a09b-4975-a064-7aff0d50a209", "team": "ADMap (지도서비스)", "repo": "/Users/carpdm/Workspace/ADMap", "note": "⚠ team≠repo 혼재 — ADM 이슈는 내용으로 repo 판별. (provider) 타일/레이어 API 노출·QGIS→style.json·SDK·타일 데이터 = ADMap repo(이 매핑, 예 ADM-1/2 타일 API). (consumer) 레이어 read 소비·BFF·레이어패널 UI·렌더·persona-editor/custom-poi 제거 = ADType-Intelligence repo(예 ADM-3 EPIC 자식 ADM-4~13/23 — 코드는 apps/next·apps/api). ADM-3 레이어 이관은 ADT-180(폐기, project '[이관됨→분산]')의 정본 — 둘은 중복이니 ADM-* 우선. consumer 작업은 ADType-Intelligence 세션에서 — ADMap 세션 cross-repo(git -C) 금지(동시세션 충돌)." },
+    { "teamKey": "REV", "teamId": "29e41468-c138-4ed1-bab0-e4bfc49557e1", "team": "ReviewRadar", "repo": "/Users/carpdm/Workspace/review-radar" },
+    { "teamKey": "SUR", "teamId": "89732d9c-9f6c-491e-b788-057a37ce279b", "team": "SurveyRadar", "repo": "/Users/carpdm/Workspace/survey-radar" },
+    { "teamKey": "BUS", "teamId": "391b1bca-7e34-4605-8fbe-3de7de88c6db", "team": "BusSimulator", "repo": "/Users/carpdm/Workspace/ADSimulator-Bus" },
+    { "teamKey": "SMF", "teamId": "aca8fc47-3c8d-482a-9c2e-0b39d7ba570f", "team": "SmartFlow (차량 내부 승객 추적·승하차 카운팅)", "repo": "/Users/carpdm/Workspace/smart_flow_V2", "note": "FE·BE 를 한 팀이 관리 — 라벨 그룹 Area 로 가른다(FE/BE/Contract). labelRoutes 가 이 매핑보다 우선." }
+  ],
+  "labelRoutes": [
+    { "teamKey": "SMF", "label": "FE", "labelGroup": "Area", "repo": "/Users/carpdm/Workspace/smart_flow_V2" },
+    { "teamKey": "SMF", "label": "BE", "labelGroup": "Area", "repo": null, "note": "백엔드는 원격 서버에서 구축 중이라 로컬 체크아웃이 없다(2026-07-30). 자동 실행(linear-goal) 대상 아님 — 이슈를 열면 라우팅하지 말고 멈추고 확인. 로컬 클론이 생기면 repo 경로를 채운다." },
+    { "teamKey": "SMF", "label": "Contract", "labelGroup": "Area", "repo": null, "note": "FE·BE 동시 변경. 자동 라우팅 금지 — 착수 전 Area/FE·Area/BE 자식 이슈로 분해한다." }
+  ],
+  "projectExceptions": [
+    { "projectId": "bc8afbde-d271-4d51-b3cd-b65b2a4986ec", "project": "ad-simulator — API route handler 빌드 (28 endpoint)", "team": "ADT", "repo": "/Users/carpdm/Workspace/ADSimulator_V2", "note": "AdSimulator 팀 미생성(사용자 제외, 2026-06-25). ADT 팀에 남은 프로젝트지만 repo 는 ADSimulator_V2 → teamRoutes(ADT→ADType-Intelligence)보다 우선 매칭. uncertain: 빌드 대상 ADSimulator_V2(소비자) vs Github/Ad-Simulator(레거시) — 착수 전 확인." }
+  ],
+  "_fallbackRepo": "/Users/carpdm/Workspace/ADType-Intelligence",
+  "_fallbackNote": "team.key 미매칭 이슈는 ADType-Intelligence 로 default 하되 launcher 가 착수 전 확인(다른 repo 소속일 수 있음)."
+}

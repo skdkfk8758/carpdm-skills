@@ -1,0 +1,22 @@
+[
+  {"query": "우리 회사 다른 사이드 프로젝트(Next.js 16 app router)에도 이번에 깐 거랑 똑같은 API 문서 포맷이랑 통합 가이드 깔아줘", "should_trigger": true},
+  {"query": "이 프로젝트에 Scalar로 API 레퍼런스 페이지 만들고 zod 스키마에서 openapi 스펙 자동 생성되게 셋업해줘", "should_trigger": true},
+  {"query": "신규 백엔드 next app에 /docs랑 /guide 붙이고 싶은데 dev에서만 보이고 prod에선 404 되게 환경 게이트까지", "should_trigger": true},
+  {"query": "개발자 포털 만들어줘. API 명세 보는 데랑 연동 가이드 MDX로", "should_trigger": true},
+  {"query": "다른 레포에도 동일 스펙으로 OpenAPI 문서화 일원화하고 싶어. 통합가이드 포함해서 템플릿처럼", "should_trigger": true},
+  {"query": "이 넥스트 프로젝트 api 엔드포인트들 문서화 좀 해줘 — 스칼라 ui 띄우고 연동 가이드까지 풀세트로", "should_trigger": true},
+  {"query": "internal tool 새로 만들었는데 다른 팀이 연동할 수 있게 api docs랑 quickstart 가이드 깔아줘", "should_trigger": true},
+  {"query": "openapi.json 라우트랑 scalar docs 페이지, 그리고 /guide 밑에 mdx 가이드 구조 세팅해줘", "should_trigger": true},
+  {"query": "우리 표준 api 문서 형상(스칼라+zod-to-openapi+mdx 가이드) 이 프로젝트에도 복제해줘", "should_trigger": true},
+  {"query": "next.js로 만든 결제 서비스에 통합 가이드 페이지 만들어줘. 시나리오별 curl 예제랑 실패코드 표 들어가는 그 포맷으로", "should_trigger": true},
+  {"query": "app/guide/sso/page.mdx에서 오타 하나 고쳐줘 — '120초'를 '120 초'로", "should_trigger": false},
+  {"query": "openapi 스키마에 새 엔드포인트 POST /api/webhooks 하나만 추가해줘", "should_trigger": false},
+  {"query": "/docs 페이지가 'Document could not be loaded' 뜨는데 왜 그런지 디버깅해줘", "should_trigger": false},
+  {"query": "우리 FastAPI 백엔드 자동 생성되는 /docs swagger 페이지에 인증 토큰 입력란 추가해줘", "should_trigger": false},
+  {"query": "README.md에 프로젝트 설치 방법이랑 아키텍처 설명 좀 써줘", "should_trigger": false},
+  {"query": "src/lib/utils.ts 함수들에 jsdoc 주석 좀 달아줘", "should_trigger": false},
+  {"query": "Notion에 정리해둔 API 명세를 팀 위키로 옮겨줘", "should_trigger": false},
+  {"query": "guide 페이지 디자인 좀 더 예쁘게 globals.css 손봐줘", "should_trigger": false},
+  {"query": "이 GraphQL 스키마로 playground 띄워줘", "should_trigger": false},
+  {"query": "스토리북 셋업해서 리액트 컴포넌트 문서화하고 싶어", "should_trigger": false}
+]

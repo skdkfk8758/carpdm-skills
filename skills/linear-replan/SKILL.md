@@ -81,7 +81,7 @@ Do not edit, create, or delete any files. Answer in text only.
 ```
 
 **watchdog 의무.** `codex exec` 는 `timeout` 으로 래핑하거나 Bash background 실행 +
-진행 감시로 돌리고, **3분 무진행이면 kill** 한다. 규약 SSOT 는 글로벌
+진행 감시로 돌리고, **무진행 8분+ 또는 hard cap 12분이면 kill** 한다. 규약 SSOT 는 글로벌
 `~/.claude/rules-ondemand/delegated-review-watchdog.md` — 읽고 그대로 따른다. kill 되면
 1회만 재시도하고, 그래도 무진행이면 그 사실을 보고하고 정지한다(Claude 단독 대체 금지 —
 불변식).
@@ -190,7 +190,7 @@ L3 후보:
   봉인이 사용자의 선택으로 위장된다.
 - **이슈 본문 수정·상태 전이** — 이 스킬은 코멘트 1건만 쓴다(승인 뒤).
 - **승인 없이 코멘트 첨부** — 외부 write 는 게이트 뒤에만.
-- **codex 무진행 방치** — 3분 무진행이면 kill. 무한 대기는 자율 잡을 통째로 태운다.
+- **codex 무진행 방치** — 무진행 8분+/hard cap 12분이면 kill. 무한 대기는 자율 잡을 통째로 태운다.
 - **codex 와 수렴 핑퐁** — 재호출은 구조를 바꾸는 큰 갈래에 한해 1회.
 - **SSOT 절차 복제** — linear MCP 감지·종료 출력·goal-ready 판정은 경로로 참조한다.
 

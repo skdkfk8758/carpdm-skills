@@ -129,7 +129,8 @@ fable 저자에게는 `dp/SKILL.md` 의 "고정 템플릿 채우기"·"검증 �
   `codex exec -` 형태, Bash **background** 실행.
 - **watchdog 의무** — 위임 리뷰 호출이므로 글로벌
   `~/.claude/rules-ondemand/delegated-review-watchdog.md` 를 Read 하고 따른다:
-  진행 감시 + **3분 무진행 kill**. kill 됐으면 fable 폴백으로 내려간다(정지 아님 —
+  진행 감시 + **무진행 8분+/hard cap 12분 kill**(임계는 룰이 SSOT — 조이면 정상
+  추론 구간을 오판 kill 한다). kill 됐으면 fable 폴백으로 내려간다(정지 아님 —
   deep-plan 은 codex 없이도 완주한다).
 - read-only 유지 — 프롬프트의 *"Do not edit, create, or delete any files."* 문장이
   계약이다. codex 산출은 답변 텍스트만 취한다(작업 트리 변경이 감지되면 폐기하고

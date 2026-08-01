@@ -1,0 +1,775 @@
+# oh-my-codex top-level settings (must be before any [table])
+model_reasoning_effort = "high"
+developer_instructions = "You have oh-my-codex installed. AGENTS.md is the orchestration brain and main control surface. Follow AGENTS.md for skill/keyword routing, $name workflow invocation, and role-specialized subagents; when spawning native subagents, set `agent_type` to an installed role and never omit it for OMX work. Use outcome-first, concise progress updates: state the target result, constraints, validation evidence, and stop condition before adding process detail. Native subagents live in .codex/agents and may handle independent parallel subtasks within one Codex session or team pane. Skills load from .codex/skills, not native-agent TOMLs. Treat installed prompts as narrower execution surfaces under AGENTS.md authority."
+
+model_context_window = 250000
+model_auto_compact_token_limit = 200000
+model = "gpt-5.6-sol"
+personality = "pragmatic"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+network_access = "enabled"
+
+notify = ["/Users/carpdm/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended", "--previous-notify", "[\"node\",\"\\/Users\\/carpdm\\/.hermes\\/node\\/lib\\/node_modules\\/oh-my-codex\\/dist\\/scripts\\/notify-hook.js\"]"]
+
+[features]
+unified_exec = true
+plugin_hooks = true
+plugins = true
+hooks = true
+multi_agent = true
+child_agents_md = true
+goals = true
+js_repl = false
+
+[projects."/Users/carpdm"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Downloads/금융보험_001"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/RunFrame"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Downloads/TestRunFrame"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/VibeSpec"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/ADMap"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/ADMap-Intelligence"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/ADPoint_V2"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/Video_Tagger"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/DTEC-FE-V2"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/carpdm"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/.claude"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/TrendCollector"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/ADRouteTest"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/ERD Manager"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/ERD Manager"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/ADSimulator-Bus"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/Codex/2026-06-15/codex"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/영등포역 목업"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/클라우드 비용 관리"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/인프라 매니저"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/에이전트 김정호 테스트"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/review-radar"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/ADType-Intelligence"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/부동산 매물 리서치"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/ADSimulator_V2"]
+trust_level = "trusted"
+
+[notice.model_migrations]
+"gpt-5.1-codex-max" = "gpt-5.2-codex"
+"gpt-5.3-codex" = "gpt-5.4"
+
+[mcp_servers.obsidian]
+command = "npx"
+args = [
+    "-y",
+    "@mauricio.wolff/mcp-obsidian@latest",
+    "/Users/carpdm/Documents/Obsidian/AIBrain",
+]
+startup_timeout_sec = 15
+[mcp_servers.code-review-graph]
+command = "uvx"
+args = [
+    "code-review-graph",
+    "serve",
+]
+type = "stdio"
+startup_timeout_sec = 15
+
+[mcp_servers.agentmemory]
+command = "npx"
+args = [
+    "-y",
+    "@agentmemory/mcp",
+]
+env_vars = [
+    "AGENTMEMORY_URL",
+    "AGENTMEMORY_SECRET",
+    "AGENTMEMORY_TOOLS",
+]
+startup_timeout_sec = 15
+
+[mcp_servers.agentmemory.env]
+AGENTMEMORY_URL = "http://localhost:3111"
+
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["chrome-devtools-mcp@latest"]
+startup_timeout_sec = 15
+
+[mcp_servers.context7]
+command = "npx"
+args = [
+    "-y",
+    "@upstash/context7-mcp",
+]
+startup_timeout_sec = 15
+
+[mcp_servers.slack]
+command = "npx"
+args = [
+    "-y",
+    "@modelcontextprotocol/server-slack",
+]
+startup_timeout_sec = 15
+
+[mcp_servers.slack.env]
+SLACK_BOT_TOKEN = "<FILL-ME>"
+SLACK_TEAM_ID = "T062KBWLB0U"
+
+[mcp_servers.node_repl]
+args = []
+command = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node_repl"
+startup_timeout_sec = 120
+
+[mcp_servers.node_repl.env]
+NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
+NODE_REPL_NODE_MODULE_DIRS = "/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
+NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex"
+CODEX_HOME = "/Users/carpdm/.codex"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "6d25aa7656feac858f3a3bdaea5bcbab0dbfd426c9de8e6931ce90c399ee8e4f,e13fd947e846d3d306e9249dd3c73d14931b6494803dbafb16cef85e6add9506"
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
+NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
+BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
+BROWSER_USE_CODEX_APP_VERSION = "26.721.41059"
+SKY_CUA_SERVICE_PATH = "/Users/carpdm/.codex/computer-use/Codex Computer Use.app"
+CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
+
+[plugins."github@openai-curated"]
+enabled = true
+
+[plugins."canva@openai-curated"]
+enabled = true
+
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[plugins."skill-creator@claude-plugins-official"]
+enabled = true
+
+[plugins."understand-anything@understand-anything"]
+enabled = true
+
+[plugins."github@claude-plugins-official"]
+enabled = true
+
+[plugins."openai-developers@openai-curated"]
+enabled = true
+
+[plugins."superpowers@openai-curated"]
+enabled = true
+
+[plugins."build-web-apps@openai-curated"]
+enabled = true
+
+[plugins."build-web-data-visualization@openai-curated"]
+enabled = true
+
+[plugins."codex-security@openai-curated"]
+enabled = true
+
+[plugins."computer-use@openai-bundled"]
+enabled = true
+
+[hooks.state]
+
+[hooks.state."/Users/carpdm/.codex/hooks.json:pre_tool_use:1:0"]
+enabled = true
+trusted_hash = "sha256:530f1031ae206b575c47ec3431aa6da26ed2f74665fddb670bf4123b7926a1a8"
+[hooks.state."/Users/carpdm/.codex/hooks.json:permission_request:0:0"]
+trusted_hash = "sha256:6a34cba190445388020800d6e694a8a61ff4734e94c564976f22e885c71f4ba9"
+
+[hooks.state."/Users/carpdm/.codex/hooks.json:session_start:2:0"]
+enabled = true
+trusted_hash = "sha256:4125a7737b506699ecff5c6539f17df4979c294c4f5756a3247631054de8df36"
+[hooks.state."/Users/carpdm/.codex/hooks.json:user_prompt_submit:2:0"]
+enabled = true
+trusted_hash = "sha256:e0c3a60820ab1e7498a87e82546f07d9d46ad0231774723f7a4128a677a684d4"
+[hooks.state."/Users/carpdm/.codex/hooks.json:stop:2:0"]
+enabled = true
+trusted_hash = "sha256:7cf73355728d9ed155fe1f245ffc66b512545a9dd236f5e7696846d527af9bd3"
+[hooks.state."/Users/carpdm/.codex/hooks.json:pre_tool_use:0:0"]
+enabled = true
+trusted_hash = "sha256:18576933129a317a96fa0fc8de336c18f778d17bb11ad296714b7e6ba9210503"
+[hooks.state."/Users/carpdm/.codex/hooks.json:post_tool_use:0:0"]
+enabled = true
+trusted_hash = "sha256:69953e3136fce543316300d6c0603c6bfd7fe9d1412b10e94a5539fe21e5eb4a"
+[hooks.state."/Users/carpdm/.codex/hooks.json:session_start:0:0"]
+trusted_hash = "sha256:ba1e710db183fbfa2577ff99393fa21c3e1b77e190f860da0fdb273a8effba8b"
+
+[hooks.state."/Users/carpdm/.codex/hooks.json:session_start:1:0"]
+enabled = true
+trusted_hash = "sha256:13d1ac3a063e35fa6337a769c64179df59806e8bed81159a773cb9e8629ec38a"
+[hooks.state."/Users/carpdm/.codex/hooks.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:ba9efb723cf24686a9072bafe7f4f11fabb61a8c69fa89dca4e19f46fd2212af"
+
+[hooks.state."/Users/carpdm/.codex/hooks.json:user_prompt_submit:1:0"]
+enabled = true
+trusted_hash = "sha256:9561dc2cf7b9484d89eeb02fb3dacb0b9996cae4544fad9416bd3a121ca59cd1"
+[hooks.state."/Users/carpdm/.codex/hooks.json:stop:0:0"]
+trusted_hash = "sha256:c05210a668a69a09c875de2bcd957221b6ad71059d2f6bf3994a5eaab0d106e5"
+
+[hooks.state."/Users/carpdm/.codex/hooks.json:stop:1:0"]
+enabled = true
+trusted_hash = "sha256:9730e678710781f3c6a9ff165f451001ecc6d95b18b4bc8ed42f6db92f284bee"
+[hooks.state."understand-anything@understand-anything:hooks/hooks.json:post_tool_use:0:0"]
+trusted_hash = "sha256:3cd146a10ffa13b3064770ba6a044aabe8bbb71cd0621167964edaa221425e9c"
+
+[hooks.state."understand-anything@understand-anything:hooks/hooks.json:session_start:0:0"]
+trusted_hash = "sha256:51f9f37fba6701f908ff2ad08c6bd11d9719c7172742124467e3ff56065cc030"
+
+[hooks.state."/Users/carpdm/Workspace/ADMap-Intelligence/.codex/hooks.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:c1d7d1a8602f1d75c5bd169d773dfa4eebf9da250121252e3e760bb3cd76ed3c"
+
+[hooks.state."/Users/carpdm/Workspace/ADMap-Intelligence/.codex/hooks.json:post_tool_use:0:0"]
+trusted_hash = "sha256:123ae5c4a74139970e747025f52f1bff10b4b0c03cadfbb1d0100bb65d4e30d5"
+
+[hooks.state."/Users/carpdm/Workspace/ADMap-Intelligence/.codex/hooks.json:session_start:0:0"]
+trusted_hash = "sha256:884a835c2bfa6a80fc9724a3137e4dd90603e6435a7e8e3e6ca12a63a49f12da"
+
+[shell_environment_policy]
+inherit = "core"
+
+[shell_environment_policy.set]
+USE_OMX_EXPLORE_CMD = "1"
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
+ENABLE_LSP_TOOL = "1"
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "6d25aa7656feac858f3a3bdaea5bcbab0dbfd426c9de8e6931ce90c399ee8e4f,e13fd947e846d3d306e9249dd3c73d14931b6494803dbafb16cef85e6add9506"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex"
+
+[agents]
+max_depth = 2
+[agents.gsd-advisor-researcher]
+description = "Researches a single gray area decision and returns a structured comparison table with rationale. Spawned by discuss-phase advisor mode."
+config_file = "/Users/carpdm/.codex/agents/gsd-advisor-researcher.toml"
+
+[agents.gsd-ai-researcher]
+description = "Researches a chosen AI framework's official docs to produce implementation-ready guidance — best practices, syntax, core patterns, and pitfalls distilled for the specific use case. Writes the Framework Quick Reference and Implementation Guidance sections of AI-SPEC.md. Spawned by $gsd-ai-integration-phase orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-ai-researcher.toml"
+
+[agents.gsd-assumptions-analyzer]
+description = "Deeply analyzes codebase for a phase and returns structured assumptions with evidence. Spawned by discuss-phase assumptions mode."
+config_file = "/Users/carpdm/.codex/agents/gsd-assumptions-analyzer.toml"
+
+[agents.gsd-code-fixer]
+description = "Applies fixes to code review findings from REVIEW.md. Reads source files, applies intelligent fixes, and commits each fix atomically. Spawned by $gsd-code-review-fix."
+config_file = "/Users/carpdm/.codex/agents/gsd-code-fixer.toml"
+
+[agents.gsd-code-reviewer]
+description = "Reviews source files for bugs, security issues, and code quality problems. Produces structured REVIEW.md with severity-classified findings. Spawned by $gsd-code-review."
+config_file = "/Users/carpdm/.codex/agents/gsd-code-reviewer.toml"
+
+[agents.gsd-codebase-mapper]
+description = "Explores codebase and writes structured analysis documents. Spawned by map-codebase with a focus area (tech, arch, quality, concerns). Writes documents directly to reduce orchestrator context load."
+config_file = "/Users/carpdm/.codex/agents/gsd-codebase-mapper.toml"
+
+[agents.gsd-debug-session-manager]
+description = "Manages multi-cycle $gsd-debug checkpoint and continuation loop in isolated context. Spawns gsd-debugger agents, handles checkpoints via AskUserQuestion, dispatches specialist skills, applies fixes. Returns compact summary to main context. Spawned by $gsd-debug command."
+config_file = "/Users/carpdm/.codex/agents/gsd-debug-session-manager.toml"
+
+[agents.gsd-debugger]
+description = "Investigates bugs using scientific method, manages debug sessions, handles checkpoints. Spawned by $gsd-debug orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-debugger.toml"
+
+[agents.gsd-doc-classifier]
+description = "Classifies a single planning document as ADR, PRD, SPEC, DOC, or UNKNOWN. Extracts title, scope summary, and cross-references. Spawned in parallel by $gsd-ingest-docs. Writes a JSON classification file and returns a one-line confirmation."
+config_file = "/Users/carpdm/.codex/agents/gsd-doc-classifier.toml"
+
+[agents.gsd-doc-synthesizer]
+description = "Synthesizes classified planning docs into a single consolidated context. Applies precedence rules, detects cross-ref cycles, enforces LOCKED-vs-LOCKED hard-blocks, and writes INGEST-CONFLICTS.md with three buckets (auto-resolved, competing-variants, unresolved-blockers). Spawned by $gsd-ingest-docs."
+config_file = "/Users/carpdm/.codex/agents/gsd-doc-synthesizer.toml"
+
+[agents.gsd-doc-verifier]
+description = "Verifies factual claims in generated docs against the live codebase. Returns structured JSON per doc."
+config_file = "/Users/carpdm/.codex/agents/gsd-doc-verifier.toml"
+
+[agents.gsd-doc-writer]
+description = "Writes and updates project documentation. Spawned with a doc_assignment block specifying doc type, mode (create/update/supplement), and project context."
+config_file = "/Users/carpdm/.codex/agents/gsd-doc-writer.toml"
+
+[agents.gsd-domain-researcher]
+description = 'Researches the business domain and real-world application context of the AI system being built. Surfaces domain expert evaluation criteria, industry-specific failure modes, regulatory context, and what "good" looks like for practitioners in this field — before the eval-planner turns it into measurable rubrics. Spawned by $gsd-ai-integration-phase orchestrator.'
+config_file = "/Users/carpdm/.codex/agents/gsd-domain-researcher.toml"
+
+[agents.gsd-eval-auditor]
+description = "Retroactive audit of an implemented AI phase's evaluation coverage. Checks implementation against the AI-SPEC.md evaluation plan. Scores each eval dimension as COVERED/PARTIAL/MISSING. Produces a scored EVAL-REVIEW.md with findings, gaps, and remediation guidance. Spawned by $gsd-eval-review orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-eval-auditor.toml"
+
+[agents.gsd-eval-planner]
+description = "Designs a structured evaluation strategy for an AI phase. Identifies critical failure modes, selects eval dimensions with rubrics, recommends tooling, and specifies the reference dataset. Writes the Evaluation Strategy, Guardrails, and Production Monitoring sections of AI-SPEC.md. Spawned by $gsd-ai-integration-phase orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-eval-planner.toml"
+
+[agents.gsd-executor]
+description = "Executes GSD plans with atomic commits, deviation handling, checkpoint protocols, and state management. Spawned by execute-phase orchestrator or execute-plan command."
+config_file = "/Users/carpdm/.codex/agents/gsd-executor.toml"
+
+[agents.gsd-framework-selector]
+description = "Presents an interactive decision matrix to surface the right AI/LLM framework for the user's specific use case. Produces a scored recommendation with rationale. Spawned by $gsd-ai-integration-phase and $gsd-select-framework orchestrators."
+config_file = "/Users/carpdm/.codex/agents/gsd-framework-selector.toml"
+
+[agents.gsd-integration-checker]
+description = "Verifies cross-phase integration and E2E flows. Checks that phases connect properly and user workflows complete end-to-end."
+config_file = "/Users/carpdm/.codex/agents/gsd-integration-checker.toml"
+
+[agents.gsd-intel-updater]
+description = "Analyzes codebase and writes structured intel files to .planning/intel/."
+config_file = "/Users/carpdm/.codex/agents/gsd-intel-updater.toml"
+
+[agents.gsd-nyquist-auditor]
+description = "Fills Nyquist validation gaps by generating tests and verifying coverage for phase requirements"
+config_file = "/Users/carpdm/.codex/agents/gsd-nyquist-auditor.toml"
+
+[agents.gsd-pattern-mapper]
+description = "Analyzes codebase for existing patterns and produces PATTERNS.md mapping new files to closest analogs. Read-only codebase analysis spawned by $gsd-plan-phase orchestrator before planning."
+config_file = "/Users/carpdm/.codex/agents/gsd-pattern-mapper.toml"
+
+[agents.gsd-phase-researcher]
+description = "Researches how to implement a phase before planning. Produces RESEARCH.md consumed by gsd-planner. Spawned by $gsd-plan-phase orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-phase-researcher.toml"
+
+[agents.gsd-plan-checker]
+description = "Verifies plans will achieve phase goal before execution. Goal-backward analysis of plan quality. Spawned by $gsd-plan-phase orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-plan-checker.toml"
+
+[agents.gsd-planner]
+description = "Creates executable phase plans with task breakdown, dependency analysis, and goal-backward verification. Spawned by $gsd-plan-phase orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-planner.toml"
+
+[agents.gsd-project-researcher]
+description = "Researches domain ecosystem before roadmap creation. Produces files in .planning/research/ consumed during roadmap creation. Spawned by $gsd-new-project or $gsd-new-milestone orchestrators."
+config_file = "/Users/carpdm/.codex/agents/gsd-project-researcher.toml"
+
+[agents.gsd-research-synthesizer]
+description = "Synthesizes research outputs from parallel researcher agents into SUMMARY.md. Spawned by $gsd-new-project after 4 researcher agents complete."
+config_file = "/Users/carpdm/.codex/agents/gsd-research-synthesizer.toml"
+
+[agents.gsd-roadmapper]
+description = "Creates project roadmaps with phase breakdown, requirement mapping, success criteria derivation, and coverage validation. Spawned by $gsd-new-project orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-roadmapper.toml"
+
+[agents.gsd-security-auditor]
+description = "Verifies threat mitigations from PLAN.md threat model exist in implemented code. Produces SECURITY.md. Spawned by $gsd-secure-phase."
+config_file = "/Users/carpdm/.codex/agents/gsd-security-auditor.toml"
+
+[agents.gsd-ui-auditor]
+description = "Retroactive 6-pillar visual audit of implemented frontend code. Produces scored UI-REVIEW.md. Spawned by $gsd-ui-review orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-ui-auditor.toml"
+
+[agents.gsd-ui-checker]
+description = "Validates UI-SPEC.md design contracts against 6 quality dimensions. Produces BLOCK/FLAG/PASS verdicts. Spawned by $gsd-ui-phase orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-ui-checker.toml"
+
+[agents.gsd-ui-researcher]
+description = "Produces UI-SPEC.md design contract for frontend phases. Reads upstream artifacts, detects design system state, asks only unanswered questions. Spawned by $gsd-ui-phase orchestrator."
+config_file = "/Users/carpdm/.codex/agents/gsd-ui-researcher.toml"
+
+[agents.gsd-user-profiler]
+description = "Analyzes extracted session messages across 8 behavioral dimensions to produce a scored developer profile with confidence levels and evidence. Spawned by profile orchestration workflows."
+config_file = "/Users/carpdm/.codex/agents/gsd-user-profiler.toml"
+
+[agents.gsd-verifier]
+description = "Verifies phase goal achievement through goal-backward analysis. Checks codebase delivers what phase promised, not just that tasks completed. Creates VERIFICATION.md report."
+config_file = "/Users/carpdm/.codex/agents/gsd-verifier.toml"
+
+[tui]
+status_line = [
+"model-with-reasoning",
+"git-branch",
+"context-remaining",
+"total-input-tokens",
+"total-output-tokens",
+"five-hour-limit",
+"weekly-limit",
+]
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+
+[desktop]
+preventSleepWhileRunning = true
+keepRemoteControlAwakeWhilePluggedIn = true
+conversationDetailMode = "STEPS_COMMANDS"
+ambient-suggestions-enabled = true
+followUpQueueMode = "queue"
+dock-icon-preference = "codex-system"
+
+[desktop.open-in-target-preferences]
+global = "zed"
+
+[desktop.open-in-target-preferences.perPath]
+"/Users/carpdm/Documents/Github/DT_ClaudeOps" = "antigravity"
+"/Users/carpdm/Workspace/Github/Ad-Simulator" = "cursor"
+"/Users/carpdm/Workspace/ADMap-Intelligence" = "cursor"
+"/Users/carpdm/Documents/에이전트 김정호 테스트" = "zed"
+"/Users/carpdm/Documents/OD_DeepDive" = "zed"
+[features.multi_agent_v2]
+max_concurrent_threads_per_session = 1000
+
+[notice]
+hide_world_writable_warning = true
+hide_full_access_warning = true
+
+[marketplaces.sisyphuslabs]
+last_updated = "2026-07-15T06:33:03Z"
+source_type = "local"
+source = "/Users/carpdm/.codex/plugins/cache/sisyphuslabs"
+
+[marketplaces.openai-bundled]
+last_updated = "2026-07-26T08:34:32Z"
+source_type = "local"
+source = "/Users/carpdm/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.claude-plugins-official]
+last_updated = "2026-07-26T08:34:27Z"
+last_revision = "d31456c6571a94b6aaa68ee33f5f2dc0149ebddf"
+source_type = "git"
+source = "https://github.com/anthropics/claude-plugins-official.git"
+
+[marketplaces.openai-primary-runtime]
+last_updated = "2026-08-01T06:24:38Z"
+source_type = "local"
+source = "/Users/carpdm/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+
+[marketplaces.understand-anything]
+last_updated = "2026-07-26T08:34:30Z"
+last_revision = "2cda14e89535049e49120198886bc0b82e9e630f"
+source_type = "git"
+source = "https://github.com/Lum1104/Understand-Anything.git"
+
+[plugins."omo@sisyphuslabs"]
+enabled = true
+
+[plugins."omo@sisyphuslabs".mcp_servers.context7]
+enabled = true
+
+[plugins."omo@sisyphuslabs".mcp_servers.git_bash]
+enabled = false
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."chrome@openai-bundled"]
+enabled = true
+
+[plugins."template-creator@openai-primary-runtime"]
+enabled = true
+
+[plugins."linear@claude-plugins-official"]
+enabled = true
+
+[plugins."sites@openai-bundled"]
+enabled = true
+
+[plugins."visualize@openai-bundled"]
+enabled = true
+
+[plugins."browser@openai-bundled"]
+enabled = true
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:session_start:0:0"]
+trusted_hash = "sha256:c96cc5363e493d45b4fc3c81f0c0b236a091d97237f8ed5550d3f74350b61bf0"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:session_start:1:0"]
+trusted_hash = "sha256:a5ec9028d1e46b6ee6c711546d28d9271bae3fc772ed5a0189fe575eec50b6f9"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:session_start:2:0"]
+trusted_hash = "sha256:a5a124eaa90c7ba2e77bb32468fcc7436bb92ffcf892ff24e635372aa83da136"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:session_start:3:0"]
+trusted_hash = "sha256:7d7a05702815ae3f9f5cc11b0cf08ddf9c94896d669df25f961be54dd0198e12"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:7f2a01bca7d2e8b3ad4d2e968335d11865c9c1e8b5f66ba5246cd4196cfef4c7"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:user_prompt_submit:1:0"]
+trusted_hash = "sha256:6e9d281e60122cbb1ae78def6e20c8b8c3c68cecfac1963ac5a6a8ff1822b732"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:user_prompt_submit:2:0"]
+trusted_hash = "sha256:c0caaf5f2488f0f1c5b05952017e763d62c2fdd24e314ee994bb69fe1e989e72"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:a46422485232a1a256780e2cf495b7da70102d05dc49055be7963cb7f0772511"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:pre_tool_use:1:0"]
+trusted_hash = "sha256:65ce7c988a1706c6fe5f87d7e47d0464c241659fd11d658d6babb9d6287d2392"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:post_tool_use:0:0"]
+trusted_hash = "sha256:379b72f4a78a706390d0ca85648ecfe073c4958d39b16072d47e93f83ea94b48"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:post_tool_use:0:1"]
+trusted_hash = "sha256:66c3315747c2db2ad34b35d557cf788553067c729edcd2aa66efe52a54ce6180"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:post_tool_use:1:0"]
+trusted_hash = "sha256:a4145a54175a4bb63144729f4d79100970905342c29bf54b5416b60619d2bb4e"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:post_compact:0:0"]
+trusted_hash = "sha256:eaf4173464d380515af0700a75ce1aa99f3cf031d1f83bda30754d4f6f05cd3d"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:post_compact:1:0"]
+trusted_hash = "sha256:73d785bcf132259ec2ace9274865fb3079024417860bcc4f55227247768b775b"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:post_compact:2:0"]
+trusted_hash = "sha256:e75e51cb09a6e3f29b059b80a9d0eb5a7d2bef2d0b558c5ceeccd5102d6ffcda"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:stop:0:0"]
+trusted_hash = "sha256:0dc243b00d68765f1895a9133109f7f73b7e86c0512e9a51aaa5f9f0751f5521"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:subagent_stop:0:0"]
+trusted_hash = "sha256:5d4197e501107854ebf39132625f3a947470566902e0e8521b4209ce7b694fa4"
+
+[agents.explorer]
+config_file = "./agents/explorer.toml"
+
+[agents.librarian]
+config_file = "./agents/librarian.toml"
+
+[agents.metis]
+config_file = "./agents/metis.toml"
+
+[agents.momus]
+config_file = "./agents/momus.toml"
+
+[agents.plan]
+config_file = "./agents/plan.toml"
+
+[mcp_servers.omx_state]
+command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
+args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/state-server.js"]
+enabled = true
+startup_timeout_sec = 5
+
+[mcp_servers.omx_memory]
+command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
+args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/memory-server.js"]
+enabled = true
+startup_timeout_sec = 5
+
+[mcp_servers.omx_code_intel]
+command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
+args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/code-intel-server.js"]
+enabled = true
+startup_timeout_sec = 10
+
+[mcp_servers.omx_trace]
+command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
+args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/trace-server.js"]
+enabled = true
+startup_timeout_sec = 5
+
+[mcp_servers.omx_wiki]
+command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
+args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/wiki-server.js"]
+enabled = true
+startup_timeout_sec = 5
+
+[mcp_servers.computer-use]
+command = "./Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient"
+args = ["mcp"]
+cwd = "."
+enabled = false
+
+# ============================================================
+# oh-my-codex (OMX) Configuration
+# Managed by omx setup - manual edits preserved on next setup
+# ============================================================
+
+# OMX-owned Codex hook trust state
+# Trusts only setup-managed native hook wrappers.
+
+# ============================================================
+# oh-my-codex (OMX) Configuration
+# Managed by omx setup - manual edits preserved on next setup
+# ============================================================
+
+# OMX-owned Codex hook trust state
+# Trusts only setup-managed native hook wrappers.
+[hooks.state."/Users/carpdm/.codex/hooks.json:post_compact:0:0"]
+trusted_hash = "sha256:b4028896e37c2c44242ee99cff8889b49bfd5ae66ccdfaff1276567cda08c8ea"
+
+[hooks.state."/Users/carpdm/.codex/hooks.json:pre_compact:0:0"]
+trusted_hash = "sha256:d1f0e48c97aeeb5b084687020933b4f18dfbdcdbe7a7759dd2cace9a23d1347f"
+# End OMX-owned Codex hook trust state
+
+# ============================================================
+# End oh-my-codex
+
+[plugins."omo@sisyphuslabs".mcp_servers.codegraph]
+enabled = true
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:session_start:4:0"]
+trusted_hash = "sha256:4bf547ec488a77b74c9acd10a83ea6fd2d4945b8614ce5680eda3c852b9e3033"
+
+[hooks.state."omo@sisyphuslabs:hooks/hooks.json:subagent_stop:1:0"]
+trusted_hash = "sha256:d1043b80e41deedbcd1f9b08c3d85e19eb6f7874a9bbca46e4442f84af00b200"
+
+[agents.lazycodex-clone-fidelity-reviewer]
+config_file = "./agents/lazycodex-clone-fidelity-reviewer.toml"
+
+[agents.lazycodex-code-reviewer]
+config_file = "./agents/lazycodex-code-reviewer.toml"
+
+[agents.lazycodex-executor]
+config_file = "./agents/lazycodex-executor.toml"
+
+[agents.lazycodex-gate-reviewer]
+config_file = "./agents/lazycodex-gate-reviewer.toml"
+
+[agents.lazycodex-qa-executor]
+config_file = "./agents/lazycodex-qa-executor.toml"
+
+[hooks.state."omo@sisyphuslabs:hooks/session-start-loading-project-rules.json:session_start:0:0"]
+trusted_hash = "sha256:a63bfc31b9c11fc091eef31f4b586463eaee3c0233481c70a294dd81f9e1490f"
+
+[hooks.state."omo@sisyphuslabs:hooks/session-start-recording-session-telemetry.json:session_start:0:0"]
+trusted_hash = "sha256:963dbc74623ebdb6afea42e3791d11c4cb1686269b314e173a44f2587d3c2947"
+
+[hooks.state."omo@sisyphuslabs:hooks/session-start-checking-auto-update.json:session_start:0:0"]
+trusted_hash = "sha256:dcc6c0098a97e2d5e6471854522901424ac4e0537ce6445c3b7c7ee506c48b60"
+
+[hooks.state."omo@sisyphuslabs:hooks/session-start-checking-bootstrap-provisioning.json:session_start:0:0"]
+trusted_hash = "sha256:dfe7811907c11ab68f0876ef7b45003313b7ce870f80ad118175d18f0fa5b1b4"
+
+[hooks.state."omo@sisyphuslabs:hooks/session-start-checking-codegraph-bootstrap.json:session_start:0:0"]
+trusted_hash = "sha256:888133ea05f78227a7552424956e3e0149f749d982cab546e75f2f339867fbe4"
+
+[hooks.state."omo@sisyphuslabs:hooks/user-prompt-submit-loading-project-rules.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:7ddb645df8f2a7e2e8d36092b01a8143aaa53c5a72b5a1013311b5ab76d9ca6d"
+
+[hooks.state."omo@sisyphuslabs:hooks/user-prompt-submit-checking-ultrawork-trigger.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:9c5d7bde4dd907c723c14362f30b817a1ab439281fca93d4892601fb8de3162d"
+
+[hooks.state."omo@sisyphuslabs:hooks/user-prompt-submit-checking-ulw-loop-steering.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:3f2cb49e1fb2696989eb3e340df42198aae29e7c6dddb1a98ff3f3d3a8fbd977"
+
+[hooks.state."omo@sisyphuslabs:hooks/pre-tool-use-recommending-git-bash-mcp.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:f492779c719d7b494e8ddb14a27e010c3797a405b104e99b5b3eba63ebf274eb"
+
+[hooks.state."omo@sisyphuslabs:hooks/pre-tool-use-enforcing-unlimited-goal-budget.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:9798ae53da6c2cb1342fa7ac0571b4939919059d679ccc167ea95f3e4630f686"
+
+[hooks.state."omo@sisyphuslabs:hooks/post-tool-use-checking-comments.json:post_tool_use:0:0"]
+trusted_hash = "sha256:17319b42b4e2c1b6d1f619ee78ecc97c6dafc5d9b6bf849766677151f193054a"
+
+[hooks.state."omo@sisyphuslabs:hooks/post-tool-use-checking-lsp-diagnostics.json:post_tool_use:0:0"]
+trusted_hash = "sha256:292a20d469714d33c6f42452d373efc84e015dbdd3ffc2d9f52a11ff5319d5a5"
+
+[hooks.state."omo@sisyphuslabs:hooks/post-tool-use-checking-codegraph-init-guidance.json:post_tool_use:0:0"]
+trusted_hash = "sha256:bcf4fb1dfd42bc799e2d5191b714479d2d21c1b99bfb6b5fe52c028f28176b63"
+
+[hooks.state."omo@sisyphuslabs:hooks/post-tool-use-matching-project-rules.json:post_tool_use:0:0"]
+trusted_hash = "sha256:30d1011b097f95dd20590a15f44ab72e1505dfc44f504e41a1dcc365f5082b2c"
+
+[hooks.state."omo@sisyphuslabs:hooks/post-tool-use-checking-thread-title-hygiene.json:post_tool_use:0:0"]
+trusted_hash = "sha256:41d28851af2623854f42f0107edc42a07cefc17bd48adf75d91a4b772aa51727"
+
+[hooks.state."omo@sisyphuslabs:hooks/post-compact-resetting-git-bash-mcp-reminder.json:post_compact:0:0"]
+trusted_hash = "sha256:2327bf921895fd4265178e917d8a6dc84384bbae6d567ba62431a271c849e6c9"
+
+[hooks.state."omo@sisyphuslabs:hooks/post-compact-resetting-project-rule-cache.json:post_compact:0:0"]
+trusted_hash = "sha256:e22bfa19a175a0ac95068ae94a8cf4c1e097ab54056e4ee9ab453738779a4f65"
+
+[hooks.state."omo@sisyphuslabs:hooks/post-compact-resetting-lsp-diagnostics-cache.json:post_compact:0:0"]
+trusted_hash = "sha256:8b75175ad36dbb0cc2a7398129b5616885bca516448c2a0bf1fc4f1cf6b49e90"
+
+[hooks.state."omo@sisyphuslabs:hooks/stop-checking-start-work-continuation.json:stop:0:0"]
+trusted_hash = "sha256:9a581b2d2dd206be67a5e5f19ed4bf1b517f55c60034fafbd06b6ad218b27f1e"
+
+[hooks.state."omo@sisyphuslabs:hooks/subagent-stop-checking-start-work-continuation.json:subagent_stop:0:0"]
+trusted_hash = "sha256:787377c9427b0f7662a6e99e8e560edbae3c30c79829f5987bddc67a05adaa59"
+
+[hooks.state."omo@sisyphuslabs:hooks/subagent-stop-verifying-lazycodex-executor-evidence.json:subagent_stop:0:0"]
+trusted_hash = "sha256:862ebbc0bfc2c26c57b181ab098c628c8b964f34ebe52344db6f1196221c575f"
+
+[projects."/Users/carpdm/Workspace/Intelligence-SSOT"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/api_test"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/언리얼 엔진 5.8: 메타휴먼 컬렉션"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/survey-radar"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/DB-Manager"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/OD_DeepDive"]
+trust_level = "trusted"
+
+[hooks.state."omo@sisyphuslabs:hooks/pre-tool-use-guarding-ulw-loop-spawns.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:bdf1880bb621e089a1d8aee7d55d42bd3194eccd63e20ec41325a01dc5f9a1ca"
+
+[hooks.state."omo@sisyphuslabs:hooks/stop-checking-ulw-loop-resume.json:stop:0:0"]
+trusted_hash = "sha256:2ffcf16514f4983fa117ff311932b7756cfa4c306b774a3b755bdea25c22d663"
+
+[agents.lazycodex-worker-high]
+config_file = "./agents/lazycodex-worker-high.toml"
+
+[agents.lazycodex-worker-low]
+config_file = "./agents/lazycodex-worker-low.toml"
+
+[agents.lazycodex-worker-medium]
+config_file = "./agents/lazycodex-worker-medium.toml"
+
+[projects."/Users/carpdm/Workspace/adtype-webpublishing"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/Codex/2026-07-29/https-www-linkedin-com-posts-computervision"]
+trust_level = "trusted"

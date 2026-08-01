@@ -38,7 +38,7 @@
 | DB/테이블/대량 데이터 삭제 직전 | "죽었다" 설명 불신 — liveness 3증거(커넥션·write·참조 grep) 선행 | `rules-ondemand/db-drop-preflight.md` |
 | PR/머지/배포 플로우 진입 | remote·브랜치·인증·비인터랙티브 preflight 먼저 | `rules-ondemand/land-preflight.md` |
 | `.env*` 수정 필요 | 고지→원값 기록→복원→최종상태 보고 | `rules-ondemand/env-file-discipline.md` |
-| 위임 리뷰(codex·클라우드) 호출 | background+진행감시, 3분 무진행 kill, verdict=advisory | `rules-ondemand/delegated-review-watchdog.md` |
+| 위임 리뷰(codex·클라우드) 호출 | background+진행감시, 무진행 8분+/hard cap 12분 kill, verdict=advisory | `rules-ondemand/delegated-review-watchdog.md` |
 | 브라우저 도구 2회 연속 실패 | 재시도 중단 → Playwright→curl→ground-truth 사다리, 실패 명시 | `rules-ondemand/browser-verify-fallback.md` |
 | Linear 이슈 **등록** | `linear-register` 스킬 경유 필수 | `rules-ondemand/linear-register-mandatory.md` |
 | Linear 이슈 **조회** | 현재 repo 팀으로 스코프(repo-map 역매핑) | `rules-ondemand/linear-dispatch.md` |

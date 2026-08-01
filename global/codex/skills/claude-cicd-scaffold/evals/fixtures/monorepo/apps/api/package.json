@@ -1,0 +1,11 @@
+{
+  "name": "@shipyard/api",
+  "version": "0.0.0",
+  "scripts": {
+    "start": "node dist/main.js",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

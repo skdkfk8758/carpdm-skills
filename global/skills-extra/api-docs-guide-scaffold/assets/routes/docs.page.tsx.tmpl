@@ -1,0 +1,18 @@
+'use client';
+
+// Scalar API reference embedded as a React component (NOT the @scalar/nextjs-api-
+// reference route handler) so the docs render inside our own shell — see
+// docs.layout.tsx for the persistent CTA bar. Reads the generated spec at
+// /api/openapi.json (which carries its own APP_ENV gate).
+//
+// IMPORTANT — the stylesheet must be imported explicitly. Scalar does NOT inject
+// its CSS at runtime via JS; it ships a separate style.css. The component's
+// internal side-effect `import './style.css'` is NOT emitted by the Next build, so
+// without this explicit import the reference renders as unstyled plain text (no
+// console error — Scalar JS still inits, it just has no styles).
+import { ApiReferenceReact } from '@scalar/api-reference-react';
+import '@scalar/api-reference-react/style.css';
+
+export default function DocsPage() {
+  return <ApiReferenceReact configuration={{ url: '/api/openapi.json' }} />;
+}

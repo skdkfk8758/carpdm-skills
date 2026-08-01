@@ -66,6 +66,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "claude-fable-5[1m]",
   "skillOverrides": {
     "agency-grid-layout-minimal": "off",
     "animation-on-scroll": "off",
@@ -413,7 +414,8 @@
     "pyright-lsp@claude-plugins-official": false,
     "superpowers@claude-plugins-official": false,
     "andrej-karpathy-skills@karpathy-skills": false,
-    "frontend-design@claude-plugins-official": false
+    "frontend-design@claude-plugins-official": false,
+    "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
     "understand-anything": {
@@ -426,6 +428,12 @@
       "source": {
         "source": "github",
         "repo": "warpdotdev/claude-code-warp"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
       }
     }
   },
@@ -446,6 +454,5 @@
       "Trusted SSH hosts (developer-owned infra): hermes, 4090_1WAY, 4090_2WAY, 4090_4WAY, gcp-nginx",
       "Hermes ingest/analyze daemon endpoints referenced via HERMES_INGEST_URL"
     ]
-  },
-  "model": "claude-fable-5[1m]"
+  }
 }

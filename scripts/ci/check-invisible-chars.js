@@ -77,7 +77,12 @@ function main() {
   })
     .split('\0')
     .filter(Boolean)
-    .filter(f => TEXT_EXTENSIONS.has(path.extname(f).toLowerCase()));
+    .filter(f => TEXT_EXTENSIONS.has(path.extname(f).toLowerCase()))
+    // Vendored third-party mirrors are synced verbatim; mutating them to pass
+    // this scan would be re-introduced on every sync (drift loop). The scan
+    // defends skills we author — e.g. archify legitimately embeds U+115F as a
+    // regex range endpoint for fullwidth-glyph width measurement.
+    .filter(f => !f.startsWith('global/skills-extra/') && !f.startsWith('global/codex/'));
 
   const findings = [];
 

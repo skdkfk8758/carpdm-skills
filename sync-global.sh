@@ -50,6 +50,54 @@ fs.writeFileSync(dst, JSON.stringify(s, null, 2) + "\n");
 console.log("settings.json mirrored, masked:", masked.join(", ") || "(none)");
 EOF
 
+# skills-extra — repo skills/ 미추적 live 스킬 전수 미러 (환경 재현용; 자작 배포는 skills/+sync.sh)
+TRACKED_SKILLS="$(ls "$(dirname "$REPO")/skills")"
+mkdir -p "$REPO/skills-extra"
+for d in "$REPO/skills-extra"/*/; do
+  [ -d "$d" ] || continue
+  n="$(basename "$d")"
+  if [ ! -d "$LIVE/skills/$n" ] || echo "$TRACKED_SKILLS" | grep -qx "$n"; then
+    rm -rf "$d"   # live 에서 사라졌거나 skills/ 로 승격된 것 — strict 미러 (git history 가 안전망)
+  fi
+done
+extra_count=0
+for d in "$LIVE/skills"/*/; do
+  n="$(basename "$d")"
+  echo "$TRACKED_SKILLS" | grep -qx "$n" && continue
+  rsync -a --delete --exclude '__pycache__' "$d" "$REPO/skills-extra/$n/"
+  extra_count=$((extra_count+1))
+done
+echo "skills-extra mirrored: $extra_count dirs"
+
+# linear-repo-map — Linear 팀 라우팅 SSOT (secret 없음; 로컬 경로는 팀원이 자기 머신에 맞게 수정)
+[ -f "$LIVE/linear-repo-map.json" ] && cp "$LIVE/linear-repo-map.json" "$REPO/linear-repo-map.json"
+
+# codex — ~/.codex 형상 미러 (config.toml 은 secret 마스킹)
+CODEX="$HOME/.codex"
+if [ -d "$CODEX" ]; then
+  mkdir -p "$REPO/codex"
+  rsync -a --delete --exclude '__pycache__' "$CODEX/skills/"  "$REPO/codex/skills/"
+  rsync -a --delete "$CODEX/agents/"  "$REPO/codex/agents/"
+  rsync -a --delete "$CODEX/prompts/" "$REPO/codex/prompts/"
+  cp "$CODEX/AGENTS.md" "$REPO/codex/AGENTS.md"
+  # config.toml — 값이 secret 패턴인 key 를 <FILL-ME> 로 치환
+  python3 - "$CODEX/config.toml" "$REPO/codex/config.toml" <<'PYEOF'
+import re, sys
+src, dst = sys.argv[1], sys.argv[2]
+masked = []
+out = []
+for line in open(src, encoding="utf-8"):
+    m = re.match(r'^(\s*)([A-Za-z0-9_]*(?:TOKEN|KEY|SECRET|PASSWORD|CREDENTIAL)[A-Za-z0-9_]*)(\s*=\s*)"[^"]+"(.*)$', line)
+    if m and "<FILL-ME>" not in line and not re.search(r'(limit|tokens)\s*=', line, re.I):
+        out.append(f'{m.group(1)}{m.group(2)}{m.group(3)}"<FILL-ME>"{m.group(4)}\n')
+        masked.append(m.group(2))
+    else:
+        out.append(line)
+open(dst, "w", encoding="utf-8").writelines(out)
+print("codex config.toml mirrored, masked:", ", ".join(masked) or "(none)")
+PYEOF
+fi
+
 # 커밋 전 최종 secret 스캔 — 하나라도 잡히면 실패 (verification-safety V1: 판정 단계라 swallow 금지)
 if grep -rn -iE "(api[_-]?key|token|secret|password)['\"]?\s*[:=]\s*['\"][A-Za-z0-9_-]{16,}" "$REPO" | grep -v FILL-ME; then
   echo "ERROR: secret 의심 패턴 발견 — 커밋 전 위 라인을 확인하세요" >&2
