@@ -31,7 +31,9 @@ for dst in "$DST_DIR"/*/; do
     continue
   fi
   # --delete so files removed from the live skill also disappear here (true mirror)
-  rsync -a --delete "$src/" "$dst"
+  # --exclude __pycache__: python bytecode junk on either side is neither synced
+  # nor counted as drift (a stray .pyc in the repo caused a false stop-hook warning)
+  rsync -a --delete --exclude '__pycache__' "$src/" "$dst"
   echo "  = $name"
 done
 
