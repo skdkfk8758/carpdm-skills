@@ -288,6 +288,10 @@ craft Phase 1 섹션(`pipeline.md` — 이때 읽는다)을 따르되, deep-plan
 
 열어보지 않은 파일/심볼을 거명하는 것은 실패다. Files 는 실제로 확인한다.
 
+**길이 캘리브레이션 (Claude 5).** PLAN·프롬프트 길이는 내용이 요구하는 만큼만 —
+filler 섹션·중복 요약·boilerplate 로 채우지 않는다(Claude 5 계열은 디스크 산출물이
+길어지는 경향, 명시 보정).
+
 프롬프트와 PLAN 의 역할 분담: **프롬프트가 실행 계약**(자율 에이전트가 받는 것),
 **PLAN 이 설계 근거**(사람이 검토하는 것). "done" 의 **SSOT 는 PLAN 의 Acceptance**
 다 — 프롬프트의 Success Criteria/Verification 은 Acceptance 의 `[AUTO]` 항목을

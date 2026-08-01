@@ -101,6 +101,8 @@ deep-interview 와의 선 긋기: must-ask 1개를 물었는데도 답이 또 �
 아래 골격을 *정확히 이 섹션 순서로* 채운다. 모든 goal 프롬프트가 일곱 섹션을 다
 쓰는 건 아니다 — Out of Scope 가 자명하면 뺄 수 있다 — 하지만 **Objective /
 Success Criteria / Done & Report 세 개는 절대 빼지 마라**. 그게 자율성의 척추다.
+길이는 내용이 요구하는 만큼만 — filler 섹션·중복 요약·boilerplate 로 채우지
+않는다(Claude 5 계열은 디스크 산출물이 길어지는 경향, 명시 보정).
 
 ```markdown
 # Goal: <한 줄 제목>

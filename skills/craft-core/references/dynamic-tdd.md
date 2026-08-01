@@ -137,6 +137,14 @@ return results.filter(Boolean)
 
 - `testsGreen:false` 또는 `verified:false` 인 태스크 → 고친다 (그 태스크를
   재실행하거나 inline 처리). red 태스크를 안고 Phase 4 로 진행하지 말 것.
+- **verify 적발 계측 (2026-08-01 — 은퇴 조건의 원료).** 구현자가 `testsGreen:true`
+  를 주장했는데 verify 가 `verified:false` 로 뒤집은 태스크 수를 세어 wrap 의
+  `craft-timing.jsonl` 행에 `p3VerifyCatches:<n>` 으로 기록한다. **은퇴 조건**:
+  2개월 표본에서 적발 합계 0이면 per-task verify 스테이지를 폐지하고 최종 형제
+  게이트(아래 전체 수트 1회)가 그 역할을 승계한다 — Claude 5 계열은 자가검증이
+  기본 동작이라(플랫폼 프롬프팅 문서: 명시 검증 지시는 과잉검증만 유발) 허위
+  green 빈도 자체가 낮아졌을 수 있고, 그렇다면 이 스테이지는 haiku 라도 태스크당
+  스핀업 고정비만 낸다.
 - **형제 회귀 최종 게이트**: 메인 세션에서 전체 수트 + typecheck 를 **1회**
   돌린다 (예: `pnpm typecheck && pnpm test`). 태스크별 verify 는 *그 태스크의*
   테스트만 scoped 실행하므로 형제 태스크를 깬 회귀를 못 본다 — "형제를 깨지
