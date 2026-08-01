@@ -1,0 +1,208 @@
+<title>linear-replan 스킬 설계 — ADT-435</title>
+<style>
+:root{
+  --bg:#FAF9F7; --panel:#FFFFFF; --ink:#20241F; --sub:#6B7069; --line:#E3E1DC;
+  --accent:#0E7569; --accent-soft:#E4F0EE; --amber:#9A6A1E; --amber-soft:#F6EDDC;
+  --code-bg:#F1F0EC; --ship:#0E7569;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#191C1A; --panel:#20241F; --ink:#E8E6E1; --sub:#9BA097; --line:#343831;
+    --accent:#5FBFB2; --accent-soft:#1E322F; --amber:#D9A85A; --amber-soft:#332B1C;
+    --code-bg:#252923; --ship:#5FBFB2; }
+}
+:root[data-theme="dark"]{ --bg:#191C1A; --panel:#20241F; --ink:#E8E6E1; --sub:#9BA097;
+  --line:#343831; --accent:#5FBFB2; --accent-soft:#1E322F; --amber:#D9A85A;
+  --amber-soft:#332B1C; --code-bg:#252923; --ship:#5FBFB2; }
+:root[data-theme="light"]{ --bg:#FAF9F7; --panel:#FFFFFF; --ink:#20241F; --sub:#6B7069;
+  --line:#E3E1DC; --accent:#0E7569; --accent-soft:#E4F0EE; --amber:#9A6A1E;
+  --amber-soft:#F6EDDC; --code-bg:#F1F0EC; --ship:#0E7569; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.65 "Apple SD Gothic Neo","Pretendard","Noto Sans KR",system-ui,sans-serif;}
+main{max-width:880px;margin:0 auto;padding:40px 24px 96px;display:flex;flex-direction:column;gap:36px}
+h1{font-size:24px;line-height:1.35;margin:0;text-wrap:balance}
+h2{font-size:17px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+h2 .no{font:600 11px/1 ui-monospace,monospace;color:var(--accent);letter-spacing:.08em}
+h3{font-size:14px;margin:18px 0 6px}
+p{margin:6px 0}
+a{color:var(--accent)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font:500 12px/1 inherit;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--sub)}
+.chip b{color:var(--ink);font-weight:600}
+.chip.ship{border-color:var(--ship);color:var(--ship);font-weight:700}
+section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:24px 26px}
+.lede{color:var(--sub);font-size:13.5px;margin:0 0 14px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;
+  padding:16px;overflow-x:auto;font:12.5px/1.6 ui-monospace,"SF Mono",Menlo,monospace;
+  white-space:pre-wrap;word-break:break-word;margin:0}
+.prompt-wrap{position:relative}
+.copy{position:absolute;top:10px;right:10px;font:600 12px/1 inherit;color:var(--accent);
+  background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer}
+.copy:hover,.copy:focus-visible{background:var(--accent-soft);outline:2px solid var(--accent);outline-offset:1px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:8px 0}
+.tbl{overflow-x:auto}
+th{color:var(--sub);font-weight:600;text-align:left;font-size:12px;letter-spacing:.04em}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top}
+td:first-child{white-space:nowrap;color:var(--sub);font:600 12px/1.6 ui-monospace,monospace}
+code{background:var(--code-bg);border-radius:4px;padding:1px 5px;font:12.5px ui-monospace,monospace}
+.tag{display:inline-block;font:700 10.5px/1 ui-monospace,monospace;border-radius:4px;
+  padding:4px 6px;letter-spacing:.05em;vertical-align:1px}
+.tag.auto{color:var(--accent);background:var(--accent-soft)}
+.tag.human{color:var(--amber);background:var(--amber-soft)}
+.eval{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.eval li{display:flex;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line);align-items:baseline}
+.eval li:last-child{border-bottom:none}
+.eval .n{font:600 12px/1.6 ui-monospace,monospace;color:var(--sub);min-width:18px}
+ul.plain{margin:6px 0;padding-left:20px}
+ul.plain li{margin:4px 0}
+.verdict{border-left:3px solid var(--ship);padding:10px 16px;background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:13.5px}
+.foot{color:var(--sub);font-size:12px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+<main>
+<header>
+  <h1>linear-replan 스킬 설계<br>착수 직전 Linear 이슈를 codex 로 인터뷰형 재플래닝</h1>
+  <div class="meta">
+    <span class="chip">이슈 <b>ADT-435</b></span>
+    <span class="chip">debate <b>fable×2 · 4비트</b></span>
+    <span class="chip">갭 <b>9 → 0</b> (인터뷰 7 확정 · CODE 2 실측)</span>
+    <span class="chip">BLOCKING <b>5+1 전부 닫힘</b></span>
+    <span class="chip ship">verdict: SHIP</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="no">01</span>최종 Goal Prompt</h2>
+  <p class="lede">파일 전체가 그대로 자율 에이전트 goal 칸에 들어간다 — <code>docs/plans/2026-08-01-linear-replan-skill-prompt.md</code></p>
+  <div class="prompt-wrap">
+    <button class="copy" id="cp" type="button">프롬프트 복사</button>
+    <pre id="prompt-body"># Goal: linear-replan 스킬 저작 — 착수 직전 Linear 이슈를 codex 로 인터뷰형 재플래닝 (ADT-435)
+
+## Objective
+carpdm-skills 레포에 `skills/linear-replan/` 스킬을 저작한다 — Linear 이슈 번호
+**또는 짧은 자유 요구사항 텍스트**를 받아, plain `codex exec` 로 플랜 초안+
+체크리스트(결정 갈래)를 산출하고, 체크리스트 항목을 AskUserQuestion 인터뷰로
+전항목 확정해 착수 계획 문서 1개를 만들고(이슈 모드는 승인 게이트 뒤 이슈 코멘트
+첨부까지) 하는 동작을 SKILL.md 에 인코딩하고, README 행 추가 + CI 3종 통과.
+(필수 블록 ⑩ 입력 듀얼 모드 — 텍스트 모드는 fetch·코멘트 생략)
+
+## Success Criteria
+(시작 직후 START_SHA 기록·표면화 — 마지막 criterion 기준점)
+- CI 3종 exit 0 — validate-skills(name=디렉토리·description 존재) ·
+  check-invisible-chars · catalog(README 행+카운트)
+- SKILL.md 필수 블록 9개 grep 매치(Verification 4 와 1:1):
+  ① codex exec 직호출  ② codex 프리플라이트(불가 시 안내 한 줄 — deep-plan
+  라우팅 포함 — 후 정지)  ③ 체크리스트 인터뷰(결정 갈래만·전항목 확정·1콜
+  ≤4질문·"나머지 알아서" 시 codex 초안값 봉인+문서 명시)  ④ output-contract 종료
+  ⑤ 하류 경계 linear-goal(본문 한정)  ⑥ 상류 경계 deep-plan(본문 한정)
+  ⑦ Linear MCP graceful(linear.md 포인터+미설치 시 정지)  ⑧ 코멘트 첨부(승인
+  게이트+disclaimer·본문 무수정)  ⑨ codex watchdog(3분 무진행 kill)
+- frontmatter 블록 안 linear-goal·deep-plan 디스앰비규에이션(단일행 전제 금지 —
+  형제 9개가 `description: >-` folded 관례)
+- 불변식 리터럴 "이슈 본문·상태를 수정하지 않는다" ≥1
+- porcelain 0줄 + `git diff --name-only &lt;START_SHA&gt;..HEAD` 가 허용 2경로 외 0건
+
+## Context (전부 실측)
+- 레포 = 스킬 배포 레포(마크다운만). 새 스킬 = skills/&lt;name&gt;/SKILL.md. 본문 한국어.
+- codex: CLI 0.145.0 · `codex exec` 비인터랙티브(stdin) · auth.json 인증됨 ·
+  플러그인 경로 은퇴(참조 금지).
+- 이슈 신계약(PR #153): 화이트리스트 헤딩·≤600자·산문 경로 0 — 실행 상세는
+  의도적으로 이슈에 없다. 이 스킬이 착수 시점에 그 갭을 메꾼다.
+- 경계 Read 의무: linear-goal SKILL+routing.md(goal-ready 4기준·oversized-class) ·
+  deep-plan SKILL. SSOT 포인터: craft-core linear.md · output-contract.md.
+- 저작 잡 권한 vs 런타임 동작 구분 — 이 잡은 문서를 쓴다. 코멘트 첨부는
+  인코딩할 런타임 동작이지 지금 실행할 일이 아니다.
+- 동작 골격: 프리플라이트 → fetch+grounding → codex exec(watchdog) → 인터뷰
+  (Claude 반영·구조 갈래만 codex 재호출 1회) → kickoff 문서 저장 → 승인 게이트
+  후 코멘트 첨부 → output-contract 종료 + L3 linear-goal 제안.
+
+## Constraints
+- 수정 허용: skills/linear-replan/** + README.md 만. push·PR·머지 금지.
+- 저작 잡의 Linear write 도구 호출 금지. live ~/.claude/skills/ 편집·설치 금지.
+- SSOT 복제 금지 — 경로 포인터만.
+
+## Verification (Success Criteria 1:1 — 상세 패턴·범위는 -prompt.md 원문)
+CI 3종 → 블록 9 grep → frontmatter 추출 grep → 불변식 -F grep → diff 경계.
+
+## Out of Scope
+스킬 실행 자체 · 기존 스킬 수정(linear-goal 진입 라우팅 갱신은 후속 이슈) ·
+Linear write 일체 · codex 형상 복구 · 실행 경로 구현.
+
+## Done & Report
+자율 잡 — 매 턴 검증 결과를 텍스트로 재진술(START_SHA 포함). result:/needs
+input:/failed: 한 줄 종결. 후속 이슈 등록 권고(linear-goal 라우팅 — 사람 몫) 명시.
+잔여 [HUMAN] 2건 확정(ADT-435 AC3 착수 충분성 · real-env probe) → 체크리스트
+Artifact publish, dev 서버 없음 — probe 절차 명기.</pre>
+  </div>
+  <p class="lede" style="margin-top:10px">※ 위는 핵심 요약 렌더 — 자율 잡에 넣을 정본은 <code>-prompt.md</code> 파일이다(HTML 이 아니라 파일을 복사).</p>
+</section>
+
+<section>
+  <h2><span class="no">02</span>PLAN — 설계 근거</h2>
+  <p class="lede">정본: <code>docs/plans/2026-08-01-linear-replan-skill.md</code></p>
+
+  <h3>Goal</h3>
+  <p>이슈 번호 → <code>codex exec</code> 재플래닝 → 결정 갈래 체크리스트를 인터뷰로 전항목 확정 → 착수 계획 문서 1개(<code>docs/plans/&lt;issue-id&gt;-kickoff.md</code>) → 승인 게이트 후 이슈 코멘트 첨부 — 를 지시하는 SKILL.md 가 CI 3종 + 필수 블록 9개를 통과한다.</p>
+
+  <h3>핵심 설계 결정 (D1–D8)</h3>
+  <div class="tbl"><table>
+    <tr><th>#</th><th>결정</th><th>근거</th></tr>
+    <tr><td>D1</td><td>호출면 = plain <code>codex exec</code>, 플러그인 경로 금지</td><td>CLI 0.145.0 실측 · 플러그인 2026-07-30 은퇴</td></tr>
+    <tr><td>D2</td><td>체크리스트 = 결정 갈래만 · 전항목 확정 · "나머지 알아서" 시 봉인+명시</td><td>갭 인터뷰 확정 — 검증 항목은 kickoff 문서 AC 로 족함</td></tr>
+    <tr><td>D3</td><td>답 반영 = Claude 직접, 구조 갈래만 codex 재호출 1회</td><td>비용·지연 예측 가능성</td></tr>
+    <tr><td>D4</td><td>산출 소비 = 이슈 코멘트 첨부(승인 게이트+disclaimer, 본문 무수정)</td><td>linear-goal fetch 가 읽음 · 본문 불변식 양립</td></tr>
+    <tr><td>D5</td><td>codex 불가 = 안내 한 줄(+deep-plan 라우팅) 후 정지 — 폴백 없음</td><td>ADT-435 AC 그대로 · codex 경유가 존재 이유</td></tr>
+    <tr><td>D6</td><td><code>codex exec</code> 3분 무진행 kill watchdog</td><td>delegated-review-watchdog 글로벌 룰 정합</td></tr>
+    <tr><td>D7</td><td>진입 라우팅(linear-goal→replan) = 후속 이슈</td><td>기존 스킬 무수정 · 단계적 배포</td></tr>
+    <tr><td>D8</td><td>real-env probe = [HUMAN] 잔여 — 자율 잡 live 설치 금지 유지</td><td>PR #153 플로우 동일 패턴</td></tr>
+    <tr><td>D9</td><td>입력 듀얼 모드 — 이슈 번호 <b>또는</b> 자유 요구사항 텍스트(텍스트 모드: fetch·코멘트 생략, L3=등록 제안). 대형·고위험은 deep-plan</td><td>사용자 요청(debate 후 메인 수정) · 대가: 형제 오발화 표면 확대 → R2 상향</td></tr>
+    <tr><td>D10</td><td>은퇴/통합 조건 SKILL.md 의무 명시 — 3개월 내 오발화 실측·저빈도면 deep-plan 경량 모드 흡수 검토, codex CLI 소멸 시 폐지 (블록 ⑪)</td><td>룰 수명 규율의 스킬판 — 통합 판정을 실측에 맡김</td></tr>
+  </table></div>
+
+  <h3>Steps → verify</h3>
+  <div class="tbl"><table>
+    <tr><th>Step</th><th>내용</th><th>verify</th></tr>
+    <tr><td>1</td><td>경계 대상 Read (linear-goal·routing.md·deep-plan·SSOT 2장)</td><td>경계 절이 routing.md 포인터+기준명 언급 (verbatim 인용 금지)</td></tr>
+    <tr><td>2</td><td>SKILL.md 저작 — frontmatter+워크플로 6단계+블록 9+불변식</td><td>Verification 4~6 grep 셋 전부 매치</td></tr>
+    <tr><td>3</td><td>README 행+카운트</td><td><code>catalog.js</code> exit 0</td></tr>
+    <tr><td>4</td><td>CI 3종 + 경계 diff</td><td>exit 0 ×3 · diff 허용 2경로 외 0건</td></tr>
+  </table></div>
+
+  <h3>Risks</h3>
+  <ul class="plain">
+    <li><b>R1 (중)</b> grep 은 블록 존재만 봄 — 품질은 [HUMAN] ①이 게이트</li>
+    <li><b>R2 (중)</b> 형제 스킬 트리거 오발화(실측된 문제) — 디스앰비규에이션 SC + [HUMAN] ② probe</li>
+    <li><b>R3 (저)</b> codex 출력 비결정론 — 출력 계약을 codex 프롬프트에 지시(구현 재량)</li>
+    <li><b>R4 (저)</b> 코멘트 비대 — 요약+경로+핵심 결정만(승인 게이트에서 사람이 봄)</li>
+  </ul>
+
+  <div class="verdict" style="margin-top:16px">
+    <b>Plan review — fable×2 debate 4비트 · verdict SHIP.</b>
+    저자 갭 7 + 비평 BLOCKING 5·갭 2 → 인터뷰 2라운드 전원 확정, B1–B5 CLOSED.
+    ④ 최종 verdict 의 신규 BLOCKING 1건(<code>^description:</code> 단일행 grep 이 folded 관례와 충돌 — 형제 9개 실측 CONFIRMED)은 메인이 frontmatter 블록 추출 grep 으로 직접 수정.
+    SUGGESTION 2건 채택(포인터+기준명 · 리터럴 SHA 치환). 미해소 assumption 0.
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">03</span>Eval 체크리스트 — Acceptance 7항</h2>
+  <p class="lede">SSOT 는 PLAN <code>.md</code> 의 Acceptance — 이 패널은 렌더 뷰. 빌드가 끝나면 이 장부를 항목별로 닫는다.</p>
+  <ol class="eval">
+    <li><span class="n">1</span><span class="tag auto">AUTO</span><span>CI 3종 exit 0 (validate-skills · invisible-chars · catalog)</span></li>
+    <li><span class="n">2</span><span class="tag auto">AUTO</span><span>필수 블록 9개 grep 전부 매치 (패턴·범위 1:1)</span></li>
+    <li><span class="n">3</span><span class="tag auto">AUTO</span><span>frontmatter 블록 내 linear-goal·deep-plan 디스앰비규에이션 각 ≥1</span></li>
+    <li><span class="n">4</span><span class="tag auto">AUTO</span><span>불변식 리터럴 "이슈 본문·상태를 수정하지 않는다" ≥1</span></li>
+    <li><span class="n">5</span><span class="tag auto">AUTO</span><span><code>git diff --name-only &lt;START_SHA&gt;..HEAD</code> 허용 2경로 외 0건 + porcelain 0줄</span></li>
+    <li><span class="n">6</span><span class="tag human">HUMAN</span><span>ADT-435 AC3 — kickoff 플랜이 실제 착수에 충분한지 이슈 1건으로 확인 <em>(착수 충분성은 착수해 본 사람의 판단 — agent 불가)</em></span></li>
+    <li><span class="n">7</span><span class="tag human">HUMAN</span><span>real-env probe — install.sh 후 트리거 정확 발화 + 형제 오발화 없음 <em>(자율 잡은 live 설치 금지 — agent 불가)</em></span></li>
+  </ol>
+</section>
+
+<p class="foot">deep-plan 산출 · 2026-08-01 · Linear ADT-435 · AI 가 작성 — 구현은 별도(빌드 없음)</p>
+</main>
+<script>
+document.getElementById('cp').addEventListener('click',function(){
+  var t=document.getElementById('prompt-body').textContent;
+  navigator.clipboard.writeText(t).then(()=>{this.textContent='복사됨 ✓';
+    setTimeout(()=>{this.textContent='프롬프트 복사'},1600);});
+});
+</script>
