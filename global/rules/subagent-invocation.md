@@ -37,6 +37,12 @@ For work that touches 6+ files OR writes 200+ new LOC OR is estimated > 10 minut
 - The main Claude verifies the previous Phase's output on disk before invoking the next Phase.
 - Do NOT bundle multiple Phases into one agent call "to save round trips". It loses more on truncation than it saves on overhead.
 
+> **재검토 조건 (2026-08-01).** R1 의 근거(truncation·OOM·타임아웃)는 Claude 5 이전
+> 실측이다. Claude 5 계열(1M 컨텍스트·long-horizon, complete-spec 단일 실행에서 최고
+> 성능 — 플랫폼 프롬프팅 문서)에서는 phase-split 이 오히려 비용일 수 있다. 다음 분기
+> ablation 에서 phase-split 없이 truncation/미완주 재발이 관측되지 않으면 R1 을
+> 완화(의무 → 선택)한다.
+
 ### R2: Always include the invocation footer
 
 Every `Agent` prompt MUST end with the contents of `~/.claude/agents/_templates/invocation-footer.md` (or an equivalent block). This pins output constraints, evidence paths, and abort conditions.
