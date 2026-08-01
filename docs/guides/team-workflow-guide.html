@@ -1,0 +1,275 @@
+<title>팀 워크플로우 가이드 — carpdm-skills</title>
+<style>
+  :root{
+    --bg:#F6F7F5; --surface:#FFFFFF; --surface2:#EEF1EE; --line:#DCE2DD;
+    --ink:#22302C; --ink2:#5A6B64; --accent:#1E6B54; --accent-soft:#E3EFE9;
+    --code-bg:#22302C; --code-ink:#D9E4DE;
+    --c-build:#99622E; --c-plan:#3F5C93; --c-linear:#2F7A8C; --c-ops:#4B7A3F; --c-review:#8A4A5E; --c-ui:#6B5AA0;
+  }
+  @media (prefers-color-scheme: dark){:root{
+    --bg:#151A18; --surface:#1D2421; --surface2:#232B27; --line:#33403A;
+    --ink:#E5EAE7; --ink2:#95A59D; --accent:#4FA98B; --accent-soft:#1E322A;
+    --code-bg:#101513; --code-ink:#C4D4CC;
+    --c-build:#C89A62; --c-plan:#8CA3D8; --c-linear:#7BB8C9; --c-ops:#93BE84; --c-review:#CE93A6; --c-ui:#AFA0DD;
+  }}
+  :root[data-theme="light"]{
+    --bg:#F6F7F5; --surface:#FFFFFF; --surface2:#EEF1EE; --line:#DCE2DD;
+    --ink:#22302C; --ink2:#5A6B64; --accent:#1E6B54; --accent-soft:#E3EFE9;
+    --code-bg:#22302C; --code-ink:#D9E4DE;
+    --c-build:#99622E; --c-plan:#3F5C93; --c-linear:#2F7A8C; --c-ops:#4B7A3F; --c-review:#8A4A5E; --c-ui:#6B5AA0;
+  }
+  :root[data-theme="dark"]{
+    --bg:#151A18; --surface:#1D2421; --surface2:#232B27; --line:#33403A;
+    --ink:#E5EAE7; --ink2:#95A59D; --accent:#4FA98B; --accent-soft:#1E322A;
+    --code-bg:#101513; --code-ink:#C4D4CC;
+    --c-build:#C89A62; --c-plan:#8CA3D8; --c-linear:#7BB8C9; --c-ops:#93BE84; --c-review:#CE93A6; --c-ui:#AFA0DD;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Apple SD Gothic Neo","Pretendard Variable",Pretendard,"Noto Sans KR",system-ui,sans-serif;
+    font-size:15px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1060px; margin:0 auto; padding:0 24px 96px}
+  a{color:var(--accent); text-decoration:none} a:hover{text-decoration:underline}
+  code{font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:.88em; background:var(--surface2); padding:.12em .4em; border-radius:4px}
+  pre.sh{background:var(--code-bg); color:var(--code-ink); border-radius:10px; padding:16px 20px; overflow-x:auto; font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:13px; line-height:1.7}
+  pre.sh .c{opacity:.55}
+  h1,h2,h3{text-wrap:balance; line-height:1.25}
+  h1{font-size:34px; font-weight:800; letter-spacing:-.02em; margin:0 0 8px}
+  h2{font-size:22px; font-weight:800; letter-spacing:-.01em; margin:64px 0 6px; scroll-margin-top:72px}
+  h2 .no{color:var(--accent); font-family:ui-monospace,monospace; font-size:15px; margin-right:8px}
+  .sub{color:var(--ink2); margin:0 0 20px; max-width:64ch}
+  header.hero{padding:64px 0 28px; border-bottom:1px solid var(--line)}
+  .eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:10px}
+  nav.toc{position:sticky; top:0; z-index:9; background:var(--bg); border-bottom:1px solid var(--line); padding:10px 0; display:flex; gap:4px 16px; flex-wrap:wrap; font-size:13px; font-weight:600}
+  nav.toc a{color:var(--ink2)} nav.toc a:hover{color:var(--accent)}
+  .grid{display:grid; gap:14px}
+  .cards2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .cards3{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:16px 18px}
+  .card h3{margin:0 0 6px; font-size:15px}
+  .card p{margin:0; font-size:13.5px; color:var(--ink2)}
+  .step{display:flex; gap:14px; align-items:flex-start}
+  .step .n{flex:none; width:26px; height:26px; border-radius:50%; background:var(--accent); color:#fff; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; margin-top:2px}
+  table{border-collapse:collapse; width:100%; font-size:13.5px; background:var(--surface); border-radius:10px; overflow:hidden}
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:10px}
+  th{background:var(--surface2); text-align:left; padding:9px 12px; font-size:12px; letter-spacing:.04em; color:var(--ink2)}
+  td{padding:9px 12px; border-top:1px solid var(--line); vertical-align:top}
+  td code{white-space:nowrap}
+  .chip{display:inline-block; font-size:11px; font-weight:700; padding:2px 9px; border-radius:99px; color:#fff; letter-spacing:.02em}
+  .g-build{background:var(--c-build)} .g-plan{background:var(--c-plan)} .g-linear{background:var(--c-linear)}
+  .g-ops{background:var(--c-ops)} .g-review{background:var(--c-review)} .g-ui{background:var(--c-ui)}
+  .group{border-left:3px solid var(--line); padding-left:16px; margin:26px 0}
+  .group.b-build{border-color:var(--c-build)} .group.b-plan{border-color:var(--c-plan)}
+  .group.b-linear{border-color:var(--c-linear)} .group.b-ops{border-color:var(--c-ops)}
+  .group.b-review{border-color:var(--c-review)} .group.b-ui{border-color:var(--c-ui)}
+  .group h3{margin:0 0 4px; font-size:16px}
+  .group .note{font-size:13px; color:var(--ink2); margin:0 0 10px}
+  .say{color:var(--ink2)}
+  .say b{color:var(--ink); font-weight:600}
+  input.filter{width:100%; max-width:420px; padding:9px 14px; font-size:14px; border:1px solid var(--line);
+    border-radius:8px; background:var(--surface); color:var(--ink); margin-bottom:14px; font-family:inherit}
+  input.filter:focus{outline:2px solid var(--accent); border-color:transparent}
+  .callout{background:var(--accent-soft); border-left:3px solid var(--accent); border-radius:0 10px 10px 0; padding:12px 16px; font-size:13.5px; margin:16px 0}
+  .mermaid-wrap{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px; overflow-x:auto; margin:18px 0}
+  .kbd{font-family:ui-monospace,monospace; font-size:12px; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 6px; background:var(--surface)}
+  footer{margin-top:72px; padding-top:20px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink2)}
+  @media (prefers-reduced-motion: no-preference){ html{scroll-behavior:smooth} }
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">carpdm-skills · Team Onboarding</div>
+  <h1>팀 워크플로우 &amp; 스킬 사용 가이드</h1>
+  <p class="sub">새 머신에 환경을 3명령으로 재현하고, 아이디어→이슈→구현→머지의 전 구간에서
+  어떤 스킬을 언제 부르는지의 실전 지도. 자연어로 말해도 발동한다 — 확실히 원하면 슬래시로.</p>
+</header>
+
+<nav class="toc">
+  <a href="#setup">1 셋업</a><a href="#concepts">2 핵심 개념</a><a href="#flow">3 워크플로우 맵</a>
+  <a href="#skills">4 스킬 가이드</a><a href="#scenarios">5 상황별 퀵레퍼런스</a><a href="#maintain">6 레포 유지보수</a>
+</nav>
+
+<h2 id="setup"><span class="no">01</span>셋업 — 3명령 + 후속 4단계</h2>
+<p class="sub">파일은 스크립트가 깔고, 파일 밖 환경(MCP·플러그인·npm)은 재현 명령이 깐다. 토큰은 어디에도 없다 — 각자 OAuth.</p>
+
+<pre class="sh">git clone https://github.com/skdkfk8758/carpdm-skills.git &amp;&amp; cd carpdm-skills
+bash install.sh                 <span class="c"># ① 자작 스킬 26종 → ~/.claude/skills/</span>
+bash install-global.sh          <span class="c"># ② rules·hooks·settings + 서드파티 스킬 129종 + ~/.codex 형상</span>
+bash global/setup/replicate.sh  <span class="c"># ③ MCP(claude/codex)·플러그인 10종·npm 런타임 (멱등)</span></pre>
+
+<div class="grid cards2" style="margin-top:16px">
+  <div class="card step"><div class="n">1</div><div><h3>&lt;FILL-ME&gt; 채우기</h3><p><code>~/.claude/settings.json</code> · <code>~/.codex/config.toml</code> 의 마스킹된 secret 을 실값으로.</p></div></div>
+  <div class="card step"><div class="n">2</div><div><h3>Linear 라우팅 맵 경로 수정</h3><p><code>~/.claude/linear-repo-map.json</code> 의 repo 경로를 자기 머신 경로로. 팀↔레포 매핑 SSOT.</p></div></div>
+  <div class="card step"><div class="n">3</div><div><h3>OAuth 승인</h3><p>Linear MCP 는 Claude Code 와 codex <b>각각</b> 첫 사용 시 브라우저 승인이 뜬다.</p></div></div>
+  <div class="card step"><div class="n">4</div><div><h3>재시작 + 검증</h3><p><code>ls ~/.claude/skills/ | wc -l</code>(130+) · <code>claude mcp list</code> · <code>claude plugin list</code> · <code>codex mcp get linear</code></p></div></div>
+</div>
+
+<h2 id="concepts"><span class="no">02</span>핵심 개념 — 스킬보다 먼저</h2>
+<div class="grid cards3">
+  <div class="card"><h3>Skill-first</h3><p>비trivial 코드 작업(3+ 파일 · 200+ LOC · 검증 루프)은 즉흥 편집 대신 스킬 경유. 오타·1-2 파일은 그냥 직접.</p></div>
+  <div class="card"><h3>승인 게이트</h3><p>외부 write(이슈 생성·PR 머지·삭제)는 스킬이 미리보기를 먼저 보여주고 승인을 기다린다. 스킬 발동 자체는 항상 안전.</p></div>
+  <div class="card"><h3>Worktree 격리</h3><p>새 브랜치 작업은 예외 없이 worktree 로. 메인 체크아웃은 항상 trunk — uncommitted 노출을 최소로.</p></div>
+  <div class="card"><h3>자동 가드(훅)</h3><p>보호 브랜치 차단 · 파괴 명령 경고 · push/PR 전 CI 3종 로컬 선실행. 훅이 막으면 우회하지 말고 메시지를 따를 것.</p></div>
+  <div class="card"><h3>모드 2종</h3><p><code>caveman</code>(산문 압축) · <code>ponytail</code>(코드 YAGNI 사다리, 매 세션 자동 full). <span class="kbd">/ponytail lite|ultra</span> 로 조절.</p></div>
+  <div class="card"><h3>codex 교차모델</h3><p>이슈등록 실행 · 착수 재플래닝 · plan 비평자가 <code>codex exec</code> 로 다른 모델의 판단을 산다. codex 없으면 자동 폴백.</p></div>
+</div>
+
+<h2 id="flow"><span class="no">03</span>메인 워크플로우 — 아이디어에서 머지까지</h2>
+<p class="sub">모든 화살표가 강제는 아니다 — 요구가 이미 명확하면 중간을 건너뛰고 빌드로 직행한다.</p>
+
+<div class="mermaid-wrap">
+<pre class="mermaid">
+%%{init: {"flowchart": {"curve": "basis"}} }%%
+flowchart TD
+  A["💭 모호한 아이디어"] -->|"/deep-interview"| B["REQ spec"]
+  A -->|이미 명확| E
+  B -->|"/deep-plan"| C["PLAN + UI 시안 + Goal Prompt<br/>(codex 비평자 debate)"]
+  C -->|"이슈로 쪼개줘 → /linear-register"| D["Linear 이슈 트리<br/>(codex 가 등록 실행)"]
+  D -->|"/linear-goal · 자율"| E["구현<br/>worktree + TDD + 보안검증"]
+  D -->|"/linear-replan · 착수 전 갈래 정리"| E
+  A -->|"/forge · /hunt · /renew · 직접"| E
+  E -->|PR| F["/land — 머지 + 로컬 정리"]
+  F --> G["/wt-sweep — 워크트리 정리"]
+  E -.->|세션 끊을 때| H["/handoff 저장·복원"]
+  F -.->|배포 직전| I["/preflight 종합판정<br/>/fortify 보안감사"]
+</pre>
+</div>
+
+<div class="callout">
+<b>세션 경계 습관</b> — 끊을 때 "여기까지 하자, 내일 이어서"(<code>handoff</code> 저장),
+재개할 때 "어디까지 했지?"(<code>handoff</code> 복원). 컨텍스트가 날아가기 전에 저장이 먼저다.
+</div>
+
+<h2 id="skills"><span class="no">04</span>스킬 사용 가이드 — 그룹별</h2>
+
+<div class="group b-build">
+  <h3><span class="chip g-build">BUILD</span> 빌드 파이프라인 — 코드를 짓는다</h3>
+  <p class="note">셋 다 같은 엔진: 소크라테스 인터뷰 → plan 게이트 → TDD → 보안 검증. 언더트리거 설계 — 확실하면 슬래시가 빠르다.</p>
+  <div class="tablewrap"><table>
+    <tr><th style="width:130px">스킬</th><th>언제</th><th>이렇게 말하면</th></tr>
+    <tr><td><code>/forge</code></td><td><b>없던 기능</b>을 새로</td><td class="say">"결제 취소 <b>추가해줘</b>", "<b>만들어줘</b>"</td></tr>
+    <tr><td><code>/hunt</code></td><td><b>깨진 것</b>을 고침 — 재현 먼저, 회귀 잠금</td><td class="say">"왜 <b>안 돼</b>", "<b>500 떠</b>", "예전엔 됐는데"</td></tr>
+    <tr><td><code>/renew</code></td><td><b>있는 기능</b>을 의도적으로 변경</td><td class="say">"이 화면 <b>개편</b>", "동작 <b>바꿔줘</b>"</td></tr>
+    <tr><td><code>/tdd</code></td><td>요구 명확 + 순수 red-green 만 (풀 파이프라인 없이)</td><td class="say">"test-first 로 해줘"</td></tr>
+  </table></div>
+</div>
+
+<div class="group b-plan">
+  <h3><span class="chip g-plan">PLAN</span> 생각·계획 — 코드 전에</h3>
+  <div class="tablewrap"><table>
+    <tr><th style="width:150px">스킬</th><th>언제</th><th>산출</th></tr>
+    <tr><td><code>/deep-interview</code></td><td>아이디어가 흐릿할 때 — 한 라운드 한 질문 인터뷰</td><td>번호 매긴 REQ spec</td></tr>
+    <tr><td><code>/deep-plan</code></td><td>설계·시안을 먼저 보고 싶고 구현은 아직일 때</td><td>PLAN.md + 시안 HTML + Goal Prompt</td></tr>
+    <tr><td><code>/deep-prompt</code></td><td>백그라운드 자율 잡에 넣을 목표문</td><td>Goal Prompt .md (측정가능 성공기준)</td></tr>
+  </table></div>
+</div>
+
+<div class="group b-linear">
+  <h3><span class="chip g-linear">LINEAR</span> 이슈 라이프사이클</h3>
+  <p class="note">이슈 <b>등록</b>은 linear-register 가 유일 진입점 — 직접 save_issue 호출 금지(룰). 등록 전 dedup 대조 + 본문 전문 미리보기 게이트.</p>
+  <div class="tablewrap"><table>
+    <tr><th style="width:160px">스킬</th><th>언제</th><th>비고</th></tr>
+    <tr><td><code>/linear-register</code></td><td>이슈 등록 — 단건도, plan 분할도</td><td>codex 가 등록 실행(위임), 승인은 Claude 쪽 게이트</td></tr>
+    <tr><td><code>/linear-replan</code></td><td>티켓 <b>착수 직전</b> 결정 갈래 정리</td><td>codex 초안 → 인터뷰 확정 → 착수 계획 코멘트</td></tr>
+    <tr><td><code>/linear-goal</code></td><td>티켓 1건 자율 실행</td><td>worktree → goal worker → PR (In Review 까지)</td></tr>
+    <tr><td><code>/linear-groom</code></td><td>백로그 정리·보강</td><td>고아 이슈 그룹핑 · 빈약 이슈 spec 화</td></tr>
+    <tr><td><code>/linear-prioritize</code></td><td>"뭐부터 하지" 스프린트 플래닝</td><td>의존·병렬 분석 + 우선순위</td></tr>
+  </table></div>
+</div>
+
+<div class="group b-ops">
+  <h3><span class="chip g-ops">OPS</span> 운영 — 세션·정리·머지</h3>
+  <div class="tablewrap"><table>
+    <tr><th style="width:170px">스킬</th><th>언제</th></tr>
+    <tr><td><code>/handoff</code></td><td>세션 끊기 전 저장 · 재개 시 복원 (양방향 자동 감지)</td></tr>
+    <tr><td><code>/land</code></td><td>올린 PR 머지 + master pull + 브랜치 정리 — 승인 게이트 내장</td></tr>
+    <tr><td><code>/wt-sweep</code></td><td>잔여 워크트리·세션 기록 정리 (land 다음)</td></tr>
+    <tr><td><code>/sweep</code></td><td>오래된 문서·로그·plan 정리</td></tr>
+    <tr><td><code>dev-server-daemon</code></td><td>"dev 서버 올려둬 내가 확인할게" — 세션 종료 후에도 살아있는 daemon</td></tr>
+    <tr><td><code>/ship</code></td><td>(이 레포 유지보수자 전용) 스킬 변경 배포 — sync→PR→CI→머지</td></tr>
+  </table></div>
+</div>
+
+<div class="group b-review">
+  <h3><span class="chip g-review">REVIEW</span> 검토·판정 — 코드는 안 고친다</h3>
+  <div class="tablewrap"><table>
+    <tr><th style="width:220px">스킬/명령</th><th>축</th></tr>
+    <tr><td><code>/preflight</code></td><td>배포 전 10차원 종합 → GO / 조건부GO / NO-GO</td></tr>
+    <tr><td><code>/fortify</code></td><td>보안 5카테고리만 깊게 → PASS / 조건부 / FAIL + 라이브 probe</td></tr>
+    <tr><td><code>/code-review</code> · <code>/security-review</code></td><td>diff correctness · diff 보안 (빌트인)</td></tr>
+    <tr><td><code>/simplify</code></td><td>단순화 리뷰 + <b>수정 적용까지</b> (빌트인)</td></tr>
+    <tr><td><code>/ponytail-review</code> · <code>/ponytail-audit</code></td><td>과잉설계 삭제 후보 — diff / repo 전체</td></tr>
+    <tr><td><code>/clean-architecture</code></td><td>의존성 규칙 · SOLID · 레이어 경계 (플러그인)</td></tr>
+  </table></div>
+</div>
+
+<div class="group b-ui">
+  <h3><span class="chip g-ui">UI·도식·스캐폴드</span></h3>
+  <div class="tablewrap"><table>
+    <tr><th style="width:190px">스킬</th><th>언제</th></tr>
+    <tr><td><code>/mockup</code></td><td>기존 프로젝트 룩에 충실한 화면 시안 (Artifact 배포)</td></tr>
+    <tr><td><code>/imprint</code></td><td>design-extractor DESIGN.md 토큰을 그대로 재현</td></tr>
+    <tr><td><code>/erd</code></td><td>DB 스키마 → 인터랙티브 ERD + ACID 진단</td></tr>
+    <tr><td><code>frontend-design</code></td><td>자유 창작 UI (플러그인)</td></tr>
+    <tr><td><code>cicd-scaffold</code> 외</td><td>GitHub Actions 배포 · ADMap 지도 · 도메인 CLAUDE.md · API 포털 스캐폴딩</td></tr>
+  </table></div>
+</div>
+
+<h2 id="scenarios"><span class="no">05</span>상황별 퀵레퍼런스</h2>
+<p class="sub">스킬 이름을 몰라도 된다 — 이렇게 말하면 발동한다. 아래에서 상황을 검색해 보라.</p>
+<input class="filter" id="q" type="search" placeholder="상황 검색 — 예: 버그, 이슈, 머지, 시안…" aria-label="시나리오 검색">
+<div class="tablewrap"><table id="scen">
+  <tr><th>상황</th><th>이렇게 말한다</th><th style="width:170px">발동</th></tr>
+  <tr><td>새 기능 만들고 싶다</td><td class="say">"결제 취소 기능 추가해줘"</td><td><span class="chip g-build">BUILD</span> <code>forge</code></td></tr>
+  <tr><td>뭔가 깨졌다 · 버그</td><td class="say">"업로드가 500 떠"</td><td><span class="chip g-build">BUILD</span> <code>hunt</code></td></tr>
+  <tr><td>기존 화면·동작을 바꾸고 싶다</td><td class="say">"대시보드 개편해줘"</td><td><span class="chip g-build">BUILD</span> <code>renew</code></td></tr>
+  <tr><td>아이디어가 아직 흐릿하다</td><td class="say">"이거 같이 정리하자"</td><td><span class="chip g-plan">PLAN</span> <code>deep-interview</code></td></tr>
+  <tr><td>설계·시안만 먼저 보고 싶다</td><td class="say">"구현 말고 플랜만"</td><td><span class="chip g-plan">PLAN</span> <code>deep-plan</code></td></tr>
+  <tr><td>할 일을 잊지 않게 적어두고 싶다</td><td class="say">"이거 이슈로 남겨놔"</td><td><span class="chip g-linear">LINEAR</span> <code>linear-register</code></td></tr>
+  <tr><td>플랜을 티켓으로 나누고 싶다</td><td class="say">"이 플랜 이슈로 쪼개줘"</td><td><span class="chip g-linear">LINEAR</span> <code>linear-register</code></td></tr>
+  <tr><td>티켓을 통째로 맡기고 싶다</td><td class="say">"ADT-123 진행해줘"</td><td><span class="chip g-linear">LINEAR</span> <code>linear-goal</code></td></tr>
+  <tr><td>티켓 시작 전에 결정할 게 많다</td><td class="say">"이 티켓 어떻게 할지 먼저 정해줘"</td><td><span class="chip g-linear">LINEAR</span> <code>linear-replan</code></td></tr>
+  <tr><td>백로그가 지저분하다</td><td class="say">"리니어 이슈 정리해줘"</td><td><span class="chip g-linear">LINEAR</span> <code>linear-groom</code></td></tr>
+  <tr><td>뭐부터 할지 모르겠다</td><td class="say">"남은 이슈 정리해줘, 뭐부터?"</td><td><span class="chip g-linear">LINEAR</span> <code>linear-prioritize</code></td></tr>
+  <tr><td>오늘은 여기까지</td><td class="say">"여기까지 하자, 내일 이어서"</td><td><span class="chip g-ops">OPS</span> <code>handoff</code></td></tr>
+  <tr><td>어제 뭐 하다 말았지</td><td class="say">"어디까지 했었지?"</td><td><span class="chip g-ops">OPS</span> <code>handoff</code></td></tr>
+  <tr><td>PR 다 올렸다, 마무리</td><td class="say">"다 됐어, 머지하고 정리해줘"</td><td><span class="chip g-ops">OPS</span> <code>land</code></td></tr>
+  <tr><td>워크트리가 쌓였다</td><td class="say">"안 쓰는 워크트리 치워줘"</td><td><span class="chip g-ops">OPS</span> <code>wt-sweep</code></td></tr>
+  <tr><td>dev 서버 띄워두고 직접 보고 싶다</td><td class="say">"서버 올려둬, 내가 확인할게"</td><td><span class="chip g-ops">OPS</span> <code>dev-server-daemon</code></td></tr>
+  <tr><td>배포해도 되나</td><td class="say">"배포 전에 전체 검토해줘"</td><td><span class="chip g-review">REVIEW</span> <code>preflight</code></td></tr>
+  <tr><td>보안 괜찮나</td><td class="say">"보안 점검해줘"</td><td><span class="chip g-review">REVIEW</span> <code>fortify</code></td></tr>
+  <tr><td>과잉설계인지 봐 달라</td><td class="say">"이 레포에서 지울 수 있는 거 찾아줘"</td><td><span class="chip g-review">REVIEW</span> <code>ponytail-audit</code></td></tr>
+  <tr><td>DB 구조가 궁금하다</td><td class="say">"이 스키마 ERD 그려줘"</td><td><span class="chip g-ui">UI</span> <code>erd</code></td></tr>
+  <tr><td>화면 시안이 필요하다</td><td class="say">"이 화면 목업 떠줘"</td><td><span class="chip g-ui">UI</span> <code>mockup</code></td></tr>
+</table></div>
+
+<h2 id="maintain"><span class="no">06</span>이 레포를 유지보수할 때</h2>
+<p class="sub">스킬을 고치는 사람의 루프 — live 가 SSOT, repo 는 배포 미러.</p>
+<pre class="sh"><span class="c"># live ~/.claude/skills/&lt;name&gt;/ 편집 후</span>
+bash sync.sh        <span class="c"># 스킬 + 글로벌 덤프 미러 (secret 마스킹·스캔 게이트 내장)</span>
+/ship               <span class="c"># PR → CI 대기 → 승인 1회 → squash 머지 → 로컬 재동기화</span></pre>
+<div class="callout">
+push/PR 순간마다 CI 3종(frontmatter · invisible-chars · README 카탈로그)이 <b>로컬에서 먼저</b> 돈다 — 로컬 green = CI green.
+루트 메타(README·scripts)는 ship 범위 밖이라 수동 커밋 후 <code>/land</code>.
+MCP·플러그인을 새로 깔았으면 <code>global/setup/replicate.sh</code> 목록도 같이 갱신할 것 — 안 하면 다음 팀원 온보딩에서 빠진다.
+</div>
+
+<footer>
+  carpdm-skills · 스킬 인벤토리 SSOT 는 각 <code>skills/&lt;name&gt;/SKILL.md</code> ·
+  아키텍처 결정은 <code>rules/project.md</code> · 글로벌 덤프 구조는 <code>global/README.md</code> ·
+  마크다운 판: <code>docs/guides/team-workflow-guide.md</code>
+</footer>
+
+</div>
+
+<script>
+  const q = document.getElementById('q');
+  const rows = Array.from(document.querySelectorAll('#scen tr')).slice(1);
+  q.addEventListener('input', () => {
+    const v = q.value.trim().toLowerCase();
+    rows.forEach(r => { r.style.display = !v || r.textContent.toLowerCase().includes(v) ? '' : 'none'; });
+  });
+</script>
