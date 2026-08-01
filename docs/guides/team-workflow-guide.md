@@ -87,7 +87,8 @@ codex mcp get linear            # enabled: true
 주의: 재현 검증은 격리 환경 · 증상 덮기 금지 · 보안성 버그면 `/security-review` 직교 게이트.
 
 ### 🧹 리팩토링 (동작 불변)
-발굴 **`/ponytail-audit`**(과잉설계)·**`/clean-architecture`**(레이어 경계) → 소형 적용 **`/simplify`**(리뷰+적용) → `(?)renew`(대형 구조 개편) → 전후 테스트 green + `/code-review`.
+발굴 **`/ponytail-audit`**(과잉설계)·**`/clean-architecture`**(레이어 경계)·**`/improve-codebase-architecture`**(deepening) → 소형 적용 **`/simplify`**(리뷰+적용) → `(?)renew`(대형 구조 개편) → 전후 테스트 green + `/code-review`.
+자연 라우팅: "정리해줘/리팩토링해줘" → skill-first 룰 매핑 등재(2026-08-02).
 규율: 요청 범위만(surgical) · 옛 경로는 같은 커밋 삭제(YAGNI) · 테스트 없으면 특성 테스트부터(`/tdd`).
 
 ### 🗄 DB 스키마 변경
@@ -105,6 +106,7 @@ codex mcp get linear            # enabled: true
 ### 🚀 배포 준비
 **`/preflight`**(10차원 GO/NO-GO) → **`/fortify`**(보안 5카테고리+probe) → 발견은 hunt/renew 로 수정 후 재판정 → `(?)cicd-scaffold`(파이프라인 없으면) → `/land` + 버전 태그.
 주의: AC green ≠ 보안 통과(직교) · 인프라 항목은 추측 PASS 금지.
+자연 라우팅: "배포 준비해줘" → skill-first 룰이 preflight→fortify 체인으로 등재(2026-08-02).
 
 ---
 

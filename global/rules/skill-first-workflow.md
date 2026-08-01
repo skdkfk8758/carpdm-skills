@@ -26,6 +26,8 @@ IMPORTANT: 비trivial 코드 작업은 즉흥 편집(ad-hoc) 대신 **적합한 
 | 요구사항 명확·순수 TDD만(파이프라인 없이) | `tdd` — 적대 리뷰/보안 페이즈 없는 red-green-refactor escape-hatch. forge/hunt/renew 의 풀 파이프라인 아님(그것들은 자체 TDD 페이즈 보유) |
 | 플랜만(구현 X) | `deep-plan` / `deep-interview` |
 | Linear 이슈 자동 실행 | `linear-goal` |
+| 리팩토링(동작 불변) | 소형·변경분 정리는 `/simplify`(리뷰+적용), 대형 구조 개편은 `renew` — 후보 발굴은 `/ponytail-audit`·`/improve-codebase-architecture`(리포트만). 성공 기준 = 전후 테스트 green |
+| 배포 준비 | `preflight`(10차원 종합 판정) → `fortify`(보안 5축 심화) **체인 순서** — 발견(blocker)은 hunt/renew 로 수정 후 재판정. 판정 스킬은 코드 무수정 |
 | 그 외 모호 | 메인 판단 — 필요 시 `Plan`/`Explore` 위임 |
 
 ## Threshold — 언제 스킬을 경유하나
@@ -33,6 +35,8 @@ IMPORTANT: 비trivial 코드 작업은 즉흥 편집(ad-hoc) 대신 **적합한 
 - **비trivial**: 3+ 파일 · 200+ LOC · 다중 도메인 · 재현/검증 루프 필요 → 스킬 경유.
 - **trivial**: 오타·단일 줄·1~2 파일 동일 토픽 이어붙임 → 메인 직접(스킬 불요).
 - 스킬 경유 후 그 스킬이 subagent 를 오케스트레이션. 위임 판단은 `subagent-delegation.md` — 2026-08-01 부로 수치 임계가 아닌 성격 기준(캡 기본)이라, 위 스킬 경유 threshold 와는 별개 경계다.
+
+> 2026-08-02 추가 2행(리팩토링·배포 준비) 은퇴 조건: 분기 ablation 에서 오라우팅 재발이 없고 description 트리거 단독으로 충분하면 행 제거.
 
 ## 면제 경로 (스킬 불요)
 

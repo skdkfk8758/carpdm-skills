@@ -239,6 +239,7 @@ flowchart TD
     <div class="st"><div class="dot">3</div><div><b>검증 — 전후 테스트 green + /code-review</b><p>동작 불변 주장은 테스트가 증명한다. diff correctness 리뷰로 마감.</p></div></div>
   </div>
   <div class="tips"><b>규율</b><ul>
+    <li><b>자연 라우팅 등재됨</b> — "정리해줘/리팩토링해줘" 발화는 skill-first 룰 매핑(소형 simplify · 대형 renew · 발굴 audit)이 1차로 받는다. 스킬 이름 몰라도 된다.</li>
     <li>안 깨진 것을 요청 없이 리팩터하지 않는다 — 범위는 항상 명시 요청에 연결(surgical).</li>
     <li>기능 전환 시 옛 경로는 <b>같은 커밋</b>에서 삭제 — "다음 PR 에서 정리" 금지(YAGNI).</li>
     <li>테스트가 없어 동작 불변을 증명할 수 없으면, 리팩터 전에 특성 테스트부터(<code>/tdd</code>).</li>
@@ -300,6 +301,7 @@ flowchart TD
     <div class="st"><div class="dot">3</div><div><b>/land → 릴리스</b><p>trunk 머지 후 릴리스 라인은 태그가 게이트 — 버전 태그 push 가 prod 배포를 트리거.</p></div></div>
   </div>
   <div class="tips"><b>주의</b><ul>
+    <li><b>자연 라우팅 등재됨</b> — "배포 준비해줘" 발화는 skill-first 룰이 preflight→fortify <b>체인 순서</b>로 받는다. 판정 스킬은 코드를 안 고친다.</li>
     <li>기능 수용 기준 green ≠ 보안 통과 — 보안은 직교 게이트다. 섞으면 둘 다 샌다.</li>
     <li>인프라 항목(방화벽·백업 복구 테스트)은 코드 밖 — 추측 PASS 금지, "확인필요"로 사람에게.</li>
   </ul></div>
