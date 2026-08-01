@@ -39,7 +39,12 @@ done
 
 echo
 cd "$REPO_DIR"
-git add -A skills
+
+# 글로벌 덤프도 같은 배포 단위 — sync-global.sh 로 미러(내장 secret 마스킹+스캔 게이트,
+# 스캔 hit 시 여기서 전체 중단). 팀원 이식 덤프의 신선도는 배포 경로가 하나여야 유지된다.
+bash "$REPO_DIR/sync-global.sh"
+
+git add -A skills global
 
 if git diff --cached --quiet; then
   echo "No changes — repo already up to date."
@@ -47,7 +52,7 @@ if git diff --cached --quiet; then
 fi
 
 echo "=== staged changes ==="
-git status --short -- skills
+git status --short -- skills global
 echo
 
 if [ "${1:-}" = "--push" ] || [ "${1:-}" = "--pr-only" ]; then
@@ -57,11 +62,11 @@ if [ "${1:-}" = "--push" ] || [ "${1:-}" = "--pr-only" ]; then
   BR="chore/sync-$(date +%Y%m%d-%H%M%S)"
   # 새 브랜치로 분기 (master 직접 push 우회). staged 변경은 그대로 따라옴.
   git checkout -q -b "$BR"
-  git commit -q -m "chore: 스킬 동기화 ($DATE)"
+  git commit -q -m "chore: 스킬·글로벌 동기화 ($DATE)"
   git push -q -u origin "$BR"
   gh pr create --base "$BASE" --head "$BR" \
-    --title "chore: 스킬 동기화 ($DATE)" \
-    --body "\`sync.sh\` 자동 생성 — \`~/.claude/skills/\` → repo \`skills/\` 미러링." >/dev/null
+    --title "chore: 스킬·글로벌 동기화 ($DATE)" \
+    --body "\`sync.sh\` 자동 생성 — \`~/.claude/skills/\` → \`skills/\` + 글로벌 환경(\`sync-global.sh\`) → \`global/\` 미러링." >/dev/null
   if [ "${1:-}" = "--pr-only" ]; then
     # 머지 보류 — CI 게이트 + land 는 ship 스킬이 처리. 브랜치는 로컬에 남겨 둔다.
     PR_URL="$(gh pr view "$BR" --json url -q .url)"

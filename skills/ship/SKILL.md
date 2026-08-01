@@ -38,11 +38,14 @@ CI 가 실패하거나 머지가 막히면: 중단하고, PR·브랜치를 복�
   인 게 있는지.
 - 열린 sync PR 이 이미 있는지: `gh pr list --author @me --state open --json number,headRefName`.
   있으면 새로 만들지 말고 그 PR 의 CI 부터 본다 (3 단계로).
-- **`skills/` 밖 변경 주의 (이 스킬의 경계).** sync.sh 와 이 스킬의 2 단계는
-  `git add -A skills` 만 stage 한다 — 루트 `sync.sh`/`README.md`/`rules/project.md`
-  등 `skills/` 밖 변경은 **누락한다**. 그런 메타 변경이 섞여 있으면 ship 으로
-  흘리지 말고, 메타 변경을 먼저 수동 커밋(`git add -A` + 브랜치 + PR)한 뒤
-  ship 으로 *스킬만* 배포하거나, 한 번에 수동 PR 로 묶는다.
+- **stage 범위 = `skills/` + `global/` (이 스킬의 경계).** sync.sh 는 스킬 미러에
+  더해 `sync-global.sh`(글로벌 환경 덤프 — skills-extra·codex·rules·settings, secret
+  마스킹+스캔 게이트 내장)를 실행하고 `git add -A skills global` 로 stage 한다 —
+  글로벌 덤프도 같은 sync PR 에 실린다(2026-08-02, 덤프 신선도 근거). 그 밖의 루트
+  메타(`sync.sh` 자체/`README.md`/`rules/project.md` 등)는 여전히 **누락한다** — 그런
+  변경이 섞여 있으면 먼저 수동 커밋(`git add -A` + 브랜치 + PR)한 뒤 ship 으로
+  배포하거나, 한 번에 수동 PR 로 묶는다. sync-global 의 secret 스캔이 hit 를 내면
+  sync.sh 전체가 exit 1 로 멈춘다 — 마스킹 처리 후 재시도(게이트이지 버그 아님).
 
 기본 브랜치는 `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` 로 (하드코딩 금지).
 
