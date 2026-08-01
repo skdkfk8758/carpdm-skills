@@ -177,6 +177,21 @@ codex mcp get linear            # enabled: true
 `cicd-scaffold`(GitHub Actions 배포) · `admap-scaffold`(ADMap 지도 페이지) ·
 `colocate-domain-context`(도메인 CLAUDE.md 배치) · `api-docs-guide-scaffold`(개발자 포털 3종).
 
+### 🧰 서드파티 보강 (Matt Pocock 계열 유지분 — carpdm 스킬과 직교)
+
+겹치는 것(구 to-tickets·implement·code-review 등)은 은퇴, 아래는 대응물이 없어 유지:
+
+| 스킬 | 언제 |
+|---|---|
+| `wayfinder` | 한 세션에 안 담기는 초대형 안개 작업 — decision ticket 맵 |
+| `prototype` | 설계 질문을 throwaway 코드로 검증 |
+| `design-an-interface` | 모듈 API 를 여러 형태로 떠서 비교 |
+| `improve-codebase-architecture` | deepening 기회 스캔 — 리팩토링 후보 발굴 |
+| `diagnosing-bugs` | hunt 로도 안 잡히는 어려운 버그 진단 루프 |
+| `grilling`(grill-me) | 내 계획·판단 스트레스 테스트 |
+| `research` | 고신뢰 1차 소스 조사 → .md 리포트 |
+| `resolving-merge-conflicts` · `setup-pre-commit` · `codebase-design` · `domain-modeling` | 충돌 해소 · pre-commit · 설계/도메인 어휘 레이어 |
+
 ---
 
 ## 6. 시나리오 퀵레퍼런스

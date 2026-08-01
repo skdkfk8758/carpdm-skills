@@ -185,6 +185,8 @@ flowchart TD
   <div class="rail">
     <div class="st opt"><div class="dot">?</div><div><b>아이디어가 흐릿하면 — /deep-interview</b><p>라운드당 한 질문 인터뷰로 REQ spec 결정화. 이미 명확하면 스킵.</p></div></div>
     <div class="st opt"><div class="dot">?</div><div><b>크거나 위험하면 — /deep-plan</b><p>PLAN + UI 시안 + Goal Prompt 산출(codex 비평자 debate). 구현은 안 함.</p></div></div>
+    <div class="st opt"><div class="dot">?</div><div><b>설계 질문이 대화로 안 풀리면 — /prototype · /design-an-interface</b><p>상태 모델·로직이 맞는지 throwaway 코드로 답하거나, 모듈 인터페이스 시안을 병렬로 여러 개 떠서 비교.</p></div></div>
+    <div class="st opt"><div class="dot">?</div><div><b>한 세션에 안 담기는 초대형 안개 작업이면 — /wayfinder</b><p>decision ticket 맵으로 결정을 하나씩 해소해 길을 낸 뒤, plan→분할로 합류.</p></div></div>
     <div class="st opt"><div class="dot">?</div><div><b>여러 세션짜리면 — /linear-register 분할</b><p>plan 을 vertical slice 이슈 트리로. 미리보기 승인 후 codex 가 등록.</p></div></div>
     <div class="st"><div class="dot">1</div><div><b>구현 — /forge (직접) 또는 /linear-goal (자율)</b><p>forge: 소크라테스 인터뷰 → plan 게이트 → 동적 워크플로 TDD → 보안 검증. goal: worktree + worker + PR 까지 자율.</p></div></div>
     <div class="st"><div class="dot">2</div><div><b>머지 — /land</b><p>CI green 확인 → squash 머지 → master pull → 브랜치 정리 → Linear Done 전이.</p></div></div>
@@ -231,7 +233,7 @@ flowchart TD
   <h3>🧹 리팩토링 — 동작 불변, 구조 개선</h3>
   <p class="lead">성공 기준이 명확하다: <b>리팩터 전후 테스트 전부 green</b>. 발굴(무엇을)과 적용(어떻게)을 나눠 쓴다.</p>
   <div class="rail">
-    <div class="st"><div class="dot">1</div><div><b>후보 발굴 — /ponytail-audit · /clean-architecture</b><p>과잉설계 삭제 후보 랭킹(ponytail) · 의존성 방향/레이어 경계 위반(clean-architecture). 리포트만, 안 고침.</p></div></div>
+    <div class="st"><div class="dot">1</div><div><b>후보 발굴 — /ponytail-audit · /clean-architecture · /improve-codebase-architecture</b><p>과잉설계 삭제 후보 랭킹(ponytail) · 의존성/레이어 경계 위반(clean-architecture) · deepening 기회 스캔+HTML 리포트(improve). 셋 다 리포트만, 안 고침.</p></div></div>
     <div class="st"><div class="dot">2</div><div><b>소형 적용 — /simplify</b><p>변경분 대상 단순화 리뷰 + <b>수정 적용까지</b> 한 번에. diff 스코프의 정리엔 이게 가장 빠르다.</p></div></div>
     <div class="st opt"><div class="dot">?</div><div><b>대형 구조 개편이면 — /renew</b><p>모듈 경계·인터페이스를 바꾸는 규모면 renew 파이프라인으로 — 보존 동작을 테스트로 잠그고 진행.</p></div></div>
     <div class="st"><div class="dot">3</div><div><b>검증 — 전후 테스트 green + /code-review</b><p>동작 불변 주장은 테스트가 증명한다. diff correctness 리뷰로 마감.</p></div></div>
@@ -378,6 +380,24 @@ flowchart TD
   </table></div>
 </div>
 
+<div class="group b-ui" style="border-color:var(--line)">
+  <h3>🧰 서드파티 보강 스킬 — Matt Pocock 계열 유지분 (carpdm 스킬과 직교)</h3>
+  <p class="note">겹치는 것(구 to-tickets·implement·code-review 등)은 은퇴했고, 아래는 carpdm 스킬에 대응물이 없어 <b>유지</b>된 것들 — 설치돼 있고 자연어로 발동한다.</p>
+  <div class="tablewrap"><table>
+    <tr><th style="width:230px">스킬</th><th>언제</th></tr>
+    <tr><td><code>/wayfinder</code></td><td>한 세션에 안 담기는 초대형·안개 작업 — decision ticket 맵으로 결정부터 해소</td></tr>
+    <tr><td><code>/prototype</code></td><td>설계 질문을 throwaway 코드로 답할 때 ("이 상태 모델이 맞나?")</td></tr>
+    <tr><td><code>/design-an-interface</code></td><td>모듈 API 를 병렬 subagent 로 여러 형태 떠서 비교 ("design it twice")</td></tr>
+    <tr><td><code>/improve-codebase-architecture</code></td><td>여유 시간에 deepening 기회 스캔 — 리팩토링 후보 발굴</td></tr>
+    <tr><td><code>/diagnosing-bugs</code></td><td>hunt 로도 원인이 안 잡히는 어려운 버그의 진단 루프</td></tr>
+    <tr><td><code>/grilling</code> (grill-me)</td><td>내 계획·판단을 집요하게 스트레스 테스트 받고 싶을 때</td></tr>
+    <tr><td><code>/research</code></td><td>고신뢰 1차 소스 조사 → 레포에 .md 리포트</td></tr>
+    <tr><td><code>/resolving-merge-conflicts</code></td><td>머지 충돌 해소 절차</td></tr>
+    <tr><td><code>/codebase-design</code> · <code>/domain-modeling</code></td><td>깊은 모듈·도메인 언어 어휘 레이어 — 다른 스킬이 밑에서 참조</td></tr>
+    <tr><td><code>/setup-pre-commit</code></td><td>pre-commit 훅 셋업</td></tr>
+  </table></div>
+</div>
+
 <h2 id="scenarios"><span class="no">06</span>상황별 퀵레퍼런스</h2>
 <p class="sub">스킬 이름을 몰라도 된다 — 이렇게 말하면 발동한다. 아래에서 상황을 검색해 보라.</p>
 <input class="filter" id="q" type="search" placeholder="상황 검색 — 예: 버그, 이슈, 머지, 시안…" aria-label="시나리오 검색">
@@ -404,6 +424,10 @@ flowchart TD
   <tr><td>과잉설계인지 봐 달라</td><td class="say">"이 레포에서 지울 수 있는 거 찾아줘"</td><td><span class="chip g-review">REVIEW</span> <code>ponytail-audit</code></td></tr>
   <tr><td>DB 구조가 궁금하다</td><td class="say">"이 스키마 ERD 그려줘"</td><td><span class="chip g-ui">UI</span> <code>erd</code></td></tr>
   <tr><td>화면 시안이 필요하다</td><td class="say">"이 화면 목업 떠줘"</td><td><span class="chip g-ui">UI</span> <code>mockup</code></td></tr>
+  <tr><td>설계가 맞는지 코드로 확인하고 싶다</td><td class="say">"이 상태 모델 프로토타입으로 검증해줘"</td><td><span class="chip g-plan">PLAN</span> <code>prototype</code></td></tr>
+  <tr><td>너무 크고 안개 낀 작업이다</td><td class="say">"어디서부터 손대야 할지도 모르겠어"</td><td><span class="chip g-plan">PLAN</span> <code>wayfinder</code></td></tr>
+  <tr><td>내 판단을 두들겨 맞고 싶다</td><td class="say">"이 계획 그릴해줘"</td><td><span class="chip g-plan">PLAN</span> <code>grilling</code></td></tr>
+  <tr><td>머지 충돌이 났다</td><td class="say">"이 충돌 해소해줘"</td><td><span class="chip g-ops">OPS</span> <code>resolving-merge-conflicts</code></td></tr>
 </table></div>
 
 <h2 id="maintain"><span class="no">07</span>이 레포를 유지보수할 때</h2>
