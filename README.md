@@ -83,6 +83,14 @@ bash install.sh
 
 25개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
+### 글로벌 셋업 (rules · hooks · settings — 팀원 동일 환경)
+
+```bash
+bash install-global.sh
+```
+
+스킬과 별개 축인 행동 규율 전체 — 글로벌 `CLAUDE.md`, 상시 룰(`rules/`), JIT 룰(`rules-ondemand/`), 가드 훅(`hooks/guards/`), `settings.json`(secret 은 `<FILL-ME>` placeholder) — 를 `~/.claude/` 로 설치한다. 스킬만 설치하면 룰·훅이 빠진 환경이 된다. 상세·제외 목록은 [`global/README.md`](global/README.md).
+
 ### 개별 설치 (하나씩)
 
 ```bash
