@@ -1,0 +1,54 @@
+name: release
+
+# v* tag push -> CI gate -> prod deploy -> GitHub Release.
+# The prod gate is the MANUAL tag itself — nothing reaches prod unless a human
+# consciously cuts a `v*` tag. Adding GitHub Environment "Required reviewers" on
+# `prod` pauses the deploy job for explicit click-approval ON TOP of that, but it
+# needs a public repo or GitHub Pro/Team (Free + private => 422 billing).
+# See references/github-setup.md "prod gate".
+on:
+  push:
+    tags: ['v*']
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+# The caller must grant id-token so the reusable deploy.yml can mint the OIDC
+# token for ECR — a reusable workflow cannot request more permission than its caller holds.
+# (The `release` job below sets its own job-level permissions for the Release API.)
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: test
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+      runner_label: prod
+      image_tag: ${{ github.ref_name }}
+      extra_tag: latest
+    secrets: inherit
+
+  release:
+    needs: deploy
+    # @optional:ci-self-hosted:start
+    runs-on: [self-hosted, prod]
+    container: node:20
+    # @optional:ci-self-hosted:end
+    # @optional:ci-github:start
+    runs-on: ubuntu-latest
+    # @optional:ci-github:end
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true

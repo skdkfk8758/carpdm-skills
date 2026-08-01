@@ -1,0 +1,23 @@
+[
+  {"query": "set up a ci/cd pipeline for this repo — i want github actions, push to develop deploys to our dev server and tagging a release goes to prod. we use a self-hosted runner and push images to ECR", "should_trigger": true},
+  {"query": "can you wire up github actions so that when i merge to develop it auto-deploys to dev, and cutting a v1.2.0 tag deploys to prod behind an approval gate? images go to ecr via OIDC", "should_trigger": true},
+  {"query": "automate deploys for my node app. we run our own github runners and store docker images in AWS ECR, need dev + prod environments", "should_trigger": true},
+  {"query": "I need a deploy pipeline. push to ECR, self-hosted runner pulls and runs the container on the same box. dev on develop, prod on tag with manual approval", "should_trigger": true},
+  {"query": "build me the .github/workflows for continuous deployment of this next.js app to our dev and prod boxes using ecr and a self hosted runner", "should_trigger": true},
+  {"query": "we just got AWS ECR set up and registered two self-hosted runners (dev and prod labels). can you build the github actions to build the image, push to ecr, and deploy on tag/branch?", "should_trigger": true},
+  {"query": "ship this to prod on a version tag and to dev whenever develop updates. github actions, docker image to ecr, OIDC for the push, no static aws keys", "should_trigger": true},
+  {"query": "ok the repo has no CI yet. set up the whole thing — PR checks, dev continuous deploy off develop, prod release workflow with a required reviewer gate, ecr + self-hosted runner", "should_trigger": true},
+  {"query": "i want a release workflow that builds a docker image, pushes it to ECR with the version tag plus latest, then runs it on the prod runner after someone approves", "should_trigger": true},
+  {"query": "scaffold github actions deploy automation for our monorepo (api + web). build to ecr, deploy dev on develop push and prod on tag, runners are self-hosted", "should_trigger": true},
+
+  {"query": "my github actions deploy job is failing with 'no basic auth credentials' when it tries to push to ECR — can you debug the existing workflow?", "should_trigger": false},
+  {"query": "write a multi-stage Dockerfile for my Express app that runs as non-root and exposes port 4000", "should_trigger": false},
+  {"query": "deploy this next.js app to Vercel and set up preview deployments for pull requests", "should_trigger": false},
+  {"query": "set up branch protection rules on main so PRs need one approval and passing checks before merge", "should_trigger": false},
+  {"query": "our app is on ECS — write a Kubernetes Helm chart to migrate it to EKS with a HorizontalPodAutoscaler", "should_trigger": false},
+  {"query": "add a github actions workflow that runs eslint and vitest on every pull request — just the test gate, we deploy manually", "should_trigger": false},
+  {"query": "i need a terraform module to provision an ECR repository and an IAM OIDC role for github actions", "should_trigger": false},
+  {"query": "the self-hosted runner on our dev box keeps going offline after a few hours, how do i make the actions-runner service restart automatically?", "should_trigger": false},
+  {"query": "write a bash script that ssh-es into our server, pulls the latest image from ECR and restarts the docker container", "should_trigger": false},
+  {"query": "review my existing deploy.yml and tell me if the OIDC trust policy and the prod approval gate are configured securely", "should_trigger": false}
+]

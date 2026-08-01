@@ -1,0 +1,15 @@
+{
+  "name": "shipyard",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "build": "npm run build --workspace apps/web",
+    "api:build": "tsc -p apps/api/tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

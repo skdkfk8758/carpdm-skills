@@ -1,0 +1,32 @@
+import type { MDXComponents } from 'mdx/types';
+import type { ComponentPropsWithoutRef } from 'react';
+
+// Required by @next/mdx (App Router): maps MDX-generated HTML elements to styled
+// React components. We attach .guide-* classes (defined in app/globals.css) so the
+// guide prose renders on the operator-console design tokens — no inline styles, no
+// raw hex/px in the content. Elements not overridden fall through to plain HTML.
+const components: MDXComponents = {
+  h1: (props: ComponentPropsWithoutRef<'h1'>) => <h1 className="guide-h1" {...props} />,
+  h2: (props: ComponentPropsWithoutRef<'h2'>) => <h2 className="guide-h2" {...props} />,
+  h3: (props: ComponentPropsWithoutRef<'h3'>) => <h3 className="guide-h3" {...props} />,
+  p: (props: ComponentPropsWithoutRef<'p'>) => <p className="guide-p" {...props} />,
+  ul: (props: ComponentPropsWithoutRef<'ul'>) => <ul className="guide-ul" {...props} />,
+  ol: (props: ComponentPropsWithoutRef<'ol'>) => <ol className="guide-ol" {...props} />,
+  li: (props: ComponentPropsWithoutRef<'li'>) => <li className="guide-li" {...props} />,
+  a: (props: ComponentPropsWithoutRef<'a'>) => <a className="guide-a" {...props} />,
+  // Inline code only — fenced blocks render <pre><code>, styled via .guide-pre.
+  code: (props: ComponentPropsWithoutRef<'code'>) => <code className="guide-code" {...props} />,
+  pre: (props: ComponentPropsWithoutRef<'pre'>) => <pre className="guide-pre" {...props} />,
+  table: (props: ComponentPropsWithoutRef<'table'>) => (
+    <div className="guide-tablewrap">
+      <table className="guide-table" {...props} />
+    </div>
+  ),
+  blockquote: (props: ComponentPropsWithoutRef<'blockquote'>) => (
+    <blockquote className="guide-callout" {...props} />
+  ),
+};
+
+export function useMDXComponents(): MDXComponents {
+  return components;
+}

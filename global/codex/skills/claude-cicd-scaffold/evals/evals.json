@@ -1,0 +1,23 @@
+{
+  "skill_name": "cicd-scaffold",
+  "evals": [
+    {
+      "id": 0,
+      "name": "single-nextjs-with-dockerfile",
+      "prompt": "Set up a CI/CD pipeline for the Node project at evals/fixtures/single-nextjs (relative to the cicd-scaffold skill directory). I want GitHub Actions on a self-hosted runner that pushes to AWS ECR, with develop branch auto-deploying to dev and v* tags deploying to prod behind an approval gate. Generate everything into a copy under your output directory — do NOT modify the fixture in place; instead copy the fixture's package.json and Dockerfile into your output dir and add a .github/workflows/ there. Since I can't answer interactively right now, use these values: AWS region ap-northeast-2, AWS account ID 123456789012, ECR repo name intel-portal, host port 8080, container port 3000. The dev and prod self-hosted runners are already registered with labels dev and prod. No frontend build-time env args needed. Include the audit workflow. Leave me a setup checklist.",
+      "files": ["fixtures/single-nextjs/package.json", "fixtures/single-nextjs/Dockerfile"]
+    },
+    {
+      "id": 1,
+      "name": "monorepo-no-dockerfile",
+      "prompt": "I need a deploy pipeline for the npm monorepo at evals/fixtures/monorepo (relative to the cicd-scaffold skill directory) — it has an Express api workspace and a Vite web workspace. Wire up GitHub Actions: self-hosted runner builds an image, pushes to ECR via OIDC, dev on develop push and prod on v* tag with a manual approval gate. Copy the fixture's package.json files into your output directory and generate the pipeline there (don't touch the fixture). There is no Dockerfile yet — create one for the api service. I can't be interviewed live, so use: AWS region us-east-1, AWS account ID 999988887777, ECR repo shipyard-api, host port 4000, container port 4000, web build arg VITE_API_BASE=/api. Runners labeled dev and prod are registered. Skip the audit workflow. Give me the GitHub + AWS setup steps at the end.",
+      "files": ["fixtures/monorepo/package.json", "fixtures/monorepo/apps/api/package.json", "fixtures/monorepo/apps/web/package.json"]
+    },
+    {
+      "id": 2,
+      "name": "casual-phrasing-single",
+      "prompt": "yo can you automate deploys for my next.js app? it's at evals/fixtures/single-nextjs (relative to the cicd-scaffold skill dir). basically i push to develop and it should go to our dev box, and when i cut a version tag it ships to prod but someone has to approve first. we run our own github runners (labels dev and prod) and store images in ECR. copy the fixture files into your output folder and build it there, don't edit the original. i'm afk so just use: region ap-northeast-2, account 123456789012, ecr repo = intel-portal, the app listens on 3000 and i want it published on 80. no special build args. and yeah tell me what i need to set up on github/aws side.",
+      "files": ["fixtures/single-nextjs/package.json", "fixtures/single-nextjs/Dockerfile"]
+    }
+  ]
+}

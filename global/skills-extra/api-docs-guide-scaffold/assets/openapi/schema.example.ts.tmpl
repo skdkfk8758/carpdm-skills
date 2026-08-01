@@ -1,0 +1,271 @@
+// TEMPLATE EXAMPLE — auth 도메인 실례. 새 도메인은 이 패턴(register + registerPath, 에러코드 보존)을 따라 복제한다.
+// Auth domain schemas (SSOT for validation + OpenAPI). Each request schema is
+// imported by its route for runtime safeParse; the path registrations here feed
+// the generated OpenAPI document. Field constraints mirror the established route
+// contracts exactly (see PLAN route table) — do not tighten or loosen.
+import { z } from '../zod';
+import { registry, errorResponse, jsonResponse } from '../registry';
+
+// ---- Request schemas (also imported by routes for runtime validation) ----
+
+export const LoginBody = registry.register(
+  'LoginBody',
+  z.object({
+    username: z.string().min(1).openapi({ example: 'alice' }),
+    password: z.string().min(1).openapi({ example: 's3cret' }),
+  }),
+);
+
+export const SsoTicketBody = registry.register(
+  'SsoTicketBody',
+  z.object({
+    audience: z.string().min(1).max(64).openapi({ example: 'tool-a' }),
+  }),
+);
+
+export const SsoVerifyBody = registry.register(
+  'SsoVerifyBody',
+  z.object({
+    ticket: z.string().min(1),
+    audience: z.string().min(1),
+  }),
+);
+
+export const BrandSwitchBody = registry.register(
+  'BrandSwitchBody',
+  z.object({
+    brand_id: z.string().min(1).max(64).openapi({ example: 'rr' }),
+  }),
+);
+
+export const SsoRedeemBody = registry.register(
+  'SsoRedeemBody',
+  z.object({
+    ticket: z.string().min(1),
+    audience: z.string().min(1).max(64),
+  }),
+);
+
+export const KeyCreateBody = registry.register(
+  'KeyCreateBody',
+  z.object({
+    label: z.string().min(1).max(255).openapi({ example: 'ci-key' }),
+    // Documented as an optional bigint id (string|number|null). At runtime the route
+    // accepts ANY value here and coerces (null → null, else String(x)), so this field
+    // is NOT enforced by safeParse — it only fails on label. Kept permissive
+    // (z.unknown) to preserve the exact create contract (only label can 400).
+    audience_tool_id: z
+      .unknown()
+      .optional()
+      .openapi({ type: 'string', description: '선택 — 도구 범위(bigint id), nullable' }),
+  }),
+);
+
+export const KeyVerifyBody = registry.register(
+  'KeyVerifyBody',
+  z.object({ key: z.string().min(1) }),
+);
+
+// ---- Response schemas (documentation only — no runtime response validation) ----
+
+const SessionUser = registry.register(
+  'SessionUser',
+  z.object({
+    sub: z.number(),
+    kind: z.string(),
+    brand_id: z.string().nullable(),
+    issued_at: z.number(),
+  }),
+);
+
+const LoginResponse = z.object({ ok: z.boolean(), user: SessionUser });
+const SsoTicketResponse = z.object({ ticket: z.string(), expires_at: z.string() });
+const SsoVerifyResponse = z.object({
+  sub: z.number(),
+  brand_id: z.string().nullable(),
+  audience: z.string(),
+});
+const BrandSummary = registry.register(
+  'BrandSummary',
+  z.object({ brand_id: z.string(), name: z.string() }),
+);
+
+// GET /api/auth/me — discriminated by `kind`. Documented as the union of the member
+// and operator shapes (operator carries no brands/tools).
+const MeMemberResponse = z.object({
+  kind: z.literal('member'),
+  username: z.string(),
+  brands: z.array(BrandSummary),
+  current_brand_id: z.string().nullable(),
+  tools: z.array(z.string()),
+});
+const MeOperatorResponse = z.object({ kind: z.literal('operator'), username: z.string() });
+const MeResponse = z.union([MeMemberResponse, MeOperatorResponse]);
+
+const BrandSwitchResponse = z.object({ ok: z.boolean() });
+
+// POST /api/auth/sso/redeem — S2S bundle; session_token is the raw signed member
+// session, returned exactly once and NOT set as a cookie.
+const SsoRedeemResponse = z.object({
+  session_token: z.string(),
+  kind: z.literal('member'),
+  sub: z.number(),
+  username: z.string(),
+  brand_id: z.string().nullable(),
+  brands: z.array(BrandSummary),
+  tools: z.array(z.string()),
+  max_age_seconds: z.number(),
+});
+
+const KeyCreateResponse = z.object({ id: z.string(), key: z.string(), label: z.string() });
+const KeyVerifyResponse = z.object({
+  sub: z.number(),
+  brand_id: z.string().nullable(),
+  audience_tool_id: z.string().nullable(),
+});
+
+// ApiKey metadata as listed (no token_hash). revoked_at nullable — documented
+// faithfully per the existing list contract (PLAN security note: revoked keys are
+// returned; this is the current contract, flagged not changed).
+const ApiKeyMeta = registry.register(
+  'ApiKeyMeta',
+  z.object({
+    id: z.string(),
+    label: z.string(),
+    audience_tool_id: z.string().nullable(),
+    created_at: z.string().nullable().optional(),
+    last_used_at: z.string().nullable().optional(),
+    revoked_at: z.string().nullable().optional(),
+  }),
+);
+
+// ---- Path registrations ----
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/login',
+  summary: '비밀번호 로그인 → 세션 쿠키 발급',
+  request: { body: { content: { 'application/json': { schema: LoginBody } } } },
+  responses: {
+    200: jsonResponse('인증 성공 — 세션 쿠키(ia_session) 설정', LoginResponse),
+    400: errorResponse('invalid_body — 요청 body 형식 오류'),
+    401: errorResponse('invalid_credentials — 아이디/비밀번호 불일치(계정 열거 방지)'),
+    403: errorResponse('ip_denied — 멤버 IP 허용목록 차단'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/logout',
+  summary: '세션 쿠키 삭제(로그아웃)',
+  responses: { 200: jsonResponse('로그아웃 완료(쿠키 Max-Age=0)', z.object({ ok: z.boolean() })) },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/sso/ticket',
+  summary: 'audience 대상 단기 SSO 티켓 발급(TTL 120초·1회용)',
+  request: { body: { content: { 'application/json': { schema: SsoTicketBody } } } },
+  responses: {
+    200: jsonResponse('티켓 발급됨(raw 티켓 1회 노출)', SsoTicketResponse),
+    400: errorResponse('invalid_body / audience_not_allowed — 형식 오류 또는 미허용 audience'),
+    401: errorResponse('unauthorized — 세션 없음/무효'),
+    403: errorResponse('forbidden / ip_denied — 브랜드 미연결 또는 IP 차단'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/sso/verify',
+  summary: 'SSO 티켓 검증 — 신원 확인(1회 소비)',
+  request: { body: { content: { 'application/json': { schema: SsoVerifyBody } } } },
+  responses: {
+    200: jsonResponse('신원 확인됨', SsoVerifyResponse),
+    400: errorResponse('invalid_body — 요청 body 형식 오류'),
+    401: errorResponse('invalid_ticket — 티켓 없음/만료/사용됨/audience 불일치'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/auth/me',
+  summary: '현재 세션 신원(member: 브랜드 + 유효 도구 / operator: username)',
+  responses: {
+    200: jsonResponse('member 또는 operator 신원', MeResponse),
+    401: errorResponse('unauthorized / operator_revoked — 세션 무효 또는 operator 삭제됨'),
+    403: errorResponse('not_brand_member / ip_denied — 브랜드 멤버십 이탈 또는 IP 교집합 실패'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/brand',
+  summary: '활성 브랜드 전환(세션 쿠키 재서명)',
+  request: { body: { content: { 'application/json': { schema: BrandSwitchBody } } } },
+  responses: {
+    200: jsonResponse('브랜드 전환됨 — 새 brand_id 로 세션 쿠키 재서명', BrandSwitchResponse),
+    400: errorResponse('invalid_body — 요청 body 형식 오류'),
+    401: errorResponse('unauthorized — 세션 없음/무효'),
+    403: errorResponse('forbidden — 권한 없음(브랜드 미연결 등)'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/sso/redeem',
+  summary: 'SSO 티켓 교환 — 풀 세션 번들(1회 소비, 토큰 1회 노출)',
+  request: { body: { content: { 'application/json': { schema: SsoRedeemBody } } } },
+  responses: {
+    200: jsonResponse('세션 번들(session_token 1회 반환, 쿠키 미설정)', SsoRedeemResponse),
+    400: errorResponse('invalid_body — 요청 body 형식 오류'),
+    401: errorResponse('invalid_ticket — 티켓 없음/만료/사용됨/audience 불일치'),
+    403: errorResponse('forbidden — 권한 없음(브랜드 미연결 등)'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/keys',
+  summary: '세션 보유자용 API Key(PAT) 발급',
+  request: { body: { content: { 'application/json': { schema: KeyCreateBody } } } },
+  responses: {
+    201: jsonResponse('키 발급됨(raw key 1회 노출, 서버는 해시만 저장)', KeyCreateResponse),
+    400: errorResponse('invalid_body — 요청 body 형식 오류'),
+    401: errorResponse('unauthorized — 세션 없음/무효'),
+    403: errorResponse('forbidden — 권한 없음(브랜드 미연결 등)'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/auth/keys',
+  summary: '세션 보유자의 API Key 메타데이터 목록(폐기된 키 포함)',
+  responses: {
+    200: jsonResponse('키 메타데이터 배열(token_hash 제외)', z.array(ApiKeyMeta)),
+    401: errorResponse('unauthorized — 세션 없음/무효'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/keys/verify',
+  summary: 'bearer API Key 검증(서버-서버)',
+  request: { body: { content: { 'application/json': { schema: KeyVerifyBody } } } },
+  responses: {
+    200: jsonResponse('신원 확인됨', KeyVerifyResponse),
+    400: errorResponse('invalid_body — 요청 body 형식 오류'),
+    401: errorResponse('invalid_key — 키 없음/폐기/만료/IP 차단(키 열거 방지)'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/auth/keys/{id}/revoke',
+  summary: '세션 보유자의 키 1개 폐기(자기 소유만)',
+  request: { params: z.object({ id: z.string() }) },
+  responses: {
+    200: jsonResponse('폐기됨', z.object({ id: z.string(), revoked: z.boolean() })),
+    401: errorResponse('unauthorized — 세션 없음/무효'),
+    404: errorResponse('not_found — 키 없음/타인 소유/이미 폐기됨'),
+  },
+});

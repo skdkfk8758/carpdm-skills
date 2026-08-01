@@ -1,0 +1,129 @@
+name: Deploy (reusable)
+
+# dev/prod common deploy pipeline SSOT — hybrid topology:
+#   self-hosted runner builds → ECR push (OIDC) → SAME host pulls + docker run.
+# Callers: deploy-dev.yml (environment=dev), release.yml (environment=prod).
+# The `environment` key applies the GitHub Environment's scoped secrets
+# (ENV_PRODUCTION, ...) and any protection rules. NOTE: prod "Required reviewers"
+# is an OPTIONAL hardening that needs a public repo or GitHub Pro/Team — on
+# Free + private it is unavailable (422). The real prod gate is the manual v* tag.
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'GitHub Environment (dev | prod)'
+        required: true
+        type: string
+      runner_label:
+        description: 'self-hosted runner label (dev | prod)'
+        required: true
+        type: string
+      image_tag:
+        description: 'unique image tag (dev=develop-<sha>, prod=v*)'
+        required: true
+        type: string
+      extra_tag:
+        description: 'rolling tag (dev=dev, prod=latest). prod rollback target = latest, so dev must not touch it'
+        required: true
+        type: string
+
+# OIDC token for ECR role assume + GitHub Packages read.
+permissions:
+  contents: read
+  id-token: write
+  # @optional:private-scope:start
+  packages: read
+  # @optional:private-scope:end
+
+jobs:
+  deploy:
+    # Hybrid: the self-hosted runner IS the deploy host — it builds, pushes, then runs.
+    runs-on: [self-hosted, "${{ inputs.runner_label }}"]
+    environment: ${{ inputs.environment }}
+    # env at JOB level — the `secrets` context is NOT available in workflow-level
+    # env (GitHub rejects it with a startup_failure).
+    env:
+      AWS_REGION: __AWS_REGION__
+      ECR_IMAGE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.__AWS_REGION__.amazonaws.com/__ECR_REPO__
+    steps:
+      # @optional:ci-self-hosted:start
+      # Self-hosted CI ran as root in a node:20 container on THIS shared workspace
+      # and left root-owned .next/.git the host runner's checkout `git clean`
+      # can't remove (Permission denied). Wipe via host docker first. (pitfalls.md #4)
+      - name: Wipe workspace (host docker)
+        run: |
+          docker run --rm -v "$PWD":/w -w /w alpine:3 \
+            sh -c 'find . -mindepth 1 -delete 2>/dev/null || true'
+      # @optional:ci-self-hosted:end
+      - uses: actions/checkout@v4
+
+      # OIDC role assume — no static keys. AWS role trust policy must allow the
+      # caller ref (refs/heads/develop, refs/tags/v*). See references/aws-oidc-setup.md.
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Build the image and push to ECR. ECR is the version/rollback store even
+      # though the same host runs it — image_tag pins the build, extra_tag rolls.
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: __DOCKERFILE__
+          push: true
+          cache-from: type=registry,ref=${{ env.ECR_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.ECR_IMAGE }}:buildcache,mode=max
+          # @optional:build-args:start
+          build-args: |
+            __BUILD_ARGS__
+          # @optional:build-args:end
+          tags: |
+            ${{ env.ECR_IMAGE }}:${{ inputs.image_tag }}
+            ${{ env.ECR_IMAGE }}:${{ inputs.extra_tag }}
+          # @optional:private-scope:start
+          secrets: |
+            github_token=${{ secrets.GITHUB_TOKEN }}
+          # @optional:private-scope:end
+
+      # Safe cutover: the run step is gated by environment var DEPLOY_ENABLED.
+      # Build+push always happens (image archived); only the run is gated, so an
+      # unset var = smoke test. environment-scoped vars resolve at step level only
+      # (GitHub Actions context limit), hence this gate-output pattern.
+      - name: Deploy gate
+        id: gate
+        run: |
+          if [ "${{ vars.DEPLOY_ENABLED }}" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "DEPLOY_ENABLED=true — ${{ inputs.environment }} deploy proceeds"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::DEPLOY_ENABLED unset — build+push only (smoke). Run step skipped."
+          fi
+
+      # .env.production SSOT = environment-scoped secret ENV_PRODUCTION.
+      # dev/prod each materialize their own environment value. Server hand-edits
+      # are overwritten next deploy.
+      - name: Materialize .env.production
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          printf '%s' "$ENV_PRODUCTION" > .env.production
+          chmod 600 .env.production
+        env:
+          ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
+
+      - name: Pull & run on host
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          docker pull ${{ env.ECR_IMAGE }}:${{ inputs.image_tag }}
+          docker rm -f __APP_NAME__-${{ inputs.environment }} 2>/dev/null || true
+          docker run -d --name __APP_NAME__-${{ inputs.environment }} \
+            --restart unless-stopped \
+            -p __HOST_PORT__:__CONTAINER_PORT__ \
+            --env-file .env.production \
+            ${{ env.ECR_IMAGE }}:${{ inputs.image_tag }}
+          docker image prune -f

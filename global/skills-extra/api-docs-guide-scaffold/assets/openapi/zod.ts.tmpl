@@ -1,0 +1,10 @@
+// Single extension point: call extendZodWithOpenApi(z) exactly once, then re-export
+// that same z. Every schema in this project imports z FROM HERE so the .openapi()
+// method is guaranteed present. Importing zod directly elsewhere would yield a z
+// without the extension applied.
+import { z } from 'zod';
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+
+extendZodWithOpenApi(z);
+
+export { z };

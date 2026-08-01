@@ -1,0 +1,71 @@
+{/* TEMPLATE — 섹션 구조·표·콜아웃 포맷을 유지하고 도메인 내용만 대상 프로젝트에 맞게 교체한다 */}
+
+# 통합 가이드 — 개요
+
+이 서버는 **IdP(Identity Provider)** 다. 다른 내부 서비스가 사용자를 직접 인증하지 않고,
+이 서버가 발급한 **세션 쿠키 · SSO 티켓 · API Key** 로 신원을 확인한다. 이 가이드는 그
+*연동 방법*(플로우 · 코드 예제 · 함정)을 다룬다. 개별 엔드포인트의 기계적 명세는
+[API 레퍼런스 (`/docs`)](/docs) 의 Scalar 문서를 본다.
+
+> 이 가이드(`/guide/*`)는 **로컬·dev 배포 전용**이다. prod 배포(`APP_ENV==='prod'`)에서는
+> `/docs` 와 동일하게 전부 404 다.
+
+## baseURL · 환경
+
+| 환경 | baseURL |
+| --- | --- |
+| 로컬 dev | `http://localhost:<PORT>` |
+| dev 배포 | `https://<DEV_HOST>` |
+| prod 배포 | `https://<PROD_HOST>` |
+
+아래 예제는 `<BASE>` 를 baseURL 로, `<...>` 를 실제 값으로 치환해서 쓴다. 예제의
+`<API_KEY>` · `<TICKET>` 등은 placeholder 이며, 실제 비밀값을 코드/로그에 남기지 않는다.
+
+## Day-0 — 시작 전 받아둘 것
+
+이 IdP 의 **생성·등록 계열 작업(멤버 계정 발급, audience 등록, 브랜드 연결)은 전부
+operator 권한**이 필요하다. **새 팀은 operator 권한을 받지 않는다** — 아래 두 가지를
+**관리자에게 요청**해서 받아 시작한다.
+
+| 받을 것 | 왜 필요 | 요청처 |
+| --- | --- | --- |
+| **멤버 계정**(username/password) | id/pw 로그인 → 세션 쿠키. 티켓·키 발급의 전제 | Slack **`#intelligence-auth`** |
+| **audience 등록**(SSO consumer) | 그 audience 로 SSO 티켓을 발급/검증하려면 operator 가 사전 등록해야 함. 미등록이면 `audience_not_allowed` | Slack **`#intelligence-auth`** |
+
+> 요청 시 알려줄 것: 팀/툴 이름, 원하는 **audience 문자열**(예: `tool-a`), 연결할 **브랜드**.
+> 관리자(operator)가 멤버 생성·브랜드 연결·consumer 등록을 대신 처리하고 발급 정보를 돌려준다.
+> 받은 비밀번호·키는 즉시 시크릿 매니저에 보관한다.
+
+전체 흐름을 한 번에 따라가려면 → [빠른 시작 — end-to-end 예제](/guide/quickstart).
+
+## 공통 규약
+
+- **에러 body** — 실패 응답은 모두 `{ "error": "<code>" }` 형태다. 상태코드 + `error`
+  문자열로 분기한다.
+- **Int8 ID 는 문자열 경계** — 멤버/브랜드 등의 ID 는 DB 에서 64bit(Int8)라 JSON 경계에서
+  **문자열**로 다룬다(정밀도 손실 방지). 단 SSO/Key verify 응답의 `sub` 는 호출 편의를 위해
+  number 로 복원해 내려준다.
+- **세션 쿠키** — id/pw 로그인 성공 시 `ia_session` 쿠키(HttpOnly · SameSite=Lax,
+  운영에선 Secure)가 설정된다. 세션 필요한 엔드포인트는 이 쿠키를 동봉해야 한다(브라우저는
+  자동, 서버-서버는 쿠키를 직접 전달).
+
+## 첫 요청 — health
+
+인증 없이 서버 생존만 확인한다.
+
+```bash
+curl -s <BASE>/api/health
+# → 200 { "status": "ok", "version": "0.0.5" }
+```
+
+```ts
+const res = await fetch(`${BASE}/api/health`);
+const body = await res.json();
+// body: { status: "ok", version: string }
+```
+
+## 연동 시나리오별 다음 단계
+
+- 다른 툴로 사용자를 **넘겨주기(브라우저 redirect 핸드오프)** → [SSO 티켓 연동](/guide/sso)
+- **서버-서버 / CI** 가 이 IdP 로 신원 확인 → [API Key (PAT) 연동](/guide/api-keys)
+- **IP 허용목록 게이트**와 id/pw 세션 로그인 → [IP 게이트 · 세션](/guide/ip-and-session)

@@ -1,0 +1,25 @@
+import { describe, it, expect } from 'vitest';
+import { isGuideEnabled } from '../../src/lib/dashboard/guide-gate';
+
+// isGuideEnabled is the pure gate decision the /guide layout is built on: 404 only
+// on the prod deploy. It keys on APP_ENV (the deploy-environment signal), not
+// NODE_ENV — NODE_ENV is 'production' on every Docker deploy including dev. The
+// notFound() side effect needs the Next runtime, so we unit test only the pure
+// predicate here.
+describe('isGuideEnabled — guide gate decision (keyed on APP_ENV)', () => {
+  it('false on the prod deploy (guide 404s)', () => {
+    expect(isGuideEnabled('prod')).toBe(false);
+  });
+
+  it('true on the dev deploy', () => {
+    expect(isGuideEnabled('dev')).toBe(true);
+  });
+
+  it('true locally when APP_ENV is unset', () => {
+    expect(isGuideEnabled(undefined)).toBe(true);
+  });
+
+  it('true for unknown APP_ENV (falls back to local)', () => {
+    expect(isGuideEnabled('staging')).toBe(true);
+  });
+});

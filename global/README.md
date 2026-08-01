@@ -9,16 +9,19 @@
 ## 설치 (팀원 셋업)
 
 ```bash
-bash install.sh          # 스킬 25종 → ~/.claude/skills/
-bash install-global.sh   # 이 트리 → ~/.claude/ (rules·hooks·settings·CLAUDE.md)
+bash install.sh                 # 자작 배포 스킬 → ~/.claude/skills/
+bash install-global.sh          # 이 트리 → ~/.claude/ + ~/.codex/ (rules·hooks·settings·skills-extra·codex)
+bash global/setup/replicate.sh  # 파일 밖 환경 — MCP 등록·플러그인 설치·codex 런타임(npm)
 ```
 
 `install-global.sh` 는 관리 목록만 복사한다(다른 `~/.claude/` 파일 무접촉).
 내용이 다른 기존 파일은 `~/.claude/backups/global-install-<ts>/` 백업 후 덮어쓰고,
 `settings.json` 의 `<FILL-ME>` placeholder 는 로컬 실값이 있으면 보존한다(재실행 안전).
+`~/.codex/config.toml` 은 기존 파일이 있으면 보존(신규 머신에만 설치).
 
-설치 후: ① `settings.json` 의 `<FILL-ME>` 채우기(또는 해당 env 제거), ② Linear 쓰면
-`~/.claude/linear-repo-map.json` 직접 작성(아래 제외 목록), ③ Claude Code 재시작.
+설치 후: ① `settings.json`·`~/.codex/config.toml` 의 `<FILL-ME>` 채우기,
+② `~/.claude/linear-repo-map.json` 의 repo 경로를 자기 머신 경로로 수정,
+③ MCP OAuth(Linear — 첫 사용 시 브라우저 승인, Claude·codex 각각), ④ Claude Code 재시작.
 
 ## 동기화 (라이브 → repo)
 
@@ -43,14 +46,18 @@ repo 에서도 빠짐 — git history 가 안전망). 새 스크립트 편입은
 | `global/statusline.sh` | `~/.claude/statusline.sh` | settings 참조 |
 | `global/linear-issue-goal-template.md` | 동명 | linear-goal 스킬 참조 |
 | `global/settings.json` | `~/.claude/settings.json` | secret 마스킹(`<FILL-ME>`) 후 |
+| `global/skills-extra/*/` | `~/.claude/skills/*/` | repo `skills/` 미추적 스킬 전수(서드파티 포함 — 환경 재현용, 자작 배포는 `skills/`+`sync.sh`) |
+| `global/linear-repo-map.json` | `~/.claude/linear-repo-map.json` | Linear 팀 라우팅 SSOT(경로는 머신별 수정) |
+| `global/codex/{skills,agents,prompts}/` | `~/.codex/{skills,agents,prompts}/` | codex 형상 전수 |
+| `global/codex/config.toml` | `~/.codex/config.toml` | secret 마스킹 후 · 설치는 신규 머신만 |
+| `global/setup/replicate.sh` | (파일 아님 — 실행) | MCP·플러그인·npm 재현 명령(멱등) |
 
 ## 제외 (의도적 — 머신·개인 종속)
 
-- `linear-repo-map.json` — Linear 팀 ↔ **로컬 절대경로** 매핑이라 머신 종속.
-  각자 자기 워크스페이스 경로로 작성(구조는 파일 상단 `_doc` 주석이 자기기술 —
-  뼈대는 `teamRoutes[]`: `{teamKey, teamId, repo}` 배열).
 - `memory/`·`projects/` — 세션·프로젝트별 개인 기록.
-- `plugins/`·`commands/`·캐시·로그류 — 각자 설치/생성.
+- 플러그인 **본체**·캐시·로그류 — 파일 미러 대신 `setup/replicate.sh` 의 설치 명령으로 재현.
+- `~/.claude.json` — MCP OAuth 토큰·세션 상태가 섞인 파일이라 통미러 금지. MCP 는
+  `setup/replicate.sh` 의 `claude mcp add` 명령으로 재현(각자 OAuth).
 
 ## 규칙
 
