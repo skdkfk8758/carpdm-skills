@@ -8,7 +8,6 @@ description: Imported Claude skill — single entry point for registering Linear
 > - `AskUserQuestion` → 일반 텍스트 질의로 대체 (선택지를 번호 목록으로 제시하고 응답 대기).
 > - `ToolSearch` 로드 단계 → Codex 에선 불필요 (MCP 도구 상시 노출).
 > - `~/.claude/linear-repo-map.json` 등 절대경로 파일은 그대로 Read.
-> - `## 실행 런타임 — codex CLI 위임` 섹션 → **스킵** (Codex 자신이 실행 주체 — 위임하면 무한 재귀). 비인터랙티브(`codex exec`) 호출이면 호출 프롬프트의 게이트 지시(멈춤/바로등록)를 따른다.
 
 
 # linear-register
@@ -24,34 +23,6 @@ Linear 이슈 등록의 **단일 진입점**. 단건 등록과 plan 분할 등�
 - 이 스킬은 이슈 **생성** 전담 — 단건이든 plan 분할이든 여기.
 - **이슈 본문은 사람이 읽는 짧은 요약이다** — 착수 직전의 상세 플래닝은 이슈가 아니라
   별도 단계(빌드 스킬의 Phase 1, `deep-plan`)의 몫이다. 본문에 설계 문서를 담지 않는다.
-
-## 실행 런타임 — codex CLI 위임 (Claude Code 전용)
-
-Claude Code 에서 트리거되면 **등록 실행을 codex CLI 로 위임**한다 — 등록 에이전트만
-codex 이고 로직은 동일(`~/.codex/skills/claude-linear-register/` = 본 스킬 verbatim 미러).
-codex 세션이 미러로 본 스킬을 읽는 경우 이 섹션은 스킵한다 — 자신이 실행 주체다.
-
-- **전제 감지**: `command -v codex` + `codex mcp get linear`(enabled) 둘 다 성공해야 위임.
-  하나라도 실패 → 이 섹션 무시하고 아래 네이티브 워크플로 진행(위임은 증강이지 게이트
-  아님) + 폴백 사실 한 줄 보고.
-- **게이트는 Claude 쪽 프록시** — `codex exec` 는 비인터랙티브라 확인 게이트를 codex
-  안에서 돌릴 수 없다. 2-call 프로토콜:
-  1. **초안 call**: `codex exec --skip-git-repo-check "<사용자 요청 + 발견 경위·대상 repo
-     경로 등 필요 컨텍스트>. claude-linear-register 스킬로 Step 1~2.5 를 수행하되 확인
-     게이트(Step 3) 직전에 멈춰라. 쓰기 도구(save_issue/save_project/create_issue_label)
-     호출 금지. 최종 메시지로 미리보기만 출력: 팀/프로젝트/state/이슈별 본문
-     전문(fenced)/dedup 후보."`
-  2. 미리보기를 Step 3 규격 그대로 사용자에게 게이트 제시(본문 전문 직전 메시지 +
-     `AskUserQuestion` 선택지).
-  3. 승인 → `codex exec resume --last "게이트 승인됨 — 위 미리보기 본문 그대로 바로
-     등록(Step 4 진행). 등록된 이슈 ID·URL·kickoff 프롬프트를 최종 메시지로."`
-     거부+피드백 → 같은 resume 로 피드백 전달 후 2 로 재게이트.
-  4. **독립 검증**: codex 의 등록 보고를 그대로 믿지 않는다 — `mcp__linear__get_issue` 로
-     생성 실존 + 본문 계약(아래 검증 섹션) 확인 후 최종 보고. kickoff 프롬프트 제시는
-     Claude 가 마무리.
-- **watchdog**: 각 codex exec 는 background 로 띄우고 진행 감시 — 무진행 8분+ 또는 hard
-  cap 12분에 kill 후 네이티브 워크플로로 폴백(`delegated-review-watchdog.md` 동형, kill
-  사실 보고).
 
 ## 모드 판정 (진입 직후)
 

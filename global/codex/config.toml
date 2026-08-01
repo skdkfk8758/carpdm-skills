@@ -173,13 +173,13 @@ NODE_REPL_NODE_MODULE_DIRS = "/Applications/ChatGPT.app/Contents/Resources/cua_n
 NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node"
 NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex"
 CODEX_HOME = "/Users/carpdm/.codex"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "6d25aa7656feac858f3a3bdaea5bcbab0dbfd426c9de8e6931ce90c399ee8e4f,e13fd947e846d3d306e9249dd3c73d14931b6494803dbafb16cef85e6add9506"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "028a14b6eaa6d98dac2aae00764345ab9f244801ed8493d42b9af3be5575006e,f204d340535055781952b10ed396de20b842f00a19e430852f7e121ad1ce91f6"
 BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
 NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
 NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
 NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.721.41059"
+BROWSER_USE_CODEX_APP_VERSION = "26.727.51351"
 SKY_CUA_SERVICE_PATH = "/Users/carpdm/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
@@ -289,7 +289,7 @@ USE_OMX_EXPLORE_CMD = "1"
 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
 ENABLE_LSP_TOOL = "1"
 BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "6d25aa7656feac858f3a3bdaea5bcbab0dbfd426c9de8e6931ce90c399ee8e4f,e13fd947e846d3d306e9249dd3c73d14931b6494803dbafb16cef85e6add9506"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "028a14b6eaa6d98dac2aae00764345ab9f244801ed8493d42b9af3be5575006e,f204d340535055781952b10ed396de20b842f00a19e430852f7e121ad1ce91f6"
 NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex"
 
 [agents]
@@ -470,13 +470,13 @@ source_type = "local"
 source = "/Users/carpdm/.codex/plugins/cache/sisyphuslabs"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-07-26T08:34:32Z"
+last_updated = "2026-08-01T21:15:08Z"
 source_type = "local"
 source = "/Users/carpdm/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.claude-plugins-official]
-last_updated = "2026-07-26T08:34:27Z"
-last_revision = "d31456c6571a94b6aaa68ee33f5f2dc0149ebddf"
+last_updated = "2026-08-01T21:15:00Z"
+last_revision = "2a39900737f1ae4e80bb502b75d90e71c3b93a03"
 source_type = "git"
 source = "https://github.com/anthropics/claude-plugins-official.git"
 
@@ -486,8 +486,8 @@ source_type = "local"
 source = "/Users/carpdm/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [marketplaces.understand-anything]
-last_updated = "2026-07-26T08:34:30Z"
-last_revision = "2cda14e89535049e49120198886bc0b82e9e630f"
+last_updated = "2026-08-01T21:15:08Z"
+last_revision = "fe8c5bc591716aafd79b4765549328f08ef5a52e"
 source_type = "git"
 source = "https://github.com/Lum1104/Understand-Anything.git"
 
