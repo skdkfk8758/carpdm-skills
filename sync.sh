@@ -57,6 +57,12 @@ echo
 
 if [ "${1:-}" = "--push" ] || [ "${1:-}" = "--pr-only" ]; then
   command -v gh >/dev/null 2>&1 || { echo "gh CLI 필요 (PR 자동화) — 설치 후 재시도"; exit 1; }
+  # 로컬 CI 게이트 — CI 에서만 보이는 red 는 왕복 비용(PR #159 실측). 서버와 같은 3종.
+  if command -v node >/dev/null 2>&1; then
+    for s in validate-skills.js check-invisible-chars.js catalog.js; do
+      [ -f "$REPO_DIR/scripts/ci/$s" ] && node "$REPO_DIR/scripts/ci/$s"
+    done
+  fi
   BASE="$(git branch --show-current)"
   DATE="$(date +%Y-%m-%d)"
   BR="chore/sync-$(date +%Y%m%d-%H%M%S)"

@@ -203,5 +203,5 @@ linear(§11)과 같은 포지션 — craft-core 에 두지만 **엔진 의존 �
 ## Work-end check (Stop hook)
 작업 종료 시 글로벌 스킬이 repo 에 미반영이거나 push 안 됐으면 `.claude/hooks/check-skill-sync.sh` (Stop hook, `.claude/settings.json` 등록)가 **비차단 경고**. 감지: (a) live↔repo drift (skills 디렉토리별) → `bash sync.sh`, (b) `skills/` 미커밋, (c) 미push 커밋 → `bash sync.sh --push`. 감지·알림만 — auto-push 안 함(외부발신·비가역). 경고 뜨면 직접 sync/push 로 마무리.
 
-## PR-time README check (PreToolUse hook)
-`gh pr create` 직전 `.claude/hooks/guard-readme-fresh.sh` (PreToolUse:Bash hook)가 README.md 가 `skills/` 인벤토리와 일치하는지 확인 — 어긋나면 **차단(exit 2)**. 판정 로직은 `scripts/ci/catalog.js` **SSOT**(링크 존재 + stale 참조 + "N개 스킬" 카운트 — CI validate 잡과 동일 스크립트, 훅은 node 부재 시에만 링크-존재 grep 폴백). 스킬을 추가/삭제하면 같은 PR 에서 README 스킬 표·카운트를 갱신할 것. Stop hook(비차단)과 달리 이건 **차단형**. Override: `README_FRESH_DISABLE=1`. 표 행의 설명 문구 정확성까지는 검증하지 않는다(수동 관리). 근거: 카운트 drift 실사고 2회(#109 수선 후 8일 만에 #137 은퇴로 재발) — 링크-존재 체크만으로는 못 잡았다.
+## Push/PR-time 로컬 CI 게이트 (PreToolUse hook)
+`git push`·`gh pr create` 직전 `.claude/hooks/guard-readme-fresh.sh` (PreToolUse:Bash hook)가 **CI validate 3종 전부**(`validate-skills.js`+`check-invisible-chars.js`+`catalog.js` — 서버 CI 와 동일 스크립트)를 로컬 실행 — 실패하면 **차단(exit 2)**. `sync.sh --push/--pr-only` 도 PR 전에 같은 3종을 자체 실행(훅은 Bash 명령 문자열 매칭이라 스크립트 내부 push 를 못 보는 갭 보완). invisible-chars 스캔은 untracked 파일 포함(`git ls-files --others`) — 커밋 전 로컬 green 이 CI green 을 보장한다. 훅은 node 부재 시에만 링크-존재 grep 폴백. Override: `README_FRESH_DISABLE=1`. 근거: 카운트 drift 실사고 2회(#109·#137) + PR #159(untracked 신규 파일의 invisible char 가 로컬 green·CI red — push 후에야 발견, 왕복 비용).

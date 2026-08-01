@@ -70,7 +70,10 @@ function lineAndColumn(text, index) {
 }
 
 function main() {
-  const tracked = execFileSync('git', ['ls-files', '-z'], {
+  // --others --exclude-standard: include untracked files so a local run before
+  // `git add` has the same (or wider) coverage as CI — a new vendored file that
+  // only CI could see caused a local-green/CI-red split (PR #159).
+  const tracked = execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], {
     cwd: ROOT,
     encoding: 'utf8',
     maxBuffer: 16 * 1024 * 1024,

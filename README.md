@@ -1,6 +1,6 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 워크트리 정리 1종 + 스킬 배포 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + 프로젝트 충실 UI 시안 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + ADMap 지도 스캐폴딩 1종 + 공유 엔진 1종 + Linear 라이프사이클 4종**, 총 **스킬 25종.**
+Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 워크트리 정리 1종 + 스킬 배포 1종 + dev 서버 데몬 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + 프로젝트 충실 UI 시안 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + ADMap 지도 스캐폴딩 1종 + 공유 엔진 1종 + Linear 라이프사이클 5종**, 총 **스킬 26종.** 스킬과 별개 축으로 [`global/`](global/README.md) 이 **글로벌 환경 전수 덤프**(rules·hooks·settings·서드파티 스킬·codex·MCP/플러그인 재현)를 담아 팀원 동일 환경을 3명령으로 재현한다.
 
 스킬은 역할에 따라 **6개 그룹**으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. craft-core 절대경로 결합 때문에 카테고리 폴더는 두지 않으며, 분류는 개념적이다.)
 
@@ -84,13 +84,14 @@ bash install.sh
 
 26개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
-### 글로벌 셋업 (rules · hooks · settings — 팀원 동일 환경)
+### 글로벌 셋업 (팀원 동일 환경 — 전수 덤프)
 
 ```bash
-bash install-global.sh
+bash install-global.sh          # rules·hooks·settings + 서드파티 스킬(skills-extra) + ~/.codex 형상
+bash global/setup/replicate.sh  # 파일 밖 환경 — MCP(claude/codex)·플러그인·npm 재현 명령 (멱등, 토큰 무포함)
 ```
 
-스킬과 별개 축인 행동 규율 전체 — 글로벌 `CLAUDE.md`, 상시 룰(`rules/`), JIT 룰(`rules-ondemand/`), 가드 훅(`hooks/guards/`), `settings.json`(secret 은 `<FILL-ME>` placeholder) — 를 `~/.claude/` 로 설치한다. 스킬만 설치하면 룰·훅이 빠진 환경이 된다. 상세·제외 목록은 [`global/README.md`](global/README.md).
+행동 규율(글로벌 `CLAUDE.md`·`rules/`·`rules-ondemand/`·가드 훅·`settings.json` — secret 은 `<FILL-ME>`)에 더해, repo 미추적 서드파티 스킬 전수(`global/skills-extra/`)와 codex 런타임 형상(`global/codex/`), Linear 라우팅 맵까지 설치한다. MCP·플러그인은 파일이 아니라 `replicate.sh` 의 명령으로 재현(각자 OAuth). 상세·제외 목록은 [`global/README.md`](global/README.md).
 
 ### 개별 설치 (하나씩)
 
@@ -140,7 +141,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land wt-sweep ship preflight fortify imprint mockup erd colocate-domain-context cicd-scaffold craft-core linear-register linear-goal linear-groom linear-prioritize dev-server-daemon
+ls ~/.claude/skills/   # forge hunt renew deep-interview deep-plan deep-prompt handoff sweep land wt-sweep ship preflight fortify imprint mockup erd colocate-domain-context cicd-scaffold admap-scaffold craft-core linear-register linear-replan linear-goal linear-groom linear-prioritize dev-server-daemon
 ```
 
 - **forge 류가 craft-core 못 찾음** → 설치 경로 확인. `~/.claude/skills/craft-core/` 필수.
@@ -160,10 +161,9 @@ rm -rf ~/.claude/skills/<name>   # 개별 제거
 작업본(`~/.claude/skills/`)에서 스킬을 고친 뒤 레포로 반영:
 
 ```bash
-bash sync.sh           # ~/.claude/skills/ → repo skills/ 미러링 후 변경 표시
-bash sync.sh --push    # 미러링 + 브랜치·PR·머지 자동 (master 직접 push 안 함)
+bash sync.sh           # 스킬 + 글로벌 덤프 미러링 후 변경 표시
+bash sync.sh --push    # 미러링 + 브랜치·PR·즉시 머지 (게이트 없는 빠른 경로)
+bash sync.sh --pr-only # 미러링 + PR 까지만 — CI 게이트+머지는 ship 스킬이 처리 (권장)
 ```
 
-`sync.sh` 는 **레포가 추적 중인 것만** 갱신한다 (true mirror, 삭제 파일 반영) — `skills/` 의 디렉토리별. 새 스킬 배포 시작은 `skills/<name>/` 디렉토리를 먼저 만든 뒤 sync.
-
-`--push` 는 `chore/sync-<timestamp>` 브랜치를 만들어 PR 생성·머지까지 한다 (`gh` CLI 필요). master 직접 push 를 막는 브랜치 보호 환경에서도 동작.
+`sync.sh` 는 스킬(**레포가 추적 중인** `skills/` 디렉토리별 true mirror — 새 스킬 배포 시작은 `skills/<name>/` 디렉토리를 먼저 만든 뒤 sync)에 더해 **`sync-global.sh` 를 내장 실행**해 글로벌 환경 덤프(`global/` — skills-extra·codex·rules·settings, secret 마스킹+스캔 게이트)도 같은 커밋에 싣는다. `--push`/`--pr-only` 는 PR 전에 CI 검증 3종을 로컬 선실행한다(로컬 green = CI green).

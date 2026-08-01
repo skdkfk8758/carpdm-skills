@@ -415,7 +415,8 @@
     "superpowers@claude-plugins-official": false,
     "andrej-karpathy-skills@karpathy-skills": false,
     "frontend-design@claude-plugins-official": false,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "clean-architecture@clean-architecture-skills": true
   },
   "extraKnownMarketplaces": {
     "understand-anything": {
@@ -434,6 +435,12 @@
       "source": {
         "source": "github",
         "repo": "DietrichGebert/ponytail"
+      }
+    },
+    "clean-architecture-skills": {
+      "source": {
+        "source": "github",
+        "repo": "nathankim0/clean-architecture-skills"
       }
     }
   },
