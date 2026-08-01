@@ -84,6 +84,9 @@ bash install.sh
 
 26개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
+> 📖 **팀 온보딩·워크플로우 가이드**: [docs/guides/team-workflow-guide.md](docs/guides/team-workflow-guide.md)
+> (+ [HTML 시각화 판](docs/guides/team-workflow-guide.html) — 셋업 3명령, 시나리오 플레이북 8종, 스킬별 언제·어떻게)
+
 ### 글로벌 셋업 (팀원 동일 환경 — 전수 덤프)
 
 ```bash

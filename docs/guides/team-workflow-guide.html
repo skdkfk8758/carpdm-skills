@@ -152,6 +152,8 @@ flowchart TD
   D -->|"/linear-goal · 자율"| E["구현<br/>worktree + TDD + 보안검증"]
   D -->|"/linear-replan · 착수 전 갈래 정리"| E
   A -->|"/forge · /hunt · /renew · 직접"| E
+  A -.->|"초대형·안개 /wayfinder"| C
+  B -.->|"설계 질문은 코드로 /prototype"| C
   E -->|PR| F["/land — 머지 + 로컬 정리"]
   F --> G["/wt-sweep — 워크트리 정리"]
   E -.->|세션 끊을 때| H["/handoff 저장·복원"]
@@ -165,8 +167,14 @@ flowchart TD
 </div>
 
 <h2 id="playbooks"><span class="no">04</span>시나리오 플레이북 — 작업 유형별 워크플로우</h2>
-<p class="sub">개발에서 실제로 마주치는 작업 유형 8가지. 각 탭이 그 시나리오의 단계·스킬·주의점을 담는다.
-점선 원은 조건부 단계 — 해당 없으면 건너뛴다.</p>
+<p class="sub">개발에서 실제로 마주치는 작업 유형 8가지. 각 탭이 그 시나리오의 단계·스킬·주의점을 담는다.</p>
+<div class="callout" style="margin-top:0">
+<b>점선 원(?) = 조건부 단계 — 자동 체크가 아니다.</b> 발동은 셋 중 하나:
+① 스킬 내부 자동 게이트(deep-plan 인터뷰 스킵/발동, linear-goal oversized 반려 등 — 신경 안 써도 됨)
+② 이전 스킬이 끝날 때 다음 스킬 <b>제안</b>(AskUserQuestion — 시작은 승인, 자동 시작 아님)
+③ 상황을 평소 말로 던지면 발동(스킬 이름·슬래시 불요 — "이 상태 모델 맞는지 코드로 확인해줘" → prototype).
+조건을 스스로 판정해 명시 호출할 필요 없다 — 말이 스위치다.
+</div>
 
 <div class="tabs" role="tablist" aria-label="시나리오">
   <button class="tab" role="tab" aria-selected="true" data-p="p-feat">🔨 기능 구현</button>

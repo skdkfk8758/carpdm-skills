@@ -72,7 +72,9 @@ codex mcp get linear            # enabled: true
 
 ## 4. 시나리오 플레이북 — 작업 유형별 워크플로우
 
-> HTML 판에서는 탭으로 구분. `(?)` = 조건부 단계 — 해당 없으면 스킵.
+> HTML 판에서는 탭으로 구분. `(?)` = 조건부 단계 — **자동 체크 아님**. 발동은 ① 스킬 내부
+> 자동 게이트(인터뷰 스킵/oversized 반려) ② 이전 스킬의 다음 스킬 *제안*(시작은 승인)
+> ③ 상황 발화(스킬 이름 불요 — description 매칭) 셋 중 하나.
 
 ### 🔨 기능 구현 (신규)
 `(?)deep-interview`(흐릿하면) → `(?)deep-plan`(크면) → `(?)linear-register` 분할(멀티세션이면) → **`/forge`** 직접 또는 **`/linear-goal`** 자율 → `/land`.
