@@ -70,7 +70,45 @@ codex mcp get linear            # enabled: true
 
 ---
 
-## 4. 스킬 사용 가이드 (그룹별 — 언제 · 어떻게)
+## 4. 시나리오 플레이북 — 작업 유형별 워크플로우
+
+> HTML 판에서는 탭으로 구분. `(?)` = 조건부 단계 — 해당 없으면 스킵.
+
+### 🔨 기능 구현 (신규)
+`(?)deep-interview`(흐릿하면) → `(?)deep-plan`(크면) → `(?)linear-register` 분할(멀티세션이면) → **`/forge`** 직접 또는 **`/linear-goal`** 자율 → `/land`.
+주의: UI 낀 기능은 `/mockup` 시안 선행 · worktree + 브랜치명 이슈 ID · 소형은 forge 단독으로 충분.
+
+### ♻️ 기능 수정·개편 (동작 변경)
+**`/renew`** — 바뀔 것 vs 보존할 것(하위호환) 분리 인터뷰 → `(?)deep-plan`(전면 개편이면) → TDD(보존 동작 회귀 잠금) → `/land`.
+경계: "예전엔 됐는데 안 돼"=hunt, "이제부터 다르게"=renew.
+
+### 🐛 버그픽스
+**`/hunt`** — 재현·근본원인 인터뷰 → `(?)diagnosing-bugs`(원인 미상·간헐 flake) → **실패 테스트 먼저** → 수정 → green → `/land`.
+주의: 재현 검증은 격리 환경 · 증상 덮기 금지 · 보안성 버그면 `/security-review` 직교 게이트.
+
+### 🧹 리팩토링 (동작 불변)
+발굴 **`/ponytail-audit`**(과잉설계)·**`/clean-architecture`**(레이어 경계) → 소형 적용 **`/simplify`**(리뷰+적용) → `(?)renew`(대형 구조 개편) → 전후 테스트 green + `/code-review`.
+규율: 요청 범위만(surgical) · 옛 경로는 같은 커밋 삭제(YAGNI) · 테스트 없으면 특성 테스트부터(`/tdd`).
+
+### 🗄 DB 스키마 변경
+**`/erd`**(현황 introspect) → `(?)deep-plan`(ERD companion) → `/renew`/`/forge`(타임스탬프 prefix 마이그) → 운영 apply 는 **slow-lane**(개별 apply + `information_schema` 실조회 검증).
+파괴 방향: drop 전 liveness 3증거 · `LIKE` 언더스코어 이스케이프.
+
+### 🎨 UI 작업
+**`/mockup`**(기존 룩)·`/imprint`(DESIGN.md)·`frontend-design`(자유) 시안 → 승인 → `/forge`/`/renew` 구현 → **`dev-server-daemon`** 으로 띄워 사람 확인 → `/land`.
+주의: 시안 갱신은 같은 경로 재배포(URL 유지) · 포트는 실측만.
+
+### 🎫 티켓 자율 처리 (Linear)
+`(?)linear-prioritize`(뭐부터) → `(?)linear-replan`(갈래 확정) → **`/linear-goal`**(worktree+worker+PR) → `/land`(AC 100% 스캔 후 Done).
+주의: oversized 이슈는 goal 이 스스로 멈추고 분할 권고 — 억지로 밀지 말 것.
+
+### 🚀 배포 준비
+**`/preflight`**(10차원 GO/NO-GO) → **`/fortify`**(보안 5카테고리+probe) → 발견은 hunt/renew 로 수정 후 재판정 → `(?)cicd-scaffold`(파이프라인 없으면) → `/land` + 버전 태그.
+주의: AC green ≠ 보안 통과(직교) · 인프라 항목은 추측 PASS 금지.
+
+---
+
+## 5. 스킬 사용 가이드 (그룹별 — 언제 · 어떻게)
 
 ### 🔨 빌드 파이프라인 (코드를 짓는다)
 
@@ -141,7 +179,7 @@ codex mcp get linear            # enabled: true
 
 ---
 
-## 5. 시나리오 퀵레퍼런스
+## 6. 시나리오 퀵레퍼런스
 
 | 상황 | 이렇게 말한다 | 발동 |
 |---|---|---|
@@ -165,7 +203,7 @@ codex mcp get linear            # enabled: true
 
 ---
 
-## 6. 이 레포를 유지보수할 때 (스킬을 고치는 사람)
+## 7. 이 레포를 유지보수할 때 (스킬을 고치는 사람)
 
 정식 루프: **live `~/.claude/skills/<name>/` 편집 → `bash sync.sh` → 리뷰 → `/ship`**.
 
