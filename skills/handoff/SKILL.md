@@ -132,6 +132,8 @@ status: in-progress | blocked | ready-to-merge
   적어라. 깨짐을 숨기는 handoff 는 아끼는 것보다 다음 세션에 더 비싸다.
 - **링크하고 중복하지 마라.** SPEC/PLAN/ADR/memory 의 내용을 복사하기보다
   그것을 가리켜라. handoff 는 포인터가 풍부한 인덱스이지 거울이 아니다.
+- **길이는 재개에 필요한 만큼만.** filler 섹션·중복 요약·boilerplate 로 채우지
+  마라(Claude 5 계열은 디스크 산출물이 길어지는 경향, 명시 보정).
 
 작성 후, `~/.claude/skills/craft-core/references/output-contract.md` 의 종료 블록으로
 보고한다 — `result:` 한 줄(무엇을 핸드오프했는지) + `핸드오프` 행의 상대경로와 `open`

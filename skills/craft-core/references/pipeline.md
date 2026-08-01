@@ -71,7 +71,7 @@ eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 
 `~/.claude/logs/craft-timing.jsonl` 에 한 줄 append 한다:
 
 ```json
-{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p4":<sec>,"p5":<sec>},"humanWait":<sec>,"total":<sec>,"tasks":<Phase3 태스크 수>,"p4Review":{"source":"code-review|adversarial|manual","sec":<sec>,"found":<발견 수>,"confirmed":<반박 게이트 생존 수>},"human":{"acceptance":<[AGENT]+[HUMAN] 총>,"agentClosed":<agent 실구동으로 닫은 수>,"handed":<사람 이관 수>}}
+{"ts":"<ISO 시각>","skill":"forge|hunt|renew","project":"<repo basename>","mode":"linear|orchestrated","phases":{"p1":<sec>,"p2":<sec>,"p3":<sec>,"p4":<sec>,"p5":<sec>},"humanWait":<sec>,"total":<sec>,"tasks":<Phase3 태스크 수>,"p3VerifyCatches":<verify 가 구현자 허위 green 을 적발한 수>,"p4Review":{"source":"code-review|adversarial|manual","sec":<sec>,"found":<발견 수>,"confirmed":<반박 게이트 생존 수>,"effort":"<inherit|low|medium|high|xhigh>"},"human":{"acceptance":<[AGENT]+[HUMAN] 총>,"agentClosed":<agent 실구동으로 닫은 수>,"handed":<사람 이관 수>}}
 ```
 
 - **스키마 필수 준수** — `phases.p1~p5` 초와 `humanWait` 는 note 로 대체하지 않고
@@ -84,6 +84,11 @@ eval 체크리스트 패널과는 별개 개념 — 그건 Acceptance 장부의 
   `handed / acceptance` 비율이 태그 3분류의 효과 판정 근거다. **은퇴 조건**: 2개월
   표본에서 `handed` median ≤ 1 안정 시 이 필드 제거(목적 달성). [AGENT] 도입에도
   비율이 안 내려가면 P1 태그 루브릭 재검토.
+- **`p3VerifyCatches` · `p4Review.effort` (2026-08-01 — Claude 5 effort/검증 스윕
+  원료).** 전자는 Phase 3 per-task verify 가 구현자 허위 green 을 뒤집은 수
+  (`dynamic-tdd.md` 계측 절이 정의·은퇴 조건 SSOT), 후자는 §2 리뷰가 실제로 돈
+  effort (`security.md` §2 — medium 핀 하향 판정 원료). 둘 다 "계측 없는 튜닝
+  금지" 의 데이터 확보 단계다.
 
 - **사람 대기는 기계 시간과 분리 (강화 2026-07-29)** — Phase 1 말미의 플랜 확인
   대기, Phase 4 의 `[HUMAN]` walk 대기처럼 사용자 응답을 기다린 구간은 **대기
@@ -210,6 +215,10 @@ PLAN 의 **Acceptance 항목이 곧 이 빌드가 Phase 4 에서 하나씩 닫�
 ##   condition tagged [AUTO] or [HUMAN]; the skill's acceptance / regression /
 ##   characterization test IS the item, not vague prose like "handles errors")
 ```
+
+**길이 캘리브레이션 (Claude 5).** 플랜 길이는 내용이 요구하는 만큼만 — filler 섹션·
+중복 요약·boilerplate 로 채우지 않는다(Claude 5 계열은 디스크 산출물이 길어지는
+경향이 실측돼 명시 보정한다 — 플랫폼 프롬프팅 문서, 2026-08-01).
 
 각 Acceptance 항목 앞에 **`[AUTO]` / `[AGENT]` / `[HUMAN]`** 태그를 붙인다 (예:
 `1. [AUTO] 빈 비번 → 400` / `2. [AGENT] 로그인 후 대시보드 렌더 + 콘솔 무에러` /

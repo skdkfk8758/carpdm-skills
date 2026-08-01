@@ -44,9 +44,10 @@ pipeline Phase 2, diff correctness 목록은 `security.md` §2) · `<grounding_r
 <grounding_rules>
 Cite the specific section/file:line for every finding. If something is a
 hypothesis, say so. Do not invent problems to seem thorough.
-Bias toward approval: surface only findings that would materially change the
-outcome. Style preferences and scope expansions beyond the stated goal are
-not findings.
+Report every finding you observe, each tagged with severity — do not
+self-censor low/med findings or pre-filter for importance; filtering happens
+downstream at triage. Style preferences and scope expansions beyond the
+stated goal are not findings.
 </grounding_rules>
 
 <structured_output_contract>
@@ -60,6 +61,13 @@ Free-form analysis above the block is welcome; the block is the verdict.
 
 `Agent` 의 구조화 출력(schema)을 쓸 수 있으면 그쪽이 낫다 — 검증이 도구 층에서 돌아
 계약 위반 시 리뷰어가 재시도한다. 산문 반환이면 아래 파싱 규칙을 적용한다.
+
+> **finder 억제 금지 (2026-08-01 — Claude 5 보정).** 종전 grounding 에 있던
+> "Bias toward approval: surface only findings that would materially change the
+> outcome" 은 제거했다 — Claude 5 계열(Opus 5 포함)은 "심각한 것만 보고"/"보수적으로"
+> 류 지시를 **문자 그대로 따라 recall 이 떨어진다**(플랫폼 프롬프팅 문서 실측). finder
+> 는 전부 보고하고, approval bias(실질 영향 없는 발견의 기각)는 아래 **원장 triage 단**
+> 이 담당한다 — 억제를 finder 프롬프트로 되돌리지 말 것.
 
 ## verdict 파싱 — fail-closed
 
@@ -90,6 +98,9 @@ verdict 의 **모든 issue id** 에 대해 원장 한 줄씩 작성한다(scratc
   중요하다 — 동조(리뷰어가 구현 판단을 그대로 승인)와 환각을 걸러낼 유일한 층이다.
 - **DEFERRED 는 med/low 전용** — 사유와 행선지(후속 이슈·plan 섹션)를 반드시 명명.
   행선지 없는 defer 는 조용한 무시와 같다.
+- **approval bias 는 여기가 담당한다** — outcome 을 실질적으로 바꾸지 않는 med/low 는
+  원장에서 사유와 함께 REJECTED/DEFERRED 로 닫는다. finder 프롬프트에서 미리 억제하지
+  않는 대가로, 필터의 책임이 전부 이 단으로 온다(위 finder 억제 금지 노트).
 
 종료 후 결과를 대상 문서에 기록한다(플랜이면 `## Plan review — 1-pass: <발견 수 +
 원장 요약>`, diff 리뷰면 Phase 4 리포트에). 기존 플랜의 레거시 헤딩 `## Codex review`
@@ -108,3 +119,5 @@ verdict 의 **모든 issue id** 에 대해 원장 한 줄씩 작성한다(scratc
   자기 확인이 되고, 이 계약의 유일한 독립성 장치가 사라진다.
 - 이 리뷰를 cross-model 검증으로 보고 — 모델 독립성은 은퇴했다(위 기록).
 - 모든 med/low nit 을 필수로 취급 → 요청하지 않은 scope creep.
+- finder 프롬프트에 "high 만 보고"/"보수적으로"/"확실한 것만" 류 억제 지시 —
+  Claude 5 는 문자 그대로 따라 recall 을 깎는다. 필터는 원장 단에서만.

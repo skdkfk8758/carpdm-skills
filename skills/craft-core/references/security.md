@@ -55,7 +55,11 @@ race. 이 갭을 변경된 diff 에 대해 **`/code-review` 1-pass** 로 메운�
   그 사실을 리포트에 명시한다.
 - **계측 (은퇴 조건의 원료).** wrap 의 `craft-timing.jsonl` 행에 `p4Review`
   필드를 기록한다 — `{"source":"code-review|adversarial|manual","sec":<초>,
-  "found":<발견 수>,"confirmed":<§4 반박 게이트 생존 수>}`. **은퇴 조건**: 1개월
+  "found":<발견 수>,"confirmed":<§4 반박 게이트 생존 수>,"effort":"<inherit|low|
+  medium|high|xhigh — 리뷰가 실제로 돈 effort, 무핀이면 inherit>"}`. effort 필드는
+  Claude 5 의 "리뷰 정확도는 낮은 effort 에서도 유지" 실측(플랫폼 문서)을 이 레포
+  데이터로 재검증하기 위한 것 — confirmed/effort 상관이 쌓이면 medium 핀 하향을
+  판정한다(계측 없는 튜닝 금지). **은퇴 조건**: 1개월
   표본에서 이 절의 confirmed 발견이 0이면(§1 기능 게이트와 §4 반박 게이트가 이미
   같은 것을 잡고 있으면) 이 절을 폐지한다 — cross-model 독립성이 사라진 지금은
   중복 가능성이 종전보다 높다(글로벌 룰 수명 규율 — 축적 ≠ 진보).
@@ -91,9 +95,16 @@ correctness 든 보안이든 발견을 진짜로 보고하기 전에, **반박**
 도달 가능한가? 실제로 신뢰할 수 없나? 이미 그걸 무력화하는 상류 체크가
 있나? (correctness 발견이면: 이 경로가 실제로 도달 가능한가? 기존 테스트가
 정말 이 케이스를 못 잡나? 입력 제약이 그 분기를 애초에 배제하지 않나?)
-불확실하면 "반박됨" 을 기본으로 — false-positive 발견의 벽은 짧은
-참 하나보다 나쁘다, 사용자가 리포트를 무시하도록 훈련시키기 때문이다.
-반박 시도에서 살아남은 발견만 보고하라, 각각 file:line 과 왜 exploit (또는
+
+**반박에도 증거가 필요하다** — 반박 증거(grep/build/재현)를 확보하지 못했고 확증도
+없으면 "반박됨" 으로 버리지 말고 **hypothesis(low-confidence) 로 표기해 보고**한다
+(`adversarial-review.md` 원장의 "증거 없는 REJECTED 금지" 와 같은 규칙 — 두 게이트의
+tie-break 이 갈리면 안 된다). 종전의 "불확실하면 반박됨을 기본으로" 는 폐기했다
+(2026-08-01) — Claude 5 계열(Opus 5 포함)의 리뷰 발견은 false-positive 율이 낮아
+(플랫폼 프롬프팅 문서 실측), 그 기본값이 진짜 발견을 버린다. false-positive 벽
+걱정은 기각이 아니라 **확신도 표기**(confirmed / hypothesis)로 해소한다.
+
+반박 시도에서 살아남은 발견만 보고하라, 각각 확신도와 file:line, 왜 exploit (또는
 오작동) 가능한지와 함께.
 
 ## Output
