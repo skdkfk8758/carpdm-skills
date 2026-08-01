@@ -40,7 +40,7 @@ codex mcp get linear            # enabled: true
 | **worktree 전략** | 새 브랜치 격리는 예외 없이 worktree(`git worktree add -b`). 메인 체크아웃은 항상 trunk(master). |
 | **자동 가드(훅)** | 보호 브랜치 직접 작업 차단 · 파괴 명령 경고 · push/PR 전 CI 3종 로컬 선실행(차단형) · 작업 종료 시 스킬 sync 미완 경고. 훅이 막으면 우회하지 말고 메시지를 따른다. |
 | **모드 2종** | `caveman`(산문 압축)·`ponytail`(코드 미니멀리즘 — 매 세션 자동 full, YAGNI 사다리). `/ponytail lite\|ultra` 로 조절. |
-| **codex 연동** | 이슈등록 실행(linear-register)·착수 재플래닝(linear-replan)·plan 비평자(deep-plan)가 `codex exec` 로 교차모델 판단을 산다. codex 없으면 graceful 폴백. |
+| **codex 연동** | **판단에만 쓴다** — plan 비평자(deep-plan)·착수 재플래닝(linear-replan)이 `codex exec` 로 교차모델 독립 판단을 산다. 기계적 실행엔 안 씀(2026-08-02 register 위임 은퇴). codex 없으면 graceful 폴백. |
 
 ---
 
@@ -51,7 +51,7 @@ codex mcp get linear            # enabled: true
                                         │
 계획·시안 필요 ──/deep-plan──▶ PLAN + HTML 시안 + Goal Prompt   (codex 비평자 debate)
                                         │
-        "이슈로 쪼개줘" ──/linear-register──▶ Linear 이슈 트리   (codex 가 등록 실행)
+        "이슈로 쪼개줘" ──/linear-register──▶ Linear 이슈 트리   (미리보기 게이트 → 등록)
                                         │
        ┌────────────────────────────────┼───────────────────────────┐
    자율 실행                        직접 빌드                  착수 전 결정 정리
@@ -138,7 +138,7 @@ codex mcp get linear            # enabled: true
 
 | 스킬 | 언제 | 비고 |
 |---|---|---|
-| `linear-register` | 이슈 등록 **유일 진입점** (단건·plan 분할 모두) | 등록 전 dedup 대조 + 본문 미리보기 게이트. 직접 `save_issue` 금지(룰) |
+| `linear-register` | 이슈 등록 **유일 진입점** (단건·plan 분할 모두) | 등록 전 dedup 대조 + 본문 전문 미리보기 게이트. 직접 `save_issue` 금지(룰) |
 | `linear-replan` | 티켓 **착수 직전** 결정 갈래 정리 | codex 초안 → 인터뷰 확정 → 착수 계획 코멘트 |
 | `linear-goal` | 티켓 1건 자율 실행 | worktree 분기 → goal worker → PR(In Review 까지) |
 | `linear-groom` | 백로그 정리·보강 | 고아 이슈 그룹핑, 빈약 이슈 spec 화 |
