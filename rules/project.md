@@ -36,6 +36,8 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 | `bash sync.sh` | 반대 방향. live `~/.claude/skills/` → repo `skills/` 미러(rsync `--delete`). repo 가 **이미 추적 중인** 것만 갱신. staged 변경 표시 |
 | `bash sync.sh --push` | 미러 + `chore/sync-<ts>` 브랜치·PR·**즉시 머지** 자동 (`gh` CLI 필요). master 직접 push 금지 환경 대응. CI·승인 게이트 없는 빠른 경로 |
 | `bash sync.sh --pr-only` | 미러 + 브랜치·커밋·push·PR **생성까지만** (머지 보류). 브랜치를 로컬에 남겨 CI 게이트+land 를 `ship` 스킬이 처리 (§10) |
+| `bash install-global.sh` | repo `global/` → `~/.claude/` 글로벌 셋업(CLAUDE.md·rules·rules-ondemand·guards·settings) 설치. 변경분 백업 후 덮어씀, settings `<FILL-ME>` 는 로컬 실값 보존 머지. 상세 `global/README.md` |
+| `bash sync-global.sh` | 반대 방향. live `~/.claude/` → repo `global/` 전수 미러 + settings secret 마스킹 + 커밋 전 secret 스캔 게이트(발견 시 exit 1). 글로벌 룰 수정 후 실행해 stale 미러 방지 |
 | `ls ~/.claude/skills/` | 스킬 설치 검증 — `forge hunt renew handoff sweep land ship craft-core` 보여야 함 |
 
 검증 스위트: `scripts/ci/` 3종 — `validate-skills.js`(frontmatter: name↔dir 일치·ASCII kebab-case·description 존재), `check-invisible-chars.js`(ASCII-smuggling 위험 invisible 문자 0 유지 — emoji·U+FE0F 변이선택자는 의도적 허용), `catalog.js`(README↔skills/ 링크·stale 참조·"N개 스킬" 카운트 대조). 전부 의존성 0(node 단독), CI(`.github/workflows/ci.yml` validate 잡)와 `guard-readme-fresh` 훅이 같은 스크립트를 실행한다. 그 외 "테스트"는 `install.sh`/`sync.sh` 실행 + `ls` 확인.
