@@ -1,7 +1,7 @@
 # carpdm-skills — Project Rules (SSOT)
 
-> 이 파일이 프로젝트 지침 SSOT. AGENTS.md 는 빌드 산출물(글로벌 `~/.claude/rules/` + 본 파일 concat).
-> `build-agents-md.sh` 미설치 동안 AGENTS.md 는 본 파일을 수동 미러링한다 — 본 파일만 편집하고 AGENTS.md 는 재생성.
+> 이 파일이 프로젝트 지침 SSOT 이고, 루트 `CLAUDE.md` 가 `@rules/project.md` 로 직접 import 한다.
+> 벤더별 진입점(`AGENTS.md` 등)은 두지 않는다 — 두 벌을 유지하면 갈라진다(2026-08-04 제거).
 
 ## What this repo is
 
