@@ -34,7 +34,15 @@ Linear 이슈 본문은 **의도적으로 얇다**(헤딩 화이트리스트 + �
 ## Step 0 — codex 프리플라이트 + 입력 모드 판정
 
 **① codex 프리플라이트.** `command -v codex`(필요 시 `codex doctor`)로 CLI 가용성을
-확인한다. 불가하면 **안내 한 줄 + 깨끗한 정지**:
+확인한다.
+
+**PATH 조회 실패 = 불가로 확정한다.** 다른 설치본을 찾아 나서지 않는다 — `ls
+/opt/homebrew/bin/codex`, `find / -name codex`, npx·절대경로 실행 등으로 우회하면 이
+프리플라이트는 아무것도 막지 못한다(실측 2026-08-03: PATH 에서 codex 를 뺀 세션이
+`which -a codex` → `codex not found` 를 받고도 `/opt/homebrew/bin/codex` 를 찾아내
+그대로 실행했다). 사용자가 그 경로를 **명시로 준 경우만** 예외다.
+
+불가하면 **안내 한 줄 + 깨끗한 정지**:
 
 > codex CLI 가 없어 재플래닝을 돌릴 수 없습니다(이 스킬은 codex 교차모델 초안이 전제).
 > 설치 후 재실행하거나, **Claude 단독 재플래닝이 필요하면 `deep-plan`** 으로 진행하세요.
@@ -80,8 +88,11 @@ Linear 이슈 본문은 **의도적으로 얇다**(헤딩 화이트리스트 + �
 Do not edit, create, or delete any files. Answer in text only.
 ```
 
-**watchdog 의무.** `codex exec` 는 `timeout` 으로 래핑하거나 Bash background 실행 +
-진행 감시로 돌리고, **무진행 8분+ 또는 hard cap 12분이면 kill** 한다. 규약 SSOT 는 글로벌
+**watchdog 의무.** `codex exec` 는 Bash background 실행 + 진행 감시로 돌리고, **무진행
+8분+ 또는 hard cap 12분이면 kill** 한다. `timeout` 래핑은 그 위에 얹는 보조 수단이며
+**macOS 에는 `timeout` 이 기본 설치돼 있지 않다**(coreutils 필요 — 실측 2026-08-03:
+`exit=127 command not found: timeout` 으로 watchdog 이 통째로 무산). 쓰려면 존재를
+먼저 확인하고, 없으면 background + 감시만으로 진행한다. 규약 SSOT 는 글로벌
 `~/.claude/rules-ondemand/delegated-review-watchdog.md` — 읽고 그대로 따른다. kill 되면
 1회만 재시도하고, 그래도 무진행이면 그 사실을 보고하고 정지한다(Claude 단독 대체 금지 —
 불변식).
@@ -181,6 +192,8 @@ L3 후보:
 
 - **codex 불가인데 Claude 단독으로 조용히 재플래닝** — 교차모델이 존재 이유다. 정지하고
   `deep-plan` 으로 라우팅하라.
+- **PATH 에 없자 절대경로·`find`·npx 로 우회 실행** — 프리플라이트를 무력화한다. PATH
+  조회 실패는 그 자체로 종결 신호다(사용자가 경로를 명시로 준 경우만 예외).
 - **goal-ready 이슈 재플래닝** — 이미 실측 증거·측정 가능 AC·범위 밖·단일 해석을 갖춘
   이슈를 다시 깎는 것은 중복 비용이다.
 - **oversized 를 이 스킬로 강행** — 착수 계획 1장으로는 전면 개편을 담지 못한다.
