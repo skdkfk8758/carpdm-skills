@@ -1,8 +1,10 @@
 # Global Guidance — Claude Code
 
 > Lean harness. **기본 시스템 프롬프트·`settings.json`·ponytail 이 이미 하는 말은 여기 적지 않는다.**
-> 상시 로딩은 이 파일 한 장뿐 — 상세 룰은 `rules-ondemand/`(필요할 때만 Read, 상시 비용 0).
+> 상시 로딩은 이 파일 + 아래 import 1편뿐 — 상세 룰은 `rules-ondemand/`(필요할 때만 Read, 상시 비용 0).
 > 프로젝트 `.claude/CLAUDE.md` 가 본 파일을 override (CWD 가까운 것 우선).
+
+@~/.claude/rules/response-format.md
 
 ## Language
 AI 응답 = 한국어(`settings.json` 이 주입). 코드 주석·문서 = 영어. 커밋 메시지 = 한국어.

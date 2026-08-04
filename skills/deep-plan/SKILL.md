@@ -342,11 +342,10 @@ self-contained(inline `<style>`, 외부 asset 0). 세 영역 필수:
 페이지·플로우·보이는 UX 변경)를 전달하면, 구현 후 사용자가 **보게 될 결과 UI 의
 목업**을 실제 인터페이스(chrome, pane, 컨트롤, 상태)로 배치하고, UX 를 명확히 하는
 곳은 inline `<script>` 로 핵심 인터랙션을 *시연*한다. "mockup" 표식 눈에 띄게.
-그리기 전에 `design-context.md`(이때 읽는다)를 따라 프로젝트 DESIGN.md·토큰·기존
-화면 어휘를 추출하고 토큰 검증한다 — 시안 즉흥 창작이 구현 괴리의 근원이다.
-전문 스킬 라우팅(§6: net-new UI → `frontend-design`, 다안 비교 → `prototype`,
-추출 디자인 재현 → `imprint`)은 `AskUserQuestion` 제안만 — 자동 시작 금지, 미설치면
-inline 폴백.
+그리기 전에 프로젝트 `DESIGN.md`·디자인 토큰·기존 화면 어휘를 Read 로 추출하고
+생성물의 값이 그 토큰으로 역추적되는지 검증한다 — 시안 즉흥 창작이 구현 괴리의 근원이다.
+net-new UI 창작이 필요하면 `frontend-design` 라우팅을 `AskUserQuestion` 으로 제안만
+한다 — 자동 시작 금지, 미설치면 inline 폴백.
 
 **Artifact publish (의무).** `.html` 을 쓴 직후 `Artifact` 도구로 publish 한다.
 사용자 리뷰 딜리버러블은 **artifact URL**(로컬 `.html` 은 유지 — 하니스 입력).
