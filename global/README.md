@@ -38,8 +38,9 @@ repo 에서도 빠짐 — git history 가 안전망). 새 스크립트 편입은
 | repo | 라이브 (SSOT) | 범위 |
 |---|---|---|
 | `global/CLAUDE.md` | `~/.claude/CLAUDE.md` | 글로벌 지침 본체 |
-| `global/rules/*.md` | `~/.claude/rules/*.md` | 전수 (상시 로드 룰) |
-| `global/rules-ondemand/*.md` | `~/.claude/rules-ondemand/*.md` | 전수 (JIT 룰) |
+| `global/rules/*.md` | `~/.claude/rules/*.md` | 상시 로드 룰 — 현재 `response-format.md` 1편(`CLAUDE.md` 가 `@import`) |
+| `global/rules-ondemand/*.md` | `~/.claude/rules-ondemand/*.md` | 전수 (JIT 룰 10편 — 상시 비용 0) |
+| `global/references/craft/*.md` | `~/.claude/references/craft/*.md` | 스킬이 절대경로로 읽는 공유 자료 |
 | `global/hooks/guards/*.sh` | `~/.claude/hooks/guards/*.sh` | 전수 (가드 훅) |
 | `global/hooks/*.{sh,py}` | `~/.claude/hooks/*.{sh,py}` | settings 가 참조하는 것 |
 | `global/scripts/*` | `~/.claude/scripts/*` | 훅·automation 이 참조하는 것 |
