@@ -8,7 +8,8 @@ IMPORTANT: 에이전트가 읽을 위치를 단일화한다. **지침 진입점�
 |---|---|---|
 | `CLAUDE.md` | **지침 본문 SSOT.** 규칙은 여기만 고친다 | **YES** |
 | `rules/` | 생성 파이프라인을 쓰는 프로젝트의 fragment SSOT (선택) | YES (쓸 때) |
-| `docs/` | 문서 단일 트리 — knowledge(`adr/concepts/guides/reference`) + artifact(`specs/plans/...`) | YES |
+| `wiki/` | 영속 지식 — `adr/concepts/guides/reference` + `index.md`·`log.md`. **LLM 이 소유·갱신** | YES |
+| `docs/` | 시점 기록 — `specs/plans/runbooks/reports/...`. **수명은 머지까지** | YES |
 | `~/.claude/projects/<slug>/memory/` | 세션 간 메모리 (글로벌, 저장소 밖) | YES |
 
 **지침 파일은 저장소당 하나다.** 벤더별 진입점을 따로 두면 갈라지고, 갈라진 쪽을 읽은 에이전트가
@@ -19,15 +20,19 @@ IMPORTANT: 에이전트가 읽을 위치를 단일화한다. **지침 진입점�
 `CLAUDE.md` 가 그 하나다 — Claude Code 가 native 로 읽고 `@import` 로 분할까지 된다.
 **2026-08-04 부로 `AGENTS.md`(Codex/OpenAI 진입점)는 전 저장소에서 제거했다.**
 
-## docs/ Sub-tree
+## Sub-tree
 
 | Sub-tree | 용도 |
 |---|---|
-| `docs/adr/` | Architecture Decision Records — **영속**(왜·버린 대안·외부 제약) |
-| `docs/concepts/` · `guides/` · `reference/` | 영속 지식·절차·참조 |
-| `docs/_index/index.md` | knowledge portal — 전체 navigator, 1 프로젝트 1 진입점 |
-| `docs/specs/` · `plans/` | 시점 기록 — **수명은 머지까지**. 결정은 ADR 로 승격 후 정리 |
+| `wiki/adr/` | Architecture Decision Records — **영속**(왜·버린 대안·외부 제약) |
+| `wiki/concepts/` · `guides/` · `reference/` | 영속 지식·절차·참조 |
+| `wiki/index.md` · `log.md` | 내용 카탈로그 + ingest 로그. 도메인 질문은 **index 부터** |
+| `docs/specs/` · `plans/` | 시점 기록 — **수명은 머지까지**. 결정은 `wiki/adr/` 로 승격 후 정리 |
 | `docs/{runbooks,reports,reviews,handoff,_archive}/` | 운영 산출물 |
+
+> **2026-08-04 이관**: 종전엔 knowledge 도 `docs/` 안에 있었다(`docs/{adr,concepts,...}`).
+> ADType 이 113편을 `wiki/` 로 분리(PR #714)해 **영속/시점의 경계를 디렉터리로** 만들었다.
+> 아직 `docs/` 단일 트리인 저장소는 그대로 둬도 된다 — 규약 위반이 아니라 이전 형상이다.
 
 **knowledge** = 2+ 페이지에서 재참조될 영속 지식. **artifact** = 시점 기록.
 판별 질문 하나: *"이걸 실행 가능한 검사로 바꿀 수 있는가?"* — 예면 테스트로 만들고 문서는 지운다.
@@ -78,8 +83,12 @@ SPEC/PLAN/Acceptance 에 `## YAGNI / 삭제 대상` 섹션을 **의무**로 둔�
 
 ### R6: portal 단일 진입
 
-`docs/` 를 쓰면 `docs/_index/index.md` 가 단일 진입점. 신규 문서는 portal 의 knowledge/artifact
-라우팅을 따르고, **추가 시 portal 갱신**한다 — 안 하면 발견성이 없어 문서가 중복 생성된다.
+`wiki/` 를 쓰면 `wiki/index.md` 가 단일 진입점(`docs/` 만 쓰면 `docs/_index/index.md`).
+신규 문서는 portal 의 라우팅을 따르고 **추가 시 같은 작업에서 portal 갱신**한다 — 안 하면
+발견성이 없어 문서가 중복 생성된다.
+
+> 둘을 동시에 두지 않는다. 이관한 저장소는 옛 portal 을 wiki 로 **리다이렉트**시키고 끝낸다 —
+> 진입점이 둘이면 어느 쪽을 읽었느냐로 보이는 지식이 갈린다(R1 이 지침에 대해 말하는 것과 같다).
 
 ## Anti-patterns
 
@@ -92,4 +101,4 @@ SPEC/PLAN/Acceptance 에 `## YAGNI / 삭제 대상` 섹션을 **의무**로 둔�
 ## Related
 
 - `branch-worktree-strategy.md` — 브랜치·머지 규율 (지침이 서술하는 워크플로의 짝)
-- 인스턴스 예: ADType `docs/adr/066-claude-md-single-ssot.md` (ADR-011 supersede — 왜 inline 이 아니라 포인터인가)
+- 인스턴스 예: ADType `wiki/adr/066-claude-md-single-ssot.md` (ADR-011 supersede — 왜 inline 이 아니라 포인터인가)
