@@ -1,44 +1,27 @@
 # Global Guidance — Codex
 
-> Lean harness. 핵심 행동 권고만 inline. 강제는 hook(`hooks/guards/`)이 처리.
-> 프로젝트 `.Codex/AGENTS.md` 가 본 글로벌을 override (CWD 가까운 것 우선).
+> **본문 없음 — 포인터다.** 행동 규율의 SSOT 는 `~/.claude/CLAUDE.md` 한 장이고,
+> 온디맨드 룰은 `~/.claude/rules-ondemand/` 에 있다. **이 파일에 규칙 본문을 다시
+> 채우지 마라.** 채우면 갈라지고, 갈라진 쪽을 읽은 에이전트가 은퇴한 규칙을 사실로 받는다.
+>
+> 실측(2026-08-04): 이 파일은 2026-06-15 형상에 5주 이상 머물러 **은퇴한 룰
+> `Karpathy 4원칙`·`Objective Reasoning` 본문을 계속 지시하고 있었다**. 경로도
+> `~/.Codex/projects/...`, 훅 이름도 `guard-Codex-md-size` 로 깨져 있었다 —
+> Claude 쪽 파일을 기계 치환한 사본이라는 증거다. 근거·되살릴 조건은
+> `carpdm-skills docs/adr/003-harness-minimization-2026-08.md`.
 
-## Language
-- AI 응답: **한국어**
-- 코드 주석/문서: 영어
-- 커밋 메시지: 한국어
-- 기술 용어·코드 식별자는 원문 유지. 한국어 표기는 맞춤법·받침 정확히.
+**codex 로 작업을 시작하면 먼저 이걸 읽어라:**
 
-## Karpathy 4원칙 (행동 base)
-1. **Think before coding** — 가정 명시, 불확실하면 질문. 다중 해석 시 임의 선택 금지. 라이브러리/경로 언급 전 Read/Grep 으로 실제 확인.
-2. **Simplicity first** — 문제 푸는 최소 코드. 요청 범위 밖 기능·추상화·flexibility·발생불가 에러핸들링 금지. "시니어가 과복잡하다 할까?" → 그러면 단순화.
-3. **Surgical changes** — 건드릴 것만. 인접 코드/주석/포맷 "개선" 금지. 안 깨진 것 리팩터 금지. 기존 데드코드는 별도 요청 없으면 보존(언급만). 본인 변경이 만든 orphan 은 같은 커밋에서 정리.
-4. **Goal-driven** — 작업을 검증 가능 목표로 변환("validation 추가"→"잘못된 입력 테스트 통과"). 다단계는 간단 plan(step→verify) 명시. 검증으로 loop.
+```
+~/.claude/CLAUDE.md                 # 행동 규율 SSOT (+ @rules/response-format.md)
+~/.claude/rules-ondemand/*.md       # 상황 진입 시에만 (라우팅 표는 CLAUDE.md 에)
+<repo>/CLAUDE.md                    # 저장소 지침 — 저장소당 하나뿐이다
+```
 
-## Objective Reasoning (응답 품질)
-- 동의/반대 모두 **이유 1개 이상** 동반. 빈 칭찬("좋은 생각!")·빈 반대("안 됨") 금지.
-- 트레이드오프 양면 노출. 한쪽만 강조 금지.
-- 사용자 가정을 사실로 받지 말고 검증. 불확실하면 "확인 필요" 명시.
-- 신뢰도 표명(high/medium/low). low 를 확신처럼 말하지 않음.
-- 결함 발견 시: 구체적 지적 → 영향 설명 → 대안 제시. 불필요한 hedging 없이 직접·존중.
+저장소에는 `AGENTS.md` 가 없다. 2026-08-04 부로 전 저장소에서 제거했다 —
+`CLAUDE.md` 가 유일한 진입점이다(`~/.claude/rules-ondemand/knowledge-folders.md` R1).
 
-## YAGNI / 편집 규율
-- 호출처 사라진 코드/타입/테스트는 그 자리에서 삭제. 기능 전환 시 옛 경로는 같은 커밋에서 제거("다음 PR" 금지).
-- 라이브러리/경로/구현 언급 전 Read 또는 Grep 으로 실제 소스 확인. 메모리/추측 단언 금지.
-
-## 강제 (hook 자동 — 본문 반복 안 함)
-- `guard-branch-protection` — 보호 브랜치 직접 작업 차단
-- `guard-destructive-cmd` — rm -rf·DROP TABLE·force-push 등 파괴명령 경고
-- `guard-file-size` — 소스 파일 300줄 초과 경고
-- `guard-Codex-md-size` — AGENTS.md 100줄 초과 경고
-
-## 도구·위임
-- 비trivial(3+ 파일·다중 도메인·200줄+)은 subagent 위임 고려. trivial 은 메인 직접.
-- 단일 파일 >1000줄: 편집 의도면 메인 Read, 탐색 의도면 Explore 위임.
-- 파괴적/외부 발신 작업은 사전 확인. 삭제/덮어쓰기 전 대상 확인.
-
-## 메모리
-`~/.Codex/projects/<cwd-slug>/memory/MEMORY.md` (프로젝트별 auto-load).
+아래 블록은 oh-my-codex 가 생성·관리한다. 손대지 마라(`omx setup` 이 덮어쓴다).
 
 <!-- OMX:AGENTS:START -->
 <!-- AUTONOMY DIRECTIVE — DO NOT REMOVE -->

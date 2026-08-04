@@ -1,15 +1,10 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프라인 3종 + 심층 인터뷰 1종 + 계획 수립 1종 + Goal Prompt 저작 1종 + 세션 인계 1종 + 정리 유틸 1종 + PR 랜딩 1종 + 워크트리 정리 1종 + 스킬 배포 1종 + dev 서버 데몬 1종 + 배포 전 최종 검토 1종 + 배포 전 보안 감사 1종 + UI 디자인 충실 재현 1종 + 프로젝트 충실 UI 시안 1종 + ERD 도식 1종 + 코드베이스 컨텍스트 셋업 1종 + CI/CD 스캐폴딩 1종 + ADMap 지도 스캐폴딩 1종 + 공유 엔진 1종 + Linear 라이프사이클 5종**, 총 **스킬 26종.** 스킬과 별개 축으로 [`global/`](global/README.md) 이 **글로벌 환경 전수 덤프**(rules·hooks·settings·서드파티 스킬·codex·MCP/플러그인 재현)를 담아 팀원 동일 환경을 3명령으로 재현한다.
+Claude Code 글로벌 스킬 배포 레포. **계획 2종(심층 인터뷰·계획 수립) + 세션/운영 5종(인계·랜딩·워크트리 정리·스킬 배포·dev 서버 데몬) + Linear 라이프사이클 4종**, 총 **스킬 11종.** 스킬과 별개 축으로 [`global/`](global/README.md) 이 **글로벌 환경 전수 덤프**(rules·hooks·settings·서드파티 스킬·codex·MCP/플러그인 재현)를 담아 팀원 동일 환경을 3명령으로 재현한다.
+
+**구현·수정·버그픽스에는 스킬이 없다** — 메인이 직접 한다(plan mode → 구현 → `/code-review`, 보안 민감 변경이면 `/security-review`). 2026-08-04 에 파이프라인 3종(`forge`·`renew`·`hunt`)과 공유 엔진 `craft-core` 를 은퇴시켰다. 근거·되살릴 조건은 [ADR 003](docs/adr/003-harness-minimization-2026-08.md).
 
 스킬은 역할에 따라 그룹으로 나뉜다. (물리 폴더는 플랫 — `skills/` 한 레벨. 공유 참조 자료는 `global/references/craft/` 에 있고 스킬들이 절대경로로 읽는다.)
-
-### 🔨 build-pipeline — 코드를 짓는 엄격 파이프라인
-
-구현·수정·버그픽스는 메인이 직접 한다(plan mode → 구현 → `/code-review`). 공유 참조 자료는 `global/references/craft/` 에 있다.
-
-| 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
-|---|---|---|---|
 
 ### 🧭 think & plan — 코드 전에 요구사항·계획·목표를 정리
 
@@ -17,16 +12,6 @@ Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프�
 |---|---|---|---|
 | [`deep-interview`](skills/deep-interview) | 모호한 아이디어 → 검증가능 spec (소크라테스 인터뷰, ambiguity 게이트) | "인터뷰해줘", "이거 같이 정리하자", "/deep-interview" | 없음 (독립) |
 | [`deep-plan`](skills/deep-plan) | (모호하면 인터뷰 보강 후) 실행 가능 PLAN 문서 + UI면 HTML 시안, 빌드는 안 함 | "계획 세워줘", "어떻게 만들지 설계", "구현 말고 플랜만", "UI 시안 뽑아줘", "/deep-plan" | references/craft |
-
-### 🎨 design & ui — 추출된 디자인 시스템 충실 재현
-
-| 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
-|---|---|---|---|
-
-### 🏗 project scaffold & context — 프로젝트 인프라·컨텍스트 셋업/생성
-
-| 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
-|---|---|---|---|
 
 ### 🧹 session & ops — 작업 사이클 운영 (저장·정리·랜딩·배포검토)
 
@@ -47,10 +32,6 @@ Claude Code 글로벌 스킬 배포 레포. **작업 유형별 엄격 파이프�
 | [`linear-groom`](skills/linear-groom) | 기존 Linear 백로그 그루밍 — 고아 이슈 프로젝트 그룹핑 + 빈약 이슈 보강(+`## 추천`/체인) | "리니어 이슈 정리", "백로그 그루밍", "이슈 보강해줘" | Linear MCP |
 | [`linear-prioritize`](skills/linear-prioritize) | 현재 repo 미완 이슈 스프린트 플래닝 — 의존·병렬 분석 + 우선순위 정렬 + 순차 EPIC 체인 milestone 묶기 (이슈 생성·구현 X) | "뭐부터 해야 돼", "병렬로 뭐 돌릴 수 있어", "스프린트 짜줘", "남은 이슈 정리" | Linear MCP |
 
-**파이프라인 3종 공통 흐름**: 소크라테스 인터뷰 → plan review 게이트(상류 리뷰면 스킵, 고위험만 적대 1-pass) → 동적 워크플로 TDD(sonnet) → simplify 검토 패스(forge·renew·hunt, 옵션·동작불변, `/simplify` 위임) → 보안 검증 → 빌드 후 다음 스킬 제안(push 했으면 `/land`, 잔여 정리면 `/sweep` — 추천만, 자동 시작 X).
-
-엔진은 두 실행 모드를 가진다 — **linear**(기본, 단일세션) / **orchestrated**(멀티에이전트 council, 명시 요청 시). 사용법은 [`docs/guides/craft-modes.md`](docs/guides/craft-modes.md).
-
 문서를 산출하는 스킬(plan·spec·goal·adr)의 출력 형태 카탈로그는 [`docs/reference/output-templates.md`](docs/reference/output-templates.md).
 
 > 과거 재사용 서브에이전트 6종(`agents/*.md`)과 에이전트 저작 스킬 `summon` 을 함께 배포했으나 [ADR 002](docs/adr/002-revert-agents-artifact-type.md) 로 철회했다 — 이 레포는 다시 스킬 단일 아티팩트다.
@@ -69,8 +50,9 @@ bash install.sh
 
 11개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
-> 📖 **팀 온보딩·워크플로우 가이드**: [docs/guides/team-workflow-guide.md](docs/guides/team-workflow-guide.md)
-> (+ [HTML 시각화 판](docs/guides/team-workflow-guide.html) — 셋업 3명령, 시나리오 플레이북 8종, 스킬별 언제·어떻게)
+> 온보딩은 위 스킬 표 11행 + 아래 [설치](#설치) 3명령이 전부다. 종전 `docs/guides/team-workflow-guide.{md,html}`
+> 은 은퇴 스킬(`forge`·`hunt`·`renew`·`linear-goal`·`preflight`·`fortify`·`mockup`·`imprint`)을 워크플로 축으로
+> 썼기에 2026-08-04 에 삭제했다 — 틀린 온보딩은 없는 것보다 나쁘다. 근거는 [ADR 003](docs/adr/003-harness-minimization-2026-08.md).
 
 ### 글로벌 셋업 (팀원 동일 환경 — 전수 덤프)
 
@@ -110,18 +92,21 @@ cp -R skills/handoff ~/.claude/skills/
 
 ```
 # 자연어 — 의도 감지 자동 발화
-"ai ask 엔드포인트에 streaming 추가해줘"        → forge
-"벤치가 500 던져, 고쳐줘"                        → hunt
-"이 플로우 동작을 이렇게 바꿔줘"                 → renew
+"ai ask 엔드포인트에 streaming 추가해줘"        → 스킬 없음. 메인 직접 구현
+"벤치가 500 던져, 고쳐줘"                        → 스킬 없음. 메인 직접 수정
 "대시보드 어떻게 만들지 플랜이랑 UI 시안 줘"     → deep-plan (빌드 X)
+"이 티켓 어떻게 할지 먼저 정해줘"                → linear-replan (착수 계획 1장)
 "여기까지 하자, 내일 이어서 정리해줘"            → handoff (저장)
 "어제 하던 거 어디까지 했지"                      → handoff (복원)
+"올린 PR 머지하고 로컬 정리해줘"                 → land
+"개발서버 백그라운드로 띄워줘"                    → dev-server-daemon
 
 # 슬래시 명시 호출
-/forge   /hunt   /renew
+/deep-plan   /linear-replan   /handoff   /land   /wt-sweep
 ```
 
-handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시작/재개 = 복원). 파이프라인 3종은 **언더트리거 설계**(과발화 방지) — 확실히 원하면 슬래시 명시 호출 권장.
+handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시작/재개 = 복원).
+구현 요청은 어느 스킬도 잡지 않는다 — plan mode 로 정리하고 메인이 직접 구현한 뒤 `/code-review`.
 
 ---
 
