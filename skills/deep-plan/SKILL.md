@@ -31,7 +31,7 @@ union 만큼 사용자를 인터뷰한 뒤, 저자가 반영하고 비평자가 
 - **vs `deep-interview`** — 그쪽은 번호 매긴 요구사항 **spec**(`REQ-F`/`REQ-N`)을
   만들어 빌드 스킬로 라우팅한다. deep-plan 은 실행 프롬프트 + plan + 시안을
   산출하고 멈춘다.
-- **vs `deep-prompt`** — 그쪽은 **프롬프트 한 덩어리만**(짧은 명료화 + 고정 템플릿).
+- **vs 프롬프트만 필요할 때** — 짧은 명료화 + 고정 템플릿 한 덩어리면 plan 문서 없이 그것만 쓴다.
   deep-plan 은 debate 로 프롬프트를 깎고 **PLAN·시안까지** 낸다. 사용자가
   "goal 프롬프트만" 원하면 그쪽이 맞다 — 여기로 끌어오지 말 것.
 - **vs 직접 구현** — 구현은 메인이 한다. deep-plan 은 구현 코드를 한 줄도
@@ -41,8 +41,7 @@ union 만큼 사용자를 인터뷰한 뒤, 저자가 반영하고 비평자가 
 
 메커니즘은 복제하지 말고 공유 소스를 읽어라(규칙이 한 곳에 살아야 drift 가 없다).
 단 **eager 하게 전부 읽지 마라** — 아래 표의 시점에 도달했을 때만 그 파일을 읽는다.
-경로 약칭: `cc` = `~/.claude/skills/craft-core/references`, `di` =
-`~/.claude/skills/deep-interview/references`, `dp` = `~/.claude/skills/deep-prompt`.
+경로 약칭: `cc` = `~/.claude/references/craft`, `di` = `~/.claude/skills/deep-interview/references`.
 
 | 읽는 시점 | 파일 |
 |---|---|
@@ -50,8 +49,7 @@ union 만큼 사용자를 인터뷰한 뒤, 저자가 반영하고 비평자가 
 | Step 0 문서 grounding 시 | `cc/context-adr.md` |
 | Step 2 비평자 기동 직전 (첫 1회) | `cc/adversarial-review.md` 의 "어떻게 돌리는가" 절 |
 | Step 5 PLAN 작성 직전 | `cc/pipeline.md` 의 Phase 1 (plan 섹션 + HTML companion + Eval 패널 규칙) |
-| Step 6 UI 목업을 **그릴 때만** | `~/.claude/skills/mockup/references/design-context.md` |
-| Step 6 ERD 분기 **진입 시만** | `~/.claude/skills/erd/SKILL.md` + `assets/erd-template.html` + `references/schema-discovery.md` |
+| Step 6 UI 목업·ERD 를 **그릴 때만** | 프로젝트의 `DESIGN.md`·디자인 토큰·마이그레이션/모델을 그 자리에서 Read |
 | Step 7 종료 보고 직전 | `cc/output-contract.md` |
 | Step 7.5 Linear 등록 제안 시만 | `cc/linear.md` |
 | Step 8 다음 스킬 추천 직전 | `di/next-skill-routing.md` |
@@ -101,8 +99,9 @@ fable 저자에게는 `dp/SKILL.md` 의 "고정 템플릿 채우기"·"검증 �
 경로와 digest 만:
 
 - 요청문 원문(verbatim) + Step 0 grounding digest(경로·계약·standing 결정).
-- 템플릿 SSOT 경로: `~/.claude/skills/deep-prompt/SKILL.md` 의 "고정 템플릿
-  채우기"(7섹션) + "검증 가능성 게이트"(항목당 5질문) 절을 읽고 따르라고 지시.
+- 고정 템플릿 7섹션(Objective / Success Criteria / Context / Constraints /
+  Verification / Out of Scope / Done & Report)을 채우되, 각 Success Criteria 는
+  **사람 없이 done 판정이 가능한 측정 형태**여야 한다고 지시.
 - 산출 계약: ① 7섹션 DRAFT PROMPT (소비자 = 사람 없는 자율 에이전트 — Success
   Criteria 가 스스로 done 판정·루프 탈출을 가능하게) ② GAPS — 번호 매김, **최대
   7건**, 영향 큰 순, 각각 질문 형태 한 사실, `[CODE]`(레포 읽으면 답 나옴) /
@@ -358,11 +357,11 @@ inline 폴백.
 
 plan 이 **새 테이블·컬럼·관계 또는 BE 데이터 모델 변경**을 수반하면 ERD 를 별도
 HTML 로 생성한다 — 비UI plan 이라도 ERD 는 실제 도식 가치를 준다("데이터가 어떻게
-엮일지"). 생성 방법은 `erd` 스킬 3파일(이때 읽는다)을 그대로 따른다. 스키마는
+엮일지"). 스키마는
 Step 0 에서 Read 한 마이그레이션/모델에서 재구성한다(못 본 테이블/관계는 그리지
 않고 footer 에 한계 명시). 산출은 같은 디렉토리·basename 에 `-erd.html`, 역시
 Artifact publish. 판정: 스키마/관계가 plan 의 핵심이면 그린다 — 컬럼 한둘 추가뿐이면
-과투자(생략, plan 텍스트로 족). `erd` 미설치면 그 사실을 말하고 생략.
+과투자(생략, plan 텍스트로 족).
 
 ### Step 7 — 종료 보고 (빌드 없이 제시 — 턴은 여기서 안 끝난다)
 

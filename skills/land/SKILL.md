@@ -241,7 +241,7 @@ Proceed?
 4. **살아남은 것 rebase**: 랜딩되지 않은 각 로컬 브랜치에 대해 `git rebase <default>`. conflict 시 멈추고 그 브랜치를 보고하라(유저가 해결하거나 요청 시 당신이 해결할 수 있게 rebase 를 진행 중으로 남겨 둘 것) — 복구 형태는 `references/stacking.md` 참조.
 5. **Linear 이슈 Done 전이 (연결된 이슈가 있을 때만, graceful).** 머지된 PR 에
    연결된 Linear 이슈를 식별할 수 있으면(PR body/브랜치명이 이슈 URL/ID 를 참조하거나
-   Linear GitHub 연동이 붙어 있으면) `~/.claude/skills/craft-core/references/linear.md`
+   Linear GitHub 연동이 붙어 있으면) `~/.claude/references/craft/linear.md`
    의 전이 맵대로 **Done 으로 옮긴다**. 이게 빌드(In Progress→In Review)에서 시작한
    라이프사이클의 마지막 칸이다. Linear MCP 미설치이거나 연결 이슈를 못 찾으면 **묻지
    말고 생략**한다 — Linear 전이는 머지/정리를 막지 않는다(저위험 부가 단계).
@@ -277,6 +277,6 @@ land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정�
   않는다 — 머지 후 잔여 워크트리는 Report 에 목록만 남긴다.
 - 유저가 변경을 *작성*하려는 것이지 머지하려는 게 아닐 때 → 메인이 직접 구현.
 - 유저가 미완 작업을 재개하거나 어디까지 했는지 떠올리려 할 때 → `handoff`.
-- 유저가 git 브랜치가 아니라 오래된 문서/로그를 치우려 할 때 → `sweep`.
+- 유저가 git 브랜치가 아니라 오래된 문서/로그를 치우려 할 때 → 이 스킬 아님(직접 정리).
 - 배포할 게 이 레포(carpdm-skills)의 스킬 변경일 때 → `ship`. live↔repo `sync.sh`
   미러가 선행돼야 하는데 land 의 Raise 는 일반 브랜치 push 만 한다(미러 안 함).

@@ -64,7 +64,7 @@ Linear 이슈 본문은 **의도적으로 얇다**(헤딩 화이트리스트 + �
 ## Step 1 — 입력 확보 + 레포 grounding
 
 - **[이슈 모드]** Linear MCP 로 이슈를 fetch 한다(제목·본문·라벨·estimate·관계). MCP 감지와
-  미설치 시 처리는 `~/.claude/skills/craft-core/references/linear.md` §1 그대로 —
+  미설치 시 처리는 `~/.claude/references/craft/linear.md` §1 그대로 —
   **MCP 미설치면 가이드 한 번 + 정지**한다(이 스킬은 이슈 입력이 없으면 성립하지 않는다).
   절차를 여기 복제하지 말고 그 파일을 읽어라.
 - **[텍스트 모드]** fetch 생략 — 사용자가 준 요구사항 텍스트가 곧 입력이다.
@@ -153,7 +153,7 @@ Step 2 의 DECISIONS 가 인터뷰의 유일한 의제다.
 
 ## 종료 출력
 
-`~/.claude/skills/craft-core/references/output-contract.md` 의 종료 블록을 따른다(복제 금지):
+`~/.claude/references/craft/output-contract.md` 의 종료 블록을 따른다(복제 금지):
 L1 `result:` 한 줄 + L2 산출물 열기 행(계획 문서 경로, 이슈 모드면 코멘트 URL) + L3 다음 스킬
 제안(`AskUserQuestion` — 제안만, 자동 시작 없음).
 
@@ -209,7 +209,7 @@ L3 후보:
 
 ## References
 
-- `~/.claude/skills/craft-core/references/linear.md` — Linear MCP 감지·graceful 규약(Step 1).
-- `~/.claude/skills/craft-core/references/output-contract.md` — 종료 출력 3레이어.
+- `~/.claude/references/craft/linear.md` — Linear MCP 감지·graceful 규약(Step 1).
+- `~/.claude/references/craft/output-contract.md` — 종료 출력 3레이어.
 - 재플래닝 금지 신호(goal-ready): 실측 증거 + 측정 가능한 AC + 범위 밖 명시 + 해석 단일 —
   §Step 1 rubric(oversized 판정). 경계 판단 시 읽는다.

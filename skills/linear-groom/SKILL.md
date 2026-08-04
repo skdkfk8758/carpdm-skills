@@ -68,7 +68,7 @@ description: >-
 
 ### Step 0 — Linear MCP 감지
 
-`craft-core/references/linear.md` §1(MCP 감지/미설치 가이드/미인증 안내)을 그대로 따른다
+`references/craft/linear.md` §1(MCP 감지/미설치 가이드/미인증 안내)을 그대로 따른다
 — 그 파일이 있으면 lazy-read, 없으면 최소 확인: available tools 에 `mcp__linear*` 가
 있는지 보고, deferred 면 `ToolSearch(query:"linear")` 로 로드. 미설치/미인증이면 한 번
 안내하고 멈춘다(막지 말 것). 도구 이름은 워크스페이스마다 다르니 추측 호출 금지.

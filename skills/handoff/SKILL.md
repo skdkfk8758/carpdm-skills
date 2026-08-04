@@ -135,7 +135,7 @@ status: in-progress | blocked | ready-to-merge
 - **길이는 재개에 필요한 만큼만.** filler 섹션·중복 요약·boilerplate 로 채우지
   마라(Claude 5 계열은 디스크 산출물이 길어지는 경향, 명시 보정).
 
-작성 후, `~/.claude/skills/craft-core/references/output-contract.md` 의 종료 블록으로
+작성 후, `~/.claude/references/craft/output-contract.md` 의 종료 블록으로
 보고한다 — `result:` 한 줄(무엇을 핸드오프했는지) + `핸드오프` 행의 상대경로와 `open`
 명령(L1+L2). 그다음 담은 내용을 2-3줄로 요약하라. memory 항목도 적었다면 언급하라.
 handoff 는 종착 운영이라 다음 스킬 제안(L3)은 하지 않는다. 예:

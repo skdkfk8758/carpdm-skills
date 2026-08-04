@@ -98,7 +98,7 @@ sync 브랜치는 항상 단일·독립이라 stack 처리·rebase 는 없다. (
 머지된 PR 번호, CI 결과, 정리된 브랜치를 짧게 요약한다.
 
 마지막 메시지는 `result:` 한 줄로 못 박는다
-(`~/.claude/skills/craft-core/references/output-contract.md` L1 — 전 스킬 공통,
+(`~/.claude/references/craft/output-contract.md` L1 — 전 스킬 공통,
 백그라운드 잡 완료 신호). self-contained 로 (예:
 `result: PR #N 머지 — CI 통과 후 squash, master 동기화, sync 브랜치 정리`). 산출물이
 git 상태 변화라 열기 블록(L2)·다음 스킬 제안(L3)은 적용 안 한다. CI 실패나 머지

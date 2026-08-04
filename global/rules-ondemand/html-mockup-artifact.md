@@ -17,7 +17,7 @@ IMPORTANT: HTML 시안(목업·companion·ERD·시각화 리포트 등 **사람�
 
 ## 적용 대상
 
-- `mockup` 스킬(design-context 기반 충실 시안 — 시안 충실도 SSOT) · `deep-plan` Step 3 (companion + `-erd.html`) · `deep-prompt` §3.5 (`<slug>-mockup.html`) · `craft-core` pipeline Phase 1 HTML companion (메인 직접 구현 경유 포함) · `erd` · `imprint`/`prototype`/`frontend-design` 이 시안 목적으로 산출한 HTML · 그 밖의 "HTML 로 시안/목업/도식 만들어줘" 류 지침 전부.
+- `deep-plan` Step 6 (UI companion + `-erd.html`) · 시안·리포트를 산출하는 모든 턴
 - **예외**: repo 에 트래킹되는 파생 산출물 HTML(예: `loop/harness-visualization.html`)과 프로덕션 코드의 `.html` 은 대상 아님. 이들은 git 이 SSOT.
 
 ## 강제 (hook 자동 — 비차단 nudge)
@@ -41,4 +41,4 @@ ECONNREFUSED 이거나 **다른 브랜치 화면**이다.
 
 ## Related
 
-- `~/.claude/skills/craft-core/references/pipeline.md` Phase 1 — HTML companion 규약(짝).
+- `~/.claude/references/craft/pipeline.md` Phase 1 — HTML companion 규약(짝).
