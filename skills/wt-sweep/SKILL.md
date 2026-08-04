@@ -1,6 +1,6 @@
 ---
 name: wt-sweep
-description: PR 머지 없이 워크트리만 치우는 경량 정리 — 현재 repo 의 잔여·세션 워크트리(EnterWorktree 가 repo 루트 안에 만든 skdkfk8758/* 류 포함)를 전수 발견 → clean/dirty/미머지/라이브세션attach 분류 → AskUserQuestion 인터뷰 승인 → 워크트리+로컬+remote 브랜치, 그리고 승인 시 해당 Claude Code 세션 기록(~/.claude/projects/<slug>)과 이미 지워진 워크트리의 고아 세션 기록까지 제거한다. dirty·라이브 attach 는 무조건 보존, 미머지 커밋은 보존+라우팅 제안, force 절대 금지, 세션 기록은 인터뷰 승인 없이 절대 삭제 안 함. "워크트리 정리해줘", "세션 워크트리 치워줘", "안 쓰는 worktree 지워줘", "워크트리 청소", "쌓인 워크트리 없애줘", "이 세션이 만든 워크트리 정리", "클로드 세션 기록 정리해줘", "워크트리랑 세션 같이 치워줘", "clean up worktrees", "remove stale worktrees" 에 — 'wt-sweep' 이란 말이 없어도 — 트리거. PR 을 머지하고 로컬 동기화까지 원하면 land, 오래된 문서·로그 정리는 sweep, 구현·수정은 forge/hunt/renew.
+description: PR 머지 없이 워크트리만 치우는 경량 정리 — 현재 repo 의 잔여·세션 워크트리(EnterWorktree 가 repo 루트 안에 만든 skdkfk8758/* 류 포함)를 전수 발견 → clean/dirty/미머지/라이브세션attach 분류 → AskUserQuestion 인터뷰 승인 → 워크트리+로컬+remote 브랜치, 그리고 승인 시 해당 Claude Code 세션 기록(~/.claude/projects/<slug>)과 이미 지워진 워크트리의 고아 세션 기록까지 제거한다. dirty·라이브 attach 는 무조건 보존, 미머지 커밋은 보존+라우팅 제안, force 절대 금지, 세션 기록은 인터뷰 승인 없이 절대 삭제 안 함. "워크트리 정리해줘", "세션 워크트리 치워줘", "안 쓰는 worktree 지워줘", "워크트리 청소", "쌓인 워크트리 없애줘", "이 세션이 만든 워크트리 정리", "클로드 세션 기록 정리해줘", "워크트리랑 세션 같이 치워줘", "clean up worktrees", "remove stale worktrees" 에 — 'wt-sweep' 이란 말이 없어도 — 트리거. PR 을 머지하고 로컬 동기화까지 원하면 land, 오래된 문서·로그 정리는 sweep, 구현·수정은 메인 직접 구현.
 ---
 
 # wt-sweep — 세션 워크트리 청소

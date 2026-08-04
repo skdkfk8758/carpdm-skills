@@ -1,6 +1,6 @@
 ---
 name: deep-interview
-description: 측정 가능한 ambiguity 점수로 게이트되는 라운드당-한-질문 Socratic 인터뷰로, 모호한 아이디어를 검증 가능한 요구사항 spec(REQ ID)으로 결정화하고 빌드 스킬로 라우팅한다. 사용자가 흐릿하거나 반쯤 형태만 잡힌 아이디어를 들고 와 코드 전에 인터뷰받거나 "함께 생각을 정리"하고 싶어 할 때 사용 — "인터뷰해줘", "같이 생각 정리하자", "요구사항 못 박아줘", "interview me about X", "help me think this through", "pin down what I actually want", "/deep-interview" 같은 표현. 아이디어가 정말로 모호하거나 클 때는 plan 직행보다 이것을 우선한다. 작고 이미 명확한 작업, 알려진 버그 수정, 빌드 파이프라인(forge/renew/hunt)이 이미 자체 요구사항 단계를 돌리는 중이면 사용하지 말 것. plan 문서+UI 시안이 목적이면 deep-plan.
+description: 측정 가능한 ambiguity 점수로 게이트되는 라운드당-한-질문 Socratic 인터뷰로, 모호한 아이디어를 검증 가능한 요구사항 spec(REQ ID)으로 결정화하고 빌드 스킬로 라우팅한다. 사용자가 흐릿하거나 반쯤 형태만 잡힌 아이디어를 들고 와 코드 전에 인터뷰받거나 "함께 생각을 정리"하고 싶어 할 때 사용 — "인터뷰해줘", "같이 생각 정리하자", "요구사항 못 박아줘", "interview me about X", "help me think this through", "pin down what I actually want", "/deep-interview" 같은 표현. 아이디어가 정말로 모호하거나 클 때는 plan 직행보다 이것을 우선한다. 작고 이미 명확한 작업, 알려진 버그 수정, 이미 요구사항이 확정돼 바로 구현에 들어갈 수 있으면 사용하지 말 것. plan 문서+UI 시안이 목적이면 deep-plan.
 ---
 
 # Deep Interview — 빌드 전 Socratic 모호성 해소
@@ -169,7 +169,7 @@ constraints, 해결된 assumptions, brownfield context, 그리고 clarity trail 
 요구사항 기록으로 살아남도록 의도된 것이므로, 번호 매긴 ID 는 한 번 할당되면 안정적
 으로 유지돼야 한다.
 
-spec 을 쓴 직후 `~/.claude/skills/craft-core/references/output-contract.md` 의 고정
+spec 을 쓴 직후 `~/.claude/references/craft/output-contract.md` 의 고정
 블록으로 산출물을 보고한다 — `result:` 한 줄(결정화 요약 + ambiguity %) + `SPEC` 행의
 상대경로와 `open` 명령(전 스킬 공통 포맷). 이 블록을 먼저 내고 **그다음에** Phase 5 의
 다음 스킬 라우팅 추천을 잇는다 — result 블록이 라우팅을 대체하지 않는다.
@@ -189,8 +189,8 @@ greenfield/brownfield 판단 + goal), 그 성격은 특정 작업유형 스킬�
   있다. 추천 전 그 목록을 실제로 훑어 후보를 재선정하라(아래 예시 이름에 anchor
   되지 말 것).
 - **valid-next 필터** 로 다음 단계가 될 수 있는 스킬만 후보로 남긴다.
-- **Tier 1**(빌드가 명백할 때의 단축: greenfield→`/forge`, brownfield 변경→`/renew`,
-  고장→`/hunt`) 은 단축일 뿐 — 명백하지 않으면 **Tier 2**(available-skills 에서
+- **Tier 1**(빌드가 명백할 때의 단축: 요구사항이 확정되면 **메인이 직접 구현**한다 —
+  plan mode → 구현 → `/code-review`) 은 단축일 뿐 — 명백하지 않으면 **Tier 2**(available-skills 에서
   valid-next 전체 후보, **글로벌·플러그인 포함**: `/deep-plan`·`linear-register`(분할 모드)·
   `deep-research`·`prototype`·`understand-anything:understand` 등)를 함께 열거한다.
 - 빌드로 라우팅하면 **강도(linear/council)** 도 함께 추천한다 — 인터뷰가 측정한

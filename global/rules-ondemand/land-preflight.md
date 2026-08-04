@@ -22,5 +22,5 @@ IMPORTANT: 자율 파이프라인이 실작업은 끝내고 **마지막 land/dep
 
 ## Related
 
-- `~/.claude/rules/branch-worktree-strategy.md` — 브랜치/워크트리 전략(본 룰의 상위 컨벤션).
+- `~/.claude/rules-ondemand/branch-worktree-strategy.md` — 브랜치/워크트리 전략(본 룰의 상위 컨벤션).
 - `land` 스킬 — 본 preflight 의 주 적용 대상.

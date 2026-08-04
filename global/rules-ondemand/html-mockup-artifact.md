@@ -17,12 +17,21 @@ IMPORTANT: HTML 시안(목업·companion·ERD·시각화 리포트 등 **사람�
 
 ## 적용 대상
 
-- `mockup` 스킬(design-context 기반 충실 시안 — 시안 충실도 SSOT) · `deep-plan` Step 3 (companion + `-erd.html`) · `deep-prompt` §3.5 (`<slug>-mockup.html`) · `craft-core` pipeline Phase 1 HTML companion (forge/hunt/renew 경유 포함) · `erd` · `imprint`/`prototype`/`frontend-design` 이 시안 목적으로 산출한 HTML · 그 밖의 "HTML 로 시안/목업/도식 만들어줘" 류 지침 전부.
-- **예외**: repo 에 트래킹되는 파생 산출물 HTML(예: `loop/harness-visualization.html` — `loop-visualization.md` 룰 소관)과 프로덕션 코드의 `.html` 은 대상 아님. 이들은 git 이 SSOT.
+- `deep-plan` Step 6 (UI companion + `-erd.html`) · 시안·리포트를 산출하는 모든 턴
+- **예외**: repo 에 트래킹되는 파생 산출물 HTML(예: `loop/harness-visualization.html`)과 프로덕션 코드의 `.html` 은 대상 아님. 이들은 git 이 SSOT.
 
 ## 강제 (hook 자동 — 비차단 nudge)
 
 - `guard-html-mockup-artifact-nudge.sh` (PostToolUse Write|Edit) — 시안 경로 패턴(`docs/plans/**.html`, `.planning/**.html`, `*-mockup.html`, `*-erd.html`) Write 감지 시 "Artifact publish 했나?" stderr 리마인드. 비차단(훅은 publish 여부를 알 수 없음 — 실제 이행은 본 룰을 읽은 AI). 끄기: `GUARD_HTML_ARTIFACT_NUDGE_DISABLE=1`.
+
+## 턴 종료 보고와의 접점
+
+UI 표면을 바꿨고 남은 `[HUMAN]` 확인이 **2건 이상**이면, 텍스트 잔여로 나열하지 말고
+**인터랙티브 체크리스트 아티팩트**를 publish 해 그 URL 을 결과 보고에 적는다(잔여 1건이면 한 줄로 충분).
+같이 적는 dev origin 은 **포트 중복확인 뒤 실측한 값**이다 — `:3000` 은 대개 다른 프로젝트가
+물고 있고 그래도 기동은 성공하므로(프레임워크가 다음 빈 포트로 옮긴다), 충돌은 에러가 아니라
+*살아 있는 남의 화면*으로 나타난다. 관례 포트를 추정해 링크하면 사람이 눌렀을 때
+ECONNREFUSED 이거나 **다른 브랜치 화면**이다.
 
 ## Anti-patterns
 
@@ -32,5 +41,4 @@ IMPORTANT: HTML 시안(목업·companion·ERD·시각화 리포트 등 **사람�
 
 ## Related
 
-- `~/.claude/skills/craft-core/references/pipeline.md` Phase 1 — HTML companion 규약(짝).
-- `~/.claude/rules-ondemand/loop-visualization.md` — repo 트래킹 HTML 의 반대 정책(예외 근거).
+- `~/.claude/references/craft/pipeline.md` Phase 1 — HTML companion 규약(짝).

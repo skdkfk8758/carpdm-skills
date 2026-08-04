@@ -42,7 +42,7 @@ CI 가 실패하거나 머지가 막히면: 중단하고, PR·브랜치를 복�
   더해 `sync-global.sh`(글로벌 환경 덤프 — skills-extra·codex·rules·settings, secret
   마스킹+스캔 게이트 내장)를 실행하고 `git add -A skills global` 로 stage 한다 —
   글로벌 덤프도 같은 sync PR 에 실린다(2026-08-02, 덤프 신선도 근거). 그 밖의 루트
-  메타(`sync.sh` 자체/`README.md`/`CLAUDE.md` 등)는 여전히 **누락한다** — 그런
+  메타(`sync.sh` 자체/`README.md`/`rules/project.md` 등)는 여전히 **누락한다** — 그런
   변경이 섞여 있으면 먼저 수동 커밋(`git add -A` + 브랜치 + PR)한 뒤 ship 으로
   배포하거나, 한 번에 수동 PR 로 묶는다. sync-global 의 secret 스캔이 hit 를 내면
   sync.sh 전체가 exit 1 로 멈춘다 — 마스킹 처리 후 재시도(게이트이지 버그 아님).
@@ -98,7 +98,7 @@ sync 브랜치는 항상 단일·독립이라 stack 처리·rebase 는 없다. (
 머지된 PR 번호, CI 결과, 정리된 브랜치를 짧게 요약한다.
 
 마지막 메시지는 `result:` 한 줄로 못 박는다
-(`~/.claude/skills/craft-core/references/output-contract.md` L1 — 전 스킬 공통,
+(`~/.claude/references/craft/output-contract.md` L1 — 전 스킬 공통,
 백그라운드 잡 완료 신호). self-contained 로 (예:
 `result: PR #N 머지 — CI 통과 후 squash, master 동기화, sync 브랜치 정리`). 산출물이
 git 상태 변화라 열기 블록(L2)·다음 스킬 제안(L3)은 적용 안 한다. CI 실패나 머지

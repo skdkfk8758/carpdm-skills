@@ -68,7 +68,7 @@ description: >-
 
 ### Step 0 — Linear MCP 감지
 
-`craft-core/references/linear.md` §1(MCP 감지/미설치 가이드/미인증 안내)을 그대로 따른다
+`references/craft/linear.md` §1(MCP 감지/미설치 가이드/미인증 안내)을 그대로 따른다
 — 그 파일이 있으면 lazy-read, 없으면 최소 확인: available tools 에 `mcp__linear*` 가
 있는지 보고, deferred 면 `ToolSearch(query:"linear")` 로 로드. 미설치/미인증이면 한 번
 안내하고 멈춘다(막지 말 것). 도구 이름은 워크스페이스마다 다르니 추측 호출 금지.
@@ -211,7 +211,7 @@ Step 4 표에 별도 블록으로 제안한다: 남길 이슈(더 충실한 쪽)
 ## 보강 (M건)
 | 이슈 | tier | 보강 요지 (작업 내용/수용 기준/추천 한 줄, 경계 있으면 범위 밖, 연결되면 다음 작업) |
 |---|---|---|
-| ADT-7 | empty | 벌크업로드 UI=AssetUploader, 다중 select+큐, Acc=N개 동시업로드, 추천=/forge |
+| ADT-7 | empty | 벌크업로드 UI=AssetUploader, 다중 select+큐, Acc=N개 동시업로드, 추천=직접구현 |
 ```
 
 **어디에도 안 붙는 이슈**(맞는 프로젝트 없음 + 신설 정당화 부족)는 표에서 빼지 말고

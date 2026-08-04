@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # Install the carpdm-skills bundle into ~/.claude/.
-# Skills (dir-per-skill) -> ~/.claude/skills/.
+# Skills (dir-per-skill) -> ~/.claude/skills/
+# Shared reference material -> ~/.claude/references/craft/  (skills read it by absolute path)
 # Idempotent: existing same-named skills are overwritten in place
 # (git history is the safety net — no .bak files left behind). Safe to re-run.
 set -euo pipefail
 
-SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/skills" && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SRC_DIR="$ROOT/skills"
 DEST_DIR="$HOME/.claude/skills"
+REF_SRC="$ROOT/global/references/craft"
+REF_DEST="$HOME/.claude/references/craft"
 
 mkdir -p "$DEST_DIR"
 
@@ -28,11 +32,20 @@ for skill in "$SRC_DIR"/*/; do
   installed+=("$name")
 done
 
+# Shared references. Several skills read ~/.claude/references/craft/*.md by absolute
+# path — installing skills without these leaves them pointing at nothing.
+if [ -d "$REF_SRC" ]; then
+  mkdir -p "$REF_DEST"
+  cp -R "$REF_SRC"/. "$REF_DEST"/
+  echo
+  echo "  + references/craft  ($(ls -1 "$REF_DEST" | wc -l | tr -d ' ') files -> $REF_DEST)"
+fi
+
 echo
 # Derive the summary from what was actually installed - a hardcoded list drifts.
 echo "Done. Installed ${#installed[@]} skills: ${installed[*]}."
 echo "Restart Claude Code (or start a new session) to load them."
 echo
-echo "Note: the forge/hunt/renew Phase 4 correctness review uses '/code-review'."
-echo "If it is unavailable, that phase falls back to an adversarial subagent"
-echo "(craft-core/references/adversarial-review.md). See README.md."
+echo "Note: implementation/fix work is done by the main agent (plan mode -> build ->"
+echo "'/code-review', '/security-review' when security-sensitive). Shared reference"
+echo "material lives in ~/.claude/references/craft/. See README.md."
