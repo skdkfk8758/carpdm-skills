@@ -1,6 +1,6 @@
 ---
 name: linear-prioritize
-description: 현재 repo 의 Linear 미완 이슈를 한 화면에 모아 의존·병렬 분석 + 우선순위 정렬 + 순차 EPIC 체인의 project milestone 묶기까지 하는 스프린트 플래닝. "남은 이슈 정리해줘", "뭐부터 해야 돼", "우선순위 매겨줘", "병렬로 뭐 돌릴 수 있어", "스프린트 짜줘", "다음 작업 뭐야", "이슈 로드맵", "마일스톤으로 묶어줘" 에 — 'linear' 란 말이 없어도 — 적극 트리거. 단순 조회는 linear-dispatch 룰, 등록은 linear-register, 재배치·보강은 linear-groom, 단일 티켓 실행은 linear-goal. 이슈 생성·코드 구현은 하지 않는다.
+description: 현재 repo 의 Linear 미완 이슈를 한 화면에 모아 의존·병렬 분석 + 우선순위 정렬 + 순차 EPIC 체인의 project milestone 묶기까지 하는 스프린트 플래닝. "남은 이슈 정리해줘", "뭐부터 해야 돼", "우선순위 매겨줘", "병렬로 뭐 돌릴 수 있어", "스프린트 짜줘", "다음 작업 뭐야", "이슈 로드맵", "마일스톤으로 묶어줘" 에 — 'linear' 란 말이 없어도 — 적극 트리거. 단순 조회는 linear.md §1, 등록은 linear-register, 재배치·보강은 linear-groom, 단일 티켓 실행은 메인이 직접. 이슈 생성·코드 구현은 하지 않는다.
 ---
 
 # linear-prioritize
@@ -46,7 +46,7 @@ fetch 정책) 그대로 적용한다(복제 금지). 이 스킬 고유 사항만
 > 지켜보며 손으로 투입할 필요가 없다). 절차·함정은 `orchestration` 스킬이 SSOT
 > (`orca skills get orchestration`) — 여기 복제 금지.
 >
-> **2건이면 제안하지 않는다** — 워크트리 2개 + 세션별 `linear-goal` 이 더 싸다(코디네이터
+> **2건이면 제안하지 않는다** — 워크트리 2개 + 세션별 직접 구현이 더 싸다(코디네이터
 > 오버헤드가 본전을 못 뽑는다). 조율 없이 던져둘 작업도 대상 아님(그건 full handoff —
 > orchestration 가이드가 그 경우 `task-create`/`dispatch --inject` 를 금지한다).
 > **감지 후 제안** — `orca status --json` 실패거나 orchestration 실험기능이 꺼져 있으면
@@ -101,7 +101,7 @@ linear-register 가 신규를 전부 Triage 로 넣으므로 사용자 triage �
 
 ### 🔀 지금 동시 착수 가능 (충돌 없는 병렬 집합)
 { ID ∥ ID ∥ ID } — <왜 충돌 없는지 1줄>
-착수: 각 이슈마다 `linear-goal <id>` (자율실행 kickoff — 병렬 워크트리로 바로 넘김)
+착수: 각 이슈마다 워크트리 분기 후 직접 구현 (병렬 세션으로 넘김)
 조율(3건+ ∧ 순차 체인 혼재 ∧ orchestration 가용 시에만): Orca orchestration DAG — Step 4 주석
 블록: <막힌 이슈 + 막은 원인>
 
@@ -116,18 +116,17 @@ Project: ...
 
 | 하려는 것 | 올바른 도구 |
 |---|---|
-| 이슈 단순 조회·검색 | `linear-dispatch.md` 룰 (현재 repo 팀 스코프) |
+| 이슈 단순 조회·검색 | `linear.md` 룰 (현재 repo 팀 스코프) |
 | 신규 이슈 등록 | `linear-register` 스킬 |
 | 백로그 재배치·thin 이슈 보강 | `linear-groom` 스킬 |
-| 단일 티켓 자율 빌드 실행 | `linear-goal` 스킬 |
 | plan/PRD 를 다중 이슈로 분할 | `linear-register` (분할 모드) |
-| 실제 코드 구현 | `forge`/`hunt`/`renew` |
+| 실제 코드 구현 | 메인이 직접 (plan mode → 구현 → `/code-review`) |
 
 이 스킬은 **이미 등록된 미완 이슈의 실행 계획**만 낸다 — 새 이슈도, 코드도 만들지 않는다.
 
 ## Related
 
 - `~/.claude/skills/linear-register/references/backlog-scan.md` — 팀 스코프 + 전수 수집 절차(Step 1~2 SSOT, groom 과 공유).
-- `~/.claude/rules-ondemand/linear-dispatch.md` — repo→팀 조회 스코프(backlog-scan §A 의 근거 룰).
+- `~/.claude/rules-ondemand/linear.md` — repo→팀 조회 스코프(backlog-scan §A 의 근거 룰).
 - `~/.claude/linear-repo-map.json` — repo↔team 매핑 + team≠repo 혼재 note.
 - `[[feedback-epic-chain-milestone-autobind]]` — EPIC 체인 milestone 묶기 컨벤션(Step 6 근거).

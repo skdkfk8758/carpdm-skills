@@ -1,6 +1,6 @@
 ---
 name: deep-plan
-description: 사용자의 요청문을 fable 저자 × fable 비평자(별 좌석) debate 로 깎아 자율 에이전트가 먹을 수 있는 Goal Prompt 로 만들고, 그 과정에서 두 좌석이 지목한 컨텍스트 갭을 인터뷰로 채운 뒤, 프롬프트(`-prompt.md`) + 구현 PLAN(`.md`) + 통합 뷰(`.html`)를 산출하고 빌드하지 않고 멈춘다. 사용자가 plan/설계/기획안/제안서/접근법/로드맵/UI 시안을 원하되 지금 구현은 원하지 않을 때 사용 — "계획 세워줘", "어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안 만들어줘", "UI 시안 뽑아줘", "design doc 작성", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 번호 매긴 요구사항 spec 결정화는 deep-interview, 프롬프트 한 덩어리만 필요하면 deep-prompt, 실제 구현/버그수정/기존 동작 변경은 forge/hunt/renew — deep-plan 은 코드를 쓰지 않는다, 프롬프트와 plan 만 쓴다.
+description: 사용자의 요청문을 fable 저자 × fable 비평자(별 좌석) debate 로 깎아 자율 에이전트가 먹을 수 있는 Goal Prompt 로 만들고, 그 과정에서 두 좌석이 지목한 컨텍스트 갭을 인터뷰로 채운 뒤, 프롬프트(`-prompt.md`) + 구현 PLAN(`.md`) + 통합 뷰(`.html`)를 산출하고 빌드하지 않고 멈춘다. 사용자가 plan/설계/기획안/제안서/접근법/로드맵/UI 시안을 원하되 지금 구현은 원하지 않을 때 사용 — "계획 세워줘", "어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안 만들어줘", "UI 시안 뽑아줘", "design doc 작성", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 번호 매긴 요구사항 spec 결정화는 deep-interview, 프롬프트 한 덩어리만 필요하면 deep-prompt, 실제 구현/버그수정/기존 동작 변경은 메인이 직접 한다 — deep-plan 은 코드를 쓰지 않는다, 프롬프트와 plan 만 쓴다.
 ---
 
 # Deep Plan — fable×2 debate 메타프롬프팅 → 갭 인터뷰 → PLAN(+시안), 빌드 없음
@@ -34,7 +34,7 @@ union 만큼 사용자를 인터뷰한 뒤, 저자가 반영하고 비평자가 
 - **vs `deep-prompt`** — 그쪽은 **프롬프트 한 덩어리만**(짧은 명료화 + 고정 템플릿).
   deep-plan 은 debate 로 프롬프트를 깎고 **PLAN·시안까지** 낸다. 사용자가
   "goal 프롬프트만" 원하면 그쪽이 맞다 — 여기로 끌어오지 말 것.
-- **vs `forge`/`renew`/`hunt`** — 그쪽은 빌드한다. deep-plan 은 구현 코드를 한 줄도
+- **vs 직접 구현** — 구현은 메인이 한다. deep-plan 은 구현 코드를 한 줄도
   쓰지 않는다. 이 debate 의 verdict 기록이 그쪽 Phase 2 스킵 신호다(§Step 5).
 
 ## SSOT lazy-load — 해당 분기에 진입할 때만 읽는다
@@ -46,7 +46,7 @@ union 만큼 사용자를 인터뷰한 뒤, 저자가 반영하고 비평자가 
 
 | 읽는 시점 | 파일 |
 |---|---|
-| Step 0 입력이 Linear 이슈 참조일 때 | `~/.claude/skills/linear-goal/references/routing.md` §goal-ready |
+| Step 0 입력이 Linear 이슈 참조일 때 | 이슈 본문의 `## 작업 내용`·`## 수용 기준`이 측정 가능하면 재플래닝 불필요 — 바로 구현 |
 | Step 0 문서 grounding 시 | `cc/context-adr.md` |
 | Step 2 비평자 기동 직전 (첫 1회) | `cc/adversarial-review.md` 의 "어떻게 돌리는가" 절 |
 | Step 5 PLAN 작성 직전 | `cc/pipeline.md` 의 Phase 1 (plan 섹션 + HTML companion + Eval 패널 규칙) |
@@ -79,7 +79,7 @@ fable 저자에게는 `dp/SKILL.md` 의 "고정 템플릿 채우기"·"검증 �
 - **Linear 이슈 입력이면 readiness 게이트 먼저.** 입력이 Linear 이슈(ID 언급 또는
   세션 `Linked Linear issue` 배너)면 fetch 후 `routing.md` §goal-ready(이때 읽는다)로
   판정한다. **goal-ready**(실측 증거 + 측정가능 AC + 범위 밖 + 해석 단일 — 4개 전부)
-  면 재플래닝은 중복이다 — plan 을 만들지 말고 `linear-goal`(또는 이슈 `## 추천` 의
+  면 재플래닝은 중복이다 — plan 을 만들지 말고 이슈 본문대로 바로 구현하라(또는 이슈 `## 추천` 의
   실행 스킬) 직행을 `AskUserQuestion` 으로 제안하고 멈춘다. 사용자가 명시적으로
   plan 을 원하면(override) 계속. 4개 미달이면 평소 플로우 — 이슈 본문을 요청문
   입력으로 삼는다. Linear MCP 부재·routing.md 미설치면 게이트 생략(같은 원리 직접
@@ -128,7 +128,7 @@ fable 저자에게는 `dp/SKILL.md` 의 "고정 템플릿 채우기"·"검증 �
 - 아래 비평 프롬프트를 **stdin 으로 파이프**해 `codex exec` 를 호출한다 —
   `codex exec -` 형태, Bash **background** 실행.
 - **watchdog 의무** — 위임 리뷰 호출이므로 글로벌
-  `~/.claude/rules-ondemand/delegated-review-watchdog.md` 를 Read 하고 따른다:
+  위임 호출에는 시간 가드를 건다 — 무진행 8분/hard cap 12분에 kill, verdict 는 advisory:
   진행 감시 + **무진행 8분+/hard cap 12분 kill**(임계는 룰이 SSOT — 조이면 정상
   추론 구간을 오판 kill 한다). kill 됐으면 fable 폴백으로 내려간다(정지 아님 —
   deep-plan 은 codex 없이도 완주한다).
@@ -301,7 +301,7 @@ filler 섹션·중복 요약·boilerplate 로 채우지 않는다(Claude 5 계�
 왕복 아님). 두 소비자가 같은 장부를 봐야 한다: 자율 에이전트=프롬프트,
 빌드 스킬 Phase 4=Acceptance.
 
-**Acceptance 항목이 곧 eval 항목이다** — 빌드 스킬(forge/renew/hunt)이 구현 후
+**Acceptance 항목이 곧 eval 항목이다** — 구현 후
 Phase 4 에서 하나씩 검증해 닫을 체크리스트. `[AUTO]`=결정론·회귀·보안·계약(자동
 테스트로 잠금), `[AGENT]`=agent 실구동으로 검증 가능(브라우저 조작·curl·CLI —
 빌드 스킬이 직접 닫음, 사람 몫 아님), `[HUMAN]`=순수 주관·실계정·외부 승인만
@@ -394,7 +394,7 @@ Step 8(다음 스킬 추천)까지 마친 뒤에만 끝난다. 진짜 정지 지
 
 산출물 제시 후, Linear 작업 트리(parent 1 + PLAN Step 당 sub-issue 1)로 등록할지
 **제안**한다. 메커니즘은 `cc/linear.md`(이때 읽는다) 그대로 — 단 **이슈 생성 자체는
-글로벌 룰(`linear-register-mandatory`)에 따라 `linear-register` 스킬을 경유**한다:
+글로벌 룰(`linear.md` §2)에 따라 `linear-register` 스킬을 경유**한다:
 ① MCP 감지 — 미설치면 가이드 한 번 + 스킵 제안(막지 않음) ② 만들 트리 미리보기 →
 동의받은 **뒤에만** 생성(외부 write 라 자동 등록 금지) ③ 생성 후 이슈 ID/URL 을
 PLAN `.md` 에 기록.
@@ -411,7 +411,7 @@ PLAN `.md` 에 기록.
 **마스킹 게이트 (첨부 전 필수).** Linear 는 외부 서비스이고 올린 내용은 캐시·인덱싱
 돼 삭제해도 남는다. 첨부 직전 산출물에 credential·PII·내부 URL·DB dump 가 박혔는지
 검사하고, 발견되면 **첨부를 보류**한 뒤 사유를 보고한다
-(`~/.claude/rules/acceptance-criteria-gate.md` G3 동형).
+(검증 통과 + 대상 브랜치 반영 뒤에 체크 — 글로벌 `CLAUDE.md` §검증 동형).
 
 판정: PLAN 이 2+ Step 이면 제안 가치 있음, 1 Step 사소 plan 이면 단일 이슈 또는
 생략. 등록 실패/스킵이 deep-plan 의 성공을 깎지 않는다 — 산출물 자체가 이미 완성됐다.
@@ -424,12 +424,12 @@ PLAN `.md` 에 기록.
 - **설치 스킬을 Bash 로 스캔하지 마라** — available-skills 목록이 이미 컨텍스트에
   있다. 그 목록에서 valid-next 후보를 재선정한다(글로벌·플러그인 포함, 예시 이름에
   anchor 금지). `deep-plan` 자신은 제외.
-- 빌드가 명백하면 Tier 1 단축(greenfield→`/forge`, 변경→`/renew`, 고장→`/hunt`),
+- 빌드가 명백하면 Tier 1 단축(플랜 없이 메인이 바로 구현),
   아니면 Tier 2 전체 후보(`linear-register` 분할 모드·`deep-research` 등)를 함께 본다.
 - 빌드로 제안하면 산출물을 **이미 완료된 Phase-1 결과물**로 취급해 다시 인터뷰하지
   말라고 프레이밍한다(이중 인터뷰 회피). Acceptance(=eval) 항목이 그 빌드가 Phase 4
   에서 닫을 체크리스트이고, UI 면 `.html` 목업이 승인된 visual 계약임을 함께 짚는다.
-  자율 실행(`linear-goal`)으로 제안하면 `-prompt.md` 를 그대로 goal 로
+  자율 실행으로 제안하면 `-prompt.md` 를 그대로 goal 로
   먹이면 된다고 짚는다 — 그게 그 파일의 존재 이유다.
 - **`AskUserQuestion` 으로 제안만** 한다.
 

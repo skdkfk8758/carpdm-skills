@@ -18,4 +18,4 @@ IMPORTANT: 디버깅 중 `.env*` 파일을 **말없이 수정하지 않는다**.
 ## Related
 
 - 프로젝트별 Out of Scope 정책(예: ADMap CLAUDE.md — `.env*` 수정 금지 영역) — 그 경우 본 룰 이전에 수정 자체가 금지.
-- `~/.claude/rules-ondemand/claim-retraction.md` — 침묵 은폐 금지의 소통 짝.
+- 글로벌 `CLAUDE.md` §진단 — 명시 철회·파급 보고(침묵 은폐 금지의 소통 짝).

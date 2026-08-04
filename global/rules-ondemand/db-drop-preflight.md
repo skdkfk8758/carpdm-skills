@@ -16,7 +16,9 @@ IMPORTANT: "이 DB/테이블은 죽었다/redundant 다" 라는 설명(사용자
 
 - **하나라도 live 신호 → 즉시 halt** + 발견 증거를 사용자에게 보고. "그래도 지워도 되는지" 를 되묻는 게 아니라, 전제("죽었다")가 깨졌음을 먼저 알린다.
 - 3증거 확보 후에도 실행 전 대상·영향·복구수단(덤프 여부)을 1회 요약 제시 (`guard-destructive-cmd` 경고와 별개의 내용 게이트).
-- 검증 쿼리는 `verification-safety.md` V2 준수 — LIKE 와일드카드 이스케이프, `=` 완전일치 우선.
+- **검증 쿼리의 와일드카드를 이스케이프한다.** `LIKE 'persona_%'` 의 `_` 는 any-char 와일드카드라
+  `personaXlayers` 도 매칭돼 오탐/누락을 만든다(실측). 리터럴 언더스코어는 `LIKE 'persona\_%' ESCAPE '\'`
+  또는 `=` 완전일치. 존재/부재 판정은 `information_schema` + `=` 완전일치가 기본.
 
 ## Anti-patterns
 
@@ -27,6 +29,5 @@ IMPORTANT: "이 DB/테이블은 죽었다/redundant 다" 라는 설명(사용자
 
 ## Related
 
-- `~/.claude/rules/verification-safety.md` — 검증 쿼리 무결성 (짝).
-- `~/.claude/rules/branch-worktree-strategy.md` §6b — 운영DB slow-lane (같은 비가역성 근거).
+- `~/.claude/rules-ondemand/branch-worktree-strategy.md` §6b — 운영DB slow-lane (같은 비가역성 근거).
 - `guard-destructive-cmd` 훅 — 명령 패턴 경고 (본 룰은 그 앞의 "대상이 정말 죽었나" 판정).

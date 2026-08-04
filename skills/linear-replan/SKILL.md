@@ -1,7 +1,7 @@
 ---
 name: linear-replan
 description: >-
-  착수 직전에 Linear 이슈 1건(또는 짧은 자유 요구사항 텍스트)을 codex 로 재플래닝해 착수 계획 문서 1개를 만든다 — codex exec 로 플랜 초안 + 결정 갈래 체크리스트를 받고, 그 체크리스트를 AskUserQuestion 인터뷰로 전항목 확정한 뒤, 이슈 모드면 승인 게이트 후 확정 플랜을 이슈 코멘트로 첨부한다(이슈 본문·상태는 건드리지 않음). "이 티켓 어떻게 할지 먼저 정해줘", "ADT-435 착수 계획 짜줘", "구현 전에 갈래 정리해줘", "replan", "이거 시작하기 전에 결정할 것들 물어봐줘" 같은 표현에 사용. 계획이 확정되면 실행은 linear-goal 로 넘긴다. 이슈가 아직 없는 대형·고위험 설계나 전면 개편의 플랜·시안 산출은 deep-plan, 신규 이슈 등록은 linear-register, 백로그 보강은 linear-groom.
+  착수 직전에 Linear 이슈 1건(또는 짧은 자유 요구사항 텍스트)을 codex 로 재플래닝해 착수 계획 문서 1개를 만든다 — codex exec 로 플랜 초안 + 결정 갈래 체크리스트를 받고, 그 체크리스트를 AskUserQuestion 인터뷰로 전항목 확정한 뒤, 이슈 모드면 승인 게이트 후 확정 플랜을 이슈 코멘트로 첨부한다(이슈 본문·상태는 건드리지 않음). "이 티켓 어떻게 할지 먼저 정해줘", "ADT-435 착수 계획 짜줘", "구현 전에 갈래 정리해줘", "replan", "이거 시작하기 전에 결정할 것들 물어봐줘" 같은 표현에 사용. 계획이 확정되면 메인이 그 계획대로 직접 구현한다. 이슈가 아직 없는 대형·고위험 설계나 전면 개편의 플랜·시안 산출은 deep-plan, 신규 이슈 등록은 linear-register, 백로그 보강은 linear-groom.
 ---
 
 # linear-replan — 착수 직전 재플래닝: codex 초안 → 갈래 인터뷰 → 착수 계획 1장
@@ -16,16 +16,16 @@ Linear 이슈 본문은 **의도적으로 얇다**(헤딩 화이트리스트 + �
 핵심은 **결정을 사람에게서 뽑는 것**이다. 플랜을 예쁘게 쓰는 게 목적이 아니라, 자율 실행이
 표류하는 원인(미확정 갈래가 본문에 남아 있는 것)을 착수 전에 0으로 만드는 게 목적이다.
 
-> 자매 관계: 확정된 계획의 실행 = `linear-goal` · 이슈 없는 대형 설계·시안 = `deep-plan` ·
+> 자매 관계: 확정된 계획의 실행 = 메인 직접 구현 · 이슈 없는 대형 설계·시안 = `deep-plan` ·
 > 신규 이슈 등록 = `linear-register` · 기존 백로그 보강 = `linear-groom`.
 
 ## 안전 불변식 — 먼저 읽을 것
 
 - **이슈 본문·상태를 수정하지 않는다.** 이 스킬이 Linear 에 쓰는 것은 **코멘트 1건**뿐이고,
   그것도 Step 5 승인 게이트 뒤에만. 본문 재작성·상태 전이(In Progress 등)·라벨 변경은 이
-  스킬의 일이 아니다(전이는 `linear-goal`/빌드 파이프라인 몫).
+  스킬의 일이 아니다(전이는 구현 턴에서 한다).
 - **코드를 한 줄도 바꾸지 않는다.** 산출은 계획 문서 1개(+선택 코멘트 1건). 구현은
-  `linear-goal`·`forge`/`hunt`/`renew` 가 한다.
+  구현 턴이 한다.
 - **codex 없이 진행하지 않는다.** codex 경유의 교차모델 초안이 이 스킬의 존재 이유다 —
   프리플라이트 실패면 Claude 단독으로 몰래 대체하지 말고 정지하고 라우팅한다(Step 0).
 - **체크리스트를 미확정인 채 문서로 내보내지 않는다.** 전항목 확정이거나, 사용자가 명시로
@@ -93,7 +93,7 @@ Do not edit, create, or delete any files. Answer in text only.
 **macOS 에는 `timeout` 이 기본 설치돼 있지 않다**(coreutils 필요 — 실측 2026-08-03:
 `exit=127 command not found: timeout` 으로 watchdog 이 통째로 무산). 쓰려면 존재를
 먼저 확인하고, 없으면 background + 감시만으로 진행한다. 규약 SSOT 는 글로벌
-`~/.claude/rules-ondemand/delegated-review-watchdog.md` — 읽고 그대로 따른다. kill 되면
+위임 호출은 background + 진행감시, 무진행 8분/hard cap 12분 kill, verdict=advisory. kill 되면
 1회만 재시도하고, 그래도 무진행이면 그 사실을 보고하고 정지한다(Claude 단독 대체 금지 —
 불변식).
 
@@ -159,17 +159,17 @@ L1 `result:` 한 줄 + L2 산출물 열기 행(계획 문서 경로, 이슈 모�
 
 L3 후보:
 
-- **이슈 모드** → `linear-goal`(확정된 계획으로 자율 실행). 이 스킬의 산출이 그쪽의 갭을
+- **이슈 모드** → 확정된 계획으로 **바로 구현**한다. 이 스킬의 산출이 그 갭을
   메꾼 상태이므로 재플래닝을 다시 돌리지 말라고 짚는다.
 - **텍스트 모드** → `linear-register`(계획을 이슈로 등록) 또는 바로 빌드 스킬
-  (`forge`/`hunt`/`renew`).
+  (메인 직접 구현).
 
 ## 경계
 
-- **vs `linear-goal`** — 그쪽은 **실행**이다(Goal Prompt 조립 → worker → PR). 이 스킬은 그
+- **vs 바로 구현** — 구현은 별도로 한다. 이 스킬은 그
   앞단에서 이슈를 **goal-ready 로 끌어올린다**. 이슈가 이미 goal-ready
-  (`skills/linear-goal/references/routing.md` §goal-ready — 실측 증거 + 측정 가능한 AC +
-  범위 밖 + 해석 단일)면 재플래닝은 중복이다. 그땐 재플래닝하지 말고 `linear-goal` 직행을
+  (실측 증거 + 측정 가능한 AC +
+  범위 밖 + 해석 단일)면 재플래닝은 중복이다. 그땐 재플래닝하지 말고 바로 구현을
   제안하고 멈춘다.
 - **vs `deep-plan`** — 그쪽은 debate + PLAN + 프롬프트 + 시안까지 내는 무거운 설계 경로다.
   이슈가 **oversized-class**(estimate ≥ 5 · cross-cutting · 전면 개편·마이그레이션 · 비가역
@@ -211,6 +211,5 @@ L3 후보:
 
 - `~/.claude/skills/craft-core/references/linear.md` — Linear MCP 감지·graceful 규약(Step 1).
 - `~/.claude/skills/craft-core/references/output-contract.md` — 종료 출력 3레이어.
-- `~/.claude/skills/linear-goal/references/routing.md` — §goal-ready(재플래닝 금지 신호) +
+- 재플래닝 금지 신호(goal-ready): 실측 증거 + 측정 가능한 AC + 범위 밖 명시 + 해석 단일 —
   §Step 1 rubric(oversized 판정). 경계 판단 시 읽는다.
-- `~/.claude/rules-ondemand/delegated-review-watchdog.md` — codex 위임 호출 watchdog(Step 2).

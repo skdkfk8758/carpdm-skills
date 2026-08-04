@@ -1,6 +1,6 @@
 ---
 name: preflight
-description: 배포 직전 앱 전체를 10차원(유지보수성·중복/복잡성·성능·UX/UI·예외/로딩·보안·모바일/반응형·확장 구조·치명 이슈·기술부채)으로 전문가 수준 최종 점검하고, 고정 포맷 리포트(반드시 수정/수정하면 좋음/유지 가능/리팩토링 추천/기술부채) + 배포 판정(GO/조건부 GO/NO-GO)을 낸다. "배포 전에 검토해줘", "최종 점검해줘", "출시 전에 전체 봐줘", "프로덕션 가기 전에 리뷰", "런칭 전 점검", "production-ready 한지", "기술부채도 점검해줘", "/preflight", 그리고 "전문가 수준 최종 점검" 류 긴 체크리스트 프롬프트에 사용. 현재 diff 버그만은 code-review, 보안만 깊게는 fortify/security-review, 리팩터 기회 발굴은 improve-codebase-architecture, PR 머지·정리는 land, 코드 수정은 forge/hunt/renew — preflight 은 검토·판정·제안만 한다.
+description: 배포 직전 앱 전체를 10차원(유지보수성·중복/복잡성·성능·UX/UI·예외/로딩·보안·모바일/반응형·확장 구조·치명 이슈·기술부채)으로 전문가 수준 최종 점검하고, 고정 포맷 리포트(반드시 수정/수정하면 좋음/유지 가능/리팩토링 추천/기술부채) + 배포 판정(GO/조건부 GO/NO-GO)을 낸다. "배포 전에 검토해줘", "최종 점검해줘", "출시 전에 전체 봐줘", "프로덕션 가기 전에 리뷰", "런칭 전 점검", "production-ready 한지", "기술부채도 점검해줘", "/preflight", 그리고 "전문가 수준 최종 점검" 류 긴 체크리스트 프롬프트에 사용. 현재 diff 버그만은 code-review, 보안만 깊게는 fortify/security-review, 리팩터 기회 발굴은 improve-codebase-architecture, PR 머지·정리는 land, 코드 수정은 메인 직접 구현 — preflight 은 검토·판정·제안만 한다.
 ---
 
 # Preflight — 배포 직전 최종 검토 & 배포 판정
@@ -11,7 +11,7 @@ description: 배포 직전 앱 전체를 10차원(유지보수성·중복/복잡
 UX·예외처리·보안·반응형·확장성·치명 이슈·기술부채의 10차원을 전문가 눈으로 본다.
 
 **당신은 검토하고 판정하지, 코드를 고치지 않는다.** 발견은 증거(파일:줄)와 함께
-보고하고, 고칠 것은 수정 스킬(forge/renew/hunt/simplify)로 *제안*만 한다. 실제
+보고하고, 고칠 것은 *제안*만 한다(수정은 별도 턴). 실제
 수정은 그 스킬들의 일이다.
 
 위험은 두 가지다: (1) "동작하니 배포 OK" 로 끝내 치명 이슈·부채를 놓치는 것,
@@ -30,7 +30,7 @@ UX·예외처리·보안·반응형·확장성·치명 이슈·기술부채의 1
 - **vs `improve-codebase-architecture`** — 그건 리팩터/deepening *기회 발굴*(CONTEXT.md
   /ADR 기반). preflight 은 *배포 가능 여부 판정*. 리팩터 추천은 preflight 의 한
   섹션일 뿐 목적이 아니다.
-- **vs `forge`/`renew`/`hunt`** — 그들은 **빌드/수정한다**. preflight 은 코드를 한
+- **vs 직접 수정** — 수정은 별도 턴에서 메인이 한다. preflight 은 코드를 한
   줄도 안 고친다 — 검토·판정·제안.
 - **vs `land`** — land 는 *이미 OK 인* PR 을 머지·정리. preflight 은 그 전, 배포해도
   되는지의 품질 게이트.
@@ -166,7 +166,7 @@ objective-reasoning: 동의/지적 모두 이유 1개 이상, 신뢰도(high/med
    읽어 emit — `result:` 한 줄(L1) + 리포트 열기 블록(L2). 형식은 그 SSOT 를 따른다.
 3. **수정 라우팅(L3 — 제안만, 자동 시작 금지).** "반드시 수정" 또는 시급 should 가
    있으면 `AskUserQuestion` 으로 수정 경로를 한 번 제안한다 — 발견 성격에 매핑:
-   고장·치명 버그 → `/hunt`, 기존 동작 변경 → `/renew`, 새 보강 기능 → `/forge`,
+   고장·치명 버그·동작 변경·보강 기능은 모두 **별도 턴에서 메인이 구현**한다,
    순수 정리/단순화 → `/simplify`. 규칙(설치 스킬 Bash 스캔 금지 — available-skills
    컨텍스트에서 읽기, 절대 자동 시작 안 함)은 next-skill-routing 의 메커니즘 원칙과
    같다(단, preflight 의 라우팅은 산출물 전진이 아니라 *발견→수정* 매핑이다). 매칭
@@ -201,7 +201,7 @@ objective-reasoning: 동의/지적 모두 이유 1개 이상, 신뢰도(high/med
 
 ## Anti-patterns
 
-- **코드를 고치기** — preflight 은 검토·판정·제안만. 수정은 forge/renew/hunt/simplify.
+- **코드를 고치기** — preflight 은 검토·판정·제안만. 수정은 별도 턴.
 - **증거 없이 vibe 판정** — 모든 발견은 `path:line`. 추측 단언 금지(karpathy 1).
 - **code-review/security-review 를 재구현** — 있으면 호출해 합성(DRY). 차원별로 전문
   리뷰어가 있으면 그걸 쓴다.

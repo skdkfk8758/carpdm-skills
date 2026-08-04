@@ -1,6 +1,6 @@
 # Browser Verify Fallback — 브라우저 검증 2회 실패 시 ground-truth 전환
 
-IMPORTANT: 브라우저 자동화(Claude-in-Chrome bridge·Playwright)는 검증 **수단**이지 검증 **자체**가 아니다. 실측: Chrome extension bridge 가 5회 재시도 내내 실패해 수동 DevTools 측정으로 넘어가기까지 시간을 통째로 태웠다. `delegated-review-watchdog.md` 와 동형 규칙 — 도구가 막히면 빨리 포기하고 대체 경로로 검증을 완수한다.
+IMPORTANT: 브라우저 자동화(Claude-in-Chrome bridge·Playwright)는 검증 **수단**이지 검증 **자체**가 아니다. 실측: Chrome extension bridge 가 5회 재시도 내내 실패해 수동 DevTools 측정으로 넘어가기까지 시간을 통째로 태웠다. **도구가 막히면 빨리 포기하고 대체 경로로 검증을 완수한다** — 재시도는 검증이 아니다.
 
 ## 규칙
 
@@ -20,5 +20,4 @@ IMPORTANT: 브라우저 자동화(Claude-in-Chrome bridge·Playwright)는 검증
 
 ## Related
 
-- `~/.claude/rules-ondemand/delegated-review-watchdog.md` — 동형 규칙 (위임 리뷰 10분 캡).
 - Playwright MCP · `playwright-cli` 스킬 — 1차 fallback 경로.

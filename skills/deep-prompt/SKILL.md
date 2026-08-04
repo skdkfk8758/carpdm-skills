@@ -1,6 +1,6 @@
 ---
 name: deep-prompt
-description: 자율/백그라운드 실행용 Goal Prompt 를 고정 템플릿(Objective/Success Criteria/Context/Constraints/Verification/Out of Scope/Done & Report)으로 저작해 .md 로 저장한다. 핵심은 에이전트가 사람 없이 스스로 완료를 판정하고 루프를 끝낼 수 있는 측정 가능한 성공 기준. 사용자가 백그라운드/자율 실행에 넣을 goal 프롬프트를 원할 때 사용 — "goal 프롬프트 만들어줘", "백그라운드로 돌릴 목표 정리해줘", "자율 실행용 goal 써줘", "background job 목표문 작성", "/deep-prompt" 같은 표현. 모호한 대형 아이디어 결정화는 deep-interview, 실제 빌드/수정/디버그는 forge/renew/hunt.
+description: 자율/백그라운드 실행용 Goal Prompt 를 고정 템플릿(Objective/Success Criteria/Context/Constraints/Verification/Out of Scope/Done & Report)으로 저작해 .md 로 저장한다. 핵심은 에이전트가 사람 없이 스스로 완료를 판정하고 루프를 끝낼 수 있는 측정 가능한 성공 기준. 사용자가 백그라운드/자율 실행에 넣을 goal 프롬프트를 원할 때 사용 — "goal 프롬프트 만들어줘", "백그라운드로 돌릴 목표 정리해줘", "자율 실행용 goal 써줘", "background job 목표문 작성", "/deep-prompt" 같은 표현. 모호한 대형 아이디어 결정화는 deep-interview, 실제 빌드/수정/디버그는 메인이 직접.
 ---
 
 # deep-prompt — 자율 실행용 Goal Prompt 저작
@@ -29,7 +29,7 @@ goal 칸에 넣으면 자율 에이전트는 *언제 끝났는지 모른 채* �
 - 아이디어가 **정말로 모호하고 커서** 무엇을 만들지 자체가 안 정해졌을 때 →
   `deep-interview` 로 먼저 결정화. deep-prompt 는 *짧은* 명료화만 한다, 풀
   Socratic 인터뷰가 아니다.
-- 지금 당장 **기능을 빌드/수정/디버그**할 때 → `forge`/`renew`/`hunt`. 이
+- 지금 당장 **기능을 빌드/수정/디버그**할 때 → 메인이 직접 구현한다(plan mode → 구현 → `/code-review`·`/security-review`). 이
   스킬은 작업을 *수행*하지 않는다; 자율 에이전트에게 줄 *지시문*을 쓴다.
 
 ## 왜 이 형태인가 — 자율성의 조건

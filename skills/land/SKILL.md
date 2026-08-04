@@ -1,6 +1,6 @@
 ---
 name: land
-description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치 삭제 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 잔여 작업 판정(git·Linear·handoff — 모두 완료면 완료 선언 + wt-sweep 안내). 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 워크트리·세션 기록 정리는 wt-sweep(land 는 워크트리를 건드리지 않는다), 아직 구현 중이면 forge/hunt/renew, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
+description: Land the open PRs you pushed from worktrees and bring local back in sync — PR 없는 브랜치는 push+PR 생성부터, CI 통과 후 squash 머지 → 기본 브랜치 pull → 머지된 브랜치 삭제 → 살아남은 브랜치 rebase. 독립/stacked PR 자동 감지·순서 머지, 리포트에 Linear Done 전이 + 잔여 작업 판정(git·Linear·handoff — 모두 완료면 완료 선언 + wt-sweep 안내). 유저가 PR 을 머지하고 로컬을 정리하려 하거나 구현을 막 끝내고 마무리를 신호할 때 — 'land'·'머지' 란 말이 없어도 — 적극 발동: "올린 PR들 머지하고 로컬 최신화해줘", "다 됐어", "작업 끝났어", "마무리하자", "ship it", "wrap up", "land my PRs and sync local". 비가역 동작은 내부 승인 게이트(Step 3 Confirm)가 막으므로 트리거 = 읽기전용 발견+플랜 제시+승인 대기 — 발동 자체는 안전하다. 워크트리·세션 기록 정리는 wt-sweep(land 는 워크트리를 건드리지 않는다), 아직 구현 중이면 구현을 먼저 끝내고, 미완 작업 재개는 handoff, carpdm-skills 스킬 배포는 ship(sync.sh 미러 선행 필요).
 ---
 
 # Land — push 한 PR 을 머지하고 로컬을 안전하게 재동기화
@@ -36,7 +36,7 @@ PR·머지·브랜치·rebase 명령이 없어 판정 SSOT 는 언제나 `gh`/`g
 | **하지 않음 (wt-sweep 의 일)** | `git worktree remove`, Claude Code 세션 기록 삭제 — 잔여 워크트리는 Report 에 목록만 남기고 wt-sweep 안내 |
 | **자유롭게 실행** | `gh pr list`, `git worktree list`, `git fetch`, `git rev-list --count`, `git ls-remote --heads`, `git merge-base --is-ancestor`, CI 상태 읽기, `git checkout <default>` + `git pull` (fast-forward), Orca 읽기(`orca status`/`worktree ps`)와 Orca 메타 write(`worktree set --comment`/`--workspace-status` — git 무영향, 실패해도 무시) |
 
-> 공유 브랜치 force-push 금지·squash-only·trunk 직접 push 금지의 SSOT = `~/.claude/rules/branch-worktree-strategy.md` §3. 프로젝트별 override 판단 시 그 규칙을 따른다.
+> 공유 브랜치 force-push 금지·squash-only·trunk 직접 push 금지의 SSOT = `~/.claude/rules-ondemand/branch-worktree-strategy.md` §3. 프로젝트별 override 판단 시 그 규칙을 따른다.
 
 브랜치는 **그 PR 이 머지되었을 때만**(또는 PR 이 없고 유저가 확인했을 때만)
 삭제해도 안전하다. "머지된 것 같다"는 충분하지 않다 — 브랜치 이름이 아니라
@@ -214,7 +214,7 @@ Proceed?
 **폴링 간격·시간 캡 (CI hang 이 land 전체를 인질로 잡지 않게).** 폴링 간격은 CI 평균
 소요에 맞추고(무의미한 초단위 폴링 금지 — 30s~1m 권장), **PR 당 15분 상한**을 둔다.
 초과하면 그 PR 을 '미완'(CI 지연/hang)으로 보고(Report 의 `## Skipped`/`## ⚠ 미완`)하고
-다음 안전한 PR 로 진행한다 — 무한 대기 금지(`delegated-review-watchdog.md` 와 동형).
+다음 안전한 PR 로 진행한다 — 무한 대기 금지.
 **PR당 상한과 별개로 이 단계 전체에 총 45분 상한을 둔다.** per-item 상한만으로는 PR 5건일 때
 최악 75분을 막지 못하고, 백그라운드 잡이 그동안 살아 점유한다. 총 45분을 넘기면 **대기를
 중단하되 실행을 중단하지는 않는다** — 아직 머지 안 된 PR 들을 `## ⚠ 미완`(대기 상한 초과)으로
@@ -245,7 +245,7 @@ Proceed?
    의 전이 맵대로 **Done 으로 옮긴다**. 이게 빌드(In Progress→In Review)에서 시작한
    라이프사이클의 마지막 칸이다. Linear MCP 미설치이거나 연결 이슈를 못 찾으면 **묻지
    말고 생략**한다 — Linear 전이는 머지/정리를 막지 않는다(저위험 부가 단계).
-   - **Done 전 수용 기준 체크박스 스캔 (acceptance-criteria-gate G2 정합).** 전이 직전
+   - **Done 전 수용 기준 체크박스 스캔 (글로벌 `CLAUDE.md` §검증 — 미충족이면 Done 중지).** 전이 직전
      이슈 본문의 체크박스(`- [ ]`/`- [x]`)를 확인한다 — 미체크 항목이 있으면 Done 대신
      그 이슈를 **In Review 로 두고**, Report 에 `⚠ AC 미체크 n건 (ISSUE-ID)` 로 표기한다
      (실측 SUR-26: 미체크 AC 가 Done+머지로 위장 통과). 침묵 전이는 제거하되 graceful
@@ -275,7 +275,7 @@ land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정�
 
 - 워크트리·세션 기록을 치우려 할 때 → `wt-sweep`. land 는 워크트리를 건드리지
   않는다 — 머지 후 잔여 워크트리는 Report 에 목록만 남긴다.
-- 유저가 변경을 *작성*하려는 것이지 머지하려는 게 아닐 때 → `forge` / `hunt` / `renew`.
+- 유저가 변경을 *작성*하려는 것이지 머지하려는 게 아닐 때 → 메인이 직접 구현.
 - 유저가 미완 작업을 재개하거나 어디까지 했는지 떠올리려 할 때 → `handoff`.
 - 유저가 git 브랜치가 아니라 오래된 문서/로그를 치우려 할 때 → `sweep`.
 - 배포할 게 이 레포(carpdm-skills)의 스킬 변경일 때 → `ship`. live↔repo `sync.sh`

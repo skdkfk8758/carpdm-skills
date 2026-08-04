@@ -1,6 +1,6 @@
 ---
 name: mockup
-description: 프로젝트의 DESIGN.md·디자인 토큰·기존 화면 어휘를 추출해 실제 구현 수준에 충실한 self-contained HTML 시안(목업)을 만들고, 토큰 부분집합 기계 검증 + 실화면 대조까지 마친 뒤 Artifact 로 publish 한다. 사용자가 기존 프로젝트의 화면·페이지·컴포넌트·대시보드 시안/목업을 원할 때마다 사용한다 — "이 화면 시안 만들어줘", "목업 떠줘", "UI 미리보기 만들어줘", "이렇게 생길지 그려줘", "mockup this screen" 같은 표현이면 'mockup'·'스킬'이란 말이 없어도 트리거. deep-plan·craft-core pipeline·deep-prompt 가 UI 시안을 만들 때도 이 스킬의 references/design-context.md 가 충실도 SSOT 다. 구분: 외부 사이트에서 추출한 디자인 시스템의 재현은 imprint, 기존 어휘가 전혀 없는 신규 프로덕트의 자유 창작은 frontend-design(본 스킬이 토큰 계약을 주입해 위임 제안), 여러 안 비교는 prototype, DB 스키마 도식은 erd. 실제 프로덕션 UI 구현(forge/renew)에는 쓰지 말 것 — 시안은 정적 예고이지 제품이 아니다.
+description: 프로젝트의 DESIGN.md·디자인 토큰·기존 화면 어휘를 추출해 실제 구현 수준에 충실한 self-contained HTML 시안(목업)을 만들고, 토큰 부분집합 기계 검증 + 실화면 대조까지 마친 뒤 Artifact 로 publish 한다. 사용자가 기존 프로젝트의 화면·페이지·컴포넌트·대시보드 시안/목업을 원할 때마다 사용한다 — "이 화면 시안 만들어줘", "목업 떠줘", "UI 미리보기 만들어줘", "이렇게 생길지 그려줘", "mockup this screen" 같은 표현이면 'mockup'·'스킬'이란 말이 없어도 트리거. deep-plan·craft-core pipeline·deep-prompt 가 UI 시안을 만들 때도 이 스킬의 references/design-context.md 가 충실도 SSOT 다. 구분: 외부 사이트에서 추출한 디자인 시스템의 재현은 imprint, 기존 어휘가 전혀 없는 신규 프로덕트의 자유 창작은 frontend-design(본 스킬이 토큰 계약을 주입해 위임 제안), 여러 안 비교는 prototype, DB 스키마 도식은 erd. 실제 프로덕션 UI 구현(메인 직접 구현)에는 쓰지 말 것 — 시안은 정적 예고이지 제품이 아니다.
 ---
 
 # Mockup — 실구현에 충실한 HTML 시안

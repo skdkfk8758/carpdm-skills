@@ -1,6 +1,6 @@
 ---
 name: imprint
-description: design-extractor.com 이 추출해 내려준 DESIGN.md(혹은 동등한 추출 디자인 시스템) 파일을 입력으로 받아, 그 디자인 시스템에 충실하게(conformance) React+Tailwind 테마·예시 컴포넌트·독립 HTML 시안을 생성한다. 핵심은 "멋진 미감 발명"이 아니라 "주어진 token(색/타이포/스페이싱)을 한 톨도 벗어나지 않는 충실 재현" — 생성물의 모든 값이 DESIGN.md token 또는 거기서 파생해 기록한 token 으로 역추적되며, 하드코딩된 raw hex/px 는 0이어야 한다. 사용자가 DESIGN.md·추출된 디자인 시스템·design-extractor 산출물을 손에 들고 그 브랜드/디자인 그대로 UI 컴포넌트나 테마를 만들고 싶어 할 때 사용 — "이 DESIGN.md 로 컴포넌트 만들어줘", "design-extractor 에서 뽑은 Stripe 디자인대로 React 컴포넌트", "추출한 디자인 시스템을 Tailwind 테마로", "이 토큰에 맞춰 버튼/카드 생성", "DESIGN.md 충실하게 재현", "/imprint" 같은 표현. design-extractor 가 무엇인지 모르거나 추출 파일이 없으면 gallery(https://www.design-extractor.com/gallery) 로 안내한다. 자유롭게 새 미감을 발명하는 일반 UI 빌드(use frontend-design), 기능 구현(use forge), 버그 수정(use hunt) 에는 트리거하지 말 것 — imprint 는 *주어진* 디자인 시스템을 준수할 뿐 새 디자인을 창작하지 않는다.
+description: design-extractor.com 이 추출해 내려준 DESIGN.md(혹은 동등한 추출 디자인 시스템) 파일을 입력으로 받아, 그 디자인 시스템에 충실하게(conformance) React+Tailwind 테마·예시 컴포넌트·독립 HTML 시안을 생성한다. 핵심은 "멋진 미감 발명"이 아니라 "주어진 token(색/타이포/스페이싱)을 한 톨도 벗어나지 않는 충실 재현" — 생성물의 모든 값이 DESIGN.md token 또는 거기서 파생해 기록한 token 으로 역추적되며, 하드코딩된 raw hex/px 는 0이어야 한다. 사용자가 DESIGN.md·추출된 디자인 시스템·design-extractor 산출물을 손에 들고 그 브랜드/디자인 그대로 UI 컴포넌트나 테마를 만들고 싶어 할 때 사용 — "이 DESIGN.md 로 컴포넌트 만들어줘", "design-extractor 에서 뽑은 Stripe 디자인대로 React 컴포넌트", "추출한 디자인 시스템을 Tailwind 테마로", "이 토큰에 맞춰 버튼/카드 생성", "DESIGN.md 충실하게 재현", "/imprint" 같은 표현. design-extractor 가 무엇인지 모르거나 추출 파일이 없으면 gallery(https://www.design-extractor.com/gallery) 로 안내한다. 자유롭게 새 미감을 발명하는 일반 UI 빌드(use frontend-design)나 일반 기능 구현·버그 수정에는 트리거하지 말 것 — imprint 는 *주어진* 디자인 시스템을 준수할 뿐 새 디자인을 창작하지 않는다.
 ---
 
 # Imprint — 추출된 디자인 시스템을 한 톨도 벗어나지 않고 새기다
@@ -115,7 +115,7 @@ result: <brand> DESIGN.md 재현 — 컴포넌트 N개 + theme + 시안, raw hex
   값을 도입하면 conformance 위반이다. "더 예쁘게" 하려고 원본 token 을 바꾸지 말 것.
 - **추출하지 않는다.** URL/스크린샷에서 token 을 뽑는 건 imprint 의 일이 아니다 —
   그건 design-extractor 가 (사람 손으로) 한다.
-- **빌드 파이프라인이 아니다.** craft-core(forge/hunt/renew/reshape) 와 무관한
+- **빌드 파이프라인이 아니다.** craft-core 공유 엔진과 무관한
   단독 스킬이다. 테스트 스위트를 세우지 않으며, 검증은 위 grep 기반 traceability 다.
 
-자유 창작 UI 가 필요하면 `frontend-design` 으로, 기능 구현은 `forge` 로 보내라.
+자유 창작 UI 가 필요하면 `frontend-design` 으로, 기능 구현은 메인이 직접 한다.

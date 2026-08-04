@@ -155,7 +155,7 @@ secret 값을 절대 지어내지 마라 — 사용자가 제공하게 하거나
 
 ## 브랜치 전략 정렬
 
-이 파이프라인은 `~/.claude/rules/branch-worktree-strategy.md` 의 trunk-based 전략을 가정한다:
+이 파이프라인은 `~/.claude/rules-ondemand/branch-worktree-strategy.md` 의 trunk-based 전략을 가정한다:
 `develop` 가 통합 trunk(dev 배포), `main`/태그가 release 라인(prod 배포). 프로젝트가 다른
 브랜치 이름을 쓰면 deploy-dev.yml / release.yml 의 `on:` 트리거와 OIDC trust policy ref 를
 맞춰 조정한다 — 그리고 불일치를 사용자에게 알린다.

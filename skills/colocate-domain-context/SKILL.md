@@ -14,7 +14,7 @@ description: >-
   노후화 막는 게이트", "폴더별 CLAUDE.md", "모듈 함정 문서 자동로드", "co-update
   게이트 만들어줘". Adapts to each project's structure and verification host
   (verify.sh / husky / pre-commit / CI / Makefile / none). Do NOT use for writing the
-  root CLAUDE.md from scratch (use init), for general refactors (use renew), or for
+  root CLAUDE.md from scratch (use init), for general refactors, or for
   auto-GENERATING docs from code — this skill sets up human-maintained, gate-flagged
   colocated context, not a code-to-doc generator.
 ---

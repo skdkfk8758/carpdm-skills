@@ -35,7 +35,7 @@ IMPORTANT: 사용자의 **JS/TS 프로젝트 ORM 표준은 Drizzle(`drizzle-orm`
 
 ## Related
 
-- `~/.claude/rules/branch-worktree-strategy.md` §6a/6b — 타임스탬프 마이그 prefix·운영DB slow-lane(본 룰의 마이그 정책 SSOT).
-- `~/.claude/rules-ondemand/cicd-pipeline.md` — 동질 스택 반복 적용 철학의 짝(배포 표준).
+- `~/.claude/rules-ondemand/branch-worktree-strategy.md` §6a/6b — 타임스탬프 마이그 prefix·운영DB slow-lane(본 룰의 마이그 정책 SSOT).
+- `cicd-scaffold` 스킬 — 동질 스택 반복 적용의 짝(배포 워크플로 생성).
 - `~/.claude/rules-ondemand/knowledge-folders.md` — 본 룰을 프로젝트 `AGENTS.md`/`rules/` 에 미러링하는 규약.
 - 전환 인스턴스(Drizzle 실적용): `Intelligence-Auth` (PR #22, harness-run) — introspect-first + 실DB 통합 oracle 실례. `src/lib/db.ts`(drizzle factory) + `src/lib/db/schema.ts`(pull 생성, 14 테이블).
