@@ -231,4 +231,4 @@ codex mcp get linear            # enabled: true
 - 루트 메타(README·scripts·sync.sh 자체)는 ship 범위 밖 — 수동 커밋 후 `land`.
 - 환경(MCP·플러그인)을 바꿨으면 `global/setup/replicate.sh` 목록도 같이 갱신 — 안 하면 다음 팀원 온보딩에서 빠진다.
 
-> 상세 아키텍처·설계 결정은 [`rules/project.md`](../../rules/project.md), 글로벌 덤프 구조는 [`global/README.md`](../../global/README.md).
+> 상세 아키텍처·설계 결정은 [`CLAUDE.md`](../../CLAUDE.md), 글로벌 덤프 구조는 [`global/README.md`](../../global/README.md).
