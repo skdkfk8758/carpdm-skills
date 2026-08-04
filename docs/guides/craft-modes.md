@@ -90,4 +90,4 @@ Phase 1에서 뭘 묻나 + Phase 3 TDD 시작점뿐. 엔진 SSOT:
 ## Related
 - `craft-core/references/pipeline.md` — 엔진 + Execution mode 분기 (SSOT)
 - `craft-core/references/orchestrated.md` — orchestrated 토폴로지 (SSOT)
-- `rules/project.md` §5 — 모드 아키텍처 노트
+- `CLAUDE.md` §5 — 모드 아키텍처 노트
