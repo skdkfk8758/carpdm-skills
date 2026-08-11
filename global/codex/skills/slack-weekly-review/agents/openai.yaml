@@ -1,0 +1,9 @@
+interface:
+  display_name: "Slack 주간 결산"
+  short_description: "Slack 근거로 주간 성과와 다음 주 계획을 작성합니다"
+  default_prompt: "Use $slack-weekly-review to draft my Slack-ready weekly review and interview me about next week."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "slack"
+      description: "Read Draftype Slack channel history and thread replies"

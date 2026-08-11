@@ -1,0 +1,23 @@
+[
+  {"query": "REV-23 이랑 REV-2 워크트리 따로 파서 동시에 돌려줘. repo 는 review-radar", "should_trigger": true},
+  {"query": "ADT-441 착수한다. 브랜치 만들고 구현까지 가줘", "should_trigger": true},
+  {"query": "이번 사이클에서 SSO-12, SSO-14, SSO-15 세 개 잡아서 병렬로 처리해줘. 각각 PR까지 올려주면 됨", "should_trigger": true},
+  {"query": "adt-499 티켓 잡고 구현 들어가자. 시작 전에 애매한 거 있으면 다 물어보고", "should_trigger": true},
+  {"query": "work on AUT-31 and AUT-33 in parallel worktrees, push PRs when each is done", "should_trigger": true},
+  {"query": "리니어 SMF-8 작업 시작해줘. 워크트리 하나 파서 거기서 하면 됨 (smart_flow_V2)", "should_trigger": true},
+  {"query": "백로그에 잡아둔 ADM-4, ADM-5, ADM-6 오늘 다 끝내야 됨. 동시에 돌릴 수 있지?", "should_trigger": true},
+  {"query": "이 티켓들 실제로 코딩까지 해줘 ADT-120, ADT-121. 결정할 거 있으면 먼저 다 물어보고 시작해", "should_trigger": true},
+  {"query": "ADT-435 인프로그레스로 바꾸고 브랜치 파서 작업 들어가줘", "should_trigger": true},
+  {"query": "REV-14 랑 REV-15 두 건 지금 바로 시작. 메인 체크아웃 건드리지 말고 각자 트리에서", "should_trigger": true},
+
+  {"query": "ADT-435 착수 계획만 짜줘. 구현은 내가 직접 할 거야", "should_trigger": false},
+  {"query": "남은 이슈들 우선순위 좀 매겨줘. 뭐부터 해야 될지 감이 안 와", "should_trigger": false},
+  {"query": "올린 PR들 CI 통과했으면 머지하고 로컬 develop 최신화해줘", "should_trigger": false},
+  {"query": "이거 리니어 이슈로 등록해줘 — 대시보드에서 CSV 내보내기 버튼이 아예 없음", "should_trigger": false},
+  {"query": "워크트리 쌓인 거 좀 치워줘. 이미 머지된 것들 브랜치까지", "should_trigger": false},
+  {"query": "백로그에 프로젝트 안 붙은 고아 이슈들 프로젝트별로 묶어줘", "should_trigger": false},
+  {"query": "REV-23 이슈 내용 좀 보여줘. 수용 기준에 뭐라고 적혀 있어?", "should_trigger": false},
+  {"query": "git worktree 하나 파서 리팩터링 실험 좀 해보려고. 이슈랑은 무관함", "should_trigger": false},
+  {"query": "ADT-441 에서 말한 그 버그 왜 나는지 원인만 찾아줘. 고치진 말고", "should_trigger": false},
+  {"query": "frontend 에 CSV 내보내기 버튼 하나 만들어줘. lib/api.ts 랑 Dashboard.tsx 쪽일 듯", "should_trigger": false}
+]

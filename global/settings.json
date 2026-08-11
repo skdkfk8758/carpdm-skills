@@ -83,7 +83,6 @@
     "cinematic-scroll-storytelling": "off",
     "clean-minimal-beige-light-mode": "off",
     "cobejs": "off",
-    "colocate-domain-context": "off",
     "company-logos": "off",
     "container-lines": "off",
     "corner-diagonals": "off",
@@ -124,17 +123,14 @@
     "matterjs": "off",
     "mesh-gradient-dark-blue-clean": "off",
     "minimalist-ui": "off",
-    "mockup": "off",
     "nested-container-clean-agency": "off",
     "nested-container-frames": "off",
     "number-details": "off",
     "orange-clean-paper-saas": "off",
-    "preflight": "off",
     "pricing-page": "off",
     "progressive-blur": "off",
     "redesign-existing-projects": "off",
     "seo-audit": "off",
-    "setup-matt-pocock-skills": "off",
     "skeuomorphic-ui": "off",
     "solar-duotone-bold": "off",
     "split-layout-technical": "off",
@@ -153,7 +149,37 @@
     "webgl-laser": "off",
     "zoom-out": "off",
     "computer-use": "off",
-    "orca-linear": "off"
+    "orca-linear": "off",
+    "caveman": "off",
+    "claude-handoff": "off",
+    "deep-prompt-workspace": "off",
+    "design-an-interface": "off",
+    "diagnosing-bugs": "off",
+    "edit-article": "off",
+    "erd-workspace": "off",
+    "git-guardrails-claude-code": "off",
+    "land-workspace": "off",
+    "learned": "off",
+    "linear-prioritize-workspace": "off",
+    "loop-me": "off",
+    "migrate-to-shoehorn": "off",
+    "mockup-workspace": "off",
+    "obsidian-vault": "off",
+    "request-refactor-plan": "off",
+    "research": "off",
+    "resolving-merge-conflicts": "off",
+    "scaffold-exercises": "off",
+    "setup-pre-commit": "off",
+    "setup-ts-deep-modules": "off",
+    "teach": "off",
+    "to-questionnaire": "off",
+    "ubiquitous-language": "off",
+    "wayfinder": "off",
+    "wizard": "off",
+    "writing-beats": "off",
+    "writing-fragments": "off",
+    "writing-great-skills": "off",
+    "writing-shape": "off"
   },
   "hooks": {
     "PreToolUse": [
@@ -280,6 +306,15 @@
             "statusMessage": "Loading caveman mode..."
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -297,7 +332,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "command": "python3 ~/.claude/hooks/prompt-intake.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude UserPromptSubmit; fi",
             "timeout": 10
           }
         ]
@@ -306,8 +351,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ~/.claude/hooks/prompt-intake.py",
-            "timeout": 5
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
           }
         ]
       }
@@ -317,18 +362,42 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
-            "timeout": 10
-          },
-          {
-            "type": "command",
             "command": "bash ~/.claude/hooks/guards/guard-uncommitted-on-stop.sh",
             "timeout": 20
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude Stop; fi",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -r '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ] && [ -x '/Users/carpdm/.orca/agent-hooks/claude-hook.sh' ]; then /bin/sh '/Users/carpdm/.orca/agent-hooks/claude-hook.sh'; else { command -p cat 2>/dev/null || cat; } >/dev/null 2>&1 || :; fi",
+            "timeout": 10
           }
         ]
       }
     ],
     "StopFailure": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude StopFailure; fi",
+            "timeout": 10
+          }
+        ]
+      },
       {
         "hooks": [
           {
@@ -395,6 +464,30 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude SessionEnd; fi",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -n \"$PASEO_TERMINAL_ID\" ]; then \"${PASEO_HOOK_CLI:-paseo}\" hooks claude Notification; fi",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "worktree": {
@@ -407,28 +500,10 @@
   },
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true,
-    "understand-anything@understand-anything": false,
     "claude-md-management@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": false,
-    "pyright-lsp@claude-plugins-official": false,
-    "superpowers@claude-plugins-official": false,
-    "andrej-karpathy-skills@karpathy-skills": false,
-    "frontend-design@claude-plugins-official": false,
     "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
-    "understand-anything": {
-      "source": {
-        "source": "github",
-        "repo": "Lum1104/Understand-Anything"
-      }
-    },
-    "claude-code-warp": {
-      "source": {
-        "source": "github",
-        "repo": "warpdotdev/claude-code-warp"
-      }
-    },
     "ponytail": {
       "source": {
         "source": "github",
@@ -453,5 +528,6 @@
       "Trusted SSH hosts (developer-owned infra): hermes, 4090_1WAY, 4090_2WAY, 4090_4WAY, gcp-nginx",
       "Hermes ingest/analyze daemon endpoints referenced via HERMES_INGEST_URL"
     ]
-  }
+  },
+  "model": "claude-fable-5[1m]"
 }

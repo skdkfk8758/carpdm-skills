@@ -171,15 +171,15 @@ startup_timeout_sec = 120
 NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
 NODE_REPL_NODE_MODULE_DIRS = "/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
 NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node"
-NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
 CODEX_HOME = "/Users/carpdm/.codex"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "028a14b6eaa6d98dac2aae00764345ab9f244801ed8493d42b9af3be5575006e,f204d340535055781952b10ed396de20b842f00a19e430852f7e121ad1ce91f6"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "8e86beb821b9afc846211798e0113bd4b9e79312dfcd135eb447bdb154f64071"
 BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
 NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
 NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
 NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.727.51351"
+BROWSER_USE_CODEX_APP_VERSION = "26.803.61601"
 SKY_CUA_SERVICE_PATH = "/Users/carpdm/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
@@ -289,8 +289,8 @@ USE_OMX_EXPLORE_CMD = "1"
 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
 ENABLE_LSP_TOOL = "1"
 BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "028a14b6eaa6d98dac2aae00764345ab9f244801ed8493d42b9af3be5575006e,f204d340535055781952b10ed396de20b842f00a19e430852f7e121ad1ce91f6"
-NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "8e86beb821b9afc846211798e0113bd4b9e79312dfcd135eb447bdb154f64071"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
 
 [agents]
 max_depth = 2
@@ -470,24 +470,24 @@ source_type = "local"
 source = "/Users/carpdm/.codex/plugins/cache/sisyphuslabs"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-08-01T21:15:08Z"
+last_updated = "2026-08-11T03:25:45Z"
 source_type = "local"
 source = "/Users/carpdm/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.claude-plugins-official]
-last_updated = "2026-08-01T21:15:00Z"
-last_revision = "2a39900737f1ae4e80bb502b75d90e71c3b93a03"
+last_updated = "2026-08-11T03:25:45Z"
+last_revision = "920824c3e9509890fbec03ba6097014222393022"
 source_type = "git"
 source = "https://github.com/anthropics/claude-plugins-official.git"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-08-02T01:35:58Z"
+last_updated = "2026-08-06T03:23:36Z"
 source_type = "local"
 source = "/Users/carpdm/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [marketplaces.understand-anything]
-last_updated = "2026-08-01T21:15:08Z"
-last_revision = "fe8c5bc591716aafd79b4765549328f08ef5a52e"
+last_updated = "2026-08-11T03:25:49Z"
+last_revision = "797ce7969312411be2e125c39628854166f055d7"
 source_type = "git"
 source = "https://github.com/Lum1104/Understand-Anything.git"
 
@@ -772,4 +772,19 @@ config_file = "./agents/lazycodex-worker-medium.toml"
 trust_level = "trusted"
 
 [projects."/Users/carpdm/Documents/Codex/2026-07-29/https-www-linkedin-com-posts-computervision"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/carpdm-skills"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/신림선 기획"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/팁스 기획"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/ChatGPT/주간_월간결산"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/ChatGPT/미디어아트 판매페이지"]
 trust_level = "trusted"
