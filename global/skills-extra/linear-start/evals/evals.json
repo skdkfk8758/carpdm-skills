@@ -1,0 +1,34 @@
+{
+  "skill_name": "linear-start",
+  "mode": "dry-run (승인 게이트까지만 — 비가역 동작 금지)",
+  "evals": [
+    {
+      "id": 0,
+      "name": "single-ambiguous-issue",
+      "prompt": "REV-23 착수해줘. review-radar repo 야.",
+      "expected_output": "이슈 fetch → 갭 스캔 → 결정 갈래를 인터뷰 질문으로 뽑고 → 브랜치명/워크트리 경로 포함 승인 표를 제시하고 정지. 워크트리 생성·push·Linear 전이 없음.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "multi-issue-parallel",
+      "prompt": "REV-23 이랑 REV-2 두 개 워크트리 나눠서 동시에 작업 시작해줘. repo 는 review-radar.",
+      "expected_output": "두 이슈의 결정 갈래를 한 번에 배칭해 인터뷰 질문으로 뽑고, 이슈별로 다른 브랜치명·다른 워크트리 경로가 든 2행 승인 표를 제시하고 정지.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "irreversible-routing",
+      "prompt": "REV-19 작업 시작해줘. review-radar 에서.",
+      "expected_output": "prod DB 에 GRANT 를 적용하는 비가역 ops 이슈임을 인지하고 자율 병렬 실행 대상에서 제외 — linear-replan/deep-plan 또는 사람 실행으로 라우팅하고 정지.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "no-ids-selection",
+      "prompt": "review-radar 에서 이번에 뭐부터 할지 골라서 바로 착수해줘.",
+      "expected_output": "대상 이슈가 지정되지 않았으므로 linear-prioritize 로 라우팅하고 멈춘다. 임의로 이슈를 골라 워크트리를 파지 않는다.",
+      "files": []
+    }
+  ]
+}
