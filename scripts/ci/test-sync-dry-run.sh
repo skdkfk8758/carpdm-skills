@@ -47,7 +47,8 @@ after="$(git -C "$REPO_ROOT" status --porcelain)"
 
 assert_eq "dry-run exits 0 (sync-global.sh not called)" 0 "$rc"
 
-if grep -qF '>f+++++++ dry-run-probe.md' <<<"$out"; then
+# itemize flag width differs: openrsync (macOS) prints 9 chars, GNU rsync (CI) 11 — match the shape, not the width
+if grep -qE '^>f\++ dry-run-probe\.md$' <<<"$out"; then
   ok "stdout lists the file only live has"
 else
   no "stdout lists the file only live has" "$out"
