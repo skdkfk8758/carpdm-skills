@@ -4,7 +4,7 @@
 > `<type>/<issue-id>-<topic>` · worktree 격리 · 착수 push + 상태 전이 · squash-only · back-merge 예외 ·
 > node_modules 심링크 금지). 여기 있는 건 **그것만으로는 못 피하는 것**뿐이다 — 실측 함정과 경계 사례.
 >
-> vendor-neutral 기본값이다. 프로젝트 ADR(예: ADMap `docs/adr/041`)이 인스턴스화하며 충돌 시 프로젝트가 우선.
+> vendor-neutral 기본값이다. 프로젝트 ADR(예: ADMap `wiki/adr/041`)이 인스턴스화하며 충돌 시 프로젝트가 우선.
 
 ## 1. 트래커 자동연동은 두 전제가 모두 있어야 걸린다
 
@@ -96,6 +96,6 @@ PRIVATE repo + GitHub Pro 미보유면 `branch protection`·`ruleset` API 가 **
 
 ## Related
 
-- 프로젝트 인스턴스: ADMap `docs/adr/041-branch-worktree-strategy.md` (실측 근거 D1~D9).
+- 프로젝트 인스턴스: ADMap `wiki/adr/041-branch-worktree-strategy.md` (실측 근거 D1~D9). 2026-08-21 `docs/adr/` → `wiki/adr/` 이동(canonical 정렬), 번호 유지.
 - `cc-worktree.md` — worktree 웹개발 환경(포트/도메인/.env 툴킷).
 - `land-preflight.md` — PR/머지/배포 진입 직전 체크.
