@@ -9,6 +9,7 @@
 #   bash sync.sh --push    # also commit (timestamped), push, PR, and merge
 #   bash sync.sh --pr-only # mirror, commit, push, open PR — but DO NOT merge
 #                          # (leaves the branch + PR for a CI-gated land; used by the ship skill)
+#   bash sync.sh --dry-run # list what a mirror WOULD change (rsync -n -i -c) — no sync-global, no stage, no PR
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -20,6 +21,11 @@ DST_DIR="$REPO_DIR/skills"
 echo "Syncing  from: $SRC_DIR"
 echo "           to: $DST_DIR"
 echo
+
+# --dry-run: rsync -n(no write) -i(itemize) -c(checksum — mtime-only diffs would be
+# noise; same as .claude/hooks/check-skill-sync.sh). 출력은 rsync itemize 원문 그대로.
+DRY=""
+[ "${1:-}" = "--dry-run" ] && DRY=1
 
 missing=0
 for dst in "$DST_DIR"/*/; do
@@ -33,11 +39,16 @@ for dst in "$DST_DIR"/*/; do
   # --delete so files removed from the live skill also disappear here (true mirror)
   # --exclude __pycache__: python bytecode junk on either side is neither synced
   # nor counted as drift (a stray .pyc in the repo caused a false stop-hook warning)
-  rsync -a --delete --exclude '__pycache__' "$src/" "$dst"
+  rsync -a ${DRY:+-nic} --delete --exclude '__pycache__' "$src/" "$dst"
   echo "  = $name"
 done
 
 echo
+if [ -n "$DRY" ]; then
+  # 루프 뒤에서 끝낸다 — 아래 sync-global.sh·git add 는 전부 write 라 dry-run 에 없다.
+  echo "dry-run: 위 목록이 변경 예정 파일 — sync-global 스킵, stage 안 함."
+  exit 0
+fi
 cd "$REPO_DIR"
 
 # 글로벌 덤프도 같은 배포 단위 — sync-global.sh 로 미러(내장 secret 마스킹+스캔 게이트,

@@ -138,6 +138,7 @@ rm -rf ~/.claude/skills/<name>   # 개별 제거
 bash sync.sh           # 스킬 + 글로벌 덤프 미러링 후 변경 표시
 bash sync.sh --push    # 미러링 + 브랜치·PR·즉시 머지 (게이트 없는 빠른 경로)
 bash sync.sh --pr-only # 미러링 + PR 까지만 — CI 게이트+머지는 ship 스킬이 처리 (권장)
+bash sync.sh --dry-run # 미러링하면 바뀔 파일만 나열 (rsync -n) — 파일·stage·global 무변경
 ```
 
 `sync.sh` 는 스킬(**레포가 추적 중인** `skills/` 디렉토리별 true mirror — 새 스킬 배포 시작은 `skills/<name>/` 디렉토리를 먼저 만든 뒤 sync)에 더해 **`sync-global.sh` 를 내장 실행**해 글로벌 환경 덤프(`global/` — skills-extra·codex·rules·settings, secret 마스킹+스캔 게이트)도 같은 커밋에 싣는다. `--push`/`--pr-only` 는 PR 전에 CI 검증 3종을 로컬 선실행한다(로컬 green = CI green).
