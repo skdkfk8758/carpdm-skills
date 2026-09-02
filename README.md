@@ -72,7 +72,7 @@ cp -R skills/handoff ~/.claude/skills/
 # 예: 개별 스킬만
 ```
 
-> ⚠️ **일부 스킬은 `~/.claude/references/craft/` 를 절대경로로 읽는다** — `install.sh` 가 `global/references/craft/` 를 그 경로로 복사한다 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / deep-prompt / imprint / mockup / erd / colocate-domain-context / cicd-scaffold / dev-server-daemon 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
+> ⚠️ **일부 스킬은 `~/.claude/references/craft/` 를 절대경로로 읽는다** — `install.sh` 가 `global/references/craft/` 를 그 경로로 복사한다 (deep-plan 은 deep-interview 의 references 도 차용). handoff / sweep / land / ship / imprint / mockup / erd / colocate-domain-context / cicd-scaffold / dev-server-daemon 은 단독 설치 가능. 단 **deep-plan 의 DB/BE plan ERD 시안** 기능은 `erd` 가 설치돼 있어야 동작한다(없으면 ERD 만 생략, plan/시안은 정상). 둘을 함께 쓰려면 `erd` 도 같이 설치.
 
 ---
 

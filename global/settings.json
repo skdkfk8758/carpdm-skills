@@ -152,7 +152,6 @@
     "orca-linear": "off",
     "caveman": "off",
     "claude-handoff": "off",
-    "deep-prompt-workspace": "off",
     "design-an-interface": "off",
     "diagnosing-bugs": "off",
     "edit-article": "off",

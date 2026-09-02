@@ -28,7 +28,7 @@
 
 ```yaml
 ---
-skill: <forge|hunt|renew|deep-plan|deep-interview|deep-prompt>   # 어느 스킬이 만들었나
+skill: <forge|hunt|renew|deep-plan|deep-interview>   # 어느 스킬이 만들었나
 created: YYYY-MM-DD          # 작성일 (시점 기록 추적)
 status: draft|approved|done  # 진행 상태 (해당될 때만)
 ---
@@ -41,7 +41,7 @@ status: draft|approved|done  # 진행 상태 (해당될 때만)
 | **PLAN** (`docs/plans/YYYY-MM-DD-<topic>.md`) | deep-plan, forge/hunt/renew(Phase 1) | [`skills/craft-core/references/pipeline.md`](../../skills/craft-core/references/pipeline.md) Phase 1 — `Goal / Scope / Files / Steps / Risks / Security surface / YAGNI / Acceptance` |
 | **HTML companion** (`docs/plans/….html`) | deep-plan, craft Phase 1 | 같은 pipeline.md Phase 1 — UI plan 이면 UI 목업, 비UI 면 plan 렌더 ([[craft-html-companion-ui-mockup]] 규칙 공유) |
 | **SPEC** (번호 매긴 요구사항) | deep-interview | [`skills/deep-interview`](../../skills/deep-interview) — `REQ-F`/`REQ-N` + 요구사항별 acceptance |
-| **Goal Prompt** (`.md`) | deep-prompt | [`skills/deep-prompt`](../../skills/deep-prompt) — 고정 7-섹션: Objective / Success Criteria / Context / Constraints / Verification / Out of Scope / Done & Report |
+| **Goal Prompt** (`docs/plans/….-prompt.md`) | deep-plan (Step 1) | [`skills/deep-plan`](../../skills/deep-plan) Step 1 — 고정 7-섹션: Objective / Success Criteria / Context / Constraints / Verification / Out of Scope / Done & Report |
 | **ADR** (`docs/adr/NNN-slug.md`) | craft Phase 5 (ADR 감일 때) | [`skills/craft-core/references/context-adr.md`](../../skills/craft-core/references/context-adr.md) + `~/.claude/rules/knowledge-folders.md` |
 
 ## 폴더 컨벤션
