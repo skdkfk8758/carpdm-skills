@@ -37,6 +37,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 | `bash sync.sh` | 반대 방향. live `~/.claude/skills/` → repo `skills/` 미러(rsync `--delete`, repo 가 **이미 추적 중인** 것만) + **`sync-global.sh` 내장 실행**(글로벌 덤프 — `global/` 도 함께 미러·stage, 2026-08-02 통합). staged 변경 표시 |
 | `bash sync.sh --push` | 미러 + `chore/sync-<ts>` 브랜치·PR·**즉시 머지** 자동 (`gh` CLI 필요). master 직접 push 금지 환경 대응. CI·승인 게이트 없는 빠른 경로 |
 | `bash sync.sh --pr-only` | 미러 + 브랜치·커밋·push·PR **생성까지만** (머지 보류). 브랜치를 로컬에 남겨 CI 게이트+land 를 `ship` 스킬이 처리 (§10) |
+| `bash sync.sh --dry-run` | 미러하면 바뀔 파일(추가·수정·삭제)만 rsync itemize 로 나열 — repo 파일·index·`global/` 무변경, `sync-global.sh` 미호출·PR 없음. 회귀 테스트 `scripts/ci/test-sync-dry-run.sh`(hermetic `HOME`) |
 | `bash install-global.sh` | repo `global/` → `~/.claude/` 글로벌 셋업(CLAUDE.md·rules·rules-ondemand·guards·settings) 설치. 변경분 백업 후 덮어씀, settings `<FILL-ME>` 는 로컬 실값 보존 머지. 상세 `global/README.md` |
 | `bash sync-global.sh` | 반대 방향. live `~/.claude/` → repo `global/` 전수 미러 + settings secret 마스킹 + 커밋 전 secret 스캔 게이트(발견 시 exit 1). 글로벌 룰 수정 후 실행해 stale 미러 방지 |
 | `ls ~/.claude/skills/` | 스킬 설치 검증 — `forge hunt renew handoff sweep land ship craft-core` 보여야 함 |

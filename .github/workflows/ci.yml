@@ -48,3 +48,7 @@ jobs:
       # Targets the repo mirror under global/, so no ~/.claude install is needed.
       - name: Test prompt-intake hook
         run: bash scripts/ci/test-prompt-intake.sh
+
+      # Hermetic (fake HOME) — asserts --dry-run writes nothing and skips sync-global.
+      - name: Test sync.sh --dry-run
+        run: bash scripts/ci/test-sync-dry-run.sh
