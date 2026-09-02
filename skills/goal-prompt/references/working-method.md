@@ -106,6 +106,7 @@ BASE SHA 리터럴 기록, Success Criteria, Verification 은 스킬 유무와 �
 - [ ] 마지막 SC 가 BASE SHA 리터럴 기준의 작업트리 diff(`git diff --stat <SHA>`, `...HEAD` 아님)이고 영향 반경에 테스트·lockfile·handoff 가 포함돼 있나
 - [ ] Verification 에 실패 상한(1회 자가수정 → partial)이 있나
 - [ ] 페르소나에 "중시 순서"와 "불확실성 처리"가 있나 — 직함만이면 BLOCKING
+- [ ] 파일당 `wc -m` 이 4000 미만인가 — 이상이면 BLOCKING(SKILL.md Step 4 압축 순서)
 
 ### Pocock 렌즈 — "빌드가 수직으로, 검증 가능하게 굴러가나"
 - [ ] seam 이 Context 에 확정·선언돼 있나 (미정이면 `[HUMAN]` 갭으로 되돌림)
