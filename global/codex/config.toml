@@ -11,6 +11,7 @@ sandbox_mode = "danger-full-access"
 network_access = "enabled"
 
 notify = ["/Users/carpdm/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended", "--previous-notify", "[\"node\",\"\\/Users\\/carpdm\\/.hermes\\/node\\/lib\\/node_modules\\/oh-my-codex\\/dist\\/scripts\\/notify-hook.js\"]"]
+service_tier = "default"
 
 [features]
 unified_exec = true
@@ -103,85 +104,6 @@ trust_level = "trusted"
 [notice.model_migrations]
 "gpt-5.1-codex-max" = "gpt-5.2-codex"
 "gpt-5.3-codex" = "gpt-5.4"
-
-[mcp_servers.obsidian]
-command = "npx"
-args = [
-    "-y",
-    "@mauricio.wolff/mcp-obsidian@latest",
-    "/Users/carpdm/Documents/Obsidian/AIBrain",
-]
-startup_timeout_sec = 15
-[mcp_servers.code-review-graph]
-command = "uvx"
-args = [
-    "code-review-graph",
-    "serve",
-]
-type = "stdio"
-startup_timeout_sec = 15
-
-[mcp_servers.agentmemory]
-command = "npx"
-args = [
-    "-y",
-    "@agentmemory/mcp",
-]
-env_vars = [
-    "AGENTMEMORY_URL",
-    "AGENTMEMORY_SECRET",
-    "AGENTMEMORY_TOOLS",
-]
-startup_timeout_sec = 15
-
-[mcp_servers.agentmemory.env]
-AGENTMEMORY_URL = "http://localhost:3111"
-
-[mcp_servers.chrome-devtools]
-command = "npx"
-args = ["chrome-devtools-mcp@latest"]
-startup_timeout_sec = 15
-
-[mcp_servers.context7]
-command = "npx"
-args = [
-    "-y",
-    "@upstash/context7-mcp",
-]
-startup_timeout_sec = 15
-
-[mcp_servers.slack]
-command = "npx"
-args = [
-    "-y",
-    "@modelcontextprotocol/server-slack",
-]
-startup_timeout_sec = 15
-
-[mcp_servers.slack.env]
-SLACK_BOT_TOKEN = "<FILL-ME>"
-SLACK_TEAM_ID = "T062KBWLB0U"
-
-[mcp_servers.node_repl]
-args = []
-command = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node_repl"
-startup_timeout_sec = 120
-
-[mcp_servers.node_repl.env]
-NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
-NODE_REPL_NODE_MODULE_DIRS = "/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
-NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node"
-NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
-CODEX_HOME = "/Users/carpdm/.codex"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "8e86beb821b9afc846211798e0113bd4b9e79312dfcd135eb447bdb154f64071"
-BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
-NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
-NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
-NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
-BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.803.61601"
-SKY_CUA_SERVICE_PATH = "/Users/carpdm/.codex/computer-use/Codex Computer Use.app"
-CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
 [plugins."github@openai-curated"]
 enabled = true
@@ -288,9 +210,7 @@ inherit = "core"
 USE_OMX_EXPLORE_CMD = "1"
 CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = "1"
 ENABLE_LSP_TOOL = "1"
-BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
-NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "8e86beb821b9afc846211798e0113bd4b9e79312dfcd135eb447bdb154f64071"
-NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "9230e2bd8b24b7ac7a0ba6774c64bf0d78ecdabbdd91d0ed627b02a587bae2df"
 
 [agents]
 max_depth = 2
@@ -470,24 +390,22 @@ source_type = "local"
 source = "/Users/carpdm/.codex/plugins/cache/sisyphuslabs"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-08-11T03:25:45Z"
 source_type = "local"
 source = "/Users/carpdm/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.claude-plugins-official]
-last_updated = "2026-08-11T03:25:45Z"
-last_revision = "920824c3e9509890fbec03ba6097014222393022"
+last_updated = "2026-08-27T08:08:40Z"
+last_revision = "b819188d2eea14e0400556ca29dbd1179a7c595b"
 source_type = "git"
 source = "https://github.com/anthropics/claude-plugins-official.git"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-08-06T03:23:36Z"
 source_type = "local"
 source = "/Users/carpdm/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [marketplaces.understand-anything]
-last_updated = "2026-08-11T03:25:49Z"
-last_revision = "797ce7969312411be2e125c39628854166f055d7"
+last_updated = "2026-08-27T08:08:44Z"
+last_revision = "ba450c43425f3de6d43daf76526950ad8ca93536"
 source_type = "git"
 source = "https://github.com/Lum1104/Understand-Anything.git"
 
@@ -512,13 +430,16 @@ enabled = true
 [plugins."linear@claude-plugins-official"]
 enabled = true
 
-[plugins."sites@openai-bundled"]
-enabled = true
-
 [plugins."visualize@openai-bundled"]
 enabled = true
 
 [plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."sites@openai-bundled"]
+enabled = true
+
+[plugins."codex-app-tools@openai-bundled"]
 enabled = true
 
 [hooks.state."omo@sisyphuslabs:hooks/hooks.json:session_start:0:0"]
@@ -572,57 +493,6 @@ trusted_hash = "sha256:0dc243b00d68765f1895a9133109f7f73b7e86c0512e9a51aaa5f9f07
 [hooks.state."omo@sisyphuslabs:hooks/hooks.json:subagent_stop:0:0"]
 trusted_hash = "sha256:5d4197e501107854ebf39132625f3a947470566902e0e8521b4209ce7b694fa4"
 
-[agents.explorer]
-config_file = "./agents/explorer.toml"
-
-[agents.librarian]
-config_file = "./agents/librarian.toml"
-
-[agents.metis]
-config_file = "./agents/metis.toml"
-
-[agents.momus]
-config_file = "./agents/momus.toml"
-
-[agents.plan]
-config_file = "./agents/plan.toml"
-
-[mcp_servers.omx_state]
-command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
-args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/state-server.js"]
-enabled = true
-startup_timeout_sec = 5
-
-[mcp_servers.omx_memory]
-command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
-args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/memory-server.js"]
-enabled = true
-startup_timeout_sec = 5
-
-[mcp_servers.omx_code_intel]
-command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
-args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/code-intel-server.js"]
-enabled = true
-startup_timeout_sec = 10
-
-[mcp_servers.omx_trace]
-command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
-args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/trace-server.js"]
-enabled = true
-startup_timeout_sec = 5
-
-[mcp_servers.omx_wiki]
-command = "/Users/carpdm/.nvm/versions/node/v22.22.0/bin/node"
-args = ["/Users/carpdm/.nvm/versions/node/v22.22.0/lib/node_modules/oh-my-codex/dist/mcp/wiki-server.js"]
-enabled = true
-startup_timeout_sec = 5
-
-[mcp_servers.computer-use]
-command = "./Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient"
-args = ["mcp"]
-cwd = "."
-enabled = false
-
 # ============================================================
 # oh-my-codex (OMX) Configuration
 # Managed by omx setup - manual edits preserved on next setup
@@ -657,20 +527,8 @@ trusted_hash = "sha256:4bf547ec488a77b74c9acd10a83ea6fd2d4945b8614ce5680eda3c852
 [hooks.state."omo@sisyphuslabs:hooks/hooks.json:subagent_stop:1:0"]
 trusted_hash = "sha256:d1043b80e41deedbcd1f9b08c3d85e19eb6f7874a9bbca46e4442f84af00b200"
 
-[agents.lazycodex-clone-fidelity-reviewer]
-config_file = "./agents/lazycodex-clone-fidelity-reviewer.toml"
-
-[agents.lazycodex-code-reviewer]
-config_file = "./agents/lazycodex-code-reviewer.toml"
-
 [agents.lazycodex-executor]
 config_file = "./agents/lazycodex-executor.toml"
-
-[agents.lazycodex-gate-reviewer]
-config_file = "./agents/lazycodex-gate-reviewer.toml"
-
-[agents.lazycodex-qa-executor]
-config_file = "./agents/lazycodex-qa-executor.toml"
 
 [hooks.state."omo@sisyphuslabs:hooks/session-start-loading-project-rules.json:session_start:0:0"]
 trusted_hash = "sha256:a63bfc31b9c11fc091eef31f4b586463eaee3c0233481c70a294dd81f9e1490f"
@@ -759,15 +617,6 @@ trusted_hash = "sha256:bdf1880bb621e089a1d8aee7d55d42bd3194eccd63e20ec41325a01dc
 [hooks.state."omo@sisyphuslabs:hooks/stop-checking-ulw-loop-resume.json:stop:0:0"]
 trusted_hash = "sha256:2ffcf16514f4983fa117ff311932b7756cfa4c306b774a3b755bdea25c22d663"
 
-[agents.lazycodex-worker-high]
-config_file = "./agents/lazycodex-worker-high.toml"
-
-[agents.lazycodex-worker-low]
-config_file = "./agents/lazycodex-worker-low.toml"
-
-[agents.lazycodex-worker-medium]
-config_file = "./agents/lazycodex-worker-medium.toml"
-
 [projects."/Users/carpdm/Workspace/adtype-webpublishing"]
 trust_level = "trusted"
 
@@ -788,3 +637,94 @@ trust_level = "trusted"
 
 [projects."/Users/carpdm/Documents/ChatGPT/미디어아트 판매페이지"]
 trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/ChatGPT/vworld_test"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Workspace/Adtype_CMS_PlayerHost"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/Codex/2026-08-19/iam-4-json-1-6144-json"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/Codex/2026-08-24/new-chat"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/Codex/2026-08-27/new-chat"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/Codex/2026-08-31/https-draftypehq-slack-com-archives-c09akqv5g95"]
+trust_level = "trusted"
+
+[projects."/Users/carpdm/Documents/Codex/2026-09-02/https-draftypehq-slack-com-archives-c06h70ydth8"]
+trust_level = "trusted"
+
+[mcp_servers.obsidian]
+command = "npx"
+args = ["-y", "@mauricio.wolff/mcp-obsidian@latest", "/Users/carpdm/Documents/Obsidian/AIBrain"]
+startup_timeout_sec = 15.0
+
+[mcp_servers.code-review-graph]
+command = "uvx"
+args = ["code-review-graph", "serve"]
+startup_timeout_sec = 15.0
+
+[mcp_servers.agentmemory]
+command = "npx"
+args = ["-y", "@agentmemory/mcp"]
+env_vars = ["AGENTMEMORY_URL", "AGENTMEMORY_SECRET", "AGENTMEMORY_TOOLS"]
+startup_timeout_sec = 15.0
+
+[mcp_servers.agentmemory.env]
+AGENTMEMORY_URL = "http://localhost:3111"
+
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["chrome-devtools-mcp@latest"]
+startup_timeout_sec = 15.0
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp"]
+startup_timeout_sec = 15.0
+
+[mcp_servers.slack]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-slack"]
+startup_timeout_sec = 15.0
+
+[mcp_servers.slack.env]
+SLACK_BOT_TOKEN = "<FILL-ME>"
+SLACK_TEAM_ID = "T062KBWLB0U"
+
+[mcp_servers.node_repl]
+args = []
+command = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node_repl"
+startup_timeout_sec = 120
+
+[mcp_servers.node_repl.env]
+NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
+NODE_REPL_NODE_MODULE_DIRS = "/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
+NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
+CODEX_HOME = "/Users/carpdm/.codex"
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+BROWSER_USE_TINYSKY_ENABLED = "0"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
+NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
+BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
+BROWSER_USE_CODEX_APP_VERSION = "26.820.60940"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/carpdm/.codex/plugins/cache/openai-bundled/browser/26.820.60940/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+SKY_CUA_SERVICE_PATH = "/Users/carpdm/.codex/computer-use/Codex Computer Use.app"
+CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
+
+[mcp_servers.computer-use]
+command = "./Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient"
+args = ["mcp"]
+cwd = "."
+enabled = false
+
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_TOKEN"

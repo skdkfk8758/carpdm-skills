@@ -12,6 +12,7 @@ Claude Code 글로벌 스킬 배포 레포. **계획 2종(심층 인터뷰·계�
 |---|---|---|---|
 | [`deep-interview`](skills/deep-interview) | 모호한 아이디어 → 검증가능 spec (소크라테스 인터뷰, ambiguity 게이트) | "인터뷰해줘", "이거 같이 정리하자", "/deep-interview" | 없음 (독립) |
 | [`deep-plan`](skills/deep-plan) | (모호하면 인터뷰 보강 후) 실행 가능 PLAN 문서 + UI면 HTML 시안, 빌드는 안 함 | "계획 세워줘", "어떻게 만들지 설계", "구현 말고 플랜만", "UI 시안 뽑아줘", "/deep-plan" | references/craft |
+| [`goal-prompt`](skills/goal-prompt) | 메타프롬프팅 → 갭 인터뷰 → 페르소나·Karpathy 규율·ponytail·paperthin·Pocock 흐름이 결합된 Goal Prompt 1파일 (PLAN·HTML 없음 — 프롬프트만) | "goal 프롬프트 만들어줘", "자율 에이전트한테 던질 프롬프트", "메타프롬프팅 해줘", "/goal-prompt" | references/craft (output-contract) |
 
 ### 🧹 session & ops — 작업 사이클 운영 (저장·정리·랜딩·배포검토)
 
@@ -48,7 +49,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-11개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
+12개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
 > 온보딩은 위 스킬 표 11행 + 아래 [설치](#설치) 3명령이 전부다. 종전 `docs/guides/team-workflow-guide.{md,html}`
 > 은 은퇴 스킬(`forge`·`hunt`·`renew`·`linear-goal`·`preflight`·`fortify`·`mockup`·`imprint`)을 워크플로 축으로
@@ -96,13 +97,14 @@ cp -R skills/handoff ~/.claude/skills/
 "벤치가 500 던져, 고쳐줘"                        → 스킬 없음. 메인 직접 수정
 "대시보드 어떻게 만들지 플랜이랑 UI 시안 줘"     → deep-plan (빌드 X)
 "이 티켓 어떻게 할지 먼저 정해줘"                → linear-replan (착수 계획 1장)
+"이 작업 자율 에이전트용 goal 프롬프트로 써줘"    → goal-prompt (프롬프트 1파일, 빌드 X)
 "여기까지 하자, 내일 이어서 정리해줘"            → handoff (저장)
 "어제 하던 거 어디까지 했지"                      → handoff (복원)
 "올린 PR 머지하고 로컬 정리해줘"                 → land
 "개발서버 백그라운드로 띄워줘"                    → dev-server-daemon
 
 # 슬래시 명시 호출
-/deep-plan   /linear-replan   /handoff   /land   /wt-sweep
+/deep-plan   /goal-prompt   /linear-replan   /handoff   /land   /wt-sweep
 ```
 
 handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시작/재개 = 복원).
@@ -113,7 +115,7 @@ handoff 는 **양방향 자동 감지** (작업 끝/중단 = 저장, 세션 시�
 ## 검증 / 트러블슈팅
 
 ```bash
-ls ~/.claude/skills/   # deep-interview deep-plan dev-server-daemon handoff land linear-groom linear-prioritize linear-register linear-replan ship wt-sweep
+ls ~/.claude/skills/   # deep-interview deep-plan dev-server-daemon goal-prompt handoff land linear-groom linear-prioritize linear-register linear-replan ship wt-sweep
 ```
 
 - **스킬이 참조 자료를 못 찾음** → `~/.claude/references/craft/` 존재 확인.

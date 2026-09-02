@@ -44,6 +44,8 @@ AI 응답 = 한국어(`settings.json` 이 주입). 코드 주석·문서 = 영�
 ```
 **검증 커맨드 행이 핵심**("됐음" 금지, 실제 출력만). **잔여 행은 생략 불가** — 없으면 "없음"이라 쓴다.
 안 한 것의 행을 빈칸·추정으로 채우지 않는다.
+잔여 항목에 그것을 진행시킬 스킬·워크플로우가 있으면 `→ /<이름>` 으로 제안한다
+(로드된 스킬 + 프로젝트 `.claude/` + 유저 전용 커맨드까지 대조, 최적 1개만, 억지 매칭 금지 — 상세는 response-format.md §스킬 라우팅).
 
 ## 온디맨드 룰 라우팅 (JIT — 상시 로드 안 됨)
 **아래 상황에 진입하면 해당 파일을 Read 하고 진행.** 각 행은 요약이지 본문 대체가 아니다.
@@ -59,9 +61,16 @@ AI 응답 = 한국어(`settings.json` 이 주입). 코드 주석·문서 = 영�
 | 브라우저 도구 2회 연속 실패 | `browser-verify-fallback.md` |
 | HTML 시안 산출 | `html-mockup-artifact.md` |
 | 새 프로젝트 문서 구조 세팅 · SPEC/PLAN 작성 | `knowledge-folders.md` |
+| 계획·설계 확정 직전 · 문서 압축/재배열 (paperthin `/hate`·`/prism` 등 유저 전용 12종) | `paperthin-routing.md` |
 
-## 훅 — 차단은 3개뿐, 나머지는 리마인드
-차단(`exit 2`): 보호 브랜치 직접 작업 · 파괴 명령(`rm -rf`·`DROP`·force-push) · worktree 삭제.
+## 브라우저 — aside 강제
+웹페이지 작업·컨트롤·검증은 **aside MCP**(`mcp__aside__repl`, Playwright 내장) 사용.
+claude-in-chrome 통합은 제거됨(`settings.json claudeInChromeDefaultEnabled: false`) + 재등장 대비 훅 차단.
+사용자가 실제 Chrome 로그인 세션을 명시 요구할 때만: 설정 `true` + `touch ~/.claude/.allow-chrome-mcp` + 새 세션(끝나면 원복).
+2회 연속 실패 시 → `rules-ondemand/browser-verify-fallback.md`.
+
+## 훅 — 차단은 4개뿐, 나머지는 리마인드
+차단(`exit 2`): 보호 브랜치 직접 작업 · 파괴 명령(`rm -rf`·`DROP`·force-push) · worktree 삭제 · claude-in-chrome MCP(→ aside).
 나머지 훅(파일 크기·verify swallow·Linear 상태·수용 기준 등)은 **stderr nudge** 다 — "막히니까 괜찮다"고 가정하지 말 것.
 
 ## 위임

@@ -1,20 +1,28 @@
 #!/usr/bin/env python3
-"""UserPromptSubmit hook: passively measure signals about incoming prompts.
+"""UserPromptSubmit hook: measure prompt signals, and gate ambiguous dev work.
 
-This is an INSTRUMENT, not a classifier. It writes one JSONL record per prompt
-and prints nothing. Whether a prompt-triage feature is worth building at all is
-decided in ~4 weeks from the base rate this log makes measurable.
+Two jobs, one file — deliberately, because both need the same signal extraction
+and duplicating those regexes would let the log and the gate drift apart.
 
-Deliberately absent (see docs/specs/prompt-intake-classifier.md §1 Out of scope):
-no class label, no nudge, no blocking. Adding any of those here defeats the
-measurement — the log would then record behaviour the hook itself caused.
+  1. INSTRUMENT (unchanged): one JSONL record per prompt.
+  2. GATE (added 2026-09-01): when the prompt looks like development work AND
+     carries an ambiguity signal, inject additionalContext telling the model to
+     resolve the fork — from code/memory if it can, with one AskUserQuestion
+     round if it cannot. Never blocks: exit 0 always, prompt never erased.
+
+The original spec kept the gate out of scope so the base rate stayed
+measurable. That measurement is over — 97 prompts over 16h gave 26 dev-ish
+(27%), 16 of them ambiguous (61%), which is the number the gate was waiting on.
+The `nudged` field now records whether the gate fired, so post-gate behaviour
+stays measurable in the same log.
 
 Safety contract:
-  - NON-BLOCKING: always exit 0. Every failure path is swallowed.
-  - Silent: nothing is ever written to stdout.
+  - NON-BLOCKING: always exit 0. Every failure path is swallowed. A crash here
+    must never cost the user their prompt.
+  - Nothing but the gate JSON is ever written to stdout.
   - No full prompt text: first 120 chars, secret-redacted. No hash of the rest.
 
-Disable: PROMPT_INTAKE_DISABLE=1
+Disable: PROMPT_INTAKE_DISABLE=1 (whole hook) · INTERVIEW_GATE_DISABLE=1 (gate only)
 Log dir: PROMPT_INTAKE_LOG_DIR (default ~/.claude/logs/prompt-intake)
 """
 
@@ -159,6 +167,54 @@ def extract(prompt):
     }
 
 
+# ── gate ──────────────────────────────────────────────────────────────────────
+# 발동 조건은 전부 위에서 이미 뽑은 신호다. 새 정규식을 만들지 않는다 — 로그가 재는 것과
+# 게이트가 보는 것이 같아야 나중에 "게이트가 실제로 무엇에 반응했는가"를 로그로 되짚을 수 있다.
+DEV_VERBS = ("build", "change", "fix")
+
+GATE_TEXT = """[인터뷰 게이트] 이 요청은 개발 작업으로 보이는데 대상·범위를 특정할 신호가 약하다({why}).
+
+비용이 큰 작업을 시작하기 전에:
+1. 요청을 스스로 재진술하고 코드·기존 문서·메모리로 해소되는지 **먼저** 확인한다.
+   해소되면 그대로 진행하고 이 블록을 언급하지 마라.
+2. 그래도 결과가 갈리는 갈래가 남으면, **그 갈래만** AskUserQuestion 한 번으로 확정한 뒤
+   착수한다. 권장안을 첫 옵션에 두고 왜 권장인지 적는다.
+3. 되돌리기 어려운 작업(배포·삭제·자격 변경·서비스 중단)이면 착수 전에 승인 패킷을 제시한다.
+
+질문을 위한 질문은 하지 마라 — 답이 작업을 바꾸지 않는 질문은 묻지 않는다."""
+
+
+def gate_reason(record):
+    """Why the gate fired, or None if it should not. Order = report priority."""
+    if os.environ.get("INTERVIEW_GATE_DISABLE") == "1":
+        return None
+    # 서브에이전트의 프롬프트는 사람이 쓴 것이 아니다 — 물어볼 상대가 없다.
+    if record.get("agent_id") or record.get("agent_type"):
+        return None
+    # 슬래시 커맨드는 그 자체가 명시적 지시다.
+    if record.get("is_slash_command"):
+        return None
+    if record.get("verb_class") not in DEV_VERBS:
+        return None
+    reasons = []
+    if record.get("specifics_count", 0) == 0:
+        reasons.append("파일·경로·식별자 등 구체적 참조 0건")
+    if record.get("vague_word_hits", 0):
+        reasons.append("모호 표현 %d건" % record["vague_word_hits"])
+    if record.get("scope_word_hits", 0):
+        reasons.append("전체 범위 표현 %d건" % record["scope_word_hits"])
+    return " · ".join(reasons) or None
+
+
+def emit_gate(reason):
+    sys.stdout.write(json.dumps({
+        "hookSpecificOutput": {
+            "hookEventName": "UserPromptSubmit",
+            "additionalContext": GATE_TEXT.format(why=reason),
+        }
+    }))
+
+
 def append_record(log_dir, record):
     os.makedirs(log_dir, mode=0o700, exist_ok=True)
     try:
@@ -193,7 +249,14 @@ def main():
     }
     record.update(extract(prompt))
 
+    reason = gate_reason(record)
+    record["nudged"] = bool(reason)
+
+    # 로그를 먼저 쓴다. 게이트 출력이 실패해도 측정은 남는다.
     append_record(os.environ.get("PROMPT_INTAKE_LOG_DIR") or DEFAULT_LOG_DIR, record)
+
+    if reason:
+        emit_gate(reason)
 
 
 if __name__ == "__main__":
