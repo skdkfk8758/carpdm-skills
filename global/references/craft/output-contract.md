@@ -39,7 +39,6 @@ PR 보고)은 본질적으로 다르고, 본문 구조를 억지 통일하면 �
 | 빌드 | forge / hunt / renew | ✓ | — (commit 참조) | ✓ (pipeline Phase 5) | ✓ |
 | worker | linear-goal | ✓ | — | — | ✓ |
 | 설계·산출 | deep-interview / deep-plan | ✓ | ✓ | ✓ | — |
-| 산출(단발) | deep-prompt / imprint / erd | ✓ | ✓ | — | — |
 | 리뷰·판정 | preflight | ✓ | ✓ (docs/reviews) | ✓ (수정 라우팅) | — |
 | 운영 | handoff / sweep / land | ✓ | handoff 만 ✓ | — | land 만 ✓ |
 
@@ -100,10 +99,7 @@ result: <L1 한 줄>
 | 스킬 | 열기 블록 행 |
 |---|---|
 | `deep-plan` | `PLAN` (`docs/plans/…md`) + (UI plan 이면) `시안` (`…html`) + (DB/BE plan 이면) `ERD` (`…-erd.html`) |
-| `erd` | `ERD` (`docs/preview/…-erd.html` 또는 plan 동일 디렉토리 `…-erd.html`) |
 | `deep-interview` | `SPEC` (`docs/specs/…md` 또는 프로젝트 spec 위치) |
-| `deep-prompt` | `프롬프트` (`…md`) |
-| `imprint` | 산출 디렉토리(테마/컴포넌트/preview) — 대표 `시안` (`…html`) |
 | `preflight` | `리포트` (`docs/reviews/…-preflight.md`) |
 | `handoff` (WRITE) | `핸드오프` (`…md`) |
 

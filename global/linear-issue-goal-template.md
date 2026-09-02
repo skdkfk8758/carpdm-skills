@@ -1,7 +1,7 @@
 # Goal Prompt — Linear 이슈 구현 (goal worker)
 
 > 재사용 템플릿. `linear-dispatch` 가 **goal** 로 라우팅한 이슈에 사용. `{{PLACEHOLDER}}` 를 launcher 가 채워 백그라운드 goal 잡으로 실행.
-> 형식 = deep-prompt 고정 템플릿(Objective/Success/Context/Constraints/Verification/Out of Scope/Done&Report).
+> 형식 = deep-plan `-prompt.md` 7섹션 템플릿(Objective/Success/Context/Constraints/Verification/Out of Scope/Done&Report).
 > 자율 실행 — Success Criteria 충족까지 루프, 사람 개입 없음. **머지는 안 한다**(human-gate).
 
 ## Objective

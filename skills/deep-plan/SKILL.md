@@ -1,6 +1,6 @@
 ---
 name: deep-plan
-description: 사용자의 요청문을 fable 저자 × fable 비평자(별 좌석) debate 로 깎아 자율 에이전트가 먹을 수 있는 Goal Prompt 로 만들고, 그 과정에서 두 좌석이 지목한 컨텍스트 갭을 인터뷰로 채운 뒤, 프롬프트(`-prompt.md`) + 구현 PLAN(`.md`) + 통합 뷰(`.html`)를 산출하고 빌드하지 않고 멈춘다. 사용자가 plan/설계/기획안/제안서/접근법/로드맵/UI 시안을 원하되 지금 구현은 원하지 않을 때 사용 — "계획 세워줘", "어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안 만들어줘", "UI 시안 뽑아줘", "design doc 작성", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 번호 매긴 요구사항 spec 결정화는 deep-interview, 프롬프트 한 덩어리만 필요하면 deep-prompt, 실제 구현/버그수정/기존 동작 변경은 메인이 직접 한다 — deep-plan 은 코드를 쓰지 않는다, 프롬프트와 plan 만 쓴다.
+description: 사용자의 요청문을 fable 저자 × fable 비평자(별 좌석) debate 로 깎아 자율 에이전트가 먹을 수 있는 Goal Prompt 로 만들고, 그 과정에서 두 좌석이 지목한 컨텍스트 갭을 인터뷰로 채운 뒤, 프롬프트(`-prompt.md`) + 구현 PLAN(`.md`) + 통합 뷰(`.html`)를 산출하고 빌드하지 않고 멈춘다. 사용자가 plan/설계/기획안/제안서/접근법/로드맵/UI 시안을 원하되 지금 구현은 원하지 않을 때 사용 — "계획 세워줘", "어떻게 만들지 설계해줘", "구현 말고 플랜만", "기획안 만들어줘", "UI 시안 뽑아줘", "design doc 작성", "어떻게 접근할지 정리", "plan this out", "/deep-plan" 같은 표현. 번호 매긴 요구사항 spec 결정화는 deep-interview, 실제 구현/버그수정/기존 동작 변경은 메인이 직접 한다 — deep-plan 은 코드를 쓰지 않는다, 프롬프트와 plan 만 쓴다.
 ---
 
 # Deep Plan — fable×2 debate 메타프롬프팅 → 갭 인터뷰 → PLAN(+시안), 빌드 없음
