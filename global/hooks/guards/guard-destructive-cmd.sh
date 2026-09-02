@@ -26,7 +26,11 @@ except Exception:
 SANITIZED=$(printf '%s' "$CMD" | sed -E "s/'[^']*'/''/g" | sed -E 's/"[^"]*"/""/g')
 
 # --- recursive delete ---
-if echo "$SANITIZED" | grep -qE 'rm\s+(-[a-zA-Z]*r|-[a-zA-Z]*f[a-zA-Z]*r|--recursive)'; then
+# `rm` 앞에 단어 경계가 필요하다. 없으면 다른 단어의 끝 두 글자가 rm 이고
+# 그 뒤에 r 을 포함한 플래그가 붙는 것만으로 걸린다 — 실측(2026-09-02):
+#   `kubeconform -strict` 의 "...confo" + "rm -str" 이 매칭돼 차단됐다.
+# 경계 클래스에서 / 는 일부러 뺀다 — `/bin/rm -rf`·`sudo rm -rf` 는 계속 막아야 한다.
+if echo "$SANITIZED" | grep -qE '(^|[^A-Za-z0-9_-])rm\s+(-[a-zA-Z]*r|-[a-zA-Z]*f[a-zA-Z]*r|--recursive)'; then
   echo "[guard] BLOCKED: recursive delete detected — $CMD" >&2
   echo "Use rm <file> for individual files instead." >&2
   exit 2

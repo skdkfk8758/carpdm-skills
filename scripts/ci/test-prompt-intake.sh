@@ -76,16 +76,30 @@ echo "hook: $HOOK"
 echo "agg:  $AGG"
 echo
 
-# ── Acceptance 1 · 5 — one record, silent stdout, exit 0 ────────────────────
+# ── Acceptance 1 · 5 — one record, exit 0; stdout = gate JSON only when the gate fires ──
+# 2026-09-01: the hook grew an interview gate (dev verb + ambiguity signal → additionalContext
+# on stdout, `nudged` recorded). Silent stdout is now the no-gate contract, not the universal one.
 d="$(new_logdir a1)"
 out="$(run_hook "$d" "$(payload '로그인 기능 추가해줘')")"
 rc=$?
 assert_eq "A1  payload 1건 → JSONL +1" "1" "$(count "$d")"
-assert_eq "A5  stdout 빈 문자열" "" "$out"
+assert_eq "A5  게이트 발화(dev+모호) → stdout 에 hookSpecificOutput JSON" "UserPromptSubmit" "$(printf '%s' "$out" | python3 -c "
+import json,sys
+try: print(json.loads(sys.stdin.read())['hookSpecificOutput']['hookEventName'])
+except Exception: print('<PARSE-FAIL>')
+" 2>/dev/null)"
+assert_eq "A5a nudged == True" "True" "$(field "$d" nudged)"
 assert_eq "A5b exit 0" "0" "$rc"
+d="$(new_logdir a5c)"
+out="$(run_hook "$d" "$(payload '이 룰 설명해줘')")"
+assert_eq "A5c 게이트 미발화(non-dev) → stdout 빈 문자열" "" "$out"
+assert_eq "A5d nudged == False" "False" "$(field "$d" nudged)"
+d="$(new_logdir a5e)"
+out="$(run_hook "$d" "$(payload '로그인 기능 추가해줘')" INTERVIEW_GATE_DISABLE=1)"
+assert_eq "A5e INTERVIEW_GATE_DISABLE=1 → stdout 빈 문자열" "" "$out"
 
 # ── Acceptance 2 — exact schema key set ─────────────────────────────────────
-EXPECTED_KEYS='agent_id,agent_type,banner_stripped,cwd,has_backtick,has_error_text,has_number,has_path,is_question,is_slash_command,prompt_head,prompt_len,scope_word_hits,session_id,specifics_count,ts,vague_word_hits,verb_class'
+EXPECTED_KEYS='agent_id,agent_type,banner_stripped,cwd,has_backtick,has_error_text,has_number,has_path,is_question,is_slash_command,nudged,prompt_head,prompt_len,scope_word_hits,session_id,specifics_count,ts,vague_word_hits,verb_class'
 actual_keys="$(records "$d" | tail -1 | python3 -c "
 import json,sys
 try: print(','.join(sorted(json.loads(sys.stdin.read()).keys())))
