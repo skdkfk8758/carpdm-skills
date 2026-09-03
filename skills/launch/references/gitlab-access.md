@@ -40,16 +40,46 @@ curl -sS -o /dev/null -w '%{http_code}\n' -H "PRIVATE-TOKEN: $GL_TOKEN" "$GL_API
 | infra 의 promote MR 찾기 | `GET /projects/1/merge_requests?state=opened&source_branch=ci/<svc>-prod-vX.Y.Z` |
 | MR diff | `GET /projects/1/merge_requests/:iid/changes` → `.changes[].new_path`, `.diff` |
 | MR 파이프라인 | `GET /projects/1/merge_requests/:iid/pipelines` (없으면 `[]` — infra 에 CI 가 없을 수 있다) |
-| MR 머지 | `PUT /projects/1/merge_requests/:iid/merge` body `{"squash":false,"should_remove_source_branch":true}` |
+| MR 머지 | `PUT /projects/1/merge_requests/:iid/merge` body `{"squash":false,"should_remove_source_branch":true,"sha":"<head>"}` |
 | 머지 확인 | `GET /projects/1/merge_requests/:iid` → `.state == "merged"` 그리고 `.merged_at` 채워짐 |
+| PAT self-rotate | `POST /personal_access_tokens/self/rotate` body `{"expires_at":"YYYY-MM-DD"}` → `.token`(신규) |
 | protected tag (setup) | `POST /projects/:id/protected_tags` body `{"name":"v*","create_access_level":40}` (40=Maintainer) |
 | CI 변수 존재 (setup) | `GET /projects/:id/variables` → key 목록 (값은 보지 않는다 — masked) |
 
 머지 응답 200 은 "요청 수락" 이다. `merged_at` 재조회 없이 머지됐다고 쓰지 않는다.
 
-## 3. PAT 가 없을 때 — 발급 안내 (스킬이 대신 만들지 않는다)
+**`sha` 는 선택이 아니라 필수다.** 빼면 `400 {"message":"SHA must be provided when merging"}`
+가 온다(2026-09-03 실측, GitLab 19.3.1 · `DevOps/db-manager` !1). 값은 머지 직전 MR 을 조회해
+`.sha`(= head commit)를 그대로 넣는다 — 로컬 `git rev-parse` 로 조립하지 말 것(원격이 앞서
+있으면 어긋난다). 이 필드는 "내가 본 그 커밋을 머지한다"는 낙관적 잠금이라, 사이에 push 가
+들어오면 409 로 막아 주는 안전장치이기도 하다.
 
-토큰 발급은 사람의 GitLab 세션(Access 통과)이 필요하다. 이 문구를 그대로 내고 **멈춘다**:
+머지 뒤 로컬 브랜치 정리에서 **squash 머지는 `git branch -d` 를 거부한다**(`not fully merged`).
+브랜치 커밋이 기본 브랜치의 조상이 아니게 되기 때문이며 정상이다. MR `state == "merged"` 를
+확인한 뒤 `git branch -D <b>  # landed` 로 지운다 — `# landed` 주석은 파괴 명령 훅
+(`guard-destructive-cmd.sh`)이 요구하는 마커다.
+
+## 3. PAT 가 없거나 만료가 임박할 때
+
+**만료 임박 = 스킬이 직접 갱신한다.** 토큰이 살아 있기만 하면 웹 세션 없이 자체 로테이트가
+된다(GitLab 16+, 19.3.1 실측):
+
+```bash
+NEW=$(curl -sS -X POST -H "PRIVATE-TOKEN: $GL_TOKEN" -H 'Content-Type: application/json' \
+      -d '{"expires_at":"2027-09-02"}' "$GL_API/personal_access_tokens/self/rotate" \
+      | python3 -c 'import sys,json; print(json.load(sys.stdin)["token"])')
+security add-generic-password -a carpdm -s gitlab-onprem -w "$NEW" -U
+```
+
+- **구 토큰은 응답과 동시에 폐기된다.** 응답의 `token` 을 놓치면 복구 수단이 없으니
+  로테이트·저장·검증을 **한 스크립트 안에서** 끝낸다 — 중간에 사람 확인을 끼우지 말 것.
+- 저장처가 둘 이상이면(예: `~/.config/admap-mcp.env` 의 `GITLAB_TOKEN=`) 같은 스크립트에서
+  전부 갱신하고, 각 저장처에서 다시 읽어 `GET /version` 200 으로 검증한다.
+- 만료일은 서버 정책 상한을 넘으면 조용히 줄어든다 — 응답의 `expires_at` 을 그대로 믿지 말고
+  출력해 확인한다.
+
+**아예 없을 때만** 사람 손이 필요하다(발급은 Access 통과 세션이 필요). 이 문구를 그대로 내고
+**멈춘다**:
 
 ```
 GitLab PAT 가 keychain(gitlab-onprem)에 없다. 발급:
