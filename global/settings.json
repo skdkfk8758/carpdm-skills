@@ -581,5 +581,6 @@
       "Hermes ingest/analyze daemon endpoints referenced via HERMES_INGEST_URL"
     ]
   },
-  "claudeInChromeDefaultEnabled": false
+  "claudeInChromeDefaultEnabled": false,
+  "model": "claude-fable-5-1[1m]"
 }
