@@ -219,6 +219,11 @@ linear(§11)과 같은 포지션 — craft-core 에 두지만 **엔진 의존 �
   안 뚫린다. API 없으면 release 모드 진행 안 함(반자동 릴리즈가 가장 헷갈린다) — PAT 발급 안내 후 멈춤.
 - **버전은 태그가 SSOT.** `package.json` 은 건드리지 않는다(드리프트는 플랜에 한 줄). 태그 메시지 = Release 본문
   한 소스, 첫 줄 `vX.Y.Z — <요약>` 로 3가지 스타일 수렴. bump 는 커밋 prefix 종류로(feat→minor 등), 사용자 지정 우선.
+- **배선 ≠ 환경 — 준비도는 명령으로 판정(2026-09-03 보강).** setup 은 EKS·Argo·Secret 을 만들지 않는데, 종전엔
+  `PROD_ARGO_APP` 빈칸 하나로 "미구축" 을 대리 판정하고 안내가 없었다. `references/prod-readiness.md` 가 10 항목
+  3-상태(PASS/FAIL/확인필요, 추측 PASS 금지) 표 + 미충족 항목별 "어디서 만드나" 가이드(EKS 는 infra Terraform·
+  ADR 0006 apply 결정, 데이터 도달성은 사용자 결정) + **connect 모드**(준비도 1~5 PASS 뒤 dev digest 첫 sync 를
+  smoke 로 확인하고 CI 변수 3개를 MR 로 채움)를 정의한다. 세 모드 setup→connect→release 는 한 세션에 섞지 않는다.
 - **land 연동:** land report `▶ 다음 단계` 권장 행이 GitLab repo 의 미릴리즈 커밋을 `/launch` 로 라우팅.
 
 ## Skill authoring 검증

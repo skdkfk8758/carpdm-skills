@@ -20,7 +20,7 @@ Claude Code 글로벌 스킬 배포 레포. **계획 3종(심층 인터뷰·계�
 |---|---|---|---|
 | [`handoff`](skills/handoff) | 세션 인계 (저장/복원) | "여기까지 하자 이어서", "어디까지 했지" | 없음 (독립) |
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
-| [`launch`](skills/launch) | GitLab 서비스 운영 릴리즈 — 버전·노트 제안 → 승인 1회 → 태그·Release → 태그 파이프라인(dev digest 재태깅+infra prod promote MR) → MR 자동 머지 → Argo/health 검증 · 배선 없으면 setup 모드 | "운영 배포해줘", "prod 릴리즈", "운영배포 세팅해줘", "/launch" | GitLab PAT(keychain `gitlab-onprem`) + kubectl port-forward · references/craft (output-contract·linear) |
+| [`launch`](skills/launch) | GitLab 서비스 운영 릴리즈 — 버전·노트 제안 → 승인 1회 → 태그·Release → 태그 파이프라인(dev digest 재태깅+infra prod promote MR) → MR 자동 머지 → Argo/health 검증 · 배선 없으면 setup, prod 환경 준비도(10항목 3-상태) 판정·가이드 + connect 모드 | "운영 배포해줘", "prod 릴리즈", "운영배포 세팅해줘", "/launch" | GitLab PAT(keychain `gitlab-onprem`) + kubectl port-forward · references/craft (output-contract·linear) |
 | [`wt-sweep`](skills/wt-sweep) | PR 없이 잔여·세션 워크트리만 정리 | "워크트리 정리해줘", "세션 워크트리 치워줘" | 자체 references/sweep-mode.md 가 절차 SSOT |
 | [`ship`](skills/ship) | (레포 전용) 스킬 변경 PR→CI→머지→로컬정리 한 흐름 | "PR 올리고 land 까지", "ship 해줘", "CI 통과하면 머지" | 없음 (독립, carpdm-skills 전용) |
 | [`dev-server-daemon`](skills/dev-server-daemon) | dev 서버를 daemon(double-fork)으로 띄워 세션 종료 후에도 살려둠 — 사람이 브라우저로 직접 확인하도록 인계 | "개발서버 백그라운드로 띄워줘", "dev 서버 올려둬 내가 확인할게", "올려놔" | 없음 (독립, references/craft `ui-verify §5.1` 이 이 스킬을 호출) |
