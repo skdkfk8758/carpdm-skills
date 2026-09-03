@@ -88,6 +88,7 @@ Tier 1 단축이 명백하더라도, 컨텍스트의 available-skills 목록에�
 | 빌드 전 plan/design 을 **결정트리 압박·구멍 찾기** | `mattpocock-skills:grilling` | 모델 발동 |
 | 위 + repo 에 **CONTEXT.md·ADR 흔적** 남기며 | `/grill-with-docs` | 사용자 타이핑 |
 | 계획을 실제 공수 들이기 직전 **철거 반사** | `/hate` (paperthin) | 사용자 타이핑 |
+| 인터뷰가 **`[THIRD]` 갭**(답이 제3자에게)을 남겼다 | `/to-questionnaire` | 사용자 타이핑 |
 | 빌드 전 **사실 조사·1차 출처 검증** 이 먼저 필요 | `mattpocock-skills:research` | 모델 발동(백그라운드) |
 | 커밋 전 **버릴 프로토타입**으로 설계 검증 | `mattpocock-skills:prototype` | 모델 발동 |
 | 용어·엔티티가 흔들려 **도메인 모델/ADR** 부터 | `mattpocock-skills:domain-modeling` | 모델 발동 |
@@ -137,8 +138,9 @@ Tier 1 단축이 명백하더라도, 컨텍스트의 available-skills 목록에�
 
 - **deep-interview** — 입력 = 번호 매긴 요구사항 **spec**. 주 경로는 메인 직접 구현이고,
   `deep-plan`(빌드 전 plan/시안) · `goal-prompt`(자율 에이전트 프롬프트) ·
-  `mattpocock-skills:grilling`(Residual ambiguity 압박)도 valid 후보다. spec 을 만든
-  *목적*이 빌드로의 핸드오프이므로 추천은 적극적이다.
+  `mattpocock-skills:grilling`(Residual ambiguity 압박)도 valid 후보다. `[THIRD]` 잔여가
+  있으면 `/to-questionnaire`(타이핑)를 함께. spec 을 만든 *목적*이 빌드로의
+  핸드오프이므로 추천은 적극적이다.
 - **deep-plan** — 입력 = **PLAN 문서 + Goal Prompt(`-prompt.md`)**(+UI 시안).
   deep-plan 은 "순수 산출" 도구라 자동 라우팅하지 않는다 — 이 추천은 **제안일 뿐
   시작이 아니다**. `deep-plan` 자신은 후보에서 제외(이미 만들었다). 흔한 다음 단계

@@ -23,7 +23,7 @@
 | **Context** *(brownfield 전용)* | 기존 시스템과 어떻게 만나는가? | 통합 지점, 보존된 동작, blast radius 가 코드로부터 식별됐다. |
 
 토폴로지가 둘 이상이면 각 *active* 컴포넌트를 따로 점수 매기라 — 가장 약한
-컴포넌트의 가장 약한 차원이 당신의 타깃이다. 단 **sticky**(SKILL.md Phase 2):
+컴포넌트의 가장 약한 차원이 당신의 타깃이다. 단 **sticky**:
 직전 라운드 컴포넌트에 머무는 쪽을 우선하고, 다른 컴포넌트가 유의미하게 더 약할
 때(차원 점수 갭 ≥ 0.15)만 옮긴다 — 지그재그는 사용자 사고 흐름을 끊는다.
 
@@ -72,7 +72,7 @@ Round 3 · brownfield · component: ingest (active)
   ambiguity: 41%  (target ≤ 20%)
   locked: 충돌 시 최신-우선 병합 (R2) · 대상은 admin 계정만 (R3)
   targeting → criteria (weakest): no measurable "done" yet
-  [challenge: contrarian fires next round]
+  stalled: no   (2라운드 연속 <2pt 면 yes → challenge 순서대로, playbook)
 ```
 
 `locked:` 줄은 이번 라운드까지 확정된 결정의 누적 요약(최근 것 위주 1줄)이다 —
@@ -91,9 +91,10 @@ Round 3 · brownfield · component: ingest (active)
   계속 나타나면, 차원 점수가 슬금슬금 올라가더라도 토폴로지가 틀렸을 수 있다
   (ontologist challenge mode 고려). 안정적인 엔티티 집합 + 오르는 점수는 진짜
   수렴이고; 요동치는 집합 + 오르는 점수는 거짓 안도감이다.
-- **Diminishing returns.** 연속한 두 라운드가 각각 ambiguity 를 ~2 포인트 미만
-  으로 움직이면, 거의 끝났거나(임계값을 넘고 멈추라) 사용자가 말로는 해결 못 하는
-  무언가에 막힌 것이다(spec 에 잔여 가정으로 명명하고 넘어가라). 갈지 말 것.
+- **stalled.** 연속한 두 라운드가 각각 ambiguity 를 2 포인트 미만으로 움직이면
+  **stalled** 다 — 라운드 보고에 표시하고 challenge mode 를 순서대로 하나 발동한다
+  (playbook §Challenge modes). 세 모드를 다 쓰고도 stalled 면 사용자가 말로는 해결
+  못 하는 것이다 — spec 에 잔여 가정으로 명명하고 결정화로 간다. 갈지 말 것.
 
 ## 점수에 대한 정직성 규칙
 
