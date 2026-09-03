@@ -174,7 +174,7 @@ L3 후보:
 - **vs `deep-plan`** — 그쪽은 debate + PLAN + 프롬프트 + 시안까지 내는 무거운 설계 경로다.
   이슈가 **oversized-class**(estimate ≥ 5 · cross-cutting · 전면 개편·마이그레이션 · 비가역
   신호)이거나 텍스트 모드 입력이 그 규모면 이 스킬로 처리하지 않는다 — `deep-plan` 으로
-  보내고(필요 시 `linear-register` 분할까지) 멈춘다. 판정 기준은 routing.md §Step 1 rubric
+  보내고(필요 시 그쪽 Step 4.5 의 이슈 트리 등록까지) 멈춘다. 판정 기준은 routing.md §Step 1 rubric
   을 그대로 쓴다(복제 금지).
 - **vs `linear-register`** — 그쪽은 이슈를 **만든다**. 이 스킬은 이미 있는 이슈(또는 아직
   이슈가 아닌 요구사항)를 착수 가능하게 깎을 뿐 등록하지 않는다.

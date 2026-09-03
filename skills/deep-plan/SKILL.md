@@ -423,7 +423,7 @@ PLAN `.md` 에 기록.
   있다. 그 목록에서 valid-next 후보를 재선정한다(글로벌·플러그인 포함, 예시 이름에
   anchor 금지). `deep-plan` 자신은 제외.
 - 빌드가 명백하면 Tier 1 단축(플랜 없이 메인이 바로 구현),
-  아니면 Tier 2 전체 후보(`linear-register` 분할 모드·`deep-research` 등)를 함께 본다.
+  아니면 Tier 2 전체 후보(`linear-register` 단건~소수 등록·`goal-prompt` 자율 실행 등)를 함께 본다.
 - 빌드로 제안하면 산출물을 **이미 완료된 Phase-1 결과물**로 취급해 다시 인터뷰하지
   말라고 프레이밍한다(이중 인터뷰 회피). Acceptance(=eval) 항목이 그 빌드가 Phase 4
   에서 닫을 체크리스트이고, UI 면 `.html` 목업이 승인된 visual 계약임을 함께 짚는다.

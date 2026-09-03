@@ -1,5 +1,6 @@
 ---
 name: goal-prompt
+model: fable
 description: 메타프롬프팅으로 자율 에이전트(orca goal 잡·claude -p) 또는 새 대화형 세션이 그대로 먹을 Goal Prompt 파일 1개를 만든다 — 시작부 페르소나, Karpathy 운영 규율, ponytail·paperthin·Matt Pocock 빌드 흐름이 맞물린 Working Method, 사람 없이 판정 가능한 Success Criteria. 부족하거나 결정이 필요한 컨텍스트는 갭 인터뷰로 채운다. "goal 프롬프트 만들어줘", "이 작업 프롬프트로 써줘", "자율 에이전트한테 던질 프롬프트 짜줘", "메타프롬프팅 해줘", "orca 잡에 넣을 프롬프트", "새 세션에 붙여넣을 프롬프트", "write me a goal prompt for X", "turn this into an agent prompt", "/goal-prompt" 에 — 'goal' 이란 말이 없어도 "에이전트에게 시킬 프롬프트" 의도면 — 트리거. 구현 코드는 쓰지 않는다. plan 문서+시안까지 원하면 deep-plan, 번호 매긴 요구사항 spec 은 deep-interview.
 ---
 

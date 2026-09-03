@@ -15,7 +15,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 - 검토·판정(코드 한 줄 안 고침, 리포트+수정 라우팅만): `preflight`(§9) · `fortify`(§12)
 - UI·도식: `imprint`(수동 추출 DESIGN.md *준수* 재현 — 발명 아님, token-traceability: raw hex/px 하드코딩 0) · `mockup`(기존 프로젝트 충실 HTML 시안; `references/design-context.md` 가 시안 충실도 SSOT — deep-plan·craft pipeline 이 이 한 소스를 읽는다, 복제 금지) · `erd`(§8)
 - 스캐폴딩·셋업: `cicd-scaffold` · `admap-scaffold` · `colocate-domain-context`
-- Linear 라이프사이클: `linear-register`/`linear-goal`/`linear-groom`/`linear-prioritize` — `## 추천` 생성 규칙은 `linear-register/references/recommend-section.md` SSOT 공유(복제 금지); 모두 graceful — Linear MCP 미설치면 가이드 한 번+스킵. `linear-groom` 은 무인 주기 실행(orca automation)용 **scan-only** 모드 보유(§14)
+- Linear 라이프사이클: `linear-register`/`linear-groom`/`linear-prioritize`/`linear-replan` — 이슈 **본문 계약**은 `linear-register/references/human-issue-writing.md` SSOT 공유(groom 보강도 이걸 읽는다, 복제 금지) + `scripts/validate_issue_body.py` 가 강제; 모두 graceful — Linear MCP 미설치면 가이드 한 번+스킵. `linear-groom` 은 무인 주기 실행(orca automation)용 **scan-only** 모드 보유(§14)
 
 > 과거 `agents/`(재사용 서브에이전트, 플랫 `.md`)를 두 번째 배포 아티팩트로 두고 `summon`(에이전트 저작) 스킬을 함께 배포했으나, [ADR 002](../docs/adr/002-revert-agents-artifact-type.md) 로 철회했다 — 이 레포는 다시 **스킬 단일 아티팩트**다.
 
@@ -130,7 +130,7 @@ craft 엔진은 **두 토폴로지**를 가진다. **linear**(기본, `pipeline.
 `harness-run`·`eval-generate`·`eval-check`·`harness-heal`·`loop-harness-setup` 을 레포와 라이브(`~/.claude/skills/`) 양쪽에서 제거했다. 절 번호는 §7/§11/§15 등 상호참조가 걸려 있어 유지하고, 본문만 은퇴 기록으로 대체한다.
 
 - **은퇴 근거 = 실사용 빈도.** 트랜스크립트 실측(`"skill":"harness-run"` 카운트) 16회/13세션 — 같은 기간 renew 41·hunt 31·linear-goal 31·forge 21 대비 구현계열 최하위이고, 2026-07-01 하루 6건(하니스 개발기)을 빼면 주 1회 미만이다. 글로벌 은퇴 규율의 "축적 ≠ 진보" 적용 — 유지비(5스킬·절대경로 재작성 로직·20여 참조)가 사용 가치를 넘겼다.
-- **흡수된 것.** linear-goal 의 안전판정은 남는다 — 판정 클래스명이 `harness-class` → **`oversized-class`** 로 바뀌었고, 라우팅 대상이 `harness-run` → `deep-plan`+`linear-register` 분할이다(레거시 Linear 라벨 `agent:harness` 는 그대로 인식). `install.sh` 의 home-prefix 재작성 블록은 유일 소비자였던 하니스 절대경로가 사라져 함께 제거했다.
+- **흡수된 것.** linear-goal 의 안전판정은 남는다 — 판정 클래스명이 `harness-class` → **`oversized-class`** 로 바뀌었고, 라우팅 대상이 `harness-run` → `deep-plan`(Step 4.5 이슈 트리 등록)이다(레거시 Linear 라벨 `agent:harness` 는 그대로 인식). `install.sh` 의 home-prefix 재작성 블록은 유일 소비자였던 하니스 절대경로가 사라져 함께 제거했다.
 - **되살리려면** git history 가 안전망 — 이 커밋을 revert 하면 5스킬과 참조가 함께 돌아온다.
 
 ### 14. linear-groom scan-only = 승인 게이트 스킬을 무인 주기 실행에 붙이는 방식

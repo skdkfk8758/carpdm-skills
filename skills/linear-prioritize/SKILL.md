@@ -119,7 +119,7 @@ Project: ...
 | 이슈 단순 조회·검색 | `linear.md` 룰 (현재 repo 팀 스코프) |
 | 신규 이슈 등록 | `linear-register` 스킬 |
 | 백로그 재배치·thin 이슈 보강 | `linear-groom` 스킬 |
-| plan/PRD 를 다중 이슈로 분할 | `linear-register` (분할 모드) |
+| plan/PRD 를 다중 이슈로 분할 | `deep-plan` (Step 4.5 — `linear.md` §2 트리 등록) |
 | 실제 코드 구현 | 메인이 직접 (plan mode → 구현 → `/code-review`) |
 
 이 스킬은 **이미 등록된 미완 이슈의 실행 계획**만 낸다 — 새 이슈도, 코드도 만들지 않는다.
