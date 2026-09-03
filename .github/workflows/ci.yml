@@ -49,6 +49,11 @@ jobs:
       - name: Test prompt-intake hook
         run: bash scripts/ci/test-prompt-intake.sh
 
+      # Same idea: the guard resolves its target next to itself, so the repo
+      # mirror is testable as-is. Covers both the blocks and the false positives.
+      - name: Test branch-protection guard
+        run: python3 global/hooks/guards/guard-branch-protection.test.py
+
       # Hermetic (fake HOME) — asserts --dry-run writes nothing and skips sync-global.
       - name: Test sync.sh --dry-run
         run: bash scripts/ci/test-sync-dry-run.sh
