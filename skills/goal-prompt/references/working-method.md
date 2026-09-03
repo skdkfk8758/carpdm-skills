@@ -59,7 +59,8 @@ Pocock 흐름 `idea → grill → spec → tickets → implement(tdd → code-re
 - **tracer bullet = 실행 단위** — 슬라이스는 전 계층 관통·단독 검증·**fresh 컨텍스트
   하나 크기**, `Blocked by` 선언, 슬라이스당 커밋 1. 2+ 슬라이스면 골격 `## Slices`
   가 그 목록이고 Operating discipline 4 의 Step 목록을 대체한다(수평 슬라이싱 차단).
-  한 슬라이스가 컨텍스트 하나에 안 들어가면 프롬프트 N 파일 분할(`-prompt-01.md`…).
+  한 슬라이스가 컨텍스트 하나에 안 들어가거나 4000자 게이트에 걸리면 프롬프트 N 파일
+  분할(`-prompt-01.md`…) + 공통 규율 파일 추출(`-prompt-00-common.md`).
   넓은 리팩터만 예외: expand → migrate(배치) → contract.
 - **tdd 루프** — red 먼저, 통과할 만큼만 green, 슬라이스당 seam 1·테스트 1·구현 1.
   리팩터는 루프 밖(review 단계). 타입체크·단일 테스트 파일은 자주, 전체 스위트는 끝에
@@ -110,7 +111,8 @@ BASE SHA 리터럴 기록, Success Criteria, Verification 은 스킬 유무와 �
 - [ ] 마지막 SC 가 BASE SHA 리터럴 기준의 `git diff --stat <SHA>` **+ `git status --porcelain`** 쌍(`...HEAD` 아님, diff 단독 아님)이고 영향 반경에 테스트·lockfile·handoff 가 포함돼 있나
 - [ ] Verification 에 실패 상한(1회 자가수정 → partial)이 있나
 - [ ] 페르소나에 "중시 순서"와 "불확실성 처리"가 있나 — 직함만이면 BLOCKING
-- [ ] 파일당 `LC_ALL=en_US.UTF-8 wc -m` 을 보고에 리터럴로 적었나 — 4000 초과는 SUGGESTION(압축 1회 시도 후 사유 보고, 한도 미실측이라 BLOCKING 아님)
+- [ ] 파일당 `LC_ALL=en_US.UTF-8 wc -m` 이 **4000 이하**인가 — 초과는 BLOCKING(Step 6 게이트를 통과할 때까지 산출하지 않는다. 1,000자 이상 초과면 산문 압축 말고 슬라이스 분할 + 공통 파일 추출로 간다)
+- [ ] 공통 파일을 뺐다면 각 슬라이스 파일 첫머리에 `## 공통 규율`(경로 + "읽지 않고 시작하지 않는다")이 있나 — 없으면 BLOCKING(소비자가 규율 없이 시작한다)
 - [ ] Context 에 `{{…}}` placeholder 가 남아 있나 — 하나라도 있으면 BLOCKING(branch 포함, launcher 는 채워주지 않는다)
 
 ### Pocock 렌즈 — "빌드가 수직으로, 검증 가능하게 굴러가나"

@@ -1,21 +1,22 @@
 ---
 name: goal-prompt
 model: fable
-description: 메타프롬프팅으로 자율 에이전트(orca goal 잡·claude -p) 또는 새 대화형 세션이 그대로 먹을 Goal Prompt 파일 1개를 만든다 — 시작부 페르소나, Karpathy 운영 규율, ponytail·paperthin·Matt Pocock 빌드 흐름이 맞물린 Working Method, 사람 없이 판정 가능한 Success Criteria. 부족하거나 결정이 필요한 컨텍스트는 Pocock grilling 규율의 갭 인터뷰(design tree·프론티어 라운드·문항마다 권장답, 사실은 내가 결정은 사용자)로 채우고, 프롬프트 1장 크기를 넘으면 wayfinder·deep-plan·grilling 으로 라우팅한다. "goal 프롬프트 만들어줘", "이 작업 프롬프트로 써줘", "자율 에이전트한테 던질 프롬프트 짜줘", "메타프롬프팅 해줘", "orca 잡에 넣을 프롬프트", "새 세션에 붙여넣을 프롬프트", "write me a goal prompt for X", "turn this into an agent prompt", "/goal-prompt" 에 — 'goal' 이란 말이 없어도 "에이전트에게 시킬 프롬프트" 의도면 — 트리거. 구현 코드는 쓰지 않는다. plan 문서+시안까지 원하면 deep-plan, 번호 매긴 요구사항 spec 은 deep-interview.
+description: 메타프롬프팅으로 자율 에이전트(orca goal 잡·claude -p) 또는 새 대화형 세션이 그대로 먹을 Goal Prompt 파일을 만든다(파일당 4000자 상한 — 넘으면 슬라이스별로 쪼개고 공통 규율 파일을 뺀다) — 시작부 페르소나, Karpathy 운영 규율, ponytail·paperthin·Matt Pocock 빌드 흐름이 맞물린 Working Method, 사람 없이 판정 가능한 Success Criteria. 부족하거나 결정이 필요한 컨텍스트는 Pocock grilling 규율의 갭 인터뷰(design tree·프론티어 라운드·문항마다 권장답, 사실은 내가 결정은 사용자)로 채우고, 갭이 한 세션에 안 닫히면 wayfinder·deep-plan·grilling 으로 라우팅한다. "goal 프롬프트 만들어줘", "이 작업 프롬프트로 써줘", "자율 에이전트한테 던질 프롬프트 짜줘", "메타프롬프팅 해줘", "orca 잡에 넣을 프롬프트", "새 세션에 붙여넣을 프롬프트", "write me a goal prompt for X", "turn this into an agent prompt", "/goal-prompt" 에 — 'goal' 이란 말이 없어도 "에이전트에게 시킬 프롬프트" 의도면 — 트리거. 구현 코드는 쓰지 않는다. plan 문서+시안까지 원하면 deep-plan, 번호 매긴 요구사항 spec 은 deep-interview.
 ---
 
-# Goal Prompt — 메타프롬프팅 → 갭 인터뷰 → 프롬프트 1파일
+# Goal Prompt — 메타프롬프팅 → 갭 인터뷰 → 프롬프트 파일
 
 당신은 **프롬프트를 쓰지, 작업을 하지 않는다.** 사용자가 던진 한 문단은 자율 실행
 계약으로는 약하다 — 페르소나가 없어 에이전트가 트레이드오프마다 흔들리고, Success
 Criteria 가 없어 done 을 스스로 못 판정하고, 레포 사실이 없어 추측으로 움직인다. 이
-스킬은 그 문단을 **한 파일**로 깎는다: Persona → Operating discipline(Karpathy) →
-7섹션 계약 → Slices(2+ 슬라이스일 때) → Working Method(ponytail·paperthin·Pocock
-결합) → Done & Report. 갭은 인터뷰로 닫고, 못 닫은 갭은 assumption 으로 이름 붙여
+스킬은 그 문단을 **붙여넣으면 바로 도는 계약**으로 깎는다: Persona → Operating
+discipline(Karpathy) → 7섹션 계약 → Slices(2+ 슬라이스일 때) → Working Method
+(ponytail·paperthin·Pocock 결합) → Done & Report. 파일당 4000자가 상한이라 내용이
+그보다 크면 슬라이스별 파일 + 공통 규율 파일로 나온다(Step 4 길이·Step 6 게이트). 갭은 인터뷰로 닫고, 못 닫은 갭은 assumption 으로 이름 붙여
 싣는다.
 
 **vs `deep-plan`** — 그쪽은 fable×2 debate 로 프롬프트+PLAN+HTML 3파일. 여기는
-프롬프트 1파일만, debate 없이 갭 인터뷰 + 2-렌즈 자가검토. deep-plan 경계문이 "goal
+프롬프트만, debate 없이 갭 인터뷰 + 2-렌즈 자가검토. deep-plan 경계문이 "goal
 프롬프트만 원하면 여기 아님"이라 비워둔 자리다. **vs `mattpocock-skills:grilling`** —
 Step 3 은 grilling 규율(design tree·프론티어·권장답)을 7갭 상한으로 돌리는 것이다.
 상한을 넘는 트리는 grilling 자체나 `/wayfinder` 로 라우팅한다(Step 3-7).
@@ -61,8 +62,8 @@ Step 3 은 grilling 규율(design tree·프론티어·권장답)을 7갭 상한�
 반경·검증 명령·seam·BASE SHA)은 아래대로 레포에서 실측한다 — 이슈 본문은 그것을
 담지 않는 계약이다.
 
-**아래 실측은 `gp-ground` 서브에이전트가 별 컨텍스트에서 수행한다.** 산출물은 짧은
-1파일인데 그걸 쓰려고 지침·ADR·러너·prior art 를 다 읽는다 — 읽은 원문이 메인
+**아래 실측은 `gp-ground` 서브에이전트가 별 컨텍스트에서 수행한다.** 산출물은 파일당
+4000자짜리 프롬프트인데 그걸 쓰려고 지침·ADR·러너·prior art 를 다 읽는다 — 읽은 원문이 메인
 컨텍스트에 남을 이유가 없다. 글로벌 `CLAUDE.md` §위임의 예외("*독립 컨텍스트가 목적*")에
 해당한다: 더블체크가 아니라 컨텍스트 분리가 목적이다.
 
@@ -85,7 +86,10 @@ Agent({ name: 'gp-ground', model: 'sonnet', subagent_type: 'general-purpose' })
 쓰게 된다. 그래서 `gp-ground` 는 **프롬프트에 그대로 복사될 문자열**만 돌려준다 —
 경로, 명령 문자열 원문, seam 식별자, BASE SHA, ADR 번호. "verify 스크립트가 있다" 같은
 문장은 실패다("`pnpm verify` → exit 0" 이 정답). 확인 못 한 항목은 채우지 말고
-`미확인` 으로 표시해 Step 2 갭으로 올린다.
+`미확인` 으로 표시해 Step 2 갭으로 올린다. 반환이 길면 도구가 끝을 자르고
+`[result truncated — ask the agent for the rest via SendMessage]` 를 붙인다 —
+잘린 항목을 추측으로 메우지 말고 `SendMessage` 로 그 항목만 다시 받는다(실측
+2026-09-03: 60줄 계약에도 슬라이스 근거 줄이 잘렸다).
 
 `gp-ground` 에게 주는 브리프 = 아래 **처음 4항목** + 요청문 원문 + repo 루트. 영향 반경에
 한정, 레포 전체 아님. **5항목(소비 환경의 스킬)은 위임하지 않는다** — 그 판정이 세션의
@@ -133,10 +137,14 @@ dirty 면(남의 미커밋 작업) 실측 기준은 **HEAD 커밋**이다 — �
   `[HUMAN]` 결정 — 요청자만 답한다 · `[THIRD]` 답이 요청자가 아닌 제3자에게 있다.
   전형적 `[HUMAN]`: 페르소나(문서 근거 없을 때), Out of Scope 경계, seam 선택(후보
   둘 이상), 성공 판정 수치, **push/PR 생성 권한**(외부 write 는 요청자만 답한다),
-  소비자(미판정 시), 2+ 슬라이스를 프롬프트 1개(`## Slices`)로 갈지 N 파일로 쪼갤지.
+  소비자(미판정 시).
+- **묻지 않는 것 — 파일을 1개로 갈지 N 개로 쪼갤지.** 그것은 4000자 게이트가 산술로
+  정한다(Step 4 길이·Step 6). 물어서 "1파일" 답을 받아도 게이트가 뒤집으므로 헛질문이
+  된다(실측 2026-09-03: 그렇게 물었다가 11,061자가 나와 분할로 되돌렸다). 슬라이스
+  개수만 Step 1 에서 실측하고, 파일 수는 게이트가 결정하게 둔다.
 - **의존 표시 `after:`** — 답이 다른 갭의 옵션이나 존재를 바꾸는 선행 갭을 각 갭에
   적는다. 이것이 design tree 다. 전형: 페르소나 → SC 수치·seam 옵션, 소비자 → push/PR
-  권한, 슬라이스 수 → 분할 여부. `after:` 없는 갭이 루트.
+  권한. `after:` 없는 갭이 루트.
 - **권장답 의무** — 모든 `[HUMAN]` 갭에 내 권장답 + 근거 한 줄(grounding 실측·페르소나
   우선순위·ponytail 최단 경로 중 무엇에서 왔는지). 권장답을 못 쓰는 갭은 결정 갭이
   아니라 조사 부족이다 — `[CODE]`/`[DOCS]` 로 되돌려 먼저 캔다. 권장답이 있어야 Step 3
@@ -172,7 +180,8 @@ dirty 면(남의 미커밋 작업) 실측 기준은 **HEAD 커밋**이다 — �
    goal-prompt 는 코드를 쓰지 않으므로 둘 중 하나를 사용자에게: (a) 지금
    `mattpocock-skills:prototype` 으로 답을 얻고 돌아온다(사람이 있을 때만) / (b) 프롬프트
    **Slice 1 을 spike 슬라이스**로 — SC 에 판정 조건, 실패면 partial. 기본은 (b).
-7. **라우팅 아웃 — 프롬프트 1장 크기가 아닐 때.** 라운드 3 뒤에도 루트 갭(`after:` 없는)이
+7. **라우팅 아웃 — 갭이 안 닫힐 때(길이 문제가 아니다).** 길이는 분할·공통 추출로
+   해결되므로 라우팅 사유가 아니다. 라운드 3 뒤에도 루트 갭(`after:` 없는)이
    계속 생기거나 갭 누계가 7 을 넘으면 멈추고 `AskUserQuestion` 으로 제안한다: 한 세션에
    안 담기는 안개 → `/wayfinder`(타이핑) · plan+debate 가 필요 → `deep-plan` · 여기서 끝까지
    털고 싶다 → `mattpocock-skills:grilling` 호출(상한 없는 같은 규율 — 끝나면 Step 4 재개,
@@ -204,15 +213,27 @@ dirty 면(남의 미커밋 작업) 실측 기준은 **HEAD 커밋**이다 — �
   않음 — 수평 슬라이싱 차단).
 - **Working Method 는 `working-method.md` §4 결합표로** — 설치 확인된 스킬은 이름
   발동 + 폴백을 같은 줄에. 폴백 없는 줄은 결합표 위반.
-- **길이 — 파일당 4000자 권장(`LC_ALL=en_US.UTF-8 wc -m` 기준, 공백 포함).** 하드
-  상한이 아니다. **실측(2026-09-03, Claude Code CLI 2.1.259):** autonomous 소비자는
-  `claude --bg "<프롬프트>"` 백그라운드 잡(세션에 `CLAUDE_JOB_DIR` 세팅 — Orca 가 아니라
-  Claude Code 의 변수)이고, 12,167자 프롬프트가 잘림 없이 세션 첫 user 메시지로 도착했다
-  (트랜스크립트 문자 수 일치). 입력 상한은 셸 `ARG_MAX`(macOS `getconf` 1,048,576 바이트)
-  뿐 — 4000 은 소비 에이전트의 집중을 위한 권장이지 시스템 한도가 아니다. 원칙 전문을
-  붙여넣지 않는다. 권장을 넘으면 순서대로 압축 — ① Context 실측 인용 → 경로 포인터,
-  ② Working Method 결합표 줄의 설명 prose 삭제(발동+폴백만 남김), ③ 그래도 크면
-  슬라이스 경계로 N 파일 분할(Step 6). 압축이 실측·SC 를 깎으면 길이를 택하지 않는다.
+- **길이 — 파일당 4000자가 하드 상한(`LC_ALL=en_US.UTF-8 wc -m` 기준, 공백 포함).**
+  초과분을 남긴 채 산출하지 않는다 — Step 6 이 게이트다. 시스템 한도라서가 아니라
+  소비 에이전트의 집중 때문이다(실측 2026-09-03, CLI 2.1.259: `claude --bg` 가
+  12,167자를 잘림 없이 첫 user 메시지로 받았고 입력 상한은 셸 `ARG_MAX` 뿐 —
+  물리적으로는 들어가지만 그렇게 만들지 않는다). 원칙 전문을 붙여넣지 않는다.
+  넘으면 아래 순서로 줄인다. **①②는 수확이 빨리 꺼진다**(실측: 11,061 → 6,489 →
+  5,864 → 5,720 에서 정체). **4000 을 실제로 통과시키는 것은 ③④다 — 1,000자 이상
+  초과면 ①②에 시간을 쓰지 말고 ③부터 간다.**
+  ① Context 실측 인용 → 경로 포인터. 단 소비자가 다시 캐야 하는 리터럴(엔드포인트·
+     이미지 태그·설정 키·seam 이름)은 남긴다.
+  ② Working Method 결합표 줄의 설명 prose 삭제(발동+폴백만 남김).
+  ③ **슬라이스 경계로 N 파일 분할**(Step 6). 슬라이스가 2+ 면 이것이 1순위다.
+  ④ **공통 규율 파일 추출** — 2+ 파일이 되는 순간 Persona·Operating discipline·
+     전체 목표·공통 Constraints·Working Method·보고 형식이 파일마다 복제된다(파일당
+     약 1,500자). 이것을 `-prompt-00-common.md` 하나로 빼고, 각 슬라이스 파일 첫머리에
+     `## 공통 규율` 한 문단만 둔다 — "착수 전에 `<경로>` 를 읽고 그대로 따른다. 읽지
+     않고 시작하지 않는다." 공통 파일 머리에는 "충돌하면 슬라이스 파일이 이긴다" 를
+     적는다. 슬라이스 파일에는 그 슬라이스 고유의 Objective·SC·Context·Constraints·
+     Out of Scope·인계값·사람 확인 요청만 남는다. 실측(2026-09-03): 3파일
+     4,131·5,282·4,890 → 추출 후 2,824·4,010·3,725 + 공통 2,968.
+  압축이 실측·SC 를 깎아야만 통과하는 상황이면 깎지 말고 ③④로 간다.
   `LC_ALL` 을 고정하는 이유: `LC_ALL=C` 면 `wc -m` 이 바이트를 세어 한글이 3배로
   잡힌다(실측 5자 → 15).
 - 언어: 산문 한국어, 식별자·명령·경로 원문. 사용자가 영어를 원하면 그대로.
@@ -225,16 +246,28 @@ dirty 면(남의 미커밋 작업) 실측 기준은 **HEAD 커밋**이다 — �
 별 `Agent`(read-only, 렌즈 체크리스트 + 초안 경로) 로 병렬 — BLOCKING 만 의무 반영,
 왕복 1회.
 
-### Step 6 — 파일 산출
+### Step 6 — 파일 산출 + 4000자 게이트
 
 `docs/plans/YYYY-MM-DD-<topic>-prompt.md` (프로젝트가 다른 plan 위치를 쓰면 그곳 —
-deep-plan 과 같은 규약이라 하류 도구가 동일 취급). N 파일 분할이면 `-prompt-01.md`… —
-뒤 파일의 Context 에 "Blocked by: `-prompt-<N-1>` 의 완료 커밋이 내 BASE" 를 적는다.
+deep-plan 과 같은 규약이라 하류 도구가 동일 취급). N 파일 분할이면 `-prompt-01.md`…,
+공통 추출이 있으면 `-prompt-00-common.md`. 뒤 파일 머리에 "**Blocked by**:
+`-prompt-<N-1>` 의 완료 커밋이 내 BASE 다. 없으면 `blocked: …` 로 종료" 를 적는다.
+슬라이스 사이에 사람 작업이 끼면(apply·승인·관측 대기) 그것도 Blocked by 에 쓴다.
 **파일 전체가 그대로 goal 칸에 들어간다** — 프론트매터·메타 해설·인터뷰 기록을 넣지
 않는다. 인터뷰 결과는 본문(Context/Constraints assumption)에 녹아 있어야 한다.
-쓴 뒤 파일마다 `LC_ALL=en_US.UTF-8 wc -m <file>` 을 실행해 출력을 보고에 리터럴로
-적는다. 4000 초과면 Step 4 압축 순서를 한 번 적용하고, 그래도 넘으면 그 사실과 사유를
-보고에 적고 산출한다(권장이지 게이트가 아니다).
+
+쓴 뒤 **반드시 게이트를 돌린다**:
+
+```bash
+for f in <plans 경로>/<날짜>-<topic>-prompt*.md; do
+  printf '%5s  %s\n' "$(LC_ALL=en_US.UTF-8 wc -m < "$f")" "$f"
+done
+```
+
+한 파일이라도 4000 을 넘으면 **거기서 끝내지 않는다** — Step 4 의 압축 순서(1,000자
+이상 초과면 ③부터)를 적용하고 다시 잰다. 통과할 때까지 반복하고, 통과 사실을 게이트
+출력 리터럴로 보고에 적는다. 실측·SC 를 깎아야만 통과하는 상황이면 깎지 말고 더
+쪼갠다. 게이트를 통과하지 못한 채로 Step 7 에 가지 않는다.
 
 ### Step 7 — 종료 보고 + 다음 단계 제안
 
@@ -249,6 +282,8 @@ interactive → 새 세션에 붙여넣으라고, 첫 체크포인트(`/hate`)�
 tier/effort(런 사이징 — 잡 띄울 때 참고), 인터뷰 라운드 수·닫은 갭 수(태그별),
 assumption 승격 목록(권장답 출처 포함), `[DOCS]` research 산출 경로, 라우팅 아웃 제안
 여부(`/wayfinder`·`deep-plan`·grilling), 3 패밀리(ponytail·paperthin·Pocock) 중
-**미설치라 인라인으로 대체한 것**, 슬라이스 수.
+**미설치라 인라인으로 대체한 것**, 슬라이스 수, **산출 파일 수와 파일별 문자수(게이트
+출력 리터럴) + 공통 파일 추출 여부**. 파일이 2+ 면 사용자가 무엇을 언제 붙여넣는지
+순서를 한 줄로 — 슬라이스 사이에 낀 사람 작업을 포함한다.
 
 `result:` emit 뒤 제안하고 **여기서 멈춘다** — 다음 스킬 자동 시작 없음.
