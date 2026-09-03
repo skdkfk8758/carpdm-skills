@@ -100,6 +100,12 @@ ref 의 파이프라인에만 주입된다(admap-mcp 실측 2026-09-03: protecte
 tag 생성(없으면 릴리즈 파이프라인 변수 미주입)` 으로 올린다. 부수 효과로 Maintainer 만 `v*` 를 만들 수 있어
 lightweight 태그 실수도 막힌다.
 
+## 2d. prod 환경 준비도 판정 (write 아님)
+
+배선 MR 을 만든 뒤 `references/prod-readiness.md` §1 표를 돌린다 — setup 이 환경을 만들지는 않지만 사용자가
+"배선은 됐는데 다음에 뭘 해야 하나" 를 알아야 한다. FAIL·확인필요 항목에 §2 가이드를 붙여 §4 보고에 싣는다.
+컨텍스트가 아직 없으면(보통 그렇다) 1 FAIL + 나머지 `—` 가 정상 출력이고, 가이드는 1 번(EKS)부터다.
+
 ## 3. 검증 — 배선이 "있다" 가 아니라 "맞다"
 
 - **release 모드 Step 0 판정을 로컬에서 재현**: 병합된 `.gitlab-ci.yml` 에서 6개 변수를 다시 읽어
@@ -121,10 +127,17 @@ infra MR   DevOps/infra !NN launch/<svc>-prod-path → main          (머지 대
 protected  v* → Maintainer                                          (또는 [HUMAN] API 없음)
 검증       변수 6/6 · ECR repo 2/2 · image 줄 1파일 · sed dry-run OK
 
+
+prod 준비도 — 2/10 PASS · 7 FAIL · 1 확인필요          ← prod-readiness.md §1 표 그대로(10행)
+ 1 kube context   FAIL  PROD_KUBE_CONTEXT 미설정
+ …
+## prod 환경 준비 가이드                                  ← §2 표에서 FAIL·확인필요 행만
+ 1 EKS — DevOps/infra infra/terraform (ADR 0006 apply 결정 필요)
+ …
+
 [HUMAN] 남은 것
 - 두 MR 머지 (infra 먼저)
-- prod Secret <svc>-env 생성 (Infisical prod env → k8s Secret) — EKS 구축 시
-- EKS 구축 후 CI 변수 PROD_ARGO_APP=apps-prod-<svc> · PROD_KUBE_CONTEXT · PROD_HEALTH_URL 채우기
+- 위 준비 가이드 항목 해소 → `/launch` (connect 모드가 변수 3개를 채우고 첫 sync 를 확인한다)
 - 첫 릴리즈: /launch  (여기서 태그 파이프라인이 처음 돈다 — 실검증)
 
 result: launch setup apps/<svc> — 앱 MR !NN + infra MR !NN 생성, protected tag v*, 배선 검증 4/4 · 첫 릴리즈는 머지 후 /launch

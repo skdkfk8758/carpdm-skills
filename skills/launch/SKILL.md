@@ -1,6 +1,6 @@
 ---
 name: launch
-description: GitLab 에 호스팅된 서비스를 운영(prod)으로 릴리즈한다 — 마지막 태그 이후 머지분을 읽어 semver 버전·릴리즈 노트를 제안하고, 승인 1회 뒤 annotated 태그 push → GitLab Release → 태그 파이프라인(dev 검증 digest 재태깅 + `DevOps/infra` prod promote MR) 감시 → MR 자동 머지 → prod Argo sync·healthz 검증 → 실패 시 롤백 MR 제안까지 한 흐름으로 잇는다. 프로젝트에 릴리즈 배선(태그 `v*` 잡·prod gitops 경로)이 없으면 setup 모드로 전환해 인터뷰하며 `.gitlab-ci.yml` release 잡·infra prod 경로·protected tag 를 세팅한다. "운영 배포해줘", "prod 릴리즈", "태그 따서 배포", "v1.4 로 릴리즈", "운영배포 세팅해줘", "이 서비스 릴리즈 파이프라인 붙여줘", "release to prod", "cut a release", "/launch" 에 — 'launch' 란 말이 없어도 — 트리거. dev 반영(develop push·promote MR 머지)은 land 가 끝낸 뒤 자동이라 launch 아님. GitHub 만 쓰는 repo 는 범위 밖(GitLab 이관 전엔 손배포). PR 머지·로컬 동기화는 land, 스킬 레포 배포는 ship.
+description: GitLab 에 호스팅된 서비스를 운영(prod)으로 릴리즈한다 — 마지막 태그 이후 머지분을 읽어 semver 버전·릴리즈 노트를 제안하고, 승인 1회 뒤 annotated 태그 push → GitLab Release → 태그 파이프라인(dev 검증 digest 재태깅 + `DevOps/infra` prod promote MR) 감시 → MR 자동 머지 → prod Argo sync·healthz 검증 → 실패 시 롤백 MR 제안까지 한 흐름으로 잇는다. 프로젝트에 릴리즈 배선(태그 `v*` 잡·prod gitops 경로)이 없으면 setup 모드로 전환해 인터뷰하며 `.gitlab-ci.yml` release 잡·infra prod 경로·protected tag 를 세팅하고, prod 환경(EKS·Argo·Secret) 준비도를 10항목 3-상태로 판정해 미충족 항목은 어디서 만드는지 가이드하며, 환경이 준비되면 connect 모드로 CI 변수를 채워 배선과 잇는다. "운영 배포해줘", "prod 릴리즈", "태그 따서 배포", "v1.4 로 릴리즈", "운영배포 세팅해줘", "이 서비스 릴리즈 파이프라인 붙여줘", "release to prod", "cut a release", "/launch" 에 — 'launch' 란 말이 없어도 — 트리거. dev 반영(develop push·promote MR 머지)은 land 가 끝낸 뒤 자동이라 launch 아님. GitHub 만 쓰는 repo 는 범위 밖(GitLab 이관 전엔 손배포). PR 머지·로컬 동기화는 land, 스킬 레포 배포는 ship.
 ---
 
 # Launch — GitLab 태그 한 번으로 운영 릴리즈를 끝낸다
@@ -22,16 +22,22 @@ put-image, 같은 digest) 그 digest 를 prod gitops 경로에 pin 한다(ADR 00
 prod 가 같은 digest 를 쓴다"). 그래서 **dev 이미지가 없는 커밋은 태그할 수 없다** — 릴리즈
 라인에 push 되어 빌드가 끝난 커밋만 릴리즈 대상이다.
 
-## 두 모드 — 배선이 있으면 release, 없으면 setup
+## 세 모드 — 배선(setup) · 환경 연결(connect) · 릴리즈(release)
 
-Step 0 발견에서 판정한다. 둘을 한 세션에 섞지 않는다 — setup 은 배선을 만들고 **멈춘다**
-(첫 릴리즈는 사용자가 다시 `/launch`). 배선 직후 곧바로 태그까지 가면 배선 오류가
-prod 첫 릴리즈 실패로 나타나는데, 그 둘은 분리해서 봐야 원인이 갈린다.
+Step 0 발견에서 판정한다. 한 세션에 섞지 않는다 — setup 은 배선을 만들고 **멈추고**, connect 는 환경과
+배선을 잇고 **멈춘다**(첫 릴리즈는 사용자가 다시 `/launch`). 배선 직후 곧바로 태그까지 가면 배선 오류·환경
+오류·릴리즈 실패가 한 덩어리로 나타나는데, 셋은 분리해서 봐야 원인이 갈린다.
 
 | 판정 | 조건 | 다음 |
 |---|---|---|
-| **release** | `.gitlab-ci.yml` 에 `$CI_COMMIT_TAG` 규칙의 release 잡 + `PROD_GITOPS_PATH` 변수 존재 | §Release 파이프라인 |
-| **setup** | 위 둘 중 하나라도 없음, 또는 사용자가 "세팅/붙여줘" 를 명시 | `references/setup.md` (lazy-read) |
+| **setup** | `.gitlab-ci.yml` 에 `$CI_COMMIT_TAG` 규칙 잡 또는 `PROD_GITOPS_PATH` 변수 없음, 또는 사용자가 "세팅/붙여줘" 명시 | `references/setup.md` (lazy-read) |
+| **connect** | 배선 있음 + `PROD_ARGO_APP`/`PROD_KUBE_CONTEXT` 빈칸 + 사용자가 "환경 됐다/연결해줘" 또는 준비도 1~5 PASS | `references/prod-readiness.md` §3 (lazy-read) |
+| **release** | 배선 있음 (환경 변수는 비어 있어도 된다 — 그땐 검증 skip 으로 진행하며 connect 를 권장한다) | §Release 파이프라인 |
+
+**배선 ≠ 환경.** setup 은 CI 잡·infra 경로·protected tag 를 만들지만 EKS·Argo·Secret 은 만들지 않는다
+(스킬 밖 — infra 트랙). 그 환경이 어디까지 있는지는 매 모드 Step 0 이 `references/prod-readiness.md` §1 의
+**10 항목 3-상태 표**로 판정하고, 없는 것은 §2 가 어디서 만드는지 안내한다. "`PROD_ARGO_APP` 이 비어 있으니
+미구축" 같은 대리 판정으로 끝내지 않는다.
 
 ## 안전 경계 — 무엇이든 하기 전에 읽을 것
 
@@ -92,9 +98,11 @@ PAT 발급 안내를 내고 멈춘다.
 - **protected tag**: `GET /projects/:id/protected_tags` 에 `v*` 가 있는가. 없으면 멈춘다 — `GITOPS_PUSH_TOKEN`·AWS
   자격이 protected 변수라 보호되지 않은 태그의 파이프라인엔 주입되지 않는다(`retag` 가 빈 자격으로 죽는다).
   setup §2c 가 만들었어야 할 것이므로 "setup 미완 — protected tag 생성 후 재실행" 으로 보고한다.
-- **prod 타겟**: `PROD_ARGO_APP` 이 있고 그 kube context 가 로컬에 있으면 Argo 검증 가능. 없으면
-  "EKS 미구축 — sync/health 검증은 skip 보고" 로 표시하고 계속한다(MR 머지까지는 의미가 있다 —
-  EKS 가 생기면 그 시점 gitops 상태가 곧 prod 다).
+- **prod 환경 준비도**: `references/prod-readiness.md` §1 표(10 항목, PASS/FAIL/확인필요)를 돌려 플랜에 그대로
+  넣는다. 6(Application Synced/Healthy)이 PASS 면 Step 5 검증이 켜진다. 아니면 검증은 skip 으로 계속한다 —
+  MR 머지까지는 의미가 있다(환경이 생기면 그 시점 gitops 상태가 곧 prod 다). 단 1~5 가 PASS 인데 변수만
+  비어 있으면 릴리즈 전에 **connect 를 먼저** 제안한다(`prod-readiness.md` §3 — 변수 채우기 MR 하나로 검증이 켜진다).
+  FAIL·확인필요 항목은 §2 가이드와 함께 보고의 `## ⚠ 미검증` 에 실린다.
 
 ### 1. Plan — 버전·노트 제안
 
@@ -109,7 +117,7 @@ feat→minor · 그 외→patch)하고 **노트 초안**을 만든다. 사용자
   버전     v0.0.17 → v0.1.0   (feat 2건 → minor)
   대상     develop @ 402789f  (dev 이미지 develop-402789f… 확인, digest sha256:bd0f…)
   prod     DevOps/infra gitops/prod/apps/survey-radar/  → promote MR 자동 머지
-  Argo     apps-prod-survey-radar (context eks-prod)     ← 없으면 "미구축 — 검증 skip"
+  준비도   10/10 PASS · Argo apps-prod-survey-radar (eks-prod)   ← FAIL 있으면 "7/10 — 검증 skip, §2 가이드 첨부"
   health   https://survey.adtype.work/api/health          ← 없으면 "미설정"
   Linear   SUR-43 · SUR-38 → Release v0.1.0 생성 + 이슈 코멘트   ← MCP 없으면 "생략"
 
@@ -162,7 +170,7 @@ MR 을 API 로 조회해 **세 가지를 확인한 뒤** 머지한다(`PUT …/m
 
 ### 5. Verify — Argo · health
 
-prod 타겟이 있을 때만(Step 0 판정). 없으면 `## ⚠ 미검증` 로 넘긴다.
+준비도 6 이 PASS 일 때만(Step 0 판정). 아니면 `## ⚠ 미검증` 에 준비도 표 + `prod-readiness.md` §2 가이드(FAIL·확인필요 항목만)를 넣고 넘긴다.
 
 - **Argo**: `kubectl --context <ctx> -n argocd get applications.argoproj.io <PROD_ARGO_APP> -o json`
   에서 `status.sync.status == Synced` **그리고** `status.health.status == Healthy` **그리고**
@@ -198,11 +206,11 @@ prod 타겟이 있을 때만(Step 0 판정). 없으면 `## ⚠ 미검증` 로 �
 태그      v0.1.0 @ 402789f · Release https://gitlab.draftype.work/apps/survey-radar/-/releases/v0.1.0
 이미지    apps/survey-radar:v0.1.0 @sha256:bd0f09b0… (develop-402789f… 와 동일 digest)
 prod MR   DevOps/infra !131 merged · gitops/prod/apps/survey-radar/deployment.yaml
-Argo      apps-prod-survey-radar Synced/Healthy @ 9c1e2ab        ← 또는 "⚠ 미검증 — EKS 미구축"
+Argo      apps-prod-survey-radar Synced/Healthy @ 9c1e2ab        ← 또는 "⚠ 미검증 — 준비도 7/10"
 health    200 ×3 https://survey.adtype.work/api/health           ← 또는 "미설정"
 Linear    Release v0.1.0 · SUR-43 SUR-38 코멘트                   ← 또는 "생략(MCP 없음)"
 
-## ⚠ 미검증 / 미완     (해당 시만 — Argo 없음, health 미설정, Release 생성 실패, 롤백 MR 열림)
+## ⚠ 미검증 / 미완     (해당 시만 — 준비도 표 + §2 가이드, health 미설정, Release 생성 실패, 롤백 MR 열림)
 
 ▶ 다음 단계
 ```
@@ -215,8 +223,8 @@ Linear    Release v0.1.0 · SUR-43 SUR-38 코멘트                   ← 또는
   MR 후 다음 launch" 로 적는다.
 - **필수** = 이번 launch 가 만든 후속 — 롤백 MR 머지 판단, Release 생성 실패 시 수동 생성,
   마이그레이션 포함 릴리즈면 "prod DB apply 검증"(머지 ≠ 적용 — land report-format §5 와 같은 규율).
-- **권장** = 검증 skip 이 있었으면 "EKS 구축 후 `PROD_ARGO_APP`·`PROD_HEALTH_URL` 을 CI 변수에
-  채우면 다음 launch 부터 검증이 켜진다" 한 줄. 그 외엔 "없음".
+- **권장** = 검증 skip 이 있었으면 준비도에 따라 한 줄 — 1~5 PASS 면 "`/launch` connect 로 변수 채우면 다음
+  launch 부터 검증이 켜진다", 아니면 "준비도 FAIL 항목(§2 가이드) 해소 후 connect". 그 외엔 "없음".
 
 마지막 줄은 L1:
 
@@ -237,3 +245,5 @@ result: apps/survey-radar v0.1.0 released — tag+Release · infra !131 merged �
 - 스킬 레포(carpdm-skills) 변경을 배포하려는 것이면 → `ship`.
 - 릴리즈 배선은 있는데 파이프라인 자체를 고쳐야 하면(잡 스크립트 버그) → 메인이 직접 수정 후
   land. launch 는 배선을 *쓰는* 쪽이고 setup 은 *처음 만드는* 쪽이다 — 수리는 둘 다 아니다.
+- EKS·Argo CD·Secret 같은 prod **환경 자체**를 만들려는 것이면 → `DevOps/infra` 트랙(Terraform·ADR 0006).
+  launch 는 준비도를 판정하고 어디서 만드는지 안내할 뿐(`prod-readiness.md` §2), 만들지 않는다.
