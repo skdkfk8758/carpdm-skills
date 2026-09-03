@@ -24,6 +24,10 @@ SCHEMAS = {
     },
 }
 
+# Completion checkboxes become Goal Prompt success criteria, which an agent must
+# judge without a human. Subjective wording makes that impossible.
+UNJUDGEABLE_PATTERN = re.compile(r"잘 |정상적|깔끔|적절|원활|문제없|알맞")
+
 FORBIDDEN_PATTERNS = {
     "recommended section": re.compile(r"(?m)^##\s+추천\s*$"),
     "next-work section": re.compile(r"(?m)^##\s+다음 작업\s*$"),
@@ -80,6 +84,12 @@ def validate(text: str, kind: str, max_chars: int) -> list[str]:
         )
         if not 2 <= checkbox_count <= 6:
             errors.append("완료 조건 must contain 2 to 6 checkboxes")
+        unjudgeable = sorted(set(UNJUDGEABLE_PATTERN.findall(completion_match.group(1))))
+        if unjudgeable:
+            errors.append(
+                "완료 조건 must be judgeable without a person; "
+                f"replace subjective wording with a command, test name, file, or number: {', '.join(unjudgeable)}"
+            )
 
     return errors
 

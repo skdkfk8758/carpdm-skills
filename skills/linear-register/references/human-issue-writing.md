@@ -8,6 +8,7 @@ Write the issue for a person who needs to understand it in under one minute. Put
 - Use concrete nouns and observable outcomes.
 - Keep sentences short; define unavoidable abbreviations once.
 - Prefer two to five work bullets and two to six completion checkboxes.
+- Write every completion checkbox so a person is not required to judge it: a command and its expected output, a test name, a file that must exist, or a number. `잘`, `정상적으로`, `깔끔`, `적절히` cannot be judged.
 - Keep the body near 1,600 characters or less. Link a separate design document when more detail is necessary.
 - Mention implementation details only when they are a binding product or operational constraint.
 - Omit empty optional sections.
@@ -27,7 +28,7 @@ Use for new behavior or a deliberate improvement.
 - <필요한 상태나 예외 처리>
 
 ## 완료 조건
-- [ ] <관찰 가능한 완료 상태>
+- [ ] <명령 또는 조작 → 기대 결과>
 - [ ] <실패·빈 상태·권한 등 중요한 조건>
 
 ## 범위 밖
@@ -76,7 +77,7 @@ Use when the result is evidence or a decision rather than shipped behavior.
 - <비교할 선택지 또는 데이터>
 
 ## 완료 조건
-- [ ] <근거가 기록됐다>
+- [ ] <근거가 `결과물` 에 적힌 위치에 기록됐다>
 - [ ] <결론과 남은 위험이 명확하다>
 
 ## 결과물
@@ -88,6 +89,28 @@ Use when the result is evidence or a decision rather than shipped behavior.
 ## 참고
 - <기존 결정이나 자료 링크>
 ```
+
+## Written to be consumed by `goal-prompt`
+
+착수 시점에 이 이슈는 `goal-prompt` 가 읽어 Goal Prompt 한 파일로 깎인다. 각 섹션이 프롬프트의 어느 칸으로 가는지 알고 쓰면 착수할 때 되묻는 왕복이 사라진다.
+
+| 이슈 섹션 | Goal Prompt 칸 |
+| --- | --- |
+| 목적 / 문제 / 확인할 질문 | `## Objective` |
+| 작업 내용 / 재현 방법 / 조사 범위 | `## Slices` 또는 Step 목록 |
+| 완료 조건 | `## Success Criteria` |
+| 범위 밖 | `## Out of Scope` |
+| 참고 | `## Context` 의 지침·근거 링크 |
+
+세 가지만 지키면 된다.
+
+1. **완료 조건은 그대로 Success Criteria 가 된다.** 사람 없이 판정 가능한 것만 남긴다 — 명령과 기대 출력, 테스트 이름, 파일 존재, 수치. 주관 판정이나 외부 승인이 필요한 항목은 완료 조건이 아니라 `## 범위 밖` 또는 `## 참고` 로 옮긴다.
+2. **대상을 실제 식별자로 최소 한 번 적는다** — 화면 이름, 엔드포인트, CLI 명령, 컴포넌트, 테이블 이름. `goal-prompt` 는 이 이름을 앵커 삼아 레포에서 seam 과 영향 반경을 찾는다. "관련 API" 같은 대명사만 있으면 그 탐색이 실패해 사용자에게 되묻는다.
+3. **경계가 자명하지 않으면 `## 범위 밖` 을 비우지 않는다.** 이 칸이 비면 `goal-prompt` 는 범위 경계를 `[HUMAN]` 갭으로 올려 사용자에게 묻는다. 한 줄이라도 적어두면 그 질문이 사라진다.
+
+### 여기에 적지 않는 것 (`goal-prompt` 가 직접 실측한다)
+
+영향 반경 파일 목록, 테스트·타입체크 명령, 브랜치 이름, base SHA, 사용할 스킬 이름 — 전부 `goal-prompt` Step 1 이 레포를 읽어 채운다. 이슈에 복제하면 레포가 바뀔 때마다 조용히 썩고, 착수 에이전트는 낡은 쪽을 사실로 믿는다. 이슈에는 **사람만 답할 수 있는 것**(왜 필요한가, 어디까지가 범위인가, 무엇이 성공인가)만 담는다.
 
 ## Title guidance
 
