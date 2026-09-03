@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{SVC}}
+  namespace: {{NS}}
+  labels:
+    app.kubernetes.io/name: {{SVC}}
+spec:
+  type: {{SERVICE_TYPE}}
+  selector:
+    app.kubernetes.io/name: {{SVC}}
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+{{NODEPORT_LINE}}

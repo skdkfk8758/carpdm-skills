@@ -14,7 +14,7 @@
 | 서비스 이름 `<svc>` · 그룹 | `origin` 경로 `<group>/<svc>.git` 의 마지막 세그먼트(`apps/survey-radar`·`infra/admap-mcp` 둘 다 있다 — `apps/` 가정 금지) | 묻는다 |
 | 릴리즈 라인 | 기존 `promote` 잡 `rules` 의 `$CI_COMMIT_BRANCH == "…"` (mentalmarket=main, admap-mcp/review/survey=develop) | 묻는다 |
 | 이미지 목록 | `variables:` 의 `IMAGE*: "$ECR_REGISTRY/apps/…"` | 묻는다 |
-| dev 매니페스트 · AppProject · ns | `DevOps/infra` `gitops/apps/<svc>/` + `gitops/bootstrap/applications/apps-<svc>.yaml` 의 `spec.project`·`destination.namespace`(`apps-dev`/`survey-radar` 도, `apps-internal`/`internal-admap-mcp` 도 있다) | 매니페스트 없으면 dev 배선부터 — setup 범위 밖, 멈춘다 |
+| dev 매니페스트 · AppProject · ns | `DevOps/infra` `gitops/apps/<svc>/` + `gitops/bootstrap/applications/apps-<svc>.yaml` 의 `spec.project`·`destination.namespace`(`apps-dev`/`survey-radar` 도, `apps-internal`/`internal-admap-mcp` 도 있다) | 매니페스트 없으면 dev 배선부터 — setup 범위 밖. **`keel` 로 라우팅하고 멈춘다** |
 | health 경로 | dev deployment 의 `readinessProbe.httpGet.path` | health 검증 미설정으로 둔다 |
 | `GITOPS_PUSH_TOKEN` | API `GET /projects/:id/variables` key 목록 | 없으면 체크리스트에 [HUMAN] |
 | 기존 태그 규칙 잡 | `.gitlab-ci.yml` 에 `$CI_COMMIT_TAG` grep | 있으면 충돌 — 그 잡을 보여주고 멈춘다(덮어쓰지 않는다) |

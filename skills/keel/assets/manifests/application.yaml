@@ -1,0 +1,24 @@
+# {{SVC}} — dev Application. bootstrap/applications/ 에 놓인다.
+#
+# Argo CD 는 이 디렉터리를 스스로 읽지 않는다(루트 Application 부재) — 새 앱 등록은
+# 사람이 한 번 kubectl apply 를 해야 한다. 그 사실을 인계 문서에 적는다.
+#
+# Manual sync: platform·apps 앱은 prune/selfHeal 을 켜지 않는다. 파일 삭제가 곧 앱
+# 삭제가 되는 것을 막기 위해서다.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apps-{{SVC}}
+  namespace: argocd
+spec:
+  project: {{APPPROJECT}}
+  source:
+    repoURL: http://gitlab-webservice-default.gitlab.svc.cluster.local:8181/DevOps/infra.git
+    targetRevision: main
+    path: gitops/apps/{{SVC}}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{NS}}
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

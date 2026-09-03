@@ -1,0 +1,116 @@
+# keel — dev 파이프라인 잡 (스킬이 프로젝트 .gitlab-ci.yml 에 병합한다)
+#
+# 흐름: MR/릴리즈라인 push → test → build(kaniko → ECR) → promote(GitOps MR)
+#
+# 이 파이프라인은 배포 호스트가 아니다. 클러스터 상태는 Argo CD 가 소유한다.
+# 여기서 하는 일은 이미지를 굽고 새 digest 를 DevOps/infra 에 MR 로 올리는 것까지다.
+# 머지는 사람. 롤백 = 그 MR revert.
+#
+# 러너: onprem-k8s (k8s executor, 태그 k8s, 클러스터 안). run_untagged=false 라
+# **모든 잡에 태그가 있어야 한다** — default.tags 가 그것이다.
+#
+# 변수 (그룹/인스턴스에 이미 있음): AWS_ACCESS_KEY_ID · AWS_SECRET_ACCESS_KEY ·
+#   AWS_DEFAULT_REGION · ECR_REGISTRY
+# 변수 (프로젝트에 필요): GITOPS_PUSH_TOKEN — DevOps/infra project access token,
+#   스코프 write_repository, 역할 Developer. Developer 라 protected main 에 직접 못 밀고
+#   브랜치 + MR 만 만든다 — 그것이 의도다.
+
+stages: [test, build, deploy]
+
+variables:
+  IMAGE: "$ECR_REGISTRY/apps/{{SVC}}"        # ADR 0006: apps/<서비스>, IMMUTABLE
+  IMAGE_TAG: "{{LINE}}-$CI_COMMIT_SHA"
+  GIT_DEPTH: "1"
+
+default:
+  tags: [k8s]
+
+# ── test ──────────────────────────────────────────────────────────────────────
+# DB 도 네트워크도 필요 없는 것만 여기서 돈다.
+test:
+  stage: test
+  image:
+    name: {{TEST_IMAGE}}
+    entrypoint: [""]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "{{LINE}}"
+  script:
+{{TEST_SCRIPT}}
+
+# ── build ─────────────────────────────────────────────────────────────────────
+# kaniko: rootless, docker 소켓 없음. ECR 로그인은 credHelpers(ecr-login) — 이미지에 내장.
+#
+# **Dockerfile 에 BuildKit 문법(`# syntax=`, `RUN --mount=`)을 넣지 않는다.** kaniko 에는
+# BuildKit 프론트엔드가 없어 그것들을 **에러 없이 무시**하고, 무시된 bind mount 는 파일이
+# 없는 채로 명령을 돌려 죽는다. 로컬 docker build 는 통과하므로 CI 에서 처음 드러난다.
+#
+# 태그는 IMAGE_TAG 하나뿐이다. ECR 이 IMMUTABLE 이라 롤링 태그는 두 번째 push 에서
+# 거부된다. 환경 구분은 태그가 아니라 GitOps 의 digest 로 한다(ADR 0006).
+#
+# **같은 커밋으로 재실행하면 이 잡이 실패한다**(IMMUTABLE). 뒤 단계가 실패했을 때
+# "재실행" 은 복구 수단이 아니다 — 새 커밋을 밀어야 한다.
+build:
+  stage: build
+  image:
+    # -debug 태그를 쓴다. non-debug 는 셸이 없어 러너의 attach 전략이 깨진다.
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug@sha256:2562c4fe551399514277ffff7dcca9a3b1628c4ea38cb017d7286dc6ea52f4cd
+    entrypoint: [""]
+  needs: ["test"]
+  # 이미지 내용에 영향이 있는 것이 바뀌었을 때만 굽는다. 문서만 고친 커밋도 굽던 시절에
+  # 승격 MR 이 쌓였고 ECR 수명주기의 태그 보관 예산도 같이 갉아먹었다.
+  # 이 목록은 Dockerfile 이 COPY 하는 것 + 빌드 입력이다.
+  rules:
+    - if: $CI_COMMIT_BRANCH == "{{LINE}}"
+      changes:
+{{BUILD_CHANGES}}
+  script:
+    - mkdir -p /kaniko/.docker
+    - printf '{"credHelpers":{"%s":"ecr-login"}}' "$ECR_REGISTRY" > /kaniko/.docker/config.json
+    - |
+      /kaniko/executor \
+        --context "$CI_PROJECT_DIR" \
+        --dockerfile "$CI_PROJECT_DIR/Dockerfile" \
+        --destination "$IMAGE:$IMAGE_TAG" \
+        --cache=true --cache-repo "$IMAGE" \
+        --snapshot-mode=redo --use-new-run
+  # artifact 없음 — 이 GitLab 은 오브젝트 스토리지가 없어 잡 artifact 업로드가 405 다.
+  # digest 는 promote 가 ECR 에서 태그로 다시 조회한다(IMMUTABLE 이라 안전).
+
+# ── deploy ────────────────────────────────────────────────────────────────────
+# 같은 GitLab 안이라 SSH·호스트키·bot 계정이 필요 없다. 프로젝트 access token 으로
+# HTTP push, push option 으로 MR 까지.
+promote:
+  stage: deploy
+  image: alpine/k8s:1.33.4@sha256:b0523f0a244ddc4c8e055aa335c040d3d78b3ead5528f4544395f7f9f69c7b68
+  needs: ["build"]
+  # build 와 **같은 조건이어야 한다.** 여기만 넓으면 build 가 건너뛴 커밋에서 promote 가
+  # 돌아 ECR 에 없는 태그를 조회하고 죽는다.
+  rules:
+    - if: $CI_COMMIT_BRANCH == "{{LINE}}"
+      changes:
+{{BUILD_CHANGES}}
+  script:
+    - |
+      # 첫 실패에서 멈춘다. 이것이 없으면 실패한 clone 뒤에도 sed 가 돌아
+      # 진짜 원인(인증 실패) 대신 "No such file or directory" 가 보고된다.
+      set -eu
+      IMAGE_DIGEST=$(aws ecr describe-images --repository-name apps/{{SVC}} --image-ids imageTag="$IMAGE_TAG" --query 'imageDetails[0].imageDigest' --output text)
+      case "$IMAGE_DIGEST" in sha256:*) echo "digest $IMAGE_DIGEST";; *) echo "digest 조회 실패: $IMAGE_DIGEST"; exit 1;; esac
+      REPO="http://gitlab-ci-token:${GITOPS_PUSH_TOKEN}@gitlab-webservice-default.gitlab.svc.cluster.local:8181/DevOps/infra.git"
+      git clone -q --depth 1 -b main "$REPO" gitops && cd gitops
+      # deployment 와 cronjob 둘 다. 한쪽만 갱신하면 CronJob 이 낡은 digest 로 굳어
+      # "스케줄은 도는데 옛 코드" 가 된다. 없는 파일은 건너뛴다.
+      for f in gitops/apps/{{SVC}}/deployment.yaml gitops/apps/{{SVC}}/cronjob.yaml; do
+        [ -f "$f" ] || continue
+        sed -i -E "s#^( *image: )${IMAGE}:[^@ ]+@sha256:[0-9a-f]+#\1${IMAGE}:${IMAGE_TAG}@${IMAGE_DIGEST}#" "$f"
+      done
+      if git diff --quiet; then echo "digest unchanged — no MR"; exit 0; fi
+      git -c user.name='{{SVC}}-ci' -c user.email='{{SVC}}-ci@draftype.net' \
+        commit -qam "chore({{SVC}}): promote {{LINE}} image to ${IMAGE_TAG}" \
+        -m "digest ${IMAGE_DIGEST}" -m "source ${CI_PROJECT_URL}/-/pipelines/${CI_PIPELINE_ID}"
+      branch="ci/{{SVC}}-{{LINE}}-${CI_COMMIT_SHORT_SHA}"
+      git push -q "$REPO" "HEAD:refs/heads/$branch" \
+        -o merge_request.create -o merge_request.target=main -o merge_request.remove_source_branch \
+        -o "merge_request.title=chore({{SVC}}): promote {{LINE}} → ${IMAGE_TAG}"
+      echo "MR opened from $branch"

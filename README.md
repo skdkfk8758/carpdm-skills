@@ -20,6 +20,7 @@ Claude Code 글로벌 스킬 배포 레포. **계획 3종(심층 인터뷰·계�
 |---|---|---|---|
 | [`handoff`](skills/handoff) | 세션 인계 (저장/복원) | "여기까지 하자 이어서", "어디까지 했지" | 없음 (독립) |
 | [`land`](skills/land) | 올린 PR 머지 + 로컬 정리 | "PR 머지하고 브랜치 정리", "land my PRs" | 없음 (독립) |
+| [`keel`](skills/keel) | 신규 프로젝트에 dev 배포 파이프라인 — 인터뷰 1콜(노출 등급·외부 의존·라인) → GitLab CI(test→build→promote) + `gitops/apps/<svc>/`·Application·AppProject → MR 둘 열고 멈춤 · 준비도 미충족이면 infra 요청 문서 | "배포 붙여줘", "CI 세팅해줘", "새 서비스 온보딩", "/keel" | GitLab PAT(keychain `gitlab-onprem`) + kubectl port-forward · `DevOps/infra` clone |
 | [`launch`](skills/launch) | GitLab 서비스 운영 릴리즈 — 버전·노트 제안 → 승인 1회 → 태그·Release → 태그 파이프라인(dev digest 재태깅+infra prod promote MR) → MR 자동 머지 → Argo/health 검증 · 배선 없으면 setup, prod 환경 준비도(10항목 3-상태) 판정·가이드 + connect 모드 | "운영 배포해줘", "prod 릴리즈", "운영배포 세팅해줘", "/launch" | GitLab PAT(keychain `gitlab-onprem`) + kubectl port-forward · references/craft (output-contract·linear) |
 | [`wt-sweep`](skills/wt-sweep) | PR 없이 잔여·세션 워크트리만 정리 | "워크트리 정리해줘", "세션 워크트리 치워줘" | 자체 references/sweep-mode.md 가 절차 SSOT |
 | [`ship`](skills/ship) | (레포 전용) 스킬 변경 PR→CI→머지→로컬정리 한 흐름 | "PR 올리고 land 까지", "ship 해줘", "CI 통과하면 머지" | 없음 (독립, carpdm-skills 전용) |
@@ -50,7 +51,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-13개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
+14개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
 > 온보딩은 위 스킬 표 13행 + 아래 [설치](#설치) 3명령이 전부다. 종전 `docs/guides/team-workflow-guide.{md,html}`
 > 은 은퇴 스킬(`forge`·`hunt`·`renew`·`linear-goal`·`preflight`·`fortify`·`mockup`·`imprint`)을 워크플로 축으로
