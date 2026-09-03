@@ -114,6 +114,17 @@ Pagination이나 조회가 끝나지 않았다면 전체 상태 또는 전체 pr
 제목은 결과 중심으로 모호하지 않게 쓴다. 작업 목록보다 이슈가 필요한 이유를 먼저 설명한다.
 완료 조건은 일반 checkbox를 사용한다.
 
+이 이슈는 착수할 때 `goal-prompt`가 읽어 Goal Prompt로 깎인다. `references/human-issue-writing.md`의
+`Written to be consumed by goal-prompt` 절을 그대로 적용한다. 요지는 셋이다.
+
+- 완료 조건은 그대로 Success Criteria가 되므로 사람 없이 판정 가능한 것만 쓴다. 명령과 기대 출력,
+  테스트 이름, 파일 존재, 수치. 주관 판정과 외부 승인 항목은 `## 범위 밖` 또는 `## 참고`로 옮긴다.
+- 대상을 실제 식별자로 최소 한 번 적는다. 화면, 엔드포인트, CLI 명령, 컴포넌트, 테이블 이름.
+- 경계가 자명하지 않으면 `## 범위 밖`을 비우지 않는다.
+
+영향 반경 파일 목록, 검증 명령, 브랜치 이름, 스킬 이름은 본문에 넣지 않는다. `goal-prompt`가 착수
+시점에 레포에서 직접 실측하므로, 이슈에 복제하면 낡은 사실이 남는다.
+
 Team, project, milestone, label, state, parent, blocker, related issue는 본문에 반복하지 않는다.
 Linear metadata와 native relation에 저장한다.
 
@@ -183,6 +194,21 @@ Linear write 전에 이슈별로 다음을 보여준다.
 - 미해결 placeholder가 없음
 
 결과를 milestone 또는 project별로 묶어 보고한다. 검증하지 못한 부분은 명시한다.
+
+### 10. 착수 방법 안내
+
+보고 마지막에 등록된 이슈를 어떻게 착수하는지 한 줄로 안내한다. 이슈 본문이 아니라 사용자에게
+보내는 응답에만 쓴다.
+
+```
+착수: `/goal-prompt <ISSUE-ID>` — 이슈 본문을 Goal Prompt 한 파일로 깎은 뒤 그 파일로 실행한다.
+```
+
+여러 건이면 의존 순서상 먼저 실행 가능한 이슈 하나를 지목한다. Blocked 상태인 이슈는 안내하지
+않는다. `goal-prompt`가 설치돼 있지 않으면 이 안내를 생략한다.
+
+kickoff prompt를 본문에 넣지 않는다는 경계는 그대로다. 프롬프트는 `goal-prompt`가 착수 시점에
+레포 실측과 함께 만든다.
 
 ## 안전 불변식
 
