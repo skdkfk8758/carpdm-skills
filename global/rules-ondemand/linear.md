@@ -26,9 +26,12 @@ IMPORTANT: 이슈를 **생성**하는 모든 경우는 `linear-register` 스킬�
 `mcp__linear__save_issue`(생성 = `id` 없이)를 스킬 없이 직접 호출하지 않는다.
 "리니어에 등록", "티켓으로 올려줘", "이슈 만들어줘" 류면 — 스킬 이름이 안 나와도 — 이 스킬을 먼저 호출한다.
 
-**직접 호출하면 빠지는 것**: ① repo→팀 라우팅 ② 생성 전 확인 게이트 ③ 이슈마다 적응형 `## 추천` 섹션
-④ 의존 체인의 Linear 관계 세팅 + 다음 작업 전방 포인터 + AI disclaimer.
-스킬은 표준 코어 헤딩(`## 작업 내용`/`## 수용 기준`/`## 추천`) + team-scope + 기본 state=Triage 를 emit 한다.
+**직접 호출하면 빠지는 것**: ① repo→팀 라우팅 ② 전 상태 중복 대조 + 생성 전 확인 게이트
+③ 의존 체인의 Linear 네이티브 관계 세팅 ④ 본문 계약 검증(`validate_issue_body.py`).
+스킬은 feature/bug/research 템플릿 중 가장 작은 것 + team-scope + 기본 state=Backlog 를 emit 한다.
+본문 계약 SSOT 는 `~/.claude/skills/linear-register/references/human-issue-writing.md` —
+`## 추천`·`## 다음 작업`·kickoff 프롬프트·`[AUTO]`/`[HUMAN]` 은 본문 금지 항목이다.
+착수 프롬프트는 등록 시점이 아니라 `goal-prompt` 가 이슈를 읽어 그 자리에서 만든다.
 
 대형 plan/spec 을 여러 이슈로 쪼개야 하면 `deep-plan` 으로 분할한 뒤 개별 등록한다 —
 `linear-register` 자체에 분할 모드는 없다.

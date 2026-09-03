@@ -92,9 +92,9 @@ Acceptance 는 sub-issue body 에 참조로 들어간다). Step 이 곧 atomic �
 > Plan-reviewed: <plan 경로> · fable debate · <verdict 요약 — 예: 4비트, BLOCKING 3 해소>
 ```
 
-- **소비처 둘**: 심는 쪽 = 이 절(§2 등록) + `linear-register` 분할 모드
-  (`plan-split.md`). 읽는 쪽 = 빌드 파이프라인 Phase 2 게이트(`pipeline.md` —
-  마커 실존이면 플랜 재리뷰 스킵). 규격은 여기 한 곳 — 양쪽에 복제하지 말 것.
+- **소비처**: 심는 쪽 = 이 절(§2 등록). 읽는 쪽 = 빌드 파이프라인 Phase 2
+  게이트(`pipeline.md` — 마커 실존이면 플랜 재리뷰 스킵). 규격은 여기 한 곳 —
+  복제하지 말 것.
 - **verdict 섹션이 없는 plan 이면 마커를 넣지 않는다** — 마커는 리뷰 사실의
   증명이지 장식이 아니다. 거짓 마커는 리뷰 안 된 플랜을 무검증으로 빌드에
   통과시킨다.

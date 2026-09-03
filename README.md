@@ -29,7 +29,7 @@ Claude Code 글로벌 스킬 배포 레포. **계획 3종(심층 인터뷰·계�
 
 | 스킬 | 용도 | 트리거 (자연어로도 발화) | 의존 |
 |---|---|---|---|
-| [`linear-register`](skills/linear-register) | Linear 이슈 단건~소수 등록 + 적응형 `## 추천`(적합 스킬/에이전트/워크플로우) + 의존 체인 전방 가이드(다음 작업 포인터·kickoff) | "리니어에 이슈 등록", "이거 티켓으로 올려줘", "연결된 이슈 등록" | Linear MCP |
+| [`linear-register`](skills/linear-register) | Linear 이슈 단건~소수 등록 — 전 상태 중복 대조 + 배치안 승인 게이트, 본문은 `goal-prompt` 가 그대로 먹는 규격(판정 가능한 완료 조건)으로 작성 | "리니어에 이슈 등록", "이거 티켓으로 올려줘", "연결된 이슈 등록" | Linear MCP |
 | [`linear-replan`](skills/linear-replan) | 착수 직전 이슈(또는 짧은 자유 요구사항)를 codex 로 재플래닝 — 초안+결정 갈래 체크리스트 → 인터뷰 전항목 확정 → 착수 계획 1장(+승인 후 이슈 코멘트, 본문 무수정) | "이 티켓 어떻게 할지 먼저 정해줘", "착수 계획 짜줘", "구현 전에 갈래 정리해줘" | codex CLI · Linear MCP(이슈 모드) |
 | [`linear-groom`](skills/linear-groom) | 기존 Linear 백로그 그루밍 — 고아 이슈 프로젝트 그룹핑 + 빈약 이슈 보강(+`## 추천`/체인) | "리니어 이슈 정리", "백로그 그루밍", "이슈 보강해줘" | Linear MCP |
 | [`linear-prioritize`](skills/linear-prioritize) | 현재 repo 미완 이슈 스프린트 플래닝 — 의존·병렬 분석 + 우선순위 정렬 + 순차 EPIC 체인 milestone 묶기 (이슈 생성·구현 X) | "뭐부터 해야 돼", "병렬로 뭐 돌릴 수 있어", "스프린트 짜줘", "남은 이슈 정리" | Linear MCP |
