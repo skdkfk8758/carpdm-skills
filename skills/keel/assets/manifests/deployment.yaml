@@ -1,0 +1,61 @@
+# {{SVC}} — dev. 이미지는 digest pin 이고 promote 잡이 이 줄을 sed 로 바꾼다.
+# 태그만 두거나 digest 를 빼면 그 sed 패턴이 안 맞아 승격이 조용히 빈 손으로 끝난다.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{SVC}}
+  namespace: {{NS}}
+  labels:
+    app.kubernetes.io/name: {{SVC}}
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{SVC}}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{SVC}}
+    spec:
+      # ECR 토큰은 12h 만료다. ecr-pull Secret 과 8h 갱신 CronJob 이 platform 에 있고
+      # 이 파드는 그 Secret 을 참조만 한다(ADR 0006 개정 1).
+      imagePullSecrets:
+        - name: ecr-pull
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              # yuhyeon 은 docker 브리지가 호스트 CNI 와 충돌한다 — 표준 제외다.
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: NotIn
+                    values: [yuhyeon]
+      containers:
+        - name: {{SVC}}
+          image: {{ECR_REGISTRY}}/apps/{{SVC}}:{{LINE}}-{{PLACEHOLDER_SHA}}@sha256:{{PLACEHOLDER_DIGEST}}
+          ports:
+            - name: http
+              containerPort: {{PORT}}
+          # 추정값이다 — Dockerfile 의 EXPOSE 와 기본 health 경로에서 왔다.
+          # 앱이 다른 경로를 쓰면 여기부터 고친다.
+          readinessProbe:
+            httpGet:
+              path: {{HEALTH_PATH}}
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: {{HEALTH_PATH}}
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          # 실측 전에는 아무도 정답을 모른다. 첫 주 지표를 보고 조정한다.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 192Mi
+            limits:
+              memory: 512Mi

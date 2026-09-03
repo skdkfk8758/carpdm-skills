@@ -238,6 +238,9 @@ result: apps/survey-radar v0.1.0 released — tag+Release · infra !131 merged �
 
 ## 이 스킬이 틀린 선택일 때
 
+- **dev 배선이 아직 없으면 → `keel`.** setup 모드의 발견이 "dev 매니페스트 없음" 으로
+  멈추는 그 지점이 keel 의 입구다(조선 순서: keel → launch → ship). keel 이 앱 repo 의
+  dev CI 와 `gitops/apps/<svc>/` 를 만들고 MR 까지 가면, 그 다음이 여기다.
 - PR/MR 을 머지하고 로컬을 정리하려는 것이면 → `land`. dev 반영은 land 가 끝낸 뒤 파이프라인이
   자동으로 한다 — launch 는 그 *다음*, prod 만 담당한다.
 - GitHub 에만 있는 서비스(ADMap·ADType-Intelligence 등, prod = GitHub tag→compose)면 → 범위 밖.
