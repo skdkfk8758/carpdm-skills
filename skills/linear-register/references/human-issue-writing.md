@@ -8,7 +8,8 @@ Write the issue for a person who needs to understand it in under one minute. Put
 - Use concrete nouns and observable outcomes.
 - Keep sentences short; define unavoidable abbreviations once.
 - Prefer two to five work bullets and two to six completion checkboxes.
-- Write every completion checkbox so a person is not required to judge it: a command and its expected output, a test name, a file that must exist, or a number. `잘`, `정상적으로`, `깔끔`, `적절히` cannot be judged.
+- Write every completion checkbox so a person is not required to judge it: a product action or command and its observable result (endpoint response, screen state, CLI output), a file that must exist, or a number. `잘`, `정상적으로`, `깔끔`, `적절히` cannot be judged.
+- Do not write test, typecheck, or lint commands as completion checkboxes. They are the means of verification, not the definition of success, and `goal-prompt` measures them from the repo at kickoff (see below).
 - Keep the body near 1,600 characters or less. Link a separate design document when more detail is necessary.
 - Mention implementation details only when they are a binding product or operational constraint.
 - Omit empty optional sections.
@@ -97,14 +98,15 @@ Use when the result is evidence or a decision rather than shipped behavior.
 | 이슈 섹션 | Goal Prompt 칸 |
 | --- | --- |
 | 목적 / 문제 / 확인할 질문 | `## Objective` |
-| 작업 내용 / 재현 방법 / 조사 범위 | `## Slices` 또는 Step 목록 |
+| 작업 내용 / 조사 범위 | `## Slices` 또는 Step 목록 |
+| 재현 방법 | `## Context` — 재현 테스트의 입력. 슬라이스가 아니다(Karpathy 4원칙: "버그 수정 → 재현 테스트를 쓰고 통과시킨다") |
 | 완료 조건 | `## Success Criteria` |
 | 범위 밖 | `## Out of Scope` |
 | 참고 | `## Context` 의 지침·근거 링크 |
 
 세 가지만 지키면 된다.
 
-1. **완료 조건은 그대로 Success Criteria 가 된다.** 사람 없이 판정 가능한 것만 남긴다 — 명령과 기대 출력, 테스트 이름, 파일 존재, 수치. 주관 판정이나 외부 승인이 필요한 항목은 완료 조건이 아니라 `## 범위 밖` 또는 `## 참고` 로 옮긴다.
+1. **완료 조건은 그대로 Success Criteria 가 된다.** 사람 없이 판정 가능한 것만 남긴다 — 제품 조작·명령과 그 관측 결과(엔드포인트 응답, 화면 상태, CLI 출력), 파일 존재, 수치. 테스트·타입체크·린트 명령은 쓰지 않는다 — `pnpm test` 가 green 인 것은 검증 수단이지 성공의 정의가 아니고, 그 명령은 아래 절대로 `goal-prompt` 가 실측한다. 주관 판정이나 외부 승인이 필요한 항목은 완료 조건이 아니라 `## 범위 밖` 또는 `## 참고` 로 옮긴다.
 2. **대상을 실제 식별자로 최소 한 번 적는다** — 화면 이름, 엔드포인트, CLI 명령, 컴포넌트, 테이블 이름. `goal-prompt` 는 이 이름을 앵커 삼아 레포에서 seam 과 영향 반경을 찾는다. "관련 API" 같은 대명사만 있으면 그 탐색이 실패해 사용자에게 되묻는다.
 3. **경계가 자명하지 않으면 `## 범위 밖` 을 비우지 않는다.** 이 칸이 비면 `goal-prompt` 는 범위 경계를 `[HUMAN]` 갭으로 올려 사용자에게 묻는다. 한 줄이라도 적어두면 그 질문이 사라진다.
 

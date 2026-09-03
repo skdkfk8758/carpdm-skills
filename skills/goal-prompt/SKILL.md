@@ -50,8 +50,9 @@ Criteria 가 없어 done 을 스스로 못 판정하고, 레포 사실이 없어
 
 **입력이 Linear 이슈 키면**(`ABC-123` 꼴) 먼저 `get_issue` 로 본문과 네이티브 관계를
 읽는다. `linear-register` 계약상 그 본문은 이 골격을 먹이도록 쓰여 있다 — `## 목적`/
-`## 문제`/`## 확인할 질문` → Objective, `## 작업 내용`/`## 재현 방법`/`## 조사 범위` →
-Slices 또는 Step, `## 완료 조건` 체크박스 → **Success Criteria 로 그대로 승격**(판정
+`## 문제`/`## 확인할 질문` → Objective, `## 작업 내용`/`## 조사 범위` → Slices 또는 Step,
+`## 재현 방법` → Context(재현 테스트의 입력 — 슬라이스가 아니다, Operating discipline 4),
+`## 완료 조건` 체크박스 → **Success Criteria 로 그대로 승격**(판정
 가능하게 쓰여 있다는 전제 — 주관 표현이 남아 있으면 `[HUMAN]` 갭으로 올린다), `## 범위
 밖` → Out of Scope, `## 참고` → Context 링크. `blockedBy` 가 미완이면 Context 에
 `Blocked by` 를 적고, 이슈 URL 을 Context 마지막 줄에 남긴다. 이슈에 없는 것(영향
