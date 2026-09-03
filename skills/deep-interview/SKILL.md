@@ -1,6 +1,6 @@
 ---
 name: deep-interview
-description: 측정 가능한 ambiguity 점수로 게이트되는 라운드당-한-질문 Socratic 인터뷰로, 모호한 아이디어를 검증 가능한 요구사항 spec(REQ ID)으로 결정화하고 빌드 스킬로 라우팅한다. 사용자가 흐릿하거나 반쯤 형태만 잡힌 아이디어를 들고 와 코드 전에 인터뷰받거나 "함께 생각을 정리"하고 싶어 할 때 사용 — "인터뷰해줘", "같이 생각 정리하자", "요구사항 못 박아줘", "interview me about X", "help me think this through", "pin down what I actually want", "/deep-interview" 같은 표현. 아이디어가 정말로 모호하거나 클 때는 plan 직행보다 이것을 우선한다. 작고 이미 명확한 작업, 알려진 버그 수정, 이미 요구사항이 확정돼 바로 구현에 들어갈 수 있으면 사용하지 말 것. plan 문서+UI 시안이 목적이면 deep-plan.
+description: 측정 가능한 ambiguity 점수로 게이트되는 라운드당-한-질문 Socratic 인터뷰로, 모호한 아이디어를 검증 가능한 요구사항 spec(REQ ID)으로 결정화하고 빌드 스킬로 라우팅한다. 사용자가 흐릿하거나 반쯤 형태만 잡힌 아이디어를 들고 와 코드 전에 인터뷰받거나 "함께 생각을 정리"하고 싶어 할 때 사용 — "인터뷰해줘", "같이 생각 정리하자", "요구사항 못 박아줘", "interview me about X", "help me think this through", "pin down what I actually want", "/deep-interview" 같은 표현. 아이디어가 정말로 모호하거나 클 때는 plan 직행보다 이것을 우선한다. 작고 이미 명확한 작업, 알려진 버그 수정, 이미 요구사항이 확정돼 바로 구현에 들어갈 수 있으면 사용하지 말 것. plan 문서+UI 시안이 목적이면 deep-plan. 이미 형태가 잡힌 plan·결정·설계의 구멍 찾기·압박 테스트("이 계획 맞는지 털어봐", "grill me")는 mattpocock grilling — deep-interview 는 무엇을 만들지부터 흐릿할 때다.
 ---
 
 # Deep Interview — 빌드 전 Socratic 모호성 해소
@@ -30,7 +30,10 @@ description: 측정 가능한 ambiguity 점수로 게이트되는 라운드당-�
 아이디어가 **정말로 모호하거나 크고** 잘못된 것을 빌드하는 비용이 실제일 때
 손을 뻗으라. 작고 이미 명확한 작업(그냥 하라), 알려진 버그 수정(그건 다른 종류의
 조사다), 또는 빌드 파이프라인이 이미 자체 요구사항 단계를 돌리고 있을 때는
-건너뛰라 — 이중 인터뷰 하지 말 것.
+건너뛰라 — 이중 인터뷰 하지 말 것. 인터뷰 스킬이 여럿이다(deep-interview · grilling ·
+`/grill-with-docs` · `/wayfinder` · `/to-questionnaire` · goal-prompt/deep-plan 내장 갭
+인터뷰) — 어느 것으로 *들어가는지*는 `~/.claude/rules-ondemand/interview-routing.md`
+한 장이 SSOT 다. 헷갈리면 그것부터 Read.
 
 ## 여섯 가지 Socratic 질문 유형 — 당신의 유일한 도구
 
@@ -190,16 +193,20 @@ greenfield/brownfield 판단 + goal), 그 성격은 특정 작업유형 스킬�
   되지 말 것).
 - **valid-next 필터** 로 다음 단계가 될 수 있는 스킬만 후보로 남긴다.
 - **Tier 1**(빌드가 명백할 때의 단축: 요구사항이 확정되면 **메인이 직접 구현**한다 —
-  plan mode → 구현 → `/code-review`) 은 단축일 뿐 — 명백하지 않으면 **Tier 2**(available-skills 에서
-  valid-next 전체 후보, **글로벌·플러그인 포함**: `/deep-plan`(다중 이슈 분해 포함)·`linear-register`(단건~소수 등록)·
-  `deep-research`·`prototype`·`understand-anything:understand` 등)를 함께 열거한다.
-- 빌드로 라우팅하면 **강도(linear/council)** 도 함께 추천한다 — 인터뷰가 측정한
-  디자인 리스크를 엔진에 넘기라.
+  plan mode → 구현 → `/code-review`; 테스트 우선이면 `mattpocock-skills:tdd`) 은 단축일
+  뿐 — 명백하지 않으면 **Tier 2**(available-skills 에서 valid-next 전체 후보, **글로벌·
+  플러그인 포함**: `deep-plan`(plan/시안·이슈 트리)·`goal-prompt`(자율 에이전트 프롬프트)·
+  `linear-register`·`mattpocock-skills:grilling`/`research`/`prototype`·`/to-tickets` 등)를
+  함께 열거한다.
+- 사용자 타이핑 전용 스킬(`disable-model-invocation`)은 옵션 라벨에 그 사실을 적는다 —
+  모델이 시작할 수 없는 걸 고르게 두지 않는다.
+- 인터뷰가 측정한 **규모 신호**(넓은 토폴로지·잔여 ambiguity·challenge 발동)가 있으면
+  빌드 대신 **분해**(`deep-plan` Step 4.5 · `/to-tickets`)를 앞세운다 — reference §규모 신호.
 - **`AskUserQuestion` 으로 추천만** 한다 — 사용자가 선택하게 하고 자동 시작 금지.
 
 deep-interview 입력은 번호 매긴 spec 이다. 추천은 다음 스킬에게 이 spec 을 **이미
-완료된 Phase-1 결과물**로 취급해 곧장 plan review 로 건너뛰고 다시 인터뷰하지 말라고
-프레이밍한다(이중 인터뷰 회피 — 상세는 reference). 매칭 스킬이 미설치면 spec 파일을
+확정된 입력**으로 취급해 자체 갭 인터뷰를 건너뛰라고 프레이밍한다(이중 인터뷰 회피 —
+상세는 reference). 매칭 스킬이 미설치면 spec 파일을
 그대로 넘기는 폴백.
 
 ## Anti-patterns

@@ -553,7 +553,8 @@
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
-    "ponytail@ponytail": true
+    "ponytail@ponytail": true,
+    "mattpocock-skills@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ponytail": {
@@ -581,6 +582,5 @@
       "Hermes ingest/analyze daemon endpoints referenced via HERMES_INGEST_URL"
     ]
   },
-  "claudeInChromeDefaultEnabled": false,
-  "model": "claude-fable-5-1[1m]"
+  "claudeInChromeDefaultEnabled": false
 }

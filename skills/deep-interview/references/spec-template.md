@@ -100,14 +100,15 @@ to the REQ it constrains.>
 
 ## 8. Handoff
 
-Recommended next skill: <`/forge` (new) | `/renew` (change) | `/hunt` (bug)
-| `/deep-plan` (plan/design doc or UI mockup first, build deferred)
-| implementation plan | carry elsewhere>, chosen from the nature of the work above.
+Recommended next step: <build directly in the main session (plan mode → implement
+→ `/code-review`) | `/deep-plan` (plan doc / UI mockup first, build deferred)
+| `goal-prompt` (turn this spec into an autonomous-agent prompt) | `grilling`
+(pressure-test Residual ambiguity only) | `/to-tickets` (tracer-bullet tickets)
+| carry elsewhere>, chosen from the nature of the work above.
 
-**Treat this spec as the completed requirements step.** The recommended skill runs
-its own Socratic interview by default — skip it. Feed these numbered requirements
-in as the pinned Phase-1 output and proceed straight to plan review, so the work
-isn't re-interviewed from scratch.
+**Treat this spec as the completed requirements step.** Whatever runs next must
+not re-interview — feed these numbered requirements in as the pinned input and
+go straight to implementation / planning.
 ```
 
 ## 잘 채우기

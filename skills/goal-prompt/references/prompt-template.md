@@ -27,10 +27,10 @@
 ## Success Criteria (사람 없이 판정 가능한 것만)
 - [ ] {{명령 → 기대 출력 / 테스트 이름 통과 / 파일 존재 / 수치}}
 - [ ] {{…}}
-- [ ] `git diff --stat <BASE_SHA>` (작업트리 대 BASE — 미커밋 포함) 의 파일이 전부 Context 영향 반경(테스트·lockfile·handoff 경로 포함) 안이다.
+- [ ] `git diff --stat <BASE_SHA>` (커밋·수정된 추적 파일) **와** `git status --porcelain` (미추적 신규 파일 — diff 에는 안 잡힌다) 두 출력의 경로가 전부 Context 영향 반경(테스트·lockfile·handoff 경로 포함) 안이다.
 
 ## Context (실측한 것만)
-- repo: `{{경로}}`. 격리: 착수 시 `git rev-parse --path-format=absolute --git-dir --git-common-dir` 두 줄이 **같으면 메인 트리** — 편집하지 말고 `result: blocked — main worktree` 로 종료. branch: `{{launcher 가 채움 / 또는 <type>/<issue-id>-<topic> 규약}}`.
+- repo: `{{경로}}`. 격리: 착수 시 `git rev-parse --path-format=absolute --git-dir --git-common-dir` 두 줄이 **같으면 메인 트리** — 편집하지 말고 `result: blocked — main worktree` 로 종료. branch: `{{Step 1 에서 정한 브랜치명 — 이슈 키 있으면 <type>/<issue-id>-<topic>, 없으면 <type>/<topic>}}` — 현재 체크아웃이 이 브랜치가 아니면 BASE 에서 이 이름으로 만들어 이동한다. 현재 브랜치가 trunk(`develop`/`main`)면 편집하지 말고 `result: blocked — on trunk` 로 종료.
 - 지침: `{{CLAUDE.md/AGENTS.md 경로}}` 먼저 읽고 따른다. 도메인 어휘: `{{CONTEXT.md 경로 또는 없음}}`. standing 결정: `{{ADR 경로들 또는 없음}}`.
 - 영향 반경 (path : 왜 바뀌나) — 테스트 디렉터리·lockfile·`docs/handoff/` 포함:
   - `{{path}}` : {{이유}}
@@ -60,7 +60,7 @@
 ## Verification
 1. `{{검증 명령}}` → exit 0. 실패 시 **1회만** 자가수정 후 재검증, 또 실패면 중단하고 partial 로 보고(무한루프 금지).
 2. 작성한 회귀 테스트 단독 실행 통과.
-3. `git diff --stat <BASE_SHA>` 로 영향 반경 대조(작업트리 기준 — 커밋 전에도 유효).
+3. `git diff --stat <BASE_SHA>` + `git status --porcelain` 두 명령으로 영향 반경 대조 — diff 는 미추적 신규 파일을 안 보여주므로 둘 다 본다.
 4. Success Criteria 를 위에서 아래로 하나씩 체크 — 하나라도 미충족이면 done 이 아니다.
 
 ## Out of Scope
