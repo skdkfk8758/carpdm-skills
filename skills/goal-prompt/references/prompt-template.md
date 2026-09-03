@@ -30,7 +30,7 @@
 - [ ] `git diff --stat <BASE_SHA>` (커밋·수정된 추적 파일) **와** `git status --porcelain` (미추적 신규 파일 — diff 에는 안 잡힌다) 두 출력의 경로가 전부 Context 영향 반경(테스트·lockfile·handoff 경로 포함) 안이다.
 
 ## Context (실측한 것만)
-- repo: `{{경로}}`. 격리: 착수 시 `git rev-parse --path-format=absolute --git-dir --git-common-dir` 두 줄이 **같으면 메인 트리** — 편집하지 말고 `result: blocked — main worktree` 로 종료. branch: `{{Step 1 에서 정한 브랜치명 — 이슈 키 있으면 <type>/<issue-id>-<topic>, 없으면 <type>/<topic>}}` — 현재 체크아웃이 이 브랜치가 아니면 BASE 에서 이 이름으로 만들어 이동한다. 현재 브랜치가 trunk(`develop`/`main`)면 편집하지 말고 `result: blocked — on trunk` 로 종료.
+- repo: `{{경로}}`. 격리: 착수 시 `git rev-parse --path-format=absolute --git-dir --git-common-dir` 두 줄이 **같으면 메인 트리** — 편집하지 말고 `blocked: main worktree — 격리 트리에서 재실행` 한 줄로 종료(`result:` 가 아니라 `blocked:` — 아래 Done & Report 마커 계약). branch: `{{Step 1 에서 정한 브랜치명 — 이슈 키 있으면 <type>/<issue-id>-<topic>, 없으면 <type>/<topic>}}` — 현재 체크아웃이 이 브랜치가 아니면 BASE 에서 이 이름으로 만들어 이동한다. 현재 브랜치가 trunk(`develop`/`main`)면 편집하지 말고 `blocked: on trunk — 브랜치 생성 후 재실행` 으로 종료.
 - 지침: `{{CLAUDE.md/AGENTS.md 경로}}` 먼저 읽고 따른다. 도메인 어휘: `{{CONTEXT.md 경로 또는 없음}}`. standing 결정: `{{ADR 경로들 또는 없음}}`.
 - 영향 반경 (path : 왜 바뀌나) — 테스트 디렉터리·lockfile·`docs/handoff/` 포함:
   - `{{path}}` : {{이유}}
@@ -71,6 +71,8 @@
 1. {{커밋/PR 규약 — 예: 브랜치 push + PR 생성(머지 X) / 커밋만}}
 2. 마지막 메시지 형식:
    `result: <한 줄 — 무엇을 했는지 + 핵심 수치>` — 미완이면 `result: partial — 완료 k/N, handoff docs/handoff/YYYY-MM-DD-<topic>.md`
+   진행 불가면 `blocked: <이유>` 를 **별도 줄**에 — 사람이 풀어야 할 상태. 포기면 `Giving up.` 한 줄.
+   (마커 계약 출처: Claude Code 백그라운드 잡 완료 분류기, CLI 2.1.259 내장 프롬프트 — `"result: <text>" on its own line → done (<text> is output.result)` · `"blocked: <reason>" on its own line → blocked` · `"Giving up."` → failed. end-to-end 실측 2026-09-03: `claude --bg` 잡이 `result: probe ok` 한 줄로 끝나자 `claude agents` state 가 `working → done` 전이. `result: blocked …` 라고 쓰면 **done** 으로 분류된다 — 접두를 섞지 않는다.)
    - BASE SHA · `git log --oneline <BASE_SHA>..HEAD` 커밋 목록 · 변경 파일 수 · 검증 명령과 실제 출력
    - assumption: 사전 assumption 위반 여부 + **실행 중 새로 채택한 assumption** 목록 — 없으면 "없음"
    - 사람 확인 요청 항목(주관·외부 승인) — 없으면 "없음"
