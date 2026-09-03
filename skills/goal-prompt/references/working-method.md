@@ -8,8 +8,11 @@
 
 원본 위치(확인용): ponytail 플러그인
 `~/.claude/plugins/cache/ponytail/ponytail/<ver>/skills/ponytail/SKILL.md` · paperthin
-`~/.agents/skills/<name>/SKILL.md` · Matt Pocock `~/.agents/skills/<name>/SKILL.md`
-(tdd + `tests.md`/`mocking.md` · code-review · to-tickets · implement · handoff).
+`~/.agents/skills/<name>/SKILL.md` · Matt Pocock 플러그인
+`~/.claude/plugins/cache/claude-plugins-official/mattpocock-skills/<ver>/skills/{engineering,
+productivity}/<name>/SKILL.md`(tdd + `tests.md`/`mocking.md` · code-review · to-tickets ·
+implement · handoff · grilling · prototype · research · domain-modeling). `~/.agents/skills/`
+에도 구 스냅샷이 남아 있을 수 있다 — 플러그인 쪽이 SSOT.
 
 ## §1 ponytail — 사다리 압축
 
@@ -45,8 +48,9 @@ ponytail 이 **양보하지 않는 것**을 Constraints 가 침범하지 않게 
 
 ## §3 Matt Pocock — 빌드 흐름 압축
 
-Pocock 흐름 `idea → grill → spec → tickets → implement(tdd → code-review)` 에서 goal
-prompt 는 spec 을 지난 산출물이므로 **tickets 이후**만 싣는다. 하중을 받는 규칙:
+Pocock 흐름 `idea → grill → spec → tickets → implement(tdd → code-review)` 에서
+**grill 은 goal-prompt Step 3 자신이 맡고**(SKILL.md — design tree·프론티어·권장답),
+프롬프트는 spec 을 지난 산출물이므로 **tickets 이후**만 싣는다. 하중을 받는 규칙:
 
 - **seam 사전 합의** — 테스트는 공개 경계에서만. 기존 seam 우선, 신설은 가장 높은
   지점, 이상적 개수 1. `tdd` 스킬은 "seam 을 사용자와 확인" 을 요구하므로 프롬프트
@@ -62,7 +66,7 @@ prompt 는 spec 을 지난 산출물이므로 **tickets 이후**만 싣는다. �
   1회. 기대값은 독립 출처(spec·알려진 리터럴) — tautological·구현 결합 테스트 금지.
   mock 은 시스템 경계(외부 API·시간·랜덤)만, 자기 모듈·내부 협력자는 mock 하지 않는다.
   테스트당 논리적 assertion 하나.
-- **2축 code-review — 항상 인라인** — 커밋 전 `git diff <BASE_SHA>`(작업트리 대 BASE — `...HEAD` 는 미커밋을 빼므로 쓰지 않는다)를 두 축으로
+- **2축 code-review — 항상 인라인** — 커밋 전 `git diff <BASE_SHA>` + `git status --porcelain`(미추적 신규 파일은 diff 에 안 잡힌다 — `...HEAD` 는 미커밋을 빼므로 쓰지 않는다)를 두 축으로
   따로 본다: **Standards**(레포 규약 문서 + Fowler smell 은 판단 라벨, 도구가 강제하는
   건 스킵) / **Spec**(spec = 이 프롬프트의 Objective+Success Criteria — 누락·scope
   creep·오구현). 합쳐 재랭킹하지 않는다. 세션의 `/code-review` 는 **빌트인
@@ -103,10 +107,11 @@ BASE SHA 리터럴 기록, Success Criteria, Verification 은 스킬 유무와 �
 - [ ] 진술되지 않은 가정이 남았나 — Constraints assumption 으로 승격
 - [ ] Objective 에 요청 밖 기능이 섞였나
 - [ ] Success Criteria 각 항목이 명령/테스트/파일/수치로 판정되나 — "잘/깔끔/정상" 0건
-- [ ] 마지막 SC 가 BASE SHA 리터럴 기준의 작업트리 diff(`git diff --stat <SHA>`, `...HEAD` 아님)이고 영향 반경에 테스트·lockfile·handoff 가 포함돼 있나
+- [ ] 마지막 SC 가 BASE SHA 리터럴 기준의 `git diff --stat <SHA>` **+ `git status --porcelain`** 쌍(`...HEAD` 아님, diff 단독 아님)이고 영향 반경에 테스트·lockfile·handoff 가 포함돼 있나
 - [ ] Verification 에 실패 상한(1회 자가수정 → partial)이 있나
 - [ ] 페르소나에 "중시 순서"와 "불확실성 처리"가 있나 — 직함만이면 BLOCKING
-- [ ] 파일당 `wc -m` 이 4000 미만인가 — 이상이면 BLOCKING(SKILL.md Step 4 압축 순서)
+- [ ] 파일당 `LC_ALL=en_US.UTF-8 wc -m` 을 보고에 리터럴로 적었나 — 4000 초과는 SUGGESTION(압축 1회 시도 후 사유 보고, 한도 미실측이라 BLOCKING 아님)
+- [ ] Context 에 `{{…}}` placeholder 가 남아 있나 — 하나라도 있으면 BLOCKING(branch 포함, launcher 는 채워주지 않는다)
 
 ### Pocock 렌즈 — "빌드가 수직으로, 검증 가능하게 굴러가나"
 - [ ] seam 이 Context 에 확정·선언돼 있나 (미정이면 `[HUMAN]` 갭으로 되돌림)

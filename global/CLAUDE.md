@@ -40,9 +40,10 @@ AI 응답 = 한국어(`settings.json` 이 주입). 코드 주석·문서 = 영�
 - **커밋** — N · <hash>                       (커밋했을 때만)
 - **테스트** — <러너 X/X> · <타입체크>         (돌렸을 때만)
 - **검증 커맨드** — `<실행한 명령>` → <실제 출력 수치>
-- **잔여** — [HUMAN] 남은 수동 확인 · 없으면 "없음" 명시
+- **잔여** — 항목마다 `[필수]`/`[선택]` + `[HUMAN]` 여부 · 없으면 "없음" 명시
 ```
 **검증 커맨드 행이 핵심**("됐음" 금지, 실제 출력만). **잔여 행은 생략 불가** — 없으면 "없음"이라 쓴다.
+잔여 항목은 **`[필수]`(안 하면 이번 작업 미완) / `[선택]`(독립 후속)** 을 반드시 가른다 — 기준은 response-format.md §A.
 안 한 것의 행을 빈칸·추정으로 채우지 않는다.
 잔여 항목에 그것을 진행시킬 스킬·워크플로우가 있으면 `→ /<이름>` 으로 제안한다
 (로드된 스킬 + 프로젝트 `.claude/` + 유저 전용 커맨드까지 대조, 최적 1개만, 억지 매칭 금지 — 상세는 response-format.md §스킬 라우팅).
@@ -62,6 +63,7 @@ AI 응답 = 한국어(`settings.json` 이 주입). 코드 주석·문서 = 영�
 | HTML 시안 산출 | `html-mockup-artifact.md` |
 | 새 프로젝트 문서 구조 세팅 · SPEC/PLAN 작성 | `knowledge-folders.md` |
 | 계획·설계 확정 직전 · 문서 압축/재배열 (paperthin `/hate`·`/prism` 등 유저 전용 12종) | `paperthin-routing.md` |
+| 모호한 요청에 인터뷰가 필요할 때 — 어느 인터뷰 스킬로 들어가나(deep-interview·grilling·`/grill-with-docs`·goal-prompt…) | `interview-routing.md` |
 
 ## 브라우저 — aside 강제
 웹페이지 작업·컨트롤·검증은 **aside MCP**(`mcp__aside__repl`, Playwright 내장) 사용.
