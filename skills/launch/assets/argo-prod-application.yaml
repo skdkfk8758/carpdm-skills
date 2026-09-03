@@ -1,0 +1,29 @@
+# <svc> prod — AWS(EKS) Argo CD 가 읽는 Application (ADR 0006: Argo 인스턴스는 온프렘과 분리).
+#
+# 이 파일은 gitops/prod/bootstrap/applications/ 에 둔다 — 온프렘 root-application 의
+# path(gitops/bootstrap/applications) 밖이라 온프렘 Argo 는 이걸 보지 않는다. AWS Argo 의
+# root app 이 gitops/prod/bootstrap/applications 를 가리키게 되는 날부터 살아난다.
+# 그 전까지는 문서다 — 있어도 아무 일도 일어나지 않는다(의도된 상태).
+#
+# apps 는 자동 sync(prune·selfHeal) — 온프렘과 같은 규율. 배포 경로는 git 뿐이다:
+# 앱 저장소 태그 파이프라인이 digest 승격 MR 을 열고 launch 스킬이 검증 후 머지한다.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apps-prod-<svc>
+  namespace: argocd
+spec:
+  project: apps-prod
+  source:
+    repoURL: <PROD_REPO_URL>            # AWS 에서 DevOps/infra 에 닿는 URL — GitHub 미러(https://github.com/Team-DrafType/DevOps.git) 또는 GitLab 공개 경로. setup 인터뷰에서 결정
+    targetRevision: main
+    path: gitops/prod/apps/<svc>
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: <svc>                    # 별도 클러스터라 dev 와 같은 이름을 써도 충돌 없음
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

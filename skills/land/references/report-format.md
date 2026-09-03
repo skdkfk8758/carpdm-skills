@@ -65,7 +65,7 @@ report 와 `result:` 를 내기 **전에** 세션 이름을 랜딩 결과로 바
 
 ## 4. `▶ 다음 단계` 블록 행 매핑
 
-스캔 결과는 **다음 단계 블록**(`~/.claude/skills/craft-core/references/output-contract.md`
+스캔 결과는 **다음 단계 블록**(`~/.claude/references/craft/output-contract.md`
 §N — 고정 3행 `잔여/필수/권장`, 블록 생략 금지, 규칙은 거기가 SSOT — 복제 금지)으로 emit
 한다. 위치: report 본문 아래, `result:` 바로 위. land 의 행 매핑:
 
@@ -76,8 +76,10 @@ report 와 `result:` 를 내기 **전에** 세션 이름을 랜딩 결과로 바
   rebase 해소, `## ⚠ 마이그레이션` prod apply, deps 변경 시 `npm install`. 없으면 "없음".
 - **권장** = **잔여 0건(완료 선언)일 때만** 두 가지 — ① 잔여 워크트리 `wt-sweep` 안내
   (모두 랜딩됐으니 지금이 치워도 안전한 시점) ② 다음 티켓 선정이 필요해 보이면
-  `linear-prioritize` 한 줄. **잔여가 있으면 둘 다 권하지 않는다**(미머지 작업이 남은
-  워크트리 정리 유도 금지 — 워크트리는 Local sync 에 목록만).
+  `linear-prioritize` 한 줄 ③ **repo 가 GitLab 호스팅이고 `.gitlab-ci.yml` 에 태그 릴리즈 잡이 있으면**
+  `git describe --tags --abbrev=0 --match 'v*'` 이후 릴리즈 라인 커밋 수를 세어 `미릴리즈 N 커밋 → /launch`
+  한 줄(0 이면 생략, GitHub repo 면 생략 — launch 는 GitLab 전용). **잔여가 있으면 셋 다 권하지 않는다**
+  (미머지 작업이 남은 워크트리 정리 유도 금지 — 워크트리는 Local sync 에 목록만).
   land 는 다음 작업 후보를 **직접 조회하지 않는다** — 스프린트 플래닝은 `linear-prioritize`
   의 일이고, 여기서 축약 재구현하지 않는다.
 
@@ -181,7 +183,7 @@ NestJS+Vite 잔재 제거 · make dev→npm run dev(next :3000) · find-free-por
 
 ## 7. `result:` — 마지막 한 줄
 
-`~/.claude/skills/craft-core/references/output-contract.md` L1(전 스킬 공통, 백그라운드 잡
+`~/.claude/references/craft/output-contract.md` L1(전 스킬 공통, 백그라운드 잡
 완료 신호). 머지/정리 수치를 담되 self-contained 로:
 
 ```
