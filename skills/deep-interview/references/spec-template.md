@@ -28,6 +28,7 @@ slug 에서 이름 지으라, 예: `docs/specs/<slug>.md` 또는 `docs/specs/<sl
 
 > Crystallized from a deep-interview on <date>. Final ambiguity: <N>% (target ≤ <T>%).
 > Type: <greenfield | brownfield>. Rounds: <count>. Status: <draft | approved>.
+> Cold-read: <pass | gaps noted in §5 | skipped (--quick)>.
 
 ## 1. Goal & scope
 
@@ -100,11 +101,8 @@ to the REQ it constrains.>
 
 ## 8. Handoff
 
-Recommended next step: <build directly in the main session (plan mode → implement
-→ `/code-review`) | `/deep-plan` (plan doc / UI mockup first, build deferred)
-| `goal-prompt` (turn this spec into an autonomous-agent prompt) | `grilling`
-(pressure-test Residual ambiguity only) | `/to-tickets` (tracer-bullet tickets)
-| carry elsewhere>, chosen from the nature of the work above.
+Recommended next step: <one skill, chosen per `references/next-skill-routing.md`
+from the nature of the work above — candidates are not restated here>.
 
 **Treat this spec as the completed requirements step.** Whatever runs next must
 not re-interview — feed these numbered requirements in as the pinned input and
