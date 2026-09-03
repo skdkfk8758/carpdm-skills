@@ -8,10 +8,10 @@
 
 Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스킬은 마크다운(`SKILL.md` + `references/*.md`)이고 `~/.claude/skills/` 로 복사돼야 동작한다. 코드 컴파일·테스트·린트 단계 없음.
 
-스킬 인벤토리·개별 역할의 SSOT 는 각 `skills/<name>/SKILL.md` frontmatter `description:` — 여기 복제하지 않는다(drift 차단). 아키텍처 결합·설계 결정은 아래 §1~§15. 현재 스킬 dir 목록은 `ls skills/`. 그룹 개요:
+스킬 인벤토리·개별 역할의 SSOT 는 각 `skills/<name>/SKILL.md` frontmatter `description:` — 여기 복제하지 않는다(drift 차단). 아키텍처 결합·설계 결정은 아래 §1~§16. 현재 스킬 dir 목록은 `ls skills/`. 그룹 개요:
 - 빌드 파이프라인: `forge`(신규)/`hunt`(버그)/`renew`(개편) + 공유엔진 `craft-core`(§1·§5) + 경량 escape-hatch `tdd`(적대 리뷰·보안 페이즈 없는 red-green-refactor 단독 — 풀 파이프라인 아님)
 - plan·인터뷰(산출만, 빌드 안 함): `deep-interview`(standalone) · `deep-plan`(§6 — 자율 잡용 Goal Prompt `-prompt.md` 도 여기서 산출; 종전 `deep-prompt` 는 #167 에서 은퇴·흡수)
-- 운영: `handoff` · `sweep` · `land` · `wt-sweep`(워크트리·세션기록 정리는 wt-sweep 단독 소관 — land 는 워크트리를 건드리지 않고 Report 로 안내만; 절차 SSOT 는 wt-sweep `references/sweep-mode.md`) · `ship`(§10)
+- 운영: `handoff` · `sweep` · `land` · `wt-sweep`(워크트리·세션기록 정리는 wt-sweep 단독 소관 — land 는 워크트리를 건드리지 않고 Report 로 안내만; 절차 SSOT 는 wt-sweep `references/sweep-mode.md`) · `ship`(§10) · `launch`(§16 — GitLab 서비스 운영 릴리즈: 태그 승인 1회 → 파이프라인 → prod promote MR 자동 머지 → 검증)
 - 검토·판정(코드 한 줄 안 고침, 리포트+수정 라우팅만): `preflight`(§9) · `fortify`(§12)
 - UI·도식: `imprint`(수동 추출 DESIGN.md *준수* 재현 — 발명 아님, token-traceability: raw hex/px 하드코딩 0) · `mockup`(기존 프로젝트 충실 HTML 시안; `references/design-context.md` 가 시안 충실도 SSOT — deep-plan·craft pipeline 이 이 한 소스를 읽는다, 복제 금지) · `erd`(§8)
 - 스캐폴딩·셋업: `cicd-scaffold` · `admap-scaffold` · `colocate-domain-context`
@@ -191,6 +191,35 @@ linear(§11)과 같은 포지션 — craft-core 에 두지만 **엔진 의존 �
   는 필수 — 빼면 메인 repo 하위 디렉토리에서 `.git` vs `../.git` 로 갈려 오판한다.
 - **통일 이득.** 종전 브랜치 확인 명령이 `rev-parse --abbrev-ref HEAD` 와 `worktree list | grep`
   으로 갈려 있었다 — 전자로 통일.
+
+### 16. launch = GitLab 태그 승인 1회로 prod 릴리즈를 잇는 운영 스킬 (2026-09-03)
+
+`launch` 는 dev 까지 자동인 흐름(land 머지 → develop 파이프라인 → infra promote MR → Argo)의
+**다음 칸**이다 — prod 반영만 손이었던 것(버전 고민·즉흥 태그 메시지·웹 MR 머지)을 승인 1회짜리
+파이프라인으로 접는다. craft 엔진 무의존(land 동급), output-contract L1+N 공유, `linear.md` 공유.
+설계 결정(인터뷰 2026-09-03):
+
+- **GitLab 만.** GitHub 잔존 서비스(ADMap·ADType-Intelligence 등, prod=GitHub tag→compose)는 범위 밖 —
+  이관 전엔 손배포. 어댑터를 두지 않은 이유는 두 호스트의 prod 경로가 구조적으로 달라(러너=배포서버 vs
+  GitOps) 공통 계약이 "태그를 민다" 한 줄뿐이기 때문.
+- **prod = ADR 0006(EKS·별도 Argo·`DevOps/infra` 공유·ECR 공유).** 아직 미구축 — 스킬은 `PROD_ARGO_APP`
+  부재를 "검증 skip" 으로 정직 보고하고 MR 머지까지는 진행한다(EKS 가 서면 그 시점 gitops 가 곧 prod).
+  prod 경로는 `gitops/prod/apps/<svc>/` — 온프렘 root app path 밖이라 setup MR 을 머지해도 아무것도 뜨지 않는다.
+- **재빌드 없음 — 재태깅.** 태그 파이프라인은 릴리즈 라인 커밋의 `<line>-<sha>` 이미지에 ECR `put-image` 로
+  `vX.Y.Z` 를 덧붙인다(같은 digest, ADR 0006 "dev 검증 digest 승격"). dev 이미지 없는 커밋은 태그 불가.
+- **게이트 1회 = 태그.** 그 뒤 promote MR 은 스킬이 사용자 PAT 로 API 머지한다 — 단 파이프라인 green +
+  diff 가 `PROD_GITOPS_PATH` 의 `image:` 줄만 + digest 일치 세 조건. `GITOPS_PUSH_TOKEN`(Developer)은 protected
+  main 머지 권한이 없어 CI 가 머지할 수 없다 — 스킬이 머지하는 건 설계상 의도.
+- **롤백은 새 결정.** health 실패 시 revert MR 을 *제안·생성*까지만, 머지는 사람(태그 승인이 롤백을 덮지 않는다).
+- **설정은 `.gitlab-ci.yml` `variables:` 한 자리**(`RELEASE_LINE`·`IMAGES`·`PROD_GITOPS_PATH`·`PROD_HEALTH_URL`·
+  `PROD_ARGO_APP`·`PROD_KUBE_CONTEXT`). 별도 config 파일 없음 — setup 모드가 채우고 release 모드가 읽는다.
+  배선 부재 = setup 모드(인터뷰 → 앱 MR + infra MR + protected tag, 그리고 **멈춤** — 첫 릴리즈는 다시 `/launch`,
+  배선 오류와 릴리즈 실패를 분리해서 보기 위해).
+- **GitLab API = PAT(keychain `gitlab-onprem`) + `kubectl port-forward` 8181.** 웹은 CF Access 뒤라 토큰만으론
+  안 뚫린다. API 없으면 release 모드 진행 안 함(반자동 릴리즈가 가장 헷갈린다) — PAT 발급 안내 후 멈춤.
+- **버전은 태그가 SSOT.** `package.json` 은 건드리지 않는다(드리프트는 플랜에 한 줄). 태그 메시지 = Release 본문
+  한 소스, 첫 줄 `vX.Y.Z — <요약>` 로 3가지 스타일 수렴. bump 는 커밋 prefix 종류로(feat→minor 등), 사용자 지정 우선.
+- **land 연동:** land report `▶ 다음 단계` 권장 행이 GitLab repo 의 미릴리즈 커밋을 `/launch` 로 라우팅.
 
 ## Skill authoring 검증
 

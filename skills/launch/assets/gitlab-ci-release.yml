@@ -1,0 +1,97 @@
+# launch — 태그 릴리즈 잡 (setup 모드가 프로젝트 .gitlab-ci.yml 에 병합한다)
+#
+# 흐름: 태그 vX.Y.Z push → retag(dev 검증 digest 에 semver 태그) → promote-prod(infra prod 경로 MR)
+#
+# 다시 빌드하지 않는다. 릴리즈 라인(RELEASE_LINE)의 커밋 sha 로 이미 구워진
+# `<line>-<sha>` 이미지를 찾아 그 *같은 digest* 에 `vX.Y.Z` 태그를 붙인다(ADR 0006:
+# "dev 에서 검증 후 prod 가 같은 digest 를 쓴다"). HEAD 에 이미지가 없으면(docs-only 커밋 —
+# build 는 changes: 규칙으로 건너뛴다) 릴리즈 라인을 거슬러 마지막 빌드 커밋을 쓴다.
+# 50 커밋 안에 이미지가 없으면 실패한다.
+#
+# 이 파일의 `variables:` 블록이 launch 스킬이 읽는 프로젝트별 설정의 유일한 자리다.
+# setup 이 값을 채우고, release 모드는 여기서 RELEASE_LINE·IMAGES·PROD_GITOPS_PATH·
+# PROD_HEALTH_URL·PROD_ARGO_APP 을 읽는다. 별도 config 파일을 두지 않는다.
+#
+# 필요 변수(기존 promote 잡과 동일 — 새로 만들 것 없음):
+#   그룹/인스턴스: AWS_ACCESS_KEY_ID · AWS_SECRET_ACCESS_KEY · AWS_DEFAULT_REGION · ECR_REGISTRY
+#   프로젝트:      GITOPS_PUSH_TOKEN (DevOps/infra project access token, write_repository)
+
+variables:
+  RELEASE_LINE: "develop"                       # 릴리즈 라인 브랜치 — 태그는 이 라인 커밋에만
+  IMAGES: "apps/<svc>"                          # ECR repo 목록(공백 구분). 다중 이미지면 나열
+  PROD_GITOPS_PATH: "gitops/prod/apps/<svc>"    # DevOps/infra 안의 prod 매니페스트 경로
+  PROD_HEALTH_URL: ""                           # prod healthz. 비우면 launch 가 health 검증을 skip
+  PROD_ARGO_APP: ""                             # AWS Argo Application 이름. 비우면 sync 검증 skip
+  PROD_KUBE_CONTEXT: ""                         # 로컬 kubeconfig 의 prod 컨텍스트 이름
+
+.release-rules: &release-rules
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+
+retag:
+  stage: deploy
+  <<: *release-rules
+  image: alpine/k8s:1.33.4@sha256:b0523f0a244ddc4c8e055aa335c040d3d78b3ead5528f4544395f7f9f69c7b68
+  variables:
+    GIT_DEPTH: "50"          # 아래 rev-list 가 거슬러 올라갈 만큼 — build 가 changes: 규칙으로 건너뛴 커밋 수보다 커야 한다
+  script:
+    - |
+      set -eu
+      # 이미지 커밋 찾기 — HEAD 부터 거슬러 올라가 <line>-<sha> 이미지가 있는 첫 커밋.
+      # build 잡은 changes:(Dockerfile·src·lock) 규칙으로 docs-only 커밋을 건너뛰므로 HEAD 에 이미지가
+      # 없는 게 정상이다. 그 규칙이 "마지막 빌드 이후 소스 변경 0" 을 보장하니 마지막 빌드 = 현재 소스.
+      first_repo=${IMAGES%% *}
+      SRC=""
+      for sha in $(git rev-list --max-count=50 HEAD); do
+        if aws ecr describe-images --repository-name "$first_repo" --image-ids imageTag="${RELEASE_LINE}-${sha}" >/dev/null 2>&1; then
+          SRC="${RELEASE_LINE}-${sha}"; echo "source image commit: $sha (HEAD 에서 $(git rev-list --count ${sha}..HEAD) 커밋 전)"; break
+        fi
+      done
+      [ -n "$SRC" ] || { echo "::error:: 최근 50 커밋에 ${RELEASE_LINE}-<sha> 이미지 없음 — ${RELEASE_LINE} 빌드 파이프라인 확인"; exit 1; }
+      : > digests.env
+      for repo in $IMAGES; do
+        MANIFEST=$(aws ecr batch-get-image --repository-name "$repo" --image-ids imageTag="$SRC" \
+                     --query 'images[0].imageManifest' --output text)
+        if [ -z "$MANIFEST" ] || [ "$MANIFEST" = "None" ]; then
+          echo "::error:: $repo:$SRC 없음 — 다중 이미지 서비스는 같은 커밋에서 전부 빌드돼야 한다"; exit 1
+        fi
+        # 같은 manifest 를 semver 태그로 put — digest 는 변하지 않는다. 이미 있으면(재실행) 통과.
+        aws ecr put-image --repository-name "$repo" --image-tag "$CI_COMMIT_TAG" --image-manifest "$MANIFEST" \
+          >/dev/null 2>err.txt || grep -q ImageAlreadyExistsException err.txt || { cat err.txt; exit 1; }
+        DIGEST=$(aws ecr describe-images --repository-name "$repo" --image-ids imageTag="$CI_COMMIT_TAG" \
+                   --query 'imageDetails[0].imageDigest' --output text)
+        case "$DIGEST" in sha256:*) ;; *) echo "digest 조회 실패: $repo → $DIGEST"; exit 1;; esac
+        echo "$repo $DIGEST" >> digests.env
+        echo "retag $repo:$SRC → $repo:$CI_COMMIT_TAG @ $DIGEST"
+      done
+  artifacts:
+    paths: [digests.env]
+    expire_in: 1 week
+
+promote-prod:
+  stage: deploy
+  <<: *release-rules
+  needs: ["retag"]
+  image: alpine/k8s:1.33.4@sha256:b0523f0a244ddc4c8e055aa335c040d3d78b3ead5528f4544395f7f9f69c7b68
+  script:
+    - |
+      set -eu
+      REPO="http://gitlab-ci-token:${GITOPS_PUSH_TOKEN}@gitlab-webservice-default.gitlab.svc.cluster.local:8181/DevOps/infra.git"
+      git clone -q --depth 1 -b main "$REPO" gitops && cd gitops
+      test -d "$PROD_GITOPS_PATH" || { echo "$PROD_GITOPS_PATH 없음 — launch setup 이 infra MR 을 먼저 머지해야 한다"; exit 1; }
+      while read -r repo digest; do
+        IMG="$ECR_REGISTRY/$repo"
+        # image 줄만 바꾼다 — launch 가 MR diff 를 "image 줄만" 으로 검증하므로 다른 줄을 건드리면 머지가 막힌다.
+        sed -i -E "s#^( *image: )${IMG}:[^@ ]+(@sha256:[0-9a-f]+)?#\1${IMG}:${CI_COMMIT_TAG}@${digest}#" "$PROD_GITOPS_PATH"/*.yaml
+      done < ../digests.env
+      if git diff --quiet; then echo "digest unchanged — no MR"; exit 0; fi
+      git diff --stat
+      { echo "release(${CI_PROJECT_NAME}): promote ${CI_COMMIT_TAG} to prod"; echo
+        cat ../digests.env; echo
+        echo "source ${CI_PROJECT_URL}/-/pipelines/${CI_PIPELINE_ID}"; } > ../msg.txt
+      git -c user.name="${CI_PROJECT_NAME}-ci" -c user.email="${CI_PROJECT_NAME}-ci@draftype.net" commit -qa -F ../msg.txt
+      branch="ci/${CI_PROJECT_NAME}-prod-${CI_COMMIT_TAG}"
+      git push -q "$REPO" "HEAD:refs/heads/$branch" \
+        -o merge_request.create -o merge_request.target=main -o merge_request.remove_source_branch \
+        -o "merge_request.title=release(${CI_PROJECT_NAME}): promote ${CI_COMMIT_TAG} → prod"
+      echo "MR opened from $branch"
