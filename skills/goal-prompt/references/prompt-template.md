@@ -56,6 +56,7 @@
 
 ## Working Method
 - 착수: `git rev-parse HEAD` 를 실행하고 출력 SHA 를 첫 보고 줄에 **리터럴로** 적는다 — 이후 모든 diff 판정은 그 SHA 를 직접 쓴다(셸 변수는 tool call 간 유지되지 않는다). 이 문서의 `<BASE_SHA>` 가 그 값이다.
+- 착수: **BASE 신선도를 확인한다.** `git fetch origin <trunk>` 후 `git rev-list --count <BASE_SHA>..origin/<trunk>` 를 실행하고 그 수를 보고에 적는다. 이 문서의 BASE 는 프롬프트를 **쓴 시점**의 값이라 소비 시점엔 뒤처져 있을 수 있다. 0 이 아니면 rebase 하고, rebase 후 SHA 를 새 BASE 로 삼아 그 사실을 보고한다. 뒤처진 base 로 만든 변경은 충돌 없이 조용히 빠지는 것(설정 checksum·새 규칙)이 생긴다.
 {{working-method.md §4 결합표에서 조립 — 각 줄 = "시점: 할 일 (스킬 있으면 / 없으면)"}}
 
 ## Verification
