@@ -8,7 +8,6 @@
     "allow": [
       "mcp__linear__save_comment",
       "mcp__linear__save_issue",
-      "Bash(node:*)",
       "Bash(npm view:*)",
       "Bash(test:*)",
       "Bash(tree:*)",
@@ -17,9 +16,6 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm test:web:*)",
-      "Bash(python3:*)",
-      "Bash(python:*)",
-      "Bash(bash:*)",
       "Bash(curl:*)",
       "Bash(claude plugins:*)",
       "Bash(git:*)",
@@ -43,11 +39,6 @@
       "Bash(ssh 4090_4WAY:*)",
       "Bash(ssh 4090_1WAY:*)",
       "Bash(ssh hermes:*)",
-      "Bash(ssh -o ConnectTimeout=* gcp-nginx:*)",
-      "Bash(ssh -o ConnectTimeout=* 4090_2WAY:*)",
-      "Bash(ssh -o ConnectTimeout=* 4090_4WAY:*)",
-      "Bash(ssh -o ConnectTimeout=* 4090_1WAY:*)",
-      "Bash(ssh -o ConnectTimeout=* hermes:*)",
       "mcp__linear-intelligence__save_issue",
       "mcp__linear-intelligence__save_comment",
       "mcp__linear__list_teams",
@@ -554,7 +545,8 @@
     "skill-creator@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "ponytail@ponytail": true,
-    "mattpocock-skills@claude-plugins-official": true
+    "mattpocock-skills@claude-plugins-official": true,
+    "oh-my-fable@oh-my-fable": true
   },
   "extraKnownMarketplaces": {
     "ponytail": {
@@ -562,10 +554,16 @@
         "source": "github",
         "repo": "DietrichGebert/ponytail"
       }
+    },
+    "oh-my-fable": {
+      "source": {
+        "source": "github",
+        "repo": "Junhan2/oh-my-fable"
+      }
     }
   },
   "language": "korean",
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
   "skipWorkflowUsageWarning": true,
@@ -579,7 +577,31 @@
       "$defaults",
       "Source control: github.com/Team-DrafType (private org repos)",
       "Trusted SSH hosts (developer-owned infra): hermes, 4090_1WAY, 4090_2WAY, 4090_4WAY, gcp-nginx",
-      "Hermes ingest/analyze daemon endpoints referenced via HERMES_INGEST_URL"
+      "Hermes ingest/analyze daemon endpoints referenced via HERMES_INGEST_URL",
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: assume private unless the remote host and repo name indicate otherwise, or a visibility check in the transcript shows public — this scratch workspace has no remotes, so treat as private/local-only",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: not queryable here — no remotes on this repo, and gh lookup was not queryable (no owner/repo derivable)",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Host containment**: None configured — assume Claude Code runs on an ordinary developer machine with open internet",
+      "**Source control**: The trusted repo and its remote(s) only — this repo currently has no remotes configured (no additional orgs configured)",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (hyphen/underscore/dot-delimited — e.g. matches `prod-db`, not `producer`)",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development",
+      "**Trusted repo**: The git repository the agent started in — this scratch workspace at /Users/carpdm/Library/Application Support/Claude/scratch-workspaces/... has no tracked files and no remotes configured",
+      "**Org-specific CLIs**: None configured"
     ]
   },
   "claudeInChromeDefaultEnabled": false
