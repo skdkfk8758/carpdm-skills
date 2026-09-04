@@ -442,6 +442,9 @@ enabled = true
 [plugins."codex-app-tools@openai-bundled"]
 enabled = true
 
+[plugins."unified-computer-use@openai-bundled"]
+enabled = true
+
 [hooks.state."omo@sisyphuslabs:hooks/hooks.json:session_start:0:0"]
 trusted_hash = "sha256:c96cc5363e493d45b4fc3c81f0c0b236a091d97237f8ed5550d3f74350b61bf0"
 
@@ -659,6 +662,9 @@ trust_level = "trusted"
 [projects."/Users/carpdm/Documents/Codex/2026-09-02/https-draftypehq-slack-com-archives-c06h70ydth8"]
 trust_level = "trusted"
 
+[projects."/Users/carpdm/Documents/Codex/2026-09-04/https-draftypehq-slack-com-archives-c09akqv5g95"]
+trust_level = "trusted"
+
 [mcp_servers.obsidian]
 command = "npx"
 args = ["-y", "@mauricio.wolff/mcp-obsidian@latest", "/Users/carpdm/Documents/Obsidian/AIBrain"]
@@ -709,13 +715,13 @@ NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin
 NODE_REPL_TRUSTED_CODE_PATHS = "/Users/carpdm/.codex:/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
 CODEX_HOME = "/Users/carpdm/.codex"
 BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
-BROWSER_USE_TINYSKY_ENABLED = "0"
-NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
-NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
-NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
+BROWSER_USE_TINYSKY_ENABLED = "1"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = ""
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = ""
+NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = ""
 BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
-BROWSER_USE_CODEX_APP_VERSION = "26.820.60940"
-NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/carpdm/.codex/plugins/cache/openai-bundled/browser/26.820.60940/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
+BROWSER_USE_CODEX_APP_VERSION = "26.901.22334"
+NODE_REPL_TRUSTED_SERVICES = '{"browser":"/Users/carpdm/.codex/plugins/cache/openai-bundled/browser/26.901.22334/scripts/browser-service.mjs","sky":"@oai/sky/service"}'
 SKY_CUA_SERVICE_PATH = "/Users/carpdm/.codex/computer-use/Codex Computer Use.app"
 CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
