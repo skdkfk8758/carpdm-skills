@@ -223,6 +223,11 @@
             "type": "command",
             "command": "bash ~/.claude/hooks/guards/guard-branch-linear-naming.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-zsh-glob-url.sh",
+            "timeout": 5
           }
         ]
       },
@@ -545,8 +550,9 @@
     "skill-creator@claude-plugins-official": true,
     "claude-md-management@claude-plugins-official": true,
     "ponytail@ponytail": true,
-    "mattpocock-skills@claude-plugins-official": true,
-    "oh-my-fable@oh-my-fable": true
+    "oh-my-fable@oh-my-fable": true,
+    "i-have-adhd@i-have-adhd": true,
+    "mattpocock-skills@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "ponytail": {
@@ -559,6 +565,12 @@
       "source": {
         "source": "github",
         "repo": "Junhan2/oh-my-fable"
+      }
+    },
+    "i-have-adhd": {
+      "source": {
+        "source": "github",
+        "repo": "ayghri/i-have-adhd"
       }
     }
   },
