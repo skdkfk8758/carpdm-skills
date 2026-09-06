@@ -16,6 +16,16 @@ AI 응답 = 한국어(`settings.json` 이 주입). 코드 주석·문서 = 영�
 앞선 진단이 틀렸음을 발견하면 조용히 덮어쓰지 말고 **명시 철회**한다 — "앞서 X 라고 한 것은 틀렸다, 실제는 Y다".
 그 틀린 주장 위에서 이미 수행한 작업(수정·커밋·보고)이 있으면 **파급과 되돌림 필요 여부를 같이** 보고한다.
 
+**결론 전 증거 표.** 인프라 토폴로지·설정 상태·"가능한가" 판정처럼 틀리면 비싼 주장은,
+권고를 쓰기 **전에** 표로 먼저 낸다 — `주장 | 실행한 명령 | 출력 발췌 | Verified/Inferred/Unknown`.
+Inferred·Unknown 행은 권고 본문에 넣지 않는다(넣으려면 먼저 확인해 Verified 로 올린다).
+문서·핸드오버에 실릴 주장이면 예외 없다 — 틀린 주장이 산출물로 굳으면 회수 비용이 몇 배다.
+
+**"불가능"·"막혔다" 는 최후 판정이다.** 선언 전에 인증·우회 경로를 전부 시도하고, 각각의 실제 에러를 적는다:
+(1) `gh auth status`/`glab auth status` 와 `~/.config` 의 기존 토큰, (2) 환경변수 PAT(GITHUB_TOKEN·GITLAB_TOKEN),
+(3) `gh api`/`glab api` REST 직접 호출, (4) `kubectl port-forward` 로 내부 엔드포인트, (5) Cloudflare Access 서비스 토큰.
+다섯 중 무엇을 시도했고 각각 어떤 에러였는지 없이 "못 한다"고 보고하지 않는다.
+
 ## 브랜치 · worktree
 - trunk = `develop`(원격 SSOT) · `main` = release/deploy 라인. 둘 다 **force-push 금지**.
 - 브랜치명 `<type>/<issue-id>-<topic>` — 이슈ID 없으면 트래커 자동연동이 안 걸린다.

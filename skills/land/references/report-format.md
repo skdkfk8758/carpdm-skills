@@ -102,6 +102,8 @@ report 와 `result:` 를 내기 **전에** 세션 이름을 랜딩 결과로 바
   사용자 직접 관리). 마이그 PR 을 이 섹션 없이 조용히 landed 로만 보고하지 말 것.
 - **`## ⚠ deps 변경`** — Step 5.1 의 lockfile 감지 결과(worktree 별 `node_modules` 분리 탓에
   main repo 부팅 실패 위험). lockfile 목록 + `npm install` 제안.
+- **`## ⚠ 문서 drift`** — Step 5.6 스캔 결과. rename·삭제된 심볼/파일/엔드포인트를 참조하는
+  STALE 히트를 `path:line` 으로 나열하고 잔여 행에 후속 수정을 남긴다. 히트 0건이면 섹션 생략.
 - **Orca 감지 시 워크트리 표기·카드 갱신** — `references/orca.md`. 워크트리 줄을
   displayName + workspaceStatus + 라이브 attach 로 쓰고, 머지된 PR 의 head 워크트리 카드를
   `--workspace-status completed --comment "landed #<n>"` 로 갱신. 저위험 write, 실패해도 무시.
