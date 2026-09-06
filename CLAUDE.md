@@ -3,6 +3,7 @@
 > 이 파일이 이 저장소의 **유일한 지침 진입점이자 본문**이다. Claude Code 가 native 로 읽는다.
 > 벤더별 진입점(`AGENTS.md` 등)도, 중간 파일도 두지 않는다 — 두 벌을 유지하면 갈라진다.
 > 개인 하네스의 글로벌 룰은 `~/.claude/CLAUDE.md` 로 별도 auto-load 된다.
+> **이 저장소 trunk = `master`** (PR base·머지 대상). 글로벌 `CLAUDE.md` §브랜치의 `develop` 은 여기 적용되지 않는다.
 
 ## What this repo is
 

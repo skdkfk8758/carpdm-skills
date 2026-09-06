@@ -232,6 +232,15 @@
         ]
       },
       {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/guards/guard-secret-echo.sh"
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write",
         "hooks": [
           {
@@ -325,6 +334,14 @@
       }
     ],
     "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/auth-precheck.sh"
+          }
+        ]
+      },
       {
         "hooks": [
           {

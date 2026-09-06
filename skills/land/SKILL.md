@@ -251,6 +251,14 @@ Proceed?
      (실측 SUR-26: 미체크 AC 가 Done+머지로 위장 통과). 침묵 전이는 제거하되 graceful
      정책은 유지 — 막지 않고 플래그만 한다(체크박스가 없거나 전부 `[x]` 면 그대로 Done).
 
+6. **문서 drift 스캔 (rename·삭제·버전 변경이 있었을 때만).** 머지 range
+   (`git diff --name-status <before>..HEAD`)에서 **이름이 바뀌거나 삭제된 심볼·파일·엔드포인트·
+   버전 문자열**을 뽑아, repo 전체(`docs/`·`wiki/`·README·CLAUDE.md 포함)에서 grep 한다.
+   히트를 `path:line` 으로 나열하고 STALE/FINE 판정 후, STALE 은 기본 브랜치 위 별도 후속
+   커밋이 아니라 **Report 의 `## ⚠ 문서 drift` 섹션**에 남긴다 — land 는 기본 브랜치에 커밋하지
+   않는다(branch-protection). 이름 변경·삭제가 0건이면 스캔 자체를 생략한다(대부분의 머지가 여기 해당).
+   근거: Markdown 416개 규모에서 stale 참조 정리가 별도 세션으로 반복 발생.
+
 ### 6. Report — 무엇이 랜딩됐고, 그 설계가 어디 있는지
 
 land 는 보통 새 세션에서 돈다 — 유저는 방금 머지한 게 정확히 무엇이었고 그 설계
