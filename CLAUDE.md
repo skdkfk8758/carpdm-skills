@@ -12,7 +12,7 @@ Claude Code 글로벌 스킬 **배포 레포**. 빌드/런타임 없음 — 스�
 스킬 인벤토리·개별 역할의 SSOT 는 각 `skills/<name>/SKILL.md` frontmatter `description:` — 여기 복제하지 않는다(drift 차단). 아키텍처 결합·설계 결정은 `docs/architecture/decisions.md` §1~§16. 현재 스킬 dir 목록은 `ls skills/`. 그룹 개요:
 - 빌드 파이프라인: `forge`(신규)/`hunt`(버그)/`renew`(개편) + 공유엔진 `craft-core`(§1·§5) + 경량 escape-hatch `tdd`(적대 리뷰·보안 페이즈 없는 red-green-refactor 단독 — 풀 파이프라인 아님)
 - plan·인터뷰(산출만, 빌드 안 함): `deep-interview`(standalone) · `deep-plan`(§6 — 자율 잡용 Goal Prompt `-prompt.md` 도 여기서 산출; 종전 `deep-prompt` 는 #167 에서 은퇴·흡수)
-- 운영: `handoff` · `sweep` · `land` · `wt-sweep`(워크트리·세션기록 정리는 wt-sweep 단독 소관 — land 는 워크트리를 건드리지 않고 Report 로 안내만; 절차 SSOT 는 wt-sweep `references/sweep-mode.md`) · `ship`(§10) · `launch`(§16 — GitLab 서비스 운영 릴리즈: 태그 승인 1회 → 파이프라인 → prod promote MR 자동 머지 → 검증)
+- 운영: `handoff` · `sweep` · `land` · `relay`(계획↔구현 교대의 구간 판정·다음 물결 안내 — 읽기 전용 + 로컬 trunk ff 만) · `wt-sweep`(워크트리·세션기록 정리는 wt-sweep 단독 소관 — land 는 워크트리를 건드리지 않고 Report 로 안내만; 절차 SSOT 는 wt-sweep `references/sweep-mode.md`) · `ship`(§10) · `launch`(§16 — GitLab 서비스 운영 릴리즈: 태그 승인 1회 → 파이프라인 → prod promote MR 자동 머지 → 검증)
 - 검토·판정(코드 한 줄 안 고침, 리포트+수정 라우팅만): `preflight`(§9) · `fortify`(§12)
 - UI·도식: `imprint`(수동 추출 DESIGN.md *준수* 재현 — 발명 아님, token-traceability: raw hex/px 하드코딩 0) · `mockup`(기존 프로젝트 충실 HTML 시안; `references/design-context.md` 가 시안 충실도 SSOT — deep-plan·craft pipeline 이 이 한 소스를 읽는다, 복제 금지) · `erd`(§8)
 - 스캐폴딩·셋업: `cicd-scaffold` · `admap-scaffold` · `colocate-domain-context`
