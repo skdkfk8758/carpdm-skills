@@ -20,7 +20,8 @@ variables:
   RELEASE_LINE: "develop"                       # 릴리즈 라인 브랜치 — 태그는 이 라인 커밋에만
   IMAGES: "apps/<svc>"                          # ECR repo 목록(공백 구분). 다중 이미지면 나열
   PROD_GITOPS_PATH: "gitops/prod/apps/<svc>"    # DevOps/infra 안의 prod 매니페스트 경로
-  PROD_HEALTH_URL: ""                           # prod healthz. 비우면 launch 가 health 검증을 skip
+  # http(s) URL 또는 API server Service proxy raw path. 비우면 launch가 health 검증을 skip.
+  PROD_HEALTH_URL: ""
   PROD_ARGO_APP: ""                             # AWS Argo Application 이름. 비우면 sync 검증 skip
   PROD_KUBE_CONTEXT: ""                         # 로컬 kubeconfig 의 prod 컨텍스트 이름
 

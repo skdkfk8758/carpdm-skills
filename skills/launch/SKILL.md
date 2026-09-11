@@ -79,6 +79,8 @@ PAT 발급 안내를 내고 멈춘다.
   `<svc>` = 마지막 세그먼트, API id 조회는 전체 경로 URL-encode.
 - **배선**: `.gitlab-ci.yml` 의 `variables:` 에서 `RELEASE_LINE`(main/develop) · `IMAGES`(ECR repo 목록) ·
   `PROD_GITOPS_PATH` · `PROD_HEALTH_URL`(없을 수 있음) · `PROD_ARGO_APP`(없을 수 있음) 을 읽는다.
+  `PROD_HEALTH_URL` 은 기존 `http(s)://…` URL 또는 Kubernetes API server Service proxy raw path
+  (`/api/v1/namespaces/<ns>/services/http:<service>:<port>/proxy/<path>`)다. 값을 셸 명령으로 평가하지 않는다.
   이 변수 블록이 프로젝트별 설정의 **유일한 자리**다(별도 config 파일 없음 — setup 이 여기 쓴다).
 - **HEAD**: 현재 브랜치 == `RELEASE_LINE`, working tree clean, `HEAD == origin/<line>`(fetch 후).
   아니면 멈춘다 — 릴리즈는 원격이 아는 커밋에만 건다.
@@ -177,8 +179,13 @@ MR 을 API 로 조회해 **세 가지를 확인한 뒤** 머지한다(`PUT …/m
   `status.sync.revision` 이 머지 커밋 sha 인지 — 세 개 다. 자동 sync 라 보통 3분 안에 온다
   (폴링 30초, 상한 10분). `phase=Succeeded` 는 *이전* operation 것일 수 있으니 판정에 쓰지 않는다
   (infra `CLAUDE.md` 실측 함정).
-- **health**: `PROD_HEALTH_URL` 이 있으면 `curl -sS -o /dev/null -w '%{http_code}'` 가 200 인지
-  3회(10초 간격) — 롤아웃 중 한 번의 non-200 은 정상이므로 연속 3회 실패만 실패로 본다.
+- **health**: `PROD_HEALTH_URL` 이 있으면 형식에 따라 아래처럼 호출한다. 각 호출의 상한은 10초이고
+  10초 간격으로 3회 실행한다. 성공 횟수와 응답을 보고하며, 연속 3회 실패만 릴리즈 실패로 본다.
+  - `/api/…`: `kubectl --context "$PROD_KUBE_CONTEXT" --request-timeout=10s get --raw "$PROD_HEALTH_URL"`.
+    exit 0이고 trailing newline을 제외한 body가 정확히 `ok`여야 성공이다. context가 비었거나 다른 body면 실패다.
+  - `http://…` 또는 `https://…`: 기존 계약을 유지해 `curl --max-time 10 -sS -o /dev/null -w '%{http_code}'
+    "$PROD_HEALTH_URL"`의 exit가 0이고 status가 `200`이어야 성공이다.
+  - 그 밖의 형식은 호출하지 않고 설정 오류로 실패한다. raw path와 URL 모두 따옴표로 감싸며 `eval`하지 않는다.
 
 **실패 판정이면 롤백 MR 을 제안한다.** 자동으로 열지 않고 `AskUserQuestion` — "revert MR 열기 /
 잠깐 두고 보기 / 직접 처리". 열기를 택하면 infra 를 clone 해 promote 커밋을 `git revert` 하고
