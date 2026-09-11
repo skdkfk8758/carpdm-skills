@@ -1,6 +1,6 @@
 # carpdm-skills
 
-Claude Code 글로벌 스킬 배포 레포. **계획 3종(심층 인터뷰·계획 수립·goal 프롬프트) + 세션/운영 6종(인계·랜딩·운영 릴리즈·워크트리 정리·스킬 배포·dev 서버 데몬) + Linear 라이프사이클 4종**, 총 **스킬 13종.** 스킬과 별개 축으로 [`global/`](global/README.md) 이 **글로벌 환경 전수 덤프**(rules·hooks·settings·서드파티 스킬·codex·MCP/플러그인 재현)를 담아 팀원 동일 환경을 3명령으로 재현한다.
+Claude Code 글로벌 스킬 배포 레포. **계획 3종(심층 인터뷰·계획 수립·goal 프롬프트) + 세션/운영 8종(인계·랜딩·운영 릴리즈·dev 배포 배선·워크트리 정리·스킬 배포·dev 서버 데몬·구간 판정) + Linear 라이프사이클 4종**, 총 **스킬 15종.** 스킬과 별개 축으로 [`global/`](global/README.md) 이 **글로벌 환경 전수 덤프**(rules·hooks·settings·서드파티 스킬·codex·MCP/플러그인 재현)를 담아 팀원 동일 환경을 3명령으로 재현한다.
 
 **구현·수정·버그픽스에는 스킬이 없다** — 메인이 직접 한다(plan mode → 구현 → `/code-review`, 보안 민감 변경이면 `/security-review`). 2026-08-04 에 파이프라인 3종(`forge`·`renew`·`hunt`)과 공유 엔진 `craft-core` 를 은퇴시켰다. 근거·되살릴 조건은 [ADR 003](docs/adr/003-harness-minimization-2026-08.md).
 
@@ -23,6 +23,7 @@ Claude Code 글로벌 스킬 배포 레포. **계획 3종(심층 인터뷰·계�
 | [`keel`](skills/keel) | 신규 프로젝트에 dev 배포 파이프라인 — 인터뷰 1콜(노출 등급·외부 의존·라인) → GitLab CI(test→build→promote) + `gitops/apps/<svc>/`·Application·AppProject → MR 둘 열고 멈춤 · 준비도 미충족이면 infra 요청 문서 | "배포 붙여줘", "CI 세팅해줘", "새 서비스 온보딩", "/keel" | GitLab PAT(keychain `gitlab-onprem`) + kubectl port-forward · `DevOps/infra` clone |
 | [`launch`](skills/launch) | GitLab 서비스 운영 릴리즈 — 버전·노트 제안 → 승인 1회 → 태그·Release → 태그 파이프라인(dev digest 재태깅+infra prod promote MR) → MR 자동 머지 → Argo/health 검증 · 배선 없으면 setup, prod 환경 준비도(10항목 3-상태) 판정·가이드 + connect 모드 | "운영 배포해줘", "prod 릴리즈", "운영배포 세팅해줘", "/launch" | GitLab PAT(keychain `gitlab-onprem`) + kubectl port-forward · references/craft (output-contract·linear) |
 | [`wt-sweep`](skills/wt-sweep) | PR 없이 잔여·세션 워크트리만 정리 | "워크트리 정리해줘", "세션 워크트리 치워줘" | 자체 references/sweep-mode.md 가 절차 SSOT |
+| [`relay`](skills/relay) | 계획(Claude)↔구현(Codex) 교대 작업의 구간 판정 — 활성 work-order·goal-prompt 성공 기준을 git·PR·Linear 실측과 대조, 새로 완료된 WU 만 검증 재실행, 파일 겹침으로 병렬 물결을 나눠 담당 호스트·붙여넣기 한 줄 안내 (머지·삭제 없음, 로컬 trunk ff 만) | "작업 완료했는데 확인해주고 다음작업 가이드해줘", "다 했어 다음 뭐 해", "/relay" | 없음 (독립 · Claude·Codex 공용 — `~/.codex/skills/relay` 는 링크) |
 | [`ship`](skills/ship) | (레포 전용) 스킬 변경 PR→CI→머지→로컬정리 한 흐름 | "PR 올리고 land 까지", "ship 해줘", "CI 통과하면 머지" | 없음 (독립, carpdm-skills 전용) |
 | [`dev-server-daemon`](skills/dev-server-daemon) | dev 서버를 daemon(double-fork)으로 띄워 세션 종료 후에도 살려둠 — 사람이 브라우저로 직접 확인하도록 인계 | "개발서버 백그라운드로 띄워줘", "dev 서버 올려둬 내가 확인할게", "올려놔" | 없음 (독립, references/craft `ui-verify §5.1` 이 이 스킬을 호출) |
 
@@ -51,7 +52,7 @@ cd carpdm-skills
 bash install.sh
 ```
 
-14개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
+15개 스킬을 `~/.claude/skills/` 로 복사한다. 기존 동일 이름은 in-place 덮어씀 (멱등 — git history 가 안전망). 설치 후 Claude Code **재시작**.
 
 > 온보딩은 위 스킬 표 13행 + 아래 [설치](#설치) 3명령이 전부다. 종전 `docs/guides/team-workflow-guide.{md,html}`
 > 은 은퇴 스킬(`forge`·`hunt`·`renew`·`linear-goal`·`preflight`·`fortify`·`mockup`·`imprint`)을 워크플로 축으로
