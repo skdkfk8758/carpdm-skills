@@ -15,7 +15,7 @@
 | 릴리즈 라인 | 기존 `promote` 잡 `rules` 의 `$CI_COMMIT_BRANCH == "…"` (mentalmarket=main, admap-mcp/review/survey=develop) | 묻는다 |
 | 이미지 목록 | `variables:` 의 `IMAGE*: "$ECR_REGISTRY/apps/…"` | 묻는다 |
 | dev 매니페스트 · AppProject · ns | `DevOps/infra` `gitops/apps/<svc>/` + `gitops/bootstrap/applications/apps-<svc>.yaml` 의 `spec.project`·`destination.namespace`(`apps-dev`/`survey-radar` 도, `apps-internal`/`internal-admap-mcp` 도 있다) | 매니페스트 없으면 dev 배선부터 — setup 범위 밖. **`keel` 로 라우팅하고 멈춘다** |
-| health 경로 | dev deployment 의 `readinessProbe.httpGet.path` | health 검증 미설정으로 둔다 |
+| health target | dev deployment 의 `readinessProbe.httpGet.path` + prod Service의 namespace·이름·named port | 있으면 API server Service proxy raw path를 만든다. Service 정보가 없으면 health 검증 미설정으로 둔다 |
 | `GITOPS_PUSH_TOKEN` | API `GET /projects/:id/variables` key 목록 | 없으면 체크리스트에 [HUMAN] |
 | 기존 태그 규칙 잡 | `.gitlab-ci.yml` 에 `$CI_COMMIT_TAG` grep | 있으면 충돌 — 그 잡을 보여주고 멈춘다(덮어쓰지 않는다) |
 | protected tag · 변수 protected 여부 | API `GET /projects/:id/protected_tags` · `GET /projects/:id/variables` 의 `protected` 필드 | §2c 로 — API 없으면 [HUMAN] 첫 줄 |
@@ -34,7 +34,8 @@ GitLab API 는 `references/gitlab-access.md` 로 연다. API 없이도 파일 �
 - **AWS Argo 가 infra 를 읽을 URL**: GitHub 미러(`https://github.com/Team-DrafType/DevOps.git`, 공개 경로,
   push mirror 지연 수분) / GitLab 직결(CF Access 뒤라 AWS 에서 자격 필요). 미정이면 GitHub 미러를 기본으로
   쓰고 Application 주석에 남긴다 — EKS 가 서는 날 바꿀 수 있는 한 줄이다.
-- **prod health URL**: 도메인이 아직 없으면 빈칸 — 검증은 EKS 뒤 CI 변수로 켠다.
+- **prod health target**: prod Service 정보와 kube context가 있으면 노드 비의존 API server Service proxy raw path를
+  기본값으로 쓴다. Service proxy를 쓸 수 없을 때만 외부 `http(s)` URL을 받고, 둘 다 없으면 빈칸으로 둔다.
 
 프로젝트에 서비스가 여러 이미지(mentalmarket api+web)면 `IMAGES` 에 나열하고, prod 매니페스트에
 그 이미지 줄이 각각 있는지 §3 에서 확인한다.

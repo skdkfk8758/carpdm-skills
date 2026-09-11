@@ -33,7 +33,7 @@
 | 7 | imagePullSecret | `kubectl $CTX -n <ns> get secret ecr-pull -o name` · `kubectl $CTX get cronjob -A \| grep ecr-token-refresh` | Secret + 갱신 CronJob 둘 다 |
 | 8 | 앱 Secret | prod 매니페스트의 `secretRef`/`secretKeyRef` 이름을 뽑아 `kubectl $CTX -n <ns> get secret <name> -o name` | 참조된 전부 존재 |
 | 9 | 데이터 도달성 | ConfigMap/Secret 의 DB·외부 호스트를 뽑아 **목록만** — 로컬에서 probe 하지 않는다 | 항상 **확인필요** + 호스트 목록. 온프렘 주소(`192.168.*`·`*.ts.net`·NAS)면 "EKS 에서 도달 경로 없음 — 결정 필요" 명시 |
-| 10 | health URL | `PROD_HEALTH_URL` 비어 있지 않고 `dig +short <host>` 응답 | DNS 해석. 200 여부는 릴리즈 Step 5 의 일 |
+| 10 | health target | `PROD_HEALTH_URL` 형식 분기: `/api/…`면 `PROD_KUBE_CONTEXT`가 있고 Service proxy raw path가 `/api/v1/namespaces/<ns>/services/http:<service>:<port>/proxy/<path>` 형식인지 확인, `http(s)://…`면 `dig +short <host>` | raw path 형식+context 또는 DNS 해석. 실제 `ok`/200 여부는 릴리즈 Step 5의 일 |
 
 출력 형식(고정 — 카드 안 그대로):
 
@@ -45,7 +45,7 @@ prod 준비도 — apps/<svc>   (7/10 PASS · 2 FAIL · 1 확인필요)
  4 repo credential     —
  …
  9 데이터 도달성       확인필요  DATABASE_URL host 192.168.0.194 (온프렘 NAS) — EKS 도달 경로 없음
-10 health URL          FAIL  PROD_HEALTH_URL 미설정
+10 health target       FAIL  PROD_HEALTH_URL 미설정
 ```
 
 ## 2. 미충족 항목 가이드 — 어디서, 어떤 순서로
@@ -65,7 +65,7 @@ setup 보고 끝(§4 체크리스트 위)과 release 보고의 `## ⚠ 미검증
 | 7 | `ecr-pull` — ns 별 Secret + 8h 갱신 CronJob. EKS 면 **IRSA 로 대체 가능**(장기 키 불필요) — 선택은 사용자 | 온프렘 `ecr-credentials/ecr-token-refresh` 동형 or IRSA |
 | 8 | 앱 Secret — Infisical **prod** env → `kubectl create secret … --from-env-file`(dev 의 `sync-secrets` 잡 동형) 또는 사람이 1회 | admap-mcp 는 사람 생성 방식(`docs/deploy.md`) |
 | 9 | 데이터 경로 — 온프렘 DB 면 (a) VPN/Tailscale subnet router (b) DB 를 AWS 로 이전 (c) prod 전용 DB. **ADR 0006 은 "네트워크를 잇지 않는다"** 라 (a) 는 ADR 충돌 | 사용자 결정. 스킬은 세 갈래를 보여주고 묻지 않는다(범위 밖) |
-| 10 | 도메인·엣지 — Route53(`adtype.biz`) 또는 Cloudflare, Ingress/ALB. 온프렘은 NPM 이었다 | `serving-architecture.md` 참조 · 결정 후 `PROD_HEALTH_URL` |
+| 10 | health target — kube context에서 Service가 보이면 API server Service proxy raw path를 우선한다. 외부 소비자 경로도 검증해야 하면 Route53(`adtype.biz`) 또는 Cloudflare, Ingress/ALB URL을 쓴다 | 노드 이름·NodePort 대신 `/api/v1/namespaces/<ns>/services/http:<service>:<port>/proxy/<health-path>` 권고 |
 
 순서는 표 번호다 — 1→3 이 뼈대, 4·5 가 3 의 전제, 6 은 자동, 7·8 은 파드가 뜨기 위한 것, 9·10 은 트래픽.
 사용자가 "다 됐다" 고 하면 §3 으로.
@@ -82,8 +82,9 @@ release 모드에서 이 상태를 만나면 "connect 먼저" 를 제안하고 �
    **첫 sync 는 dev digest 로 뜬다**(setup 이 `image:` 줄을 dev 그대로 두었다) — 이것이 prod 환경의 smoke 다:
    같은 이미지가 dev 에서 도는 중이니 여기서 실패하면 환경 문제(Secret·pull·네트워크)다. `Degraded`/`OutOfSync`
    면 `kubectl $CTX -n <ns> get pods` + `describe` 첫 실패 파드를 보고서에 붙이고 멈춘다.
-3. **health** — `PROD_HEALTH_URL` 후보(사용자 입력)로 `curl -sS -o /dev/null -w '%{http_code}'` 200. 도메인이
-   아직 없으면 `kubectl $CTX -n <ns> port-forward svc/<svc> …` 로 `/healthz` 만 확인하고 URL 은 빈칸 유지.
+3. **health** — prod Service·named port와 readiness path를 읽을 수 있으면 API server Service proxy raw path를
+   `PROD_HEALTH_URL` 후보로 만들고 SKILL.md Step 5와 같은 분기로 body `ok`를 확인한다. Service proxy를 쓸 수 없고
+   외부 URL이 있으면 기존 `curl` 200 계약을 쓴다. 둘 다 없을 때만 port-forward로 `/healthz`를 확인하고 변수는 빈칸 유지한다.
 4. **CI 변수 3개 채우기** — `.gitlab-ci.yml variables:` 의 `PROD_KUBE_CONTEXT`·`PROD_ARGO_APP`·`PROD_HEALTH_URL`.
    릴리즈 라인은 protected 라 **MR**(브랜치 `chore/launch-connect`) — setup §2a 와 같은 규율. **승인 1회**(외부 write).
    MR 머지는 사용자(또는 승인에 포함시켜 API 머지).
