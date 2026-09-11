@@ -65,7 +65,7 @@ WU 마다 상태를 하나로 정한다: `머지됨(머지 SHA)` · `PR 열림(#
 ### Step 4 — 새로 완료된 WU 의 검증 재실행
 
 1. 대상은 **새로 완료**(원칙 3) 이거나 `PR 열림` 이면서 코드형 기준을 가진 WU 다. 열린 PR 은 `origin/pr/<번호>` 를 검증 워크트리에 detach 체크아웃해 돌린다.
-2. 검증 워크트리를 재사용한다: 저장소 옆 `<레포>-relay-verify` 가 없으면 `git worktree add --detach <레포>-relay-verify origin/<trunk>` 로 만들고, 있으면 `git -C <레포>-relay-verify checkout --detach origin/<trunk>` 로 옮긴다. 이 워크트리는 커밋하지 않고 지우지도 않는다 — 다음 relay 가 의존성 설치를 재사용한다. 의존성은 이 워크트리 안에 따로 설치한다(워크트리 간 `node_modules` 공유 금지).
+2. 검증 워크트리를 재사용한다: 저장소 옆 `<레포>-relay-verify` 가 없으면 `git worktree add --detach <레포>-relay-verify origin/<trunk>` 로 만들고, 있으면 `git -C <레포>-relay-verify checkout --detach origin/<trunk>` 로 옮긴다. 이 워크트리는 커밋하지 않고 지우지도 않는다 — 다음 relay 가 의존성 설치를 재사용한다. 의존성은 이 워크트리 안에 따로 설치한다(워크트리 간 `node_modules` 공유 금지). **검증 명령보다 설치를 먼저 한다** — 레포 `CLAUDE.md`·`Makefile` 의 설치 타깃(`make api-install`·`make web-install`·`pip install -r requirements.txt` 등, 개발 의존성 포함)을 돌린다. 새 가상환경에 테스트 의존성이 없으면 conftest import 오류가 테스트 실패로 오판된다(실측: `ModuleNotFoundError: pytest_asyncio`). 종료 코드가 0 이 아니면 로그의 첫 오류 줄을 읽고, 환경 오류면 설치를 고친 뒤 다시 돌린다 — 환경 오류를 PR 판정에 넣지 않는다.
 3. 프롬프트의 검증 명령을 그대로 실행하고 종료 코드와 핵심 수치(통과/실패 개수)를 적는다. 판정 명령에 `|| true`·`| tail` 을 붙이지 않는다 — 종료 코드가 삼켜진다. 여러 PR 을 돌리면 명령마다 로그 파일과 `<태그> exit=<코드>` 요약 한 줄을 남기고, 오래 걸리면 백그라운드로 돌리며 그동안 Step 5·6 을 진행한다.
    - 기준 명령이 trunk 에서도 실패하면(선재 부채 — 예: 저장소 전체 lint 오류) trunk 에서 한 번 더 돌려 **PR 이 새로 만든 실패인지** 가른다. 선재 실패는 `미충족(선재 · trunk 도 실패)` 로 적는다.
 4. 외부 자원이 필요한 명령(로컬 DB·에이전트·운영 API)이 준비되지 않았으면 `미실행 — <필요한 것>` 으로 적는다.
