@@ -24,7 +24,11 @@ eval "$(echo "$input" | jq -r '
   @sh "wt_branch=\(.worktree.branch // "")",
   @sh "rl_5h=\(.rate_limits.five_hour.used_percentage // "")",
   @sh "rl_7d=\(.rate_limits.seven_day.used_percentage // "")",
-  @sh "transcript=\(.transcript_path // "")"
+  @sh "transcript=\(.transcript_path // "")",
+  @sh "pc_hit=\(.prompt_cache.hit_ratio // "")",
+  @sh "pc_warm=\(.prompt_cache.warm // "")",
+  @sh "pc_ttl=\(.prompt_cache.ttl // "")",
+  @sh "pc_miss=\(.prompt_cache.misses // 0)"
 ' 2>/dev/null)" || true
 
 # --- ANSI colors ---
@@ -85,6 +89,20 @@ if [ -n "${used_pct:-}" ]; then
   for (( i=0; i<filled; i++ )); do bar+="█"; done
   for (( i=0; i<empty;  i++ )); do bar+="░"; done
   ctx_seg="${clr}${bar} ${pct_int}%%${R}"
+fi
+
+# --- Prompt cache (main conversation; docs: target hit ratio >= 80%) ---
+# prompt_cache appears after the first API response (Claude Code >= 2.1.251); empty before that.
+pc_seg=""
+if [ -n "${pc_hit:-}" ] && [ "${pc_hit:-}" != "null" ]; then
+  hit_int=$(awk "BEGIN { printf \"%d\", (${pc_hit} * 100) + 0.5 }" 2>/dev/null || echo "0")
+  if   [ "$hit_int" -ge 80 ]; then cc=$GR
+  elif [ "$hit_int" -ge 60 ]; then cc=$YL
+  else                             cc=$RD
+  fi
+  warm_mark="○"; [ "${pc_warm:-}" = "true" ] && warm_mark="●"
+  pc_seg="${D}cache${R} ${cc}${hit_int}%%${R}${D}${pc_ttl:+ ${pc_ttl}}${R}${cc}${warm_mark}${R}"
+  [ "${pc_miss:-0}" -gt 0 ] 2>/dev/null && pc_seg+=" ${RD}m${pc_miss}${R}"
 fi
 
 # --- Rate limits ---
@@ -157,6 +175,7 @@ parts+=("${B}${CY}${model}${R}")
 parts+=("${WH}${project}${R}")
 [ -n "$branch_seg" ]  && parts+=("$branch_seg")
 [ -n "$ctx_seg" ]     && parts+=("$ctx_seg")
+[ -n "$pc_seg" ]      && parts+=("$pc_seg")
 [ -n "$rl_seg" ]      && parts+=("$rl_seg")
 [ -n "$cost_seg" ]    && parts+=("$cost_seg")
 [ -n "$lines_seg" ]   && parts+=("$lines_seg")

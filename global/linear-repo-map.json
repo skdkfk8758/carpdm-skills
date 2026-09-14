@@ -66,6 +66,19 @@
       "team": "DevOps",
       "repo": "/Users/carpdm/Workspace/infra",
       "note": "인프라 SSOT 레포(GitLab DevOps/infra). 워크트리를 repo 루트 안에 한글 이름으로 만드는 관행이 있어(infra/백로그-작업 등) prefix 매칭이 그대로 동작한다. 앱 repo 5곳의 CI 가 이 레포로 promote MR 을 열지만 이슈 라우팅은 DevOps 팀 것만 여기로 온다."
+    },
+    {
+      "repo": "/Users/carpdm/Workspace/DB-Manager",
+      "teamId": "da713ddc-501a-4885-941f-9176fc3bd1c9",
+      "teamKey": "DOPS",
+      "note": "DB-Manager(회사 DB 총괄) 전용 팀 없음 — 2026-09-09 사용자 결정으로 DOPS 팀에 등록하되 팀 라벨 `DB-Manager`(id 583c5a26-ec8a-49d0-a853-1a50135cb0ef) 로 infra(gitops) 작업과 구분한다. 조회 시 DOPS 팀 + 라벨 `DB-Manager` 로 좁힌다. 워크트리는 repo 아래 한글 이름(DB-Manager/그래프-DB-아키텍처-구축 등)이라 prefix 매칭이 그대로 동작한다. 첫 이슈 DOPS-43."
+    },
+    {
+      "teamKey": "MM",
+      "teamId": "48bb099e-18e8-4a74-abe5-e1d5ec23358d",
+      "team": "MentalMarket (멘탈마켓 키워드·브랜드 분석)",
+      "repo": "/Users/carpdm/Workspace/MentalMarket",
+      "note": "2026-09-10 팀 생성. trunk=develop, main=release 라인. GitHub(origin)과 GitLab(gitlab.draftype.work/apps/mentalmarket)은 미러가 아니다 — 릴리스는 GitHub main 머지 + GitLab main push 둘 다. 워크트리를 repo 루트 안에 한글 이름으로 만드는 관행이 있어 prefix 매칭이 동작한다. 크론은 별도 repo gitlab.draftype.work/apps/mental_market_cron — 크론 이슈는 DOPS 에도 있다(DOPS-15)."
     }
   ],
   "labelRoutes": [

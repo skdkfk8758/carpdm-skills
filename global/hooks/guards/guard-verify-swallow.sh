@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PostToolUse hook (Bash): Warn when a verification-ish command swallows its
-# exit code — the false-green trap. NON-BLOCKING — exit 0 + stderr only
-# (guard-linear-state-nudge pattern).
+# exit code — the false-green trap. NON-BLOCKING — exit 0 + additionalContext
+# (lib-emit-context.sh).
 #
 # Why: measured incident — a `|| echo` after a test command swallowed a failing
 # exit code and produced a false-green verify that only user pushback caught.
@@ -43,7 +43,8 @@ echo "$SANITIZED" | $GREP -qE '(pnpm|npm|yarn)[[:space:]]+(run[[:space:]]+)?(tes
 # 2. Exit-code swallow present?
 echo "$SANITIZED" | $GREP -qE '\|\|[[:space:]]*(echo|true|:)([[:space:]]|$|;)' || exit 0
 
-cat >&2 <<'EOF'
+. "$(dirname "${BASH_SOURCE[0]}")/lib-emit-context.sh"
+cat <<'EOF' | emit_context PostToolUse
 [guard-verify-swallow] 검증 명령이 exit code 를 삼키고 있다 (`|| echo`/`|| true`/`|| :`).
 실패해도 green 으로 보이는 false-green 트랩 — 이 출력만 보고 "통과"로 판정하지 말 것.
 → swallow 없이 strict 로 재실행해 exit code 를 직접 확인한 뒤에만 green 선언.

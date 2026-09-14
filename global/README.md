@@ -43,6 +43,7 @@ repo 에서도 빠짐 — git history 가 안전망). 새 스크립트 편입은
 | `global/references/craft/*.md` | `~/.claude/references/craft/*.md` | 스킬이 절대경로로 읽는 공유 자료 |
 | `global/hooks/guards/*.sh` | `~/.claude/hooks/guards/*.sh` | 전수 (가드 훅) |
 | `global/hooks/*.{sh,py}` | `~/.claude/hooks/*.{sh,py}` | settings 가 참조하는 것 |
+| `global/agents/*.md` | `~/.claude/agents/*.md` | 전수 (서브에이전트 정의 — 워커·페르소나) |
 | `global/scripts/*` | `~/.claude/scripts/*` | 훅·automation 이 참조하는 것 |
 | `global/statusline.sh` | `~/.claude/statusline.sh` | settings 참조 |
 | `global/linear-issue-goal-template.md` | 동명 | linear-goal 스킬 참조 |
@@ -52,6 +53,7 @@ repo 에서도 빠짐 — git history 가 안전망). 새 스크립트 편입은
 | `global/codex/{skills,agents,prompts}/` | `~/.codex/{skills,agents,prompts}/` | codex 형상 전수 |
 | `global/codex/config.toml` | `~/.codex/config.toml` | secret 마스킹 후 · 설치는 신규 머신만 |
 | `global/setup/replicate.sh` | (파일 아님 — 실행) | MCP·플러그인·npm 재현 명령(멱등) |
+| `global/templates/project/` | `~/.claude/templates/project/` | 프로젝트 템플릿 세트(ADR·스텝 규율·council 프롬프트) |
 
 ## 제외 (의도적 — 머신·개인 종속)
 

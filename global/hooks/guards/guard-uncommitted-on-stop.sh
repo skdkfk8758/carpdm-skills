@@ -13,8 +13,8 @@
 #      including idle and main checkouts, so the board carried zero signal.
 #
 # Non-blocking by house posture (guard-worktree-edit-isolation.sh precedent):
-# stderr + exit 0, never exit 2. Dedups the warning per (session, state signature)
-# so an unchanged state warns once, not every turn.
+# additionalContext + exit 0 (lib-emit-context.sh), never exit 2. Warns once per (session, repo, branch),
+# interactive sessions only — see the Warning block.
 #
 #   Disable both:      GUARD_UNCOMMITTED_DISABLE=1
 #   Disable card sync: GUARD_ORCA_CARD_DISABLE=1
@@ -123,8 +123,13 @@ fi
 # ------------------------------------------------------------------- Warning
 [ "$DIRTY" = "0" ] && [ "$AHEAD" = "0" ] && exit 0
 
-# Dedup: one warning per (session, repo, branch, dirty count, ahead count).
-KEY=$(printf '%s' "$SID$TOP$BR$DIRTY$AHEAD" | shasum 2>/dev/null | cut -c1-16)
+# Stop additionalContext makes the model take ONE more turn (measured 2026-09-11).
+# So: interactive only — under `claude -p`/SDK that turn replaces the caller's final
+# output — never inside a continuation a Stop hook already caused, and once per
+# (session, repo, branch) instead of per dirty/ahead count.
+case "${CLAUDE_CODE_ENTRYPOINT:-cli}" in cli) ;; *) exit 0 ;; esac
+printf '%s' "$INPUT" | grep -q '"stop_hook_active"[[:space:]]*:[[:space:]]*true' && exit 0
+KEY=$(printf '%s' "$SID$TOP$BR" | shasum 2>/dev/null | cut -c1-16)
 MARK="${TMPDIR:-/tmp}/cc-uncommitted.${KEY:-fallback}"
 [ -f "$MARK" ] && exit 0
 : > "$MARK"
@@ -134,12 +139,15 @@ mkdir -p "$(dirname "$LOG")" 2>/dev/null
 printf '{"ts":"%s","repo":"%s","branch":"%s","dirty":%s,"ahead":%s,"no_remote":%s,"linked":%s}\n' \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$TOP" "$BR" "$DIRTY" "$AHEAD" "$NO_REMOTE" "$IS_LINKED" >> "$LOG" 2>/dev/null
 
-echo "[nudge] 작업 종료 시점에 미반영 변경이 남아 있다 — $BR" >&2
-[ "$DIRTY" -gt 0 ] && echo "  · 미커밋 ${DIRTY}건 — 의미 단위로 커밋하거나, 의도적으로 남기면 사유를 보고에 명시" >&2
+. "$(dirname "${BASH_SOURCE[0]}")/lib-emit-context.sh"
+{
+echo "[nudge] 작업 종료 시점에 미반영 변경이 남아 있다 — $BR"
+[ "$DIRTY" -gt 0 ] && echo "  · 미커밋 ${DIRTY}건 — 의미 단위로 커밋하거나, 의도적으로 남기면 사유를 보고에 명시"
 if [ "$AHEAD" -gt 0 ] && [ "$NO_REMOTE" = "1" ]; then
-  echo "  · ${AHEAD}커밋이 로컬에만 있고 원격 브랜치가 없다 — git push -u origin $BR (병렬 세션의 reset 한 번에 전부 손실)" >&2
+  echo "  · ${AHEAD}커밋이 로컬에만 있고 원격 브랜치가 없다 — git push -u origin $BR (병렬 세션의 reset 한 번에 전부 손실)"
 elif [ "$AHEAD" -gt 0 ]; then
-  echo "  · ${AHEAD}커밋 unpushed — git push" >&2
+  echo "  · ${AHEAD}커밋 unpushed — git push"
 fi
-echo "  (끄기: GUARD_UNCOMMITTED_DISABLE=1)" >&2
+echo "  (끄기: GUARD_UNCOMMITTED_DISABLE=1)"
+} | emit_context Stop
 exit 0

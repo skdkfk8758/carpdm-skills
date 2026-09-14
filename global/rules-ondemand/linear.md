@@ -53,7 +53,7 @@ IMPORTANT: 이슈를 **생성**하는 모든 경우는 `linear-register` 스킬�
 
 ## 강제 (hook — 비차단)
 
-`guard-linear-register-nudge.sh`(PreToolUse `mcp__linear__save_issue`) 가 생성 호출에 stderr nudge.
+`guard-linear-register-nudge.sh`(PreToolUse `mcp__linear__save_issue`) 가 생성 호출에 additionalContext nudge.
 스킬 자신이 `save_issue` 를 호출하므로 하드 블록은 불가하다 — **리마인드일 뿐, 실제 경유는 AI 가 한다.**
 끄기: `GUARD_LINEAR_REGISTER_NUDGE_DISABLE=1`.
 
