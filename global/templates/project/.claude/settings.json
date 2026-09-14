@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(<VERIFY-CMD-1>:*)",
+      "Bash(<VERIFY-CMD-2>:*)"
+    ]
+  }
+}

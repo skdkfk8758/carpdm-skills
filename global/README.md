@@ -52,6 +52,7 @@ repo 에서도 빠짐 — git history 가 안전망). 새 스크립트 편입은
 | `global/codex/{skills,agents,prompts}/` | `~/.codex/{skills,agents,prompts}/` | codex 형상 전수 |
 | `global/codex/config.toml` | `~/.codex/config.toml` | secret 마스킹 후 · 설치는 신규 머신만 |
 | `global/setup/replicate.sh` | (파일 아님 — 실행) | MCP·플러그인·npm 재현 명령(멱등) |
+| `global/templates/project/` | `~/.claude/templates/project/` | 프로젝트 템플릿 세트(ADR·스텝 규율·council 프롬프트) |
 
 ## 제외 (의도적 — 머신·개인 종속)
 
