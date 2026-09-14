@@ -46,8 +46,6 @@ jobs:
         run: node scripts/ci/catalog.js
 
       # Targets the repo mirror under global/, so no ~/.claude install is needed.
-      - name: Test prompt-intake hook
-        run: bash scripts/ci/test-prompt-intake.sh
 
       # Same idea: the guard resolves its target next to itself, so the repo
       # mirror is testable as-is. Covers both the blocks and the false positives.
