@@ -13,6 +13,7 @@ LIVE="$HOME/.claude"
 rsync -a --delete --exclude '__pycache__' "$LIVE/rules/"          "$REPO/rules/"
 rsync -a --delete --exclude '__pycache__' "$LIVE/rules-ondemand/" "$REPO/rules-ondemand/"
 rsync -a --delete --exclude '__pycache__' "$LIVE/hooks/guards/"   "$REPO/hooks/guards/"
+rsync -a --delete --exclude '__pycache__' "$LIVE/agents/"         "$REPO/agents/"
 
 # 개별 파일 (관리 목록)
 for f in hooks/caveman-session-start.sh hooks/linear-banner-autostart.sh \
