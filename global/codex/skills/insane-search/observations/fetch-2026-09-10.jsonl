@@ -1,0 +1,1 @@
+{"ts": 1789017141, "url": "https://example.com", "domain": "example.com", "ok": true, "verdict": "weak_ok", "profile_used": null, "attempts": 1, "planned_attempts": 0, "stop_reason": "success", "winner": {"phase": "probe", "executor": "curl_cffi", "transform": "original", "impersonate": "safari", "referer": "self_root", "status": 200, "body_size": 559}}

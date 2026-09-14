@@ -16,9 +16,8 @@ rsync -a --delete --exclude '__pycache__' "$LIVE/hooks/guards/"   "$REPO/hooks/g
 rsync -a --delete --exclude '__pycache__' "$LIVE/agents/"         "$REPO/agents/"
 
 # 개별 파일 (관리 목록)
-for f in hooks/caveman-session-start.sh hooks/linear-banner-autostart.sh \
-         hooks/auth-precheck.sh \
-         hooks/prompt-intake.py statusline.sh linear-issue-goal-template.md CLAUDE.md; do
+for f in hooks/linear-banner-autostart.sh hooks/auth-precheck.sh \
+         statusline.sh linear-issue-goal-template.md CLAUDE.md; do
   cp "$LIVE/$f" "$REPO/$f"
 done
 

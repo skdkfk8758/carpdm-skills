@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # PreToolUse hook (Bash): Warn when a URL/path argument carrying `?` or `*`
 # is passed unquoted — zsh globs it and the command dies before it runs.
-# NON-BLOCKING — exit 0 + stderr only (guard-linear-register-nudge pattern).
+# NON-BLOCKING — exit 0 + additionalContext (lib-emit-context.sh).
 #
 # Why: measured incident (2026-09-05) — `gh api repos/o/r/git/trees/HEAD?recursive=1`
 # failed 3x in one session with `zsh: no matches found`, costing 3 round trips.
@@ -45,7 +45,8 @@ for tok in stripped.split():
 
 [ -z "$HIT" ] && exit 0
 
-cat >&2 <<EOF
+. "$(dirname "${BASH_SOURCE[0]}")/lib-emit-context.sh"
+cat <<EOF | emit_context PreToolUse
 [guard-zsh-glob-url] 따옴표 없는 인자에 zsh glob 문자가 있다: $HIT
 zsh 는 URL 안의 \`?\`·\`*\` 도 글로브로 먹는다 — 명령이 실행되기 전에
 \`no matches found\` 로 죽고 왕복 1회가 통째로 낭비된다.

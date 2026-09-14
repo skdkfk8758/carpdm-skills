@@ -11,7 +11,7 @@
 #
 # Non-blocking by design — house posture is report-only (verify G16,
 # large-file-read, branch nudge are all advisory; blocking worktree guards are
-# explicitly forbidden). Exit 0 + stderr. Dedups to ONE nudge per
+# explicitly forbidden). Exit 0 + additionalContext. Dedups to ONE nudge per
 # (session, branch, repo) via a marker file so it never spams later edits.
 #
 #   Disable:        GUARD_WT_ISO_DISABLE=1
@@ -49,9 +49,12 @@ MARK="${TMPDIR:-/tmp}/cc-wt-iso.${KEY:-fallback}"
 [ -f "$MARK" ] && exit 0
 : > "$MARK"
 
-echo "[nudge] 메인 워크트리·base 브랜치($BR)에서 첫 편집 감지 (ADR-041 D9 lazy 격리)." >&2
-echo "  권고: 작업을 worktree 로 격리하고 메인은 $BR 에 둔다. 토픽이 잡힌 지금이 분기 적기." >&2
-echo "  → EnterWorktree({ name: \"<type>/<topic>\" })  — typed 이름 명시 (feat/fix/refactor…), 자동명 지양" >&2
-echo "  또는: git worktree add .claude/worktrees/<type>+<topic> -b <type>/<topic> HEAD" >&2
-echo "  의도적으로 메인에서 진행하면 사유를 첫 응답에 명시. (끄기: GUARD_WT_ISO_DISABLE=1)" >&2
+. "$(dirname "${BASH_SOURCE[0]}")/lib-emit-context.sh"
+{
+echo "[nudge] 메인 워크트리·base 브랜치($BR)에서 첫 편집 감지 (ADR-041 D9 lazy 격리)."
+echo "  권고: 작업을 worktree 로 격리하고 메인은 $BR 에 둔다. 토픽이 잡힌 지금이 분기 적기."
+echo "  → EnterWorktree({ name: \"<type>/<topic>\" })  — typed 이름 명시 (feat/fix/refactor…), 자동명 지양"
+echo "  또는: git worktree add .claude/worktrees/<type>+<topic> -b <type>/<topic> HEAD"
+echo "  의도적으로 메인에서 진행하면 사유를 첫 응답에 명시. (끄기: GUARD_WT_ISO_DISABLE=1)"
+} | emit_context PreToolUse
 exit 0

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # PostToolUse hook (Write|Edit): Warn on CLAUDE.md exceeding line limit.
+# Delivered as additionalContext (lib-emit-context.sh), once per (session, file, level).
 # Configurable via env vars:
 #   GUARD_CLAUDE_MD_MAX  — hard limit (default: 100)
 #   GUARD_CLAUDE_MD_WARN — warning threshold (default: 80)
@@ -22,11 +23,20 @@ WARN="${GUARD_CLAUDE_MD_WARN:-80}"
 LINE_COUNT=$(wc -l < "$FILE_PATH" 2>/dev/null | tr -d ' ')
 [ -z "$LINE_COUNT" ] && exit 0
 
+LEVEL=""
+[ "$LINE_COUNT" -gt "$WARN" ] && LEVEL=caution
+[ "$LINE_COUNT" -gt "$MAX" ] && LEVEL=warning
+[ -z "$LEVEL" ] && exit 0
+. "$(dirname "${BASH_SOURCE[0]}")/lib-emit-context.sh"
+once_per "claude-md-size|$(hook_sid "$INPUT")|$FILE_PATH|$LEVEL" || exit 0
+
+{
 if [ "$LINE_COUNT" -gt "$MAX" ]; then
-  echo "[guard] WARNING: $FILE_PATH — ${LINE_COUNT} lines (exceeds ${MAX} limit)" >&2
-  echo "ACTION REQUIRED: Split CLAUDE.md. Move detail to a referenced file or trim." >&2
+  echo "[guard] WARNING: $FILE_PATH — ${LINE_COUNT} lines (exceeds ${MAX} limit)"
+  echo "ACTION REQUIRED: Split CLAUDE.md. Move detail to a referenced file or trim."
 elif [ "$LINE_COUNT" -gt "$WARN" ]; then
-  echo "[guard] CAUTION: $FILE_PATH — ${LINE_COUNT} lines (approaching ${MAX} limit). Consider splitting." >&2
+  echo "[guard] CAUTION: $FILE_PATH — ${LINE_COUNT} lines (approaching ${MAX} limit). Consider splitting."
 fi
+} | emit_context PostToolUse
 
 exit 0
