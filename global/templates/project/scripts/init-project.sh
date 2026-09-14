@@ -1,19 +1,38 @@
 #!/usr/bin/env bash
 # init-project.sh — install the project template set into a target directory.
 #
-# Usage: init-project.sh <target-dir>
+# Usage: init-project.sh <target-dir> [--sub <subdir>...]
+#
+# --sub <subdir>  additionally install the monorepo sub-folder templates
+#                 (sub/AGENTS.md, sub/CLAUDE.md) into <target-dir>/<subdir>.
+#                 Repeatable, e.g. --sub apps/web --sub apps/api.
 #
 # Never overwrites an existing file: prints "SKIP" and moves on, so re-running
 # on a live project is safe. Performs no delete operation of any kind.
 set -euo pipefail
 
 usage() {
-  echo "usage: $(basename "$0") <target-dir>" >&2
+  echo "usage: $(basename "$0") <target-dir> [--sub <subdir>...]" >&2
   exit 2
 }
 
-[ "$#" -eq 1 ] || usage
+[ "$#" -ge 1 ] || usage
 TARGET="$1"
+shift
+
+SUBDIRS=()
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --sub)
+      [ "$#" -ge 2 ] || usage
+      SUBDIRS+=("$2")
+      shift 2
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
 
 # Template root is the parent of this script's directory.
 SRC="$(cd "$(dirname "$0")/.." && pwd)"
@@ -53,6 +72,26 @@ for rel in "${FILES[@]}"; do
   mkdir -p "$(dirname "$dest")"
   cp "$src" "$dest"
   echo "COPY  $rel"
+done
+
+SUB_FILES=("sub/AGENTS.md" "sub/CLAUDE.md")
+for subdir in "${SUBDIRS[@]:-}"; do
+  [ -n "$subdir" ] || continue
+  for rel in "${SUB_FILES[@]}"; do
+    src="$SRC/$rel"
+    dest="$TARGET/$subdir/$(basename "$rel")"
+    if [ ! -f "$src" ]; then
+      echo "MISS  $rel (템플릿 원본 없음: $src)" >&2
+      exit 1
+    fi
+    if [ -e "$dest" ]; then
+      echo "SKIP  $subdir/$(basename "$rel") (이미 있음 — 덮어쓰지 않음)"
+      continue
+    fi
+    mkdir -p "$(dirname "$dest")"
+    cp "$src" "$dest"
+    echo "COPY  $subdir/$(basename "$rel")"
+  done
 done
 
 echo
